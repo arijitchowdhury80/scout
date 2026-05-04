@@ -1,11 +1,11 @@
 ---
 name: scout
-description: Use Scout to fetch, crawl, extract structured data from, map, or screenshot any URL. Scout is a self-hosted web intelligence platform running at http://localhost:8000. Use it whenever you need to read a webpage, discover URLs on a site, extract structured data, or capture a visual screenshot.
+description: Use Scout to fetch, crawl, extract structured data from, map, or screenshot any URL. Scout is a self-hosted web intelligence platform running at http://localhost:8421. Use it whenever you need to read a webpage, discover URLs on a site, extract structured data, or capture a visual screenshot.
 ---
 
 # Scout — Web Intelligence Skill
 
-Scout is your self-hosted web crawler. It runs locally at `http://localhost:8000`. Use it to fetch web pages, crawl sites, extract structured data with a schema, discover URLs, or capture screenshots.
+Scout is your self-hosted web crawler. It runs locally at `http://localhost:8421`. Use it to fetch web pages, crawl sites, extract structured data with a schema, discover URLs, or capture screenshots.
 
 **All requests require the `X-API-Key` header.** Read the key from the `SCOUT_API_KEY` environment variable. Default for local dev: `dev-key`.
 
@@ -29,7 +29,7 @@ Scout is your self-hosted web crawler. It runs locally at `http://localhost:8000
 **When**: You need the content of one page as clean markdown.
 
 ```bash
-curl -X POST http://localhost:8000/scrape \
+curl -X POST http://localhost:8421/scrape \
   -H "Content-Type: application/json" \
   -H "X-API-Key: dev-key" \
   -d '{
@@ -65,7 +65,7 @@ curl -X POST http://localhost:8000/scrape \
 **When**: You need content from multiple pages (e.g., all docs pages, all blog posts).
 
 ```bash
-curl -X POST http://localhost:8000/crawl \
+curl -X POST http://localhost:8421/crawl \
   -H "Content-Type: application/json" \
   -H "X-API-Key: dev-key" \
   -d '{
@@ -97,7 +97,7 @@ curl -X POST http://localhost:8000/crawl \
 **When**: You need specific fields from a page (CEO name, list of job titles, investor names, etc.).
 
 ```bash
-curl -X POST http://localhost:8000/extract \
+curl -X POST http://localhost:8421/extract \
   -H "Content-Type: application/json" \
   -H "X-API-Key: dev-key" \
   -d '{
@@ -136,7 +136,18 @@ curl -X POST http://localhost:8000/extract \
 - `markdown` — raw page content as fallback
 - `metadata`
 
-**Note:** Requires `LLM_API_KEY` set in Scout's environment.
+**Note:** Requires `LLM_API_KEY` set in Scout's environment. If no LLM key is configured, pass `css_schema` instead for selector-based extraction (no API key needed):
+
+```json
+{
+  "url": "https://example.com",
+  "css_schema": {
+    "name": "page",
+    "baseSelector": "body",
+    "fields": [{"name": "title", "selector": "h1", "type": "text"}]
+  }
+}
+```
 
 ---
 
@@ -145,7 +156,7 @@ curl -X POST http://localhost:8000/extract \
 **When**: You want to understand a site's structure before deciding what to crawl.
 
 ```bash
-curl -X POST http://localhost:8000/map \
+curl -X POST http://localhost:8421/map \
   -H "Content-Type: application/json" \
   -H "X-API-Key: dev-key" \
   -d '{
@@ -167,7 +178,7 @@ curl -X POST http://localhost:8000/map \
 **When**: You need to see what a page looks like, compare before/after, or verify a design.
 
 ```bash
-curl -X POST http://localhost:8000/screenshot \
+curl -X POST http://localhost:8421/screenshot \
   -H "Content-Type: application/json" \
   -H "X-API-Key: dev-key" \
   -d '{
@@ -190,7 +201,7 @@ To view: decode and save as `.png`, or display inline if your tool supports it.
 ## /health — Check Scout is running
 
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:8421/health
 # {"status": "ok", "crawl4ai_version": "0.7.7", "scout_version": "0.1.0"}
 ```
 
