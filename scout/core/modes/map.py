@@ -1,66 +1,72 @@
-"""Map mode — fast URL discovery without content extraction.
+"""Map mode — URL discovery via sitemap-first + BFS link-follow fallback.
 
-Uses BFS prefetch mode to discover all URLs on a site without
-processing page content. ~200-500ms per page instead of 2-5s.
-Use this before /crawl to understand site structure.
+Primary path: crawl4ai AsyncUrlSeeder parses robots.txt → sitemap.xml (including
+sub-sitemaps) → returns full URL list. Fast: typically < 3s for well-maintained sites.
+
+Fallback path: manual BFS link-follow when sitemap yields fewer than
+_SITEMAP_MIN_THRESHOLD URLs (site has no sitemap or it's malformed).
+
+Threshold check is on the RAW sitemap count (before url_pattern filter) so that
+a narrow url_pattern on a valid sitemap does not incorrectly trigger BFS.
 """
 
 from __future__ import annotations
 
 import time
-from typing import AsyncGenerator, cast
+from collections import deque
+from typing import cast
+from urllib.parse import urlparse
 
 import structlog
-from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode, CrawlResult
-from crawl4ai import BFSDeepCrawlStrategy, FilterChain, URLPatternFilter
+from crawl4ai import (
+    AsyncWebCrawler,
+    BrowserConfig,
+    CacheMode,
+    CrawlerRunConfig,
+    CrawlResult,
+    SeedingConfig,
+)
 
 from scout.core.types import MapRequest, MapResponse
 
 logger = structlog.get_logger(__name__)
 
+_SITEMAP_MIN_THRESHOLD = 5
+_MAP_BFS_MAX_DEPTH = 3
+
 
 async def map_urls(req: MapRequest) -> MapResponse:
-    """Discover all URLs on a site. No content extraction."""
+    """Discover all URLs for a site. Sitemap-first, BFS fallback."""
     started = time.monotonic()
 
-    filters = []
-    if req.url_pattern:
-        filters.append(URLPatternFilter(patterns=[req.url_pattern]))
-
-    strategy = BFSDeepCrawlStrategy(
-        max_depth=3,
-        max_pages=req.max_pages,
-        include_external=req.include_external,
-        filter_chain=FilterChain(filters) if filters else FilterChain(),
-    )
-
-    run_cfg = CrawlerRunConfig(
-        cache_mode=CacheMode.BYPASS,
-        deep_crawl_strategy=strategy,
-        word_count_threshold=1,
-        stream=True,
-    )
-    browser_cfg = BrowserConfig(headless=True, java_script_enabled=False)
-
     try:
-        async with AsyncWebCrawler(config=browser_cfg) as crawler:
-            discovered: list[str] = []
-            # arun_many() with stream=True returns AsyncGenerator; cast to prove it to pyright
-            stream = cast(
-                AsyncGenerator[CrawlResult, None],
-                await crawler.arun_many([req.url], config=run_cfg),
+        urls, raw_count = await _sitemap_discovery(req)
+        # Threshold check uses raw (pre-filter) count.
+        # When a url_pattern is active and the sitemap returned any URLs at all,
+        # treat the sitemap as valid — the pattern narrows results by design,
+        # not because the sitemap is broken.
+        sitemap_sufficient = raw_count >= _SITEMAP_MIN_THRESHOLD or (
+            req.url_pattern and raw_count > 0
+        )
+        if not sitemap_sufficient:
+            logger.info(
+                "[scout/map] sitemap sparse, falling back to BFS",
+                sitemap_count=raw_count,
+                url=req.url,
             )
-            async for result in stream:
-                if result.url:
-                    discovered.append(result.url)
+            urls = await _bfs_link_follow(req)
+
+        # Respect max_pages cap
+        if req.max_pages and len(urls) > req.max_pages:
+            urls = urls[: req.max_pages]
 
         duration_ms = int((time.monotonic() - started) * 1000)
-        logger.info("[scout/map] complete", start_url=req.url, urls=len(discovered))
+        logger.info("[scout/map] complete", start_url=req.url, urls=len(urls))
         return MapResponse(
             success=True,
             start_url=req.url,
-            urls=discovered,
-            total=len(discovered),
+            urls=urls,
+            total=len(urls),
             duration_ms=duration_ms,
         )
 
@@ -75,3 +81,83 @@ async def map_urls(req: MapRequest) -> MapResponse:
             error=str(exc),
             duration_ms=duration_ms,
         )
+
+
+async def _sitemap_discovery(req: MapRequest) -> tuple[list[str], int]:
+    """Parse robots.txt + sitemap.xml to collect all URLs. Fast path.
+
+    Returns (filtered_urls, raw_count).
+
+    The raw_count (pre-filter) is used for the BFS threshold decision so that
+    a narrow url_pattern on a valid sitemap does not incorrectly trigger BFS.
+    """
+    # aseed_urls takes bare domain, not full URL
+    domain = urlparse(req.url).netloc
+
+    seed_cfg = SeedingConfig(
+        source="sitemap",
+        max_urls=req.max_pages if req.max_pages > 0 else -1,
+        hits_per_sec=5,
+        filter_nonsense_urls=True,
+    )
+
+    async with AsyncWebCrawler() as crawler:
+        # Returns List[str] for single domain with extract_head=False (default)
+        raw_urls: list[str] = cast(list[str], await crawler.aseed_urls(domain, config=seed_cfg))
+
+    raw_count = len(raw_urls)
+
+    # Apply url_pattern filter if specified — after recording raw count
+    filtered_urls = [u for u in raw_urls if req.url_pattern in u] if req.url_pattern else raw_urls
+
+    logger.info(
+        "[scout/map] sitemap discovery",
+        domain=domain,
+        raw=raw_count,
+        filtered=len(filtered_urls),
+    )
+    return filtered_urls, raw_count
+
+
+async def _bfs_link_follow(req: MapRequest) -> list[str]:
+    """BFS fallback: follow <a href> links when sitemap is absent/sparse."""
+    run_cfg = CrawlerRunConfig(
+        cache_mode=CacheMode.BYPASS,
+        word_count_threshold=1,
+    )
+    browser_cfg = BrowserConfig(headless=True, java_script_enabled=False)
+
+    visited: set[str] = set()
+    discovered: list[str] = [req.url]
+    queue: deque[tuple[str, int]] = deque([(req.url, 0)])
+
+    async with AsyncWebCrawler(config=browser_cfg) as crawler:
+        while queue and len(discovered) < req.max_pages:
+            url, depth = queue.popleft()
+            if url in visited:
+                continue
+            visited.add(url)
+
+            result = cast(CrawlResult, await crawler.arun(url, config=run_cfg))
+
+            if not result.success or depth >= _MAP_BFS_MAX_DEPTH:
+                continue
+
+            links: dict = result.links or {}
+            candidates = list(links.get("internal", []))
+            if req.include_external:
+                candidates += list(links.get("external", []))
+
+            for link in candidates:
+                href = link.get("href", "") if isinstance(link, dict) else str(link)
+                if not href or href in visited or href in discovered:
+                    continue
+                if req.url_pattern and req.url_pattern not in href:
+                    continue
+                discovered.append(href)
+                queue.append((href, depth + 1))
+                if len(discovered) >= req.max_pages:
+                    break
+
+    logger.info("[scout/map] BFS fallback complete", start_url=req.url, urls=len(discovered))
+    return discovered

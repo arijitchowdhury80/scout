@@ -1,50 +1,121 @@
-"""Tests for map mode — URL discovery without content extraction."""
+"""Tests for map mode — sitemap-first + BFS fallback URL discovery."""
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from scout.core.modes.map import map_urls
+from scout.core.modes.map import map_urls, _SITEMAP_MIN_THRESHOLD
 from scout.core.types import MapRequest, MapResponse
 
 
-def _make_url_result(url: str) -> MagicMock:
-    r = MagicMock()
-    r.success = True
-    r.url = url
-    r.markdown = ""
-    r.fit_markdown = ""
-    r.metadata = {}
-    return r
-
+# ── Sitemap path ─────────────────────────────────────────────────────────────
 
 @pytest.mark.asyncio
-async def test_map_returns_url_list():
-    results = [_make_url_result(u) for u in ["https://example.com", "https://example.com/about", "https://example.com/contact"]]
+async def test_map_uses_sitemap_when_available():
+    """Primary path: sitemap returns enough URLs → BFS fallback not called."""
+    sitemap_urls = [f"https://example.com/page-{i}" for i in range(10)]
 
     with patch("scout.core.modes.map.AsyncWebCrawler") as MockCrawler:
         instance = AsyncMock()
-        async def fake_gen(urls, config):
-            for r in results:
-                yield r
-        instance.arun_many.return_value = fake_gen([], None)
+        instance.aseed_urls = AsyncMock(return_value=sitemap_urls)
         MockCrawler.return_value.__aenter__.return_value = instance
 
-        with patch("scout.core.modes.map.BFSDeepCrawlStrategy"):
-            req = MapRequest(url="https://example.com")
-            resp = await map_urls(req)
+        req = MapRequest(url="https://example.com", max_pages=50)
+        resp = await map_urls(req)
 
     assert resp.success is True
-    assert resp.total >= 0
-    assert isinstance(resp.urls, list)
+    assert resp.total == 10
+    assert resp.urls == sitemap_urls
     assert resp.start_url == "https://example.com"
+    # BFS fallback (arun) should NOT have been called
+    instance.arun.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_map_handles_exception():
+async def test_map_applies_max_pages_cap_to_sitemap_results():
+    """Sitemap may return more URLs than max_pages — cap is applied."""
+    sitemap_urls = [f"https://example.com/page-{i}" for i in range(20)]
+
     with patch("scout.core.modes.map.AsyncWebCrawler") as MockCrawler:
-        MockCrawler.return_value.__aenter__.side_effect = RuntimeError("timeout")
+        instance = AsyncMock()
+        instance.aseed_urls = AsyncMock(return_value=sitemap_urls)
+        MockCrawler.return_value.__aenter__.return_value = instance
+
+        req = MapRequest(url="https://example.com", max_pages=5)
+        resp = await map_urls(req)
+
+    assert resp.success is True
+    assert resp.total == 5
+    assert len(resp.urls) == 5
+
+
+@pytest.mark.asyncio
+async def test_map_applies_url_pattern_filter_to_sitemap_results():
+    """url_pattern filters sitemap URLs before returning."""
+    sitemap_urls = [
+        "https://example.com/blog/post-1",
+        "https://example.com/products/widget",
+        "https://example.com/blog/post-2",
+    ]
+
+    with patch("scout.core.modes.map.AsyncWebCrawler") as MockCrawler:
+        instance = AsyncMock()
+        instance.aseed_urls = AsyncMock(return_value=sitemap_urls)
+        MockCrawler.return_value.__aenter__.return_value = instance
+
+        req = MapRequest(url="https://example.com", url_pattern="/blog/")
+        resp = await map_urls(req)
+
+    assert resp.success is True
+    assert resp.total == 2
+    assert all("/blog/" in u for u in resp.urls)
+
+
+# ── BFS fallback path ─────────────────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_map_falls_back_to_bfs_when_sitemap_sparse():
+    """When sitemap returns fewer than threshold URLs, BFS fallback runs."""
+    # Sitemap returns only 2 URLs — below _SITEMAP_MIN_THRESHOLD (5)
+    sparse_sitemap = ["https://example.com/sitemap-index.xml", "https://example.com/"]
+
+    # BFS arun result for the seed URL — has two internal links
+    bfs_result = MagicMock()
+    bfs_result.success = True
+    bfs_result.url = "https://example.com"
+    bfs_result.links = {
+        "internal": [
+            {"href": "https://example.com/about"},
+            {"href": "https://example.com/contact"},
+        ]
+    }
+
+    with patch("scout.core.modes.map.AsyncWebCrawler") as MockCrawler:
+        instance = AsyncMock()
+        # First context manager call (sitemap discovery) returns sparse list
+        instance.aseed_urls = AsyncMock(return_value=sparse_sitemap)
+        # Second context manager call (BFS fallback) uses arun
+        instance.arun = AsyncMock(return_value=bfs_result)
+        MockCrawler.return_value.__aenter__.return_value = instance
+
+        req = MapRequest(url="https://example.com", max_pages=50)
+        resp = await map_urls(req)
+
+    assert resp.success is True
+    assert resp.total >= 1
+    assert resp.start_url == "https://example.com"
+
+
+# ── Exception path ────────────────────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_map_handles_exception_gracefully():
+    """Any exception → success=False, empty urls, error message populated."""
+    with patch("scout.core.modes.map.AsyncWebCrawler") as MockCrawler:
+        MockCrawler.return_value.__aenter__.side_effect = RuntimeError("network timeout")
+
         req = MapRequest(url="https://example.com")
         resp = await map_urls(req)
 
     assert resp.success is False
-    assert "timeout" in resp.error
     assert resp.urls == []
+    assert resp.total == 0
+    assert "network timeout" in resp.error
