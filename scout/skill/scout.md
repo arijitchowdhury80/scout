@@ -1,253 +1,285 @@
 ---
 name: scout
-description: Use Scout to fetch, crawl, extract structured data from, map, or screenshot any URL. Scout is a self-hosted web intelligence platform running at http://localhost:8421. Use it whenever you need to read a webpage, discover URLs on a site, extract structured data, or capture a visual screenshot.
+description: Use Scout to gather company intelligence from real websites. Scout is PRISM's purpose-built web intelligence platform at http://localhost:8421. It is NOT a general-purpose scraper — it is optimised for specific company intelligence use cases: About page, executive team, hiring openings, investor relations, and PDF reports/presentations. Always invoke Scout instead of WebFetch or raw curl when the goal is any of these five intelligence types, even when the user just says "find the leadership team" or "get their investor deck" without mentioning Scout explicitly. Scout handles JS-rendered pages, stealth mode, PDF extraction, and sitemap discovery that basic fetch tools cannot.
 ---
 
-# Scout — Web Intelligence Skill
+# Scout — Company Intelligence Platform
 
-Scout is your self-hosted web crawler. It runs locally at `http://localhost:8421`. Use it to fetch web pages, crawl sites, extract structured data with a schema, discover URLs, or capture screenshots.
+Scout is your intelligence layer for gathering specific, structured company data from websites. It runs locally at `http://localhost:8421` and wraps Crawl4AI with Playwright.
 
-**All requests require the `X-API-Key` header.** Read the key from the `SCOUT_API_KEY` environment variable. Default for local dev: `dev-key`.
+**Always check health first:**
+```bash
+curl -s http://localhost:8421/health
+```
+If not running: `cd /Users/arijitchowdhury/AI-Development/Scout && python3 -m uvicorn scout.api.main:app --host 0.0.0.0 --port 8421 &`
+
+**Auth:** Every endpoint except `/health` needs `X-API-Key: dev-key`.
 
 ---
 
-## When to use which endpoint
+## Full Company Intelligence Profile
 
-| Task | Endpoint |
+When asked to research a company, gather all five intelligence types in one run. **Map once, then scrape everything you need from that map.**
+
+```bash
+# Step 1: one map call — get the whole site structure
+curl -s --max-time 60 -X POST http://localhost:8421/map \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com", "max_pages": 300}'
+
+# Step 2: from the urls[] list, identify pages for each section:
+#   - About/company: /about, /about-us, /company, /who-we-are
+#   - Leadership: /team, /leadership, /management, /about/team, /about/leadership
+#   - Careers: /careers, /jobs, /join-us
+#   - Investors: /investors, /investor-relations, /ir
+#   - PDFs: any urls ending in .pdf or /reports/, /presentations/
+
+# Step 3: scrape each identified section — 5 scrape calls, one per intelligence type
+```
+
+**Output structure for a full profile:**
+```markdown
+## Company Intelligence — [Company] ([date])
+
+### About
+[mission, HQ, founding, size]
+
+### Executive Team
+| Name | Title |
 |---|---|
-| Read a single page → get clean markdown | `/scrape` |
-| Read multiple pages across a site | `/crawl` |
-| Extract structured fields (CEO name, job listings, etc.) | `/extract` |
-| Discover all URLs on a site before crawling | `/map` |
-| Capture a visual screenshot of a page | `/screenshot` |
-| Check if Scout is running | `/health` |
+
+### Open Roles
+[department: role — location]
+
+### Investor Relations
+[IR page URL, stock ticker, earnings dates, SEC filings link]
+
+### Reports & Documents
+| Document | Type | URL |
+|---|---|---|
+```
 
 ---
 
-## /scrape — Fetch a single URL
+## The Core Pattern: Map → Filter → Scrape
 
-**When**: You need the content of one page as clean markdown.
+For a single intelligence type:
+1. **Map** the domain to discover the URL structure
+2. **Filter** results to the section you need
+3. **Scrape** the relevant pages
+
+Don't guess URLs. Map first — company sites vary wildly (`/team` vs `/about/leadership` vs `/company/management`).
 
 ```bash
-curl -X POST http://localhost:8421/scrape \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: dev-key" \
-  -d '{
-    "url": "https://nike.com/about/leadership",
-    "formats": ["markdown"],
-    "use_js": false,
-    "timeout_ms": 30000
-  }'
+# Step 1: discover the site
+curl -s --max-time 60 -X POST http://localhost:8421/map \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com", "max_pages": 200}'
+
+# Step 2: look through urls[] for the right section, then scrape it
+curl -s -X POST http://localhost:8421/scrape \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com/about/team", "use_js": true}'
 ```
-
-**Request fields:**
-- `url` (required) — the URL to fetch
-- `formats` — list of `"markdown"`, `"raw_html"`, `"screenshot"`. Default: `["markdown"]`
-- `use_js` — enable Playwright browser for JS-rendered pages. Default: `false`
-- `wait_for` — CSS selector or JS expression to wait for before extracting. Default: `""`
-- `timeout_ms` — page load timeout. Default: `30000`
-
-**Response fields:**
-- `success` — true/false
-- `url` — final URL after redirects
-- `markdown` — clean filtered content (always populated on success)
-- `raw_html` — only if `"raw_html"` in formats
-- `screenshot_base64` — base64 PNG, only if `"screenshot"` in formats
-- `links` — list of all hrefs on the page
-- `metadata` — `{url, crawled_at, title, description, language, word_count, token_estimate}`
-- `error` — error message if `success=false`
-- `duration_ms` — wall time
 
 ---
 
-## /crawl — Recursively crawl a site
+## Intelligence Playbooks
 
-**When**: You need content from multiple pages (e.g., all docs pages, all blog posts).
+### 1. About / Company Overview
+
+**What you're looking for:** founding story, mission, product description, headquarters, company size.
+
+**Common URL patterns:** `/about`, `/about-us`, `/company`, `/who-we-are`, `/our-story`
+
+**Workflow:**
+```bash
+# Map with about filter
+curl -s --max-time 60 -X POST http://localhost:8421/map \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com", "max_pages": 100, "url_pattern": "/about"}'
+
+# Scrape the about page
+curl -s -X POST http://localhost:8421/scrape \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com/about", "use_js": true}'
+```
+
+If `/about` returns thin content (just a landing page), also scrape `/company` and `/mission`.
+
+---
+
+### 2. Executive / Leadership Team
+
+**What you're looking for:** C-suite names + titles, board members, VP-level leadership.
+
+**Common URL patterns:** `/team`, `/leadership`, `/management`, `/executives`, `/about/team`, `/about/leadership`, `/company/team`, `/company/leadership`
+
+**Workflow:**
+```bash
+# Map and filter to team/leadership pages
+curl -s --max-time 60 -X POST http://localhost:8421/map \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com", "max_pages": 100}'
+
+# Then scrape the team page (try multiple URL patterns if needed)
+curl -s -X POST http://localhost:8421/scrape \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com/about/leadership", "use_js": true}'
+```
+
+Team pages often load via JS. If markdown is sparse, two options:
+1. Add `"wait_for": ".team-grid"` (or similar selector) and retry
+2. Use `"formats": ["raw_html"]` to get the full rendered HTML and parse names/titles from the markup — this reliably works when markdown conversion loses the structured card data:
 
 ```bash
-curl -X POST http://localhost:8421/crawl \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: dev-key" \
-  -d '{
-    "url": "https://docs.example.com",
-    "max_depth": 2,
-    "max_pages": 20,
-    "url_pattern": "*/docs/*",
-    "include_external": false
-  }'
+curl -s -X POST http://localhost:8421/scrape \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com/about/leadership/", "use_js": true, "formats": ["raw_html"]}'
+# Then parse the HTML: look for repeated card patterns, h3/h4 names, role/title spans
 ```
 
-**Request fields:**
-- `url` (required) — start URL
-- `max_depth` — BFS depth limit. Default: `2`
-- `max_pages` — total page cap. Default: `10`
-- `url_pattern` — glob pattern to filter which URLs to follow. Default: `""` (all internal)
-- `include_external` — follow links to other domains. Default: `false`
-- `use_js` — enable JS rendering for all pages. Default: `false`
-- `timeout_ms` — per-page timeout. Default: `60000`
-
-**Response fields:**
-- `success`, `start_url`, `total_pages`, `error`, `duration_ms`
-- `pages` — list of `{url, markdown, metadata, success, error}`
+**Output format for exec intelligence:**
+```markdown
+## Executive Team — [Company]
+| Name | Title |
+|---|---|
+| Jane Smith | CEO |
+| John Doe | CTO |
+```
 
 ---
 
-## /extract — Extract structured data with a schema
+### 3. Hiring / Open Roles
 
-**When**: You need specific fields from a page (CEO name, list of job titles, investor names, etc.).
+**What you're looking for:** open positions, departments, locations, job descriptions.
+
+**Common URL patterns:** `/careers`, `/jobs`, `/work-with-us`, `/join-us`, `/join`, `/about/careers`
+
+**Workflow:**
+```bash
+# Map careers section specifically
+curl -s --max-time 60 -X POST http://localhost:8421/map \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com", "max_pages": 200, "url_pattern": "/careers"}'
+
+# Crawl the careers section for individual job pages
+curl -s --max-time 120 -X POST http://localhost:8421/crawl \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com/careers", "max_depth": 2, "max_pages": 30, "url_pattern": "/careers"}'
+```
+
+Many companies host jobs on third-party platforms (Greenhouse, Lever, Workday). Check if the careers page redirects to an external ATS — if so, note the ATS platform and scrape the careers landing page only (external job boards are not Scout's scope).
+
+**Output format for hiring intelligence:**
+```markdown
+## Open Roles — [Company]
+**[Department]**
+- [Role Title] — [Location]
+```
+
+---
+
+### 4. Investor Relations
+
+**What you're looking for:** IR landing page, investor contact, financial calendar, press releases.
+
+**Common URL patterns:** `/investors`, `/investor-relations`, `/ir`, `/financials`, `/shareholder-information`
+
+**Workflow:**
+```bash
+# Map investor section
+curl -s --max-time 60 -X POST http://localhost:8421/map \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com", "max_pages": 200, "url_pattern": "/investor"}'
+
+# Scrape the IR landing page
+curl -s -X POST http://localhost:8421/scrape \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com/investors", "use_js": true}'
+```
+
+Extract: investor contact email, earnings call dates, stock ticker if public, links to SEC filings or annual reports.
+
+---
+
+### 5. Reports and PDF Documents
+
+**What you're looking for:** annual reports, quarterly results, investor presentations, whitepapers, technical reports.
+
+**Finding PDFs:**
+```bash
+# Map the full site or IR section to surface .pdf URLs
+curl -s --max-time 60 -X POST http://localhost:8421/map \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com/investors", "max_pages": 200}'
+# Then look for urls[] entries ending in .pdf or containing /reports/, /presentations/
+```
+
+**Scraping a PDF:**
+Scout's /scrape handles PDFs natively — pass the direct PDF URL:
+```bash
+curl -s -X POST http://localhost:8421/scrape \
+  -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+  -d '{"url": "https://company.com/reports/annual-2024.pdf"}'
+```
+Response includes extracted text as markdown.
+
+**Output format for reports intelligence:**
+```markdown
+## Reports & Documents — [Company]
+| Document | Type | URL |
+|---|---|---|
+| 2024 Annual Report | PDF | https://... |
+| Q3 2024 Earnings Presentation | PDF | https://... |
+```
+
+---
+
+## Multi-Company Intelligence (Batch)
+
+When gathering the same intelligence type across multiple companies, run them sequentially — Scout is single-instance, not designed for parallel crawls:
 
 ```bash
-curl -X POST http://localhost:8421/extract \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: dev-key" \
-  -d '{
-    "url": "https://nike.com/about/leadership",
-    "schema": {
-      "type": "object",
-      "properties": {
-        "executives": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": {"type": "string"},
-              "title": {"type": "string"}
-            }
-          }
-        }
-      }
-    },
-    "instruction": "Extract the names and titles of all C-suite executives listed on this page.",
-    "llm_provider": "gemini/gemini-2.0-flash"
-  }'
-```
-
-**Request fields:**
-- `url` (required)
-- `schema` (required) — JSON Schema object describing the shape to extract
-- `instruction` (required) — natural language instruction for the LLM
-- `llm_provider` — LiteLLM provider string. Default: `"gemini/gemini-2.0-flash"`
-- `use_js` — Default: `false`
-- `timeout_ms` — Default: `45000`
-
-**Response fields:**
-- `success`, `url`, `error`, `duration_ms`
-- `data` — dict matching your schema (empty `{}` if extraction failed)
-- `markdown` — raw page content as fallback
-- `metadata`
-
-**Note:** Requires `LLM_API_KEY` set in Scout's environment. If no LLM key is configured, pass `css_schema` instead for selector-based extraction (no API key needed):
-
-```json
-{
-  "url": "https://example.com",
-  "css_schema": {
-    "name": "page",
-    "baseSelector": "body",
-    "fields": [{"name": "title", "selector": "h1", "type": "text"}]
-  }
-}
+for company in algolia.com adobe.com shopify.com; do
+  echo "=== $company ===" 
+  curl -s --max-time 60 -X POST http://localhost:8421/map \
+    -H "Content-Type: application/json" -H "X-API-Key: dev-key" \
+    -d "{\"url\": \"https://$company\", \"max_pages\": 100}" | jq '.urls[] | select(test("team|leadership|about"))'
+done
 ```
 
 ---
 
-## /map — Discover URLs without fetching content
+## API Quick Reference
 
-**When**: You want to understand a site's structure before deciding what to crawl.
+| Endpoint | Use case | Timeout |
+|---|---|---|
+| `/scrape` | One page (including PDFs) | 45s |
+| `/map` | Discover all URLs on a domain | 60s |
+| `/crawl` | Multi-page deep crawl of a section | 120s |
+| `/extract` | Structured fields via LLM or CSS selectors | 60s |
+| `/screenshot` | Visual capture | 30s |
+
+**When a page doesn't load:** add `"use_js": true`. For pages behind auth or aggressive bot detection, Scout's stealth mode activates automatically on retry.
+
+**Error reference:**
+
+| Error | Fix |
+|---|---|
+| `"Crawl failed"` / timeout | Add `"use_js": true`, increase `"timeout_ms"` |
+| `"No LLM API key"` on /extract | Use `css_schema` instead, or set `LLM_API_KEY` in Scout's `.env` |
+| HTTP 403 | Missing `X-API-Key: dev-key` header |
+| HTTP 422 | Malformed request body — check JSON |
+| Sparse/empty markdown | Page is JS-rendered — retry with `"use_js": true` |
+
+---
+
+## CLI Alternative
 
 ```bash
-curl -X POST http://localhost:8421/map \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: dev-key" \
-  -d '{
-    "url": "https://example.com",
-    "max_pages": 100,
-    "url_pattern": "",
-    "include_external": false
-  }'
+scout scrape https://company.com/about
+scout map https://company.com --pages 200
+scout crawl https://company.com/careers --depth 2 --pages 30
+scout extract https://company.com/team --llm-key $GEMINI_API_KEY
 ```
-
-**Response fields:**
-- `success`, `start_url`, `total`, `error`, `duration_ms`
-- `urls` — list of discovered URL strings
-
----
-
-## /screenshot — Capture a visual screenshot
-
-**When**: You need to see what a page looks like, compare before/after, or verify a design.
-
-```bash
-curl -X POST http://localhost:8421/screenshot \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: dev-key" \
-  -d '{
-    "url": "https://example.com",
-    "full_page": true,
-    "viewport_width": 1280,
-    "viewport_height": 800,
-    "use_js": true
-  }'
-```
-
-**Response fields:**
-- `success`, `url`, `error`, `duration_ms`, `width`, `height`
-- `screenshot_base64` — base64-encoded PNG
-
-To view: decode and save as `.png`, or display inline if your tool supports it.
-
----
-
-## /health — Check Scout is running
-
-```bash
-curl http://localhost:8421/health
-# {"status": "ok", "crawl4ai_version": "0.7.7", "scout_version": "0.1.0"}
-```
-
-No `X-API-Key` required.
-
----
-
-## Common patterns
-
-**Read a page with JS rendering (SPAs, dynamic content):**
-```json
-{"url": "https://example.com", "use_js": true, "wait_for": ".main-content"}
-```
-
-**Extract a list of job postings:**
-```json
-{
-  "url": "https://company.com/careers",
-  "schema": {"type": "array", "items": {"type": "object", "properties": {"title": {"type": "string"}, "location": {"type": "string"}, "department": {"type": "string"}}}},
-  "instruction": "Extract all job postings with title, location, and department."
-}
-```
-
-**Crawl only specific sections of a site:**
-```json
-{"url": "https://docs.example.com", "url_pattern": "*/api/*", "max_depth": 3, "max_pages": 50}
-```
-
----
-
-## Starting Scout locally
-
-```bash
-cd /Users/arijitchowdhury/AI-Development/Scout
-
-# Option 1: Direct (fastest for dev)
-cp .env.example .env  # edit SCOUT_API_KEY and LLM_API_KEY
-uvicorn scout.api.main:app --reload
-
-# Option 2: Docker
-cp .env.example .env
-docker compose -f docker/docker-compose.yml up -d
-```
-
----
-
-## Error handling
-
-All endpoints return `success: false` with an `error` string rather than HTTP error codes when the crawl itself fails (network error, timeout, blocked). Only auth failures (403) and malformed requests (422) return non-200 HTTP status codes.

@@ -102,8 +102,15 @@ async def _sitemap_discovery(req: MapRequest) -> tuple[list[str], int]:
     )
 
     async with AsyncWebCrawler() as crawler:
-        # Returns List[str] for single domain with extract_head=False (default)
-        raw_urls: list[str] = cast(list[str], await crawler.aseed_urls(domain, config=seed_cfg))
+        raw = await crawler.aseed_urls(domain, config=seed_cfg)
+
+    # aseed_urls returns list[str] on most domains but list[dict] on some —
+    # normalise unconditionally so MapResponse always receives plain strings.
+    raw_urls: list[str] = [
+        u["url"] if isinstance(u, dict) and "url" in u else str(u)
+        for u in cast(list, raw)
+        if u
+    ]
 
     raw_count = len(raw_urls)
 

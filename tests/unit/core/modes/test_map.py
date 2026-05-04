@@ -104,6 +104,60 @@ async def test_map_falls_back_to_bfs_when_sitemap_sparse():
     assert resp.start_url == "https://example.com"
 
 
+# ── aseed_urls dict normalisation ─────────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_map_normalises_dict_urls_from_aseed_urls():
+    """aseed_urls returns dicts on some domains — normalise to plain strings."""
+    dict_urls = [
+        {"url": "https://shopify.com/", "title": "Home"},
+        {"url": "https://shopify.com/about", "title": "About"},
+        {"url": "https://shopify.com/investors", "title": "Investors"},
+        {"url": "https://shopify.com/careers", "title": "Careers"},
+        {"url": "https://shopify.com/blog", "title": "Blog"},
+        {"url": "https://shopify.com/news", "title": "News"},
+    ]
+
+    with patch("scout.core.modes.map.AsyncWebCrawler") as MockCrawler:
+        instance = AsyncMock()
+        instance.aseed_urls = AsyncMock(return_value=dict_urls)
+        MockCrawler.return_value.__aenter__.return_value = instance
+
+        req = MapRequest(url="https://shopify.com", max_pages=50)
+        resp = await map_urls(req)
+
+    assert resp.success is True
+    assert resp.total == 6
+    assert all(isinstance(u, str) for u in resp.urls)
+    assert "https://shopify.com/" in resp.urls
+    assert "https://shopify.com/investors" in resp.urls
+
+
+@pytest.mark.asyncio
+async def test_map_normalises_mixed_url_list():
+    """aseed_urls may return a mix of strings and dicts — both are normalised."""
+    mixed_urls = [
+        "https://example.com/",
+        {"url": "https://example.com/about", "title": "About"},
+        "https://example.com/contact",
+        {"url": "https://example.com/blog"},
+        "https://example.com/careers",
+        {"url": "https://example.com/investors"},
+    ]
+
+    with patch("scout.core.modes.map.AsyncWebCrawler") as MockCrawler:
+        instance = AsyncMock()
+        instance.aseed_urls = AsyncMock(return_value=mixed_urls)
+        MockCrawler.return_value.__aenter__.return_value = instance
+
+        req = MapRequest(url="https://example.com", max_pages=50)
+        resp = await map_urls(req)
+
+    assert resp.success is True
+    assert resp.total == 6
+    assert all(isinstance(u, str) for u in resp.urls)
+
+
 # ── Exception path ────────────────────────────────────────────────────────────
 
 @pytest.mark.asyncio
