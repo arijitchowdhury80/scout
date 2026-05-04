@@ -3,6 +3,7 @@
 All request/response models are defined here. Nothing outside this file
 defines the API contract. Change here first; implementations follow.
 """
+
 from __future__ import annotations
 
 from enum import Enum
@@ -32,6 +33,7 @@ class ScoutMetadata(BaseModel):
 # /scrape
 # ---------------------------------------------------------------------------
 
+
 class ScrapeRequest(BaseModel):
     url: str
     formats: list[ScoutFormats] = [ScoutFormats.MARKDOWN]
@@ -55,6 +57,7 @@ class ScrapeResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # /crawl
 # ---------------------------------------------------------------------------
+
 
 class CrawlRequest(BaseModel):
     url: str
@@ -87,7 +90,10 @@ class CrawlResponse(BaseModel):
 # /extract
 # ---------------------------------------------------------------------------
 
+
 class ExtractRequest(BaseModel):
+    model_config = {"populate_by_name": True}
+
     url: str
     extraction_schema: dict = Field(alias="schema")
     instruction: str
@@ -110,6 +116,7 @@ class ExtractResponse(BaseModel):
 # /map
 # ---------------------------------------------------------------------------
 
+
 class MapRequest(BaseModel):
     url: str
     max_pages: int = 100
@@ -129,6 +136,7 @@ class MapResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # /screenshot
 # ---------------------------------------------------------------------------
+
 
 class ScreenshotRequest(BaseModel):
     url: str

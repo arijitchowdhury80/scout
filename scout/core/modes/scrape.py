@@ -7,13 +7,15 @@ Returns ScrapeResponse with:
 - links: all internal and external hrefs extracted from page
 - metadata: title, description, word_count, token_estimate, language
 """
+
 from __future__ import annotations
 
 import time
 from datetime import datetime, timezone
+from typing import cast
 
 import structlog
-from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
+from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode, CrawlResult
 from crawl4ai.content_filter_strategy import PruningContentFilter
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 
@@ -28,6 +30,7 @@ def _estimate_tokens(text: str) -> int:
 
 
 def _count_words(text: str) -> int:
+    """Return number of whitespace-separated words in text."""
     return len(text.split())
 
 
@@ -61,7 +64,7 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
         markdown_generator=md_generator,
         screenshot=want_screenshot,
         page_timeout=req.timeout_ms,
-        wait_for=req.wait_for or None,
+        wait_for=req.wait_for,
     )
     browser_cfg = BrowserConfig(
         headless=True,
@@ -73,7 +76,9 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
 
     try:
         async with AsyncWebCrawler(config=browser_cfg) as crawler:
-            result = await crawler.arun(req.url, config=run_cfg)
+            # arun() returns CrawlResultContainer whose __getattr__ delegates to _results[0].
+            # Cast to CrawlResult so pyright can resolve attributes; runtime behaviour is unchanged.
+            result = cast(CrawlResult, await crawler.arun(req.url, config=run_cfg))
 
         duration_ms = int((time.monotonic() - started) * 1000)
 
@@ -87,7 +92,10 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
                 duration_ms=duration_ms,
             )
 
-        clean_md = getattr(result, "fit_markdown", None) or result.markdown or ""
+        # result.markdown is StringCompatibleMarkdown (has .fit_markdown via __getattr__) or None.
+        # Use getattr so tests that pass plain strings as markdown mock values don't break.
+        _md = result.markdown
+        clean_md = getattr(_md, "fit_markdown", None) or str(_md or "") or ""
         raw_meta = result.metadata or {}
 
         metadata = ScoutMetadata(
