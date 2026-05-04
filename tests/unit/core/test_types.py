@@ -114,9 +114,12 @@ def test_crawl_response_contains_pages():
 
 # --- ExtractRequest ---
 
-def test_extract_request_requires_schema_and_instruction():
-    with pytest.raises(ValidationError):
-        ExtractRequest(url="https://example.com")  # type: ignore
+def test_extract_request_minimal_valid():
+    # url is the only required field; schema, instruction, css_schema all have defaults
+    req = ExtractRequest(url="https://example.com")
+    assert req.url == "https://example.com"
+    assert req.css_schema is None
+    assert req.instruction == ""
 
 def test_extract_request_shape():
     req = ExtractRequest(

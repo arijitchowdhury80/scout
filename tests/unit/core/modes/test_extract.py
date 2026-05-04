@@ -100,3 +100,44 @@ async def test_extract_handles_exception():
 
     assert resp.success is False
     assert "LLM timeout" in resp.error
+
+
+@pytest.mark.asyncio
+async def test_extract_uses_css_when_no_llm_key():
+    """No LLM key + css_schema provided → JsonCssExtractionStrategy used, data returned."""
+    css_schema = {
+        "name": "company",
+        "baseSelector": "body",
+        "fields": [{"name": "title", "selector": "h1", "type": "text"}],
+    }
+    mock_result = MagicMock()
+    mock_result.success = True
+    mock_result.url = "https://example.com"
+    mock_result.markdown = "Example Domain"
+    mock_result.fit_markdown = "Example Domain"
+    mock_result.extracted_content = json.dumps([{"title": "Example Domain"}])
+    mock_result.metadata = {"title": "Example", "description": "", "language": "en"}
+
+    with patch("scout.core.modes.extract.AsyncWebCrawler") as MockCrawler:
+        with patch("scout.core.modes.extract.JsonCssExtractionStrategy") as MockCss:
+            MockCss.return_value = _make_strategy_mock()
+            instance = AsyncMock()
+            instance.arun.return_value = mock_result
+            MockCrawler.return_value.__aenter__.return_value = instance
+
+            req = ExtractRequest(url="https://example.com", css_schema=css_schema)
+            resp = await extract(req, llm_api_key="")
+
+    assert resp.success is True
+    assert resp.data == {"title": "Example Domain"}
+    MockCss.assert_called_once_with(schema=css_schema)
+
+
+@pytest.mark.asyncio
+async def test_extract_returns_error_when_no_key_and_no_css_schema():
+    """No LLM key and no css_schema → immediate error, no crawl attempted."""
+    req = ExtractRequest(url="https://example.com")
+    resp = await extract(req, llm_api_key="")
+
+    assert resp.success is False
+    assert "css_schema" in resp.error or "LLM" in resp.error

@@ -95,9 +95,10 @@ class ExtractRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
     url: str
-    extraction_schema: dict = Field(alias="schema")
-    instruction: str
+    extraction_schema: dict = Field(default_factory=dict, alias="schema")
+    instruction: str = ""
     llm_provider: str = "gemini/gemini-2.0-flash"
+    css_schema: dict | None = None  # {baseSelector, fields: [{name, selector, type}]}
     use_js: bool = False
     timeout_ms: int = 45000
 
