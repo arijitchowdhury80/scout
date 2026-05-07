@@ -49,14 +49,20 @@ async def crawl(req: CrawlRequest) -> CrawlResponse:
         include_external=req.include_external,
     )
 
+    browser_cfg = BrowserConfig(
+        headless=True,
+        java_script_enabled=req.use_js,
+        enable_stealth=req.stealth,
+    )
     run_cfg = CrawlerRunConfig(
         cache_mode=CacheMode.BYPASS,
         deep_crawl_strategy=bfs,
         stream=True,
         markdown_generator=md_generator,
         page_timeout=req.timeout_ms,
+        simulate_user=req.stealth,
+        magic=req.stealth,
     )
-    browser_cfg = BrowserConfig(headless=True, java_script_enabled=req.use_js)
 
     pages: list[CrawlPage] = []
 

@@ -59,16 +59,19 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
     md_generator = DefaultMarkdownGenerator(
         content_filter=PruningContentFilter(threshold=0.4, threshold_type="fixed")
     )
+    browser_cfg = BrowserConfig(
+        headless=True,
+        java_script_enabled=req.use_js,
+        enable_stealth=req.stealth,
+    )
     run_cfg = CrawlerRunConfig(
         cache_mode=CacheMode.BYPASS,
         markdown_generator=md_generator,
         screenshot=want_screenshot,
         page_timeout=req.timeout_ms,
         wait_for=req.wait_for,
-    )
-    browser_cfg = BrowserConfig(
-        headless=True,
-        java_script_enabled=req.use_js,
+        simulate_user=req.stealth,
+        magic=req.stealth,
     )
 
     def _empty_meta() -> ScoutMetadata:

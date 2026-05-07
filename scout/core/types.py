@@ -40,6 +40,7 @@ class ScrapeRequest(BaseModel):
     use_js: bool = False
     wait_for: str = ""
     timeout_ms: int = 30000
+    stealth: bool = False  # enable_stealth + simulate_user + magic in Crawl4AI
 
 
 class ScrapeResponse(BaseModel):
@@ -67,6 +68,7 @@ class CrawlRequest(BaseModel):
     include_external: bool = False
     use_js: bool = False
     timeout_ms: int = 60000
+    stealth: bool = False
 
 
 class CrawlPage(BaseModel):
@@ -123,6 +125,7 @@ class MapRequest(BaseModel):
     max_pages: int = 100
     url_pattern: str = ""
     include_external: bool = False
+    stealth: bool = False
 
 
 class MapResponse(BaseModel):

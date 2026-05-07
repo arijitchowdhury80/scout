@@ -128,11 +128,17 @@ async def _sitemap_discovery(req: MapRequest) -> tuple[list[str], int]:
 
 async def _bfs_link_follow(req: MapRequest) -> list[str]:
     """BFS fallback: follow <a href> links when sitemap is absent/sparse."""
+    browser_cfg = BrowserConfig(
+        headless=True,
+        java_script_enabled=req.stealth,  # need JS for stealth pages
+        enable_stealth=req.stealth,
+    )
     run_cfg = CrawlerRunConfig(
         cache_mode=CacheMode.BYPASS,
         word_count_threshold=1,
+        simulate_user=req.stealth,
+        magic=req.stealth,
     )
-    browser_cfg = BrowserConfig(headless=True, java_script_enabled=False)
 
     visited: set[str] = set()
     discovered: list[str] = [req.url]
