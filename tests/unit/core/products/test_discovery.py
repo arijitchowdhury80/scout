@@ -1,6 +1,20 @@
 """Tests for product URL discovery heuristics."""
 
-from scout.core.products.discovery import ProductUrlGroups, group_product_urls, normalize_start_url
+# Scenario list:
+# - bare domains normalize to HTTPS start URLs
+# - mapped product URLs are grouped under categories with per-category limits
+# - product-only URL lists still produce a usable Products bucket
+# - Lacoste-style .html product links are detected from category page links
+# - Estee Lauder-style same-domain /products/ catalog links are detected
+# - obvious utility pages are excluded from category candidates
+
+from scout.core.products.discovery import (
+    ProductUrlGroups,
+    extract_product_links,
+    group_product_urls,
+    normalize_start_url,
+    select_category_urls,
+)
 
 
 def test_normalize_start_url_accepts_bare_domain() -> None:
@@ -43,3 +57,47 @@ def test_group_product_urls_uses_uncategorized_bucket_when_only_products_exist()
 
     assert groups[0].category_name == "Products"
     assert groups[0].product_urls == ["https://shop.example.com/products/serum"]
+
+
+def test_extract_product_links_finds_lacoste_html_products() -> None:
+    links = [
+        "https://www.lacoste.com/us/lacoste/men/clothing/polos",
+        "https://www.lacoste.com/us/lacoste/men/clothing/polos/L1212-51.html?color=001",
+        "https://www.lacoste.com/us/lacoste/men/clothing/polos/L1212-51.html?color=031",
+    ]
+
+    products = extract_product_links(
+        "https://www.lacoste.com/us/lacoste/men/clothing/polos",
+        links,
+        limit=10,
+    )
+
+    assert products == [
+        "https://www.lacoste.com/us/lacoste/men/clothing/polos/L1212-51.html?color=001",
+        "https://www.lacoste.com/us/lacoste/men/clothing/polos/L1212-51.html?color=031",
+    ]
+
+
+def test_extract_product_links_accepts_same_domain_catalog_links() -> None:
+    products = extract_product_links(
+        "https://www.esteelauder.com/skin-care",
+        [
+            "https://www.esteelauder.com/products/681/1799/product-catalog/skincare",
+            "https://www.youtube.com/esteelauder/products/fake",
+        ],
+        limit=10,
+    )
+
+    assert products == ["https://www.esteelauder.com/products/681/1799/product-catalog/skincare"]
+
+
+def test_select_category_urls_filters_utility_pages() -> None:
+    urls = [
+        "https://shop.example.com/customer-service",
+        "https://shop.example.com/lacoste/men/clothing/polos",
+        "https://shop.example.com/products/sku",
+    ]
+
+    categories = select_category_urls(urls, query="men polos", limit=5)
+
+    assert categories == ["https://shop.example.com/lacoste/men/clothing/polos"]

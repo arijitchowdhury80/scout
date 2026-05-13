@@ -79,3 +79,37 @@ indexable and traceable.
 
 Future improvements can add site-specific CSS schemas and LLM-assisted fallback
 for pages that hide product data in custom JavaScript state.
+
+## Live Retailer Examples
+
+Lacoste category pages expose product JSON-LD and are a good live smoke test:
+
+```bash
+scout products "men polos" \
+  --start-url https://www.lacoste.com/us/lacoste/men/clothing/polos \
+  --limit-per-category 2 \
+  --max-products 2 \
+  --output-dir ./scout-runs/lacoste-men-polos \
+  --js
+```
+
+Estee Lauder category pages expose product-catalog links, but product detail
+requests currently return Akamai "Access Denied" content in local live tests.
+Scout detects and skips those blocked pages so they do not become Algolia
+records. Keep this as a known anti-bot hardening target:
+
+```bash
+scout products "skin care" \
+  --start-url https://www.esteelauder.com/skin-care \
+  --limit-per-category 1 \
+  --max-products 1 \
+  --output-dir ./scout-runs/estee-lauder-skin-care \
+  --js \
+  --stealth
+```
+
+Run opt-in live tests:
+
+```bash
+SCOUT_RUN_LIVE_PRODUCT_TESTS=1 python3 -m pytest tests/integration/test_product_sites_live.py -v -m integration
+```

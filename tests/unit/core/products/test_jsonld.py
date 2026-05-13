@@ -1,5 +1,9 @@
 """Tests for product JSON-LD extraction."""
 
+# Scenario list:
+# - schema.org Product JSON-LD extracts name, brand, SKU, images, price, currency, stock
+# - non-product JSON-LD returns None instead of false product data
+
 from scout.core.products.jsonld import extract_product_jsonld
 
 

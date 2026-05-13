@@ -1,5 +1,11 @@
 """Tests for durable product run artifacts."""
 
+# Scenario list:
+# - product runs create a discoverable run folder
+# - Algolia JSON and NDJSON files are written
+# - manifest/report/settings files are written
+# - _source provenance survives JSON serialization
+
 import json
 
 from scout.core.artifacts import write_product_artifacts

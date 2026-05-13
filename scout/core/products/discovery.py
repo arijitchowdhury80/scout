@@ -8,6 +8,20 @@ from urllib.parse import urlparse, urlunparse
 
 _PRODUCT_MARKERS = ("/products/", "/product/", "/p/")
 _CATEGORY_MARKERS = ("/collections/", "/category/", "/categories/", "/c/")
+_UTILITY_SEGMENTS = {
+    "account",
+    "blog",
+    "cart",
+    "checkout",
+    "contact-us",
+    "customer-service",
+    "privacy",
+    "returns",
+    "review",
+    "search",
+    "signin",
+    "terms-conditions",
+}
 
 
 @dataclass(frozen=True)
@@ -76,19 +90,73 @@ def group_product_urls(
     return grouped
 
 
+def select_category_urls(urls: list[str], query: str, limit: int) -> list[str]:
+    """Return likely category URLs for second-stage product link discovery."""
+    query_tokens = [token for token in _slug_words(query) if len(token) > 2]
+    candidates = [_normalise_url(url) for url in urls if _is_category_candidate(url)]
+
+    def score(url: str) -> tuple[int, int]:
+        path_words = set(_slug_words(urlparse(url).path))
+        matches = sum(1 for token in query_tokens if token in path_words)
+        return (matches, -len(urlparse(url).path))
+
+    ranked = sorted(dict.fromkeys(candidates), key=score, reverse=True)
+    return ranked[:limit]
+
+
+def extract_product_links(category_url: str, links: list[str], limit: int) -> list[str]:
+    """Extract product-looking links from a category page link list."""
+    category = _normalise_url(category_url)
+    category_domain = urlparse(category).netloc
+    result: list[str] = []
+    seen: set[str] = set()
+    for link in links:
+        normalised = _normalise_url_preserve_query(link)
+        if normalised in seen or urlparse(normalised).netloc != category_domain:
+            continue
+        if _is_product_url(normalised) and (
+            normalised.startswith(category)
+            or any(marker in urlparse(normalised).path for marker in _PRODUCT_MARKERS)
+        ):
+            result.append(normalised)
+            seen.add(normalised)
+        if len(result) >= limit:
+            break
+    return result
+
+
 def _normalise_url(url: str) -> str:
     parsed = urlparse(url)
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path.rstrip("/"), "", "", ""))
 
 
+def _normalise_url_preserve_query(url: str) -> str:
+    parsed = urlparse(url)
+    return urlunparse((parsed.scheme, parsed.netloc, parsed.path.rstrip("/"), "", parsed.query, ""))
+
+
 def _is_product_url(url: str) -> bool:
     path = urlparse(url).path.lower()
-    return any(marker in path for marker in _PRODUCT_MARKERS)
+    filename = path.rsplit("/", 1)[-1]
+    return any(marker in path for marker in _PRODUCT_MARKERS) or filename.endswith(".html")
 
 
 def _is_category_url(url: str) -> bool:
     path = urlparse(url).path.lower().rstrip("/")
     return any(marker in f"{path}/" for marker in _CATEGORY_MARKERS) and not _is_product_url(url)
+
+
+def _is_category_candidate(url: str) -> bool:
+    parsed = urlparse(url)
+    path = parsed.path.lower().strip("/")
+    parts = [part for part in path.split("/") if part]
+    if not parts or _is_product_url(url):
+        return False
+    if any(part in _UTILITY_SEGMENTS for part in parts):
+        return False
+    if any(part.startswith(("blog-", "customer_")) for part in parts):
+        return False
+    return 1 <= len(parts) <= 6
 
 
 def _category_url_from_product(url: str) -> str:
@@ -111,3 +179,8 @@ def _category_name_from_url(url: str) -> str:
     if slug in {"products", "product", "p"}:
         return "Products"
     return slug.replace("-", " ").replace("_", " ").title()
+
+
+def _slug_words(value: str) -> list[str]:
+    text = value.lower().replace("-", " ").replace("_", " ").replace("/", " ")
+    return [part for part in text.split() if part]

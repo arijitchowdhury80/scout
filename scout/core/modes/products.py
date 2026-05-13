@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from urllib.parse import urlparse
 
 import structlog
 
@@ -10,7 +11,8 @@ from scout.core.artifacts import write_product_artifacts
 from scout.core.modes.map import map_urls
 from scout.core.modes.scrape import scrape
 from scout.core.products.algolia import build_algolia_record
-from scout.core.products.discovery import group_product_urls, normalize_start_url
+from scout.core.products.discovery import ProductUrlGroups, group_product_urls, normalize_start_url
+from scout.core.products.discovery import extract_product_links, select_category_urls
 from scout.core.products.jsonld import extract_product_jsonld
 from scout.core.types import (
     AlgoliaProductRecord,
@@ -19,6 +21,7 @@ from scout.core.types import (
     ProductCrawlRequest,
     ProductCrawlResponse,
     ScrapeRequest,
+    ScrapeResponse,
     ScoutFormats,
 )
 
@@ -33,15 +36,24 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
         return _error(req, "Product crawl requires site or start_url.", started)
 
     try:
-        mapped = await map_urls(MapRequest(url=start_url, max_pages=req.max_products * 5))
-        if not mapped.success:
-            return _error(req, mapped.error or "URL discovery failed.", started, start_url)
-
-        groups = group_product_urls(
-            mapped.urls,
-            max_categories=req.max_categories,
-            limit_per_category=req.limit_per_category,
-        )
+        groups = []
+        if _has_path(start_url):
+            groups = await _discover_from_categories(req, [start_url])
+        if groups:
+            mapped_urls = [start_url]
+        else:
+            map_pages = 100 if _has_path(start_url) else max(500, req.max_products * 20)
+            mapped = await map_urls(MapRequest(url=start_url, max_pages=map_pages))
+            if not mapped.success:
+                return _error(req, mapped.error or "URL discovery failed.", started, start_url)
+            mapped_urls = mapped.urls
+            groups = group_product_urls(
+                mapped.urls,
+                max_categories=req.max_categories,
+                limit_per_category=req.limit_per_category,
+            )
+            if not groups:
+                groups = await _discover_from_categories(req, [start_url, *mapped.urls])
         records: list[AlgoliaProductRecord] = []
         raw_products: list[dict] = []
 
@@ -63,6 +75,9 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
                         "[scout/products] scrape failed", url=url, error=scrape_resp.error
                     )
                     continue
+                if _is_blocked(scrape_resp):
+                    logger.warning("[scout/products] blocked page skipped", url=url)
+                    continue
                 product = extract_product_jsonld(scrape_resp.raw_html)
                 record = build_algolia_record(
                     url=scrape_resp.url,
@@ -83,7 +98,7 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
                 req=req,
                 records=records,
                 categories=categories,
-                discovered_urls=mapped.urls,
+                discovered_urls=mapped_urls,
                 raw_products=raw_products,
                 duration_ms=duration_ms,
             )
@@ -124,3 +139,47 @@ def _error(
         error=message,
         duration_ms=duration_ms,
     )
+
+
+def _has_path(url: str) -> bool:
+    return bool(urlparse(url).path.strip("/"))
+
+
+def _is_blocked(resp: ScrapeResponse) -> bool:
+    text = f"{resp.metadata.title} {resp.markdown}".lower()
+    return "access denied" in text or "powered and protected by" in text
+
+
+async def _discover_from_categories(
+    req: ProductCrawlRequest,
+    urls: list[str],
+) -> list[ProductUrlGroups]:
+    category_urls = select_category_urls(urls, query=req.query, limit=req.max_categories)
+    groups = []
+    for category_url in category_urls:
+        scrape_resp = await scrape(
+            ScrapeRequest(
+                url=category_url,
+                formats=[ScoutFormats.MARKDOWN],
+                use_js=req.use_js,
+                timeout_ms=req.timeout_ms,
+                stealth=req.stealth,
+            )
+        )
+        if not scrape_resp.success:
+            continue
+        product_urls = extract_product_links(
+            category_url,
+            scrape_resp.links,
+            limit=req.limit_per_category,
+        )
+        if not product_urls:
+            continue
+        groups.append(
+            ProductUrlGroups(
+                category_url=category_url,
+                category_name=category_url.rstrip("/").rsplit("/", 1)[-1].replace("-", " ").title(),
+                product_urls=product_urls,
+            )
+        )
+    return groups
