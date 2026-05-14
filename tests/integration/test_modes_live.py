@@ -13,6 +13,7 @@ What these tests prove that unit tests cannot:
 - Real pages return non-empty markdown with populated metadata
 - ScoutMetadata fields (title, word_count, token_estimate) are populated from real content
 """
+
 import pytest
 
 from scout.core.modes.scrape import scrape

@@ -1,9 +1,10 @@
 """Tests for screenshot mode — visual capture only."""
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from scout.core.modes.screenshot import screenshot
-from scout.core.types import ScreenshotRequest, ScreenshotResponse
+from scout.core.types import ScreenshotRequest
 
 
 @pytest.mark.asyncio
@@ -70,8 +71,10 @@ async def test_screenshot_uses_viewport_dimensions():
             instance.arun.return_value = mock_result
             MockCrawler.return_value.__aenter__.return_value = instance
 
-            req = ScreenshotRequest(url="https://example.com", viewport_width=1920, viewport_height=1080)
-            resp = await screenshot(req)
+            req = ScreenshotRequest(
+                url="https://example.com", viewport_width=1920, viewport_height=1080
+            )
+            await screenshot(req)
 
             call_kwargs = MockBrowserConfig.call_args
             assert call_kwargs is not None

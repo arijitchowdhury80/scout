@@ -1,8 +1,11 @@
 """Tests for Scout core types — the contract every endpoint fulfils."""
+
 import pytest
 from pydantic import ValidationError
 
 from scout.core.types import (
+    AlgoliaProductRecord,
+    BlockedPage,
     ScoutFormats,
     ScoutMetadata,
     ScrapeRequest,
@@ -16,10 +19,16 @@ from scout.core.types import (
     MapResponse,
     ScreenshotRequest,
     ScreenshotResponse,
+    ProductArtifactFiles,
+    ProductCrawlRequest,
+    ProductCrawlResponse,
+    ProductListingCard,
+    ProductSource,
 )
 
 
 # --- ScoutMetadata ---
+
 
 def test_metadata_defaults_are_empty_not_none():
     m = ScoutMetadata(url="https://example.com", crawled_at="2026-05-03T20:00:00Z")
@@ -37,6 +46,7 @@ def test_metadata_requires_url_and_crawled_at():
 
 # --- ScrapeRequest ---
 
+
 def test_scrape_request_defaults():
     req = ScrapeRequest(url="https://example.com")
     assert req.formats == [ScoutFormats.MARKDOWN]
@@ -52,8 +62,8 @@ def test_scrape_request_requires_url():
 
 # --- ScrapeResponse ---
 
+
 def test_scrape_response_success_shape():
-    from datetime import datetime, timezone
     meta = ScoutMetadata(url="https://example.com", crawled_at="2026-05-03T20:00:00Z")
     resp = ScrapeResponse(
         success=True,
@@ -86,6 +96,7 @@ def test_scrape_response_failure_shape():
 
 # --- CrawlRequest ---
 
+
 def test_crawl_request_defaults():
     req = CrawlRequest(url="https://example.com")
     assert req.max_depth == 2
@@ -97,9 +108,12 @@ def test_crawl_request_defaults():
 
 # --- CrawlResponse ---
 
+
 def test_crawl_response_contains_pages():
     meta = ScoutMetadata(url="https://example.com/page", crawled_at="2026-05-03T20:00:00Z")
-    page = CrawlPage(url="https://example.com/page", markdown="content", metadata=meta, success=True)
+    page = CrawlPage(
+        url="https://example.com/page", markdown="content", metadata=meta, success=True
+    )
     resp = CrawlResponse(
         success=True,
         start_url="https://example.com",
@@ -114,12 +128,14 @@ def test_crawl_response_contains_pages():
 
 # --- ExtractRequest ---
 
+
 def test_extract_request_minimal_valid():
     # url is the only required field; schema, instruction, css_schema all have defaults
     req = ExtractRequest(url="https://example.com")
     assert req.url == "https://example.com"
     assert req.css_schema is None
     assert req.instruction == ""
+
 
 def test_extract_request_shape():
     req = ExtractRequest(
@@ -132,6 +148,7 @@ def test_extract_request_shape():
 
 
 # --- ExtractResponse ---
+
 
 def test_extract_response_data_is_dict():
     meta = ScoutMetadata(url="https://example.com", crawled_at="2026-05-03T20:00:00Z")
@@ -148,6 +165,7 @@ def test_extract_response_data_is_dict():
 
 # --- MapRequest ---
 
+
 def test_map_request_defaults():
     req = MapRequest(url="https://example.com")
     assert req.max_pages == 100
@@ -156,6 +174,7 @@ def test_map_request_defaults():
 
 
 # --- MapResponse ---
+
 
 def test_map_response_urls_list():
     resp = MapResponse(
@@ -171,6 +190,7 @@ def test_map_response_urls_list():
 
 # --- ScreenshotRequest ---
 
+
 def test_screenshot_request_defaults():
     req = ScreenshotRequest(url="https://example.com")
     assert req.full_page is True
@@ -180,6 +200,7 @@ def test_screenshot_request_defaults():
 
 
 # --- ScreenshotResponse ---
+
 
 def test_screenshot_response_shape():
     resp = ScreenshotResponse(
@@ -192,3 +213,78 @@ def test_screenshot_response_shape():
     )
     assert resp.screenshot_base64 == "iVBORw0KGgo="
     assert resp.width == 1280
+
+
+# --- Products ---
+
+
+def test_product_crawl_request_defaults():
+    req = ProductCrawlRequest(query="men shirts", site="shop.example.com")
+    assert req.limit_per_category == 10
+    assert req.max_categories == 10
+    assert req.max_products == 100
+    assert req.output_dir == ""
+    assert req.persist is False
+    assert req.use_js is True
+    assert req.browser_fallback is True
+    assert req.browser_fallback_headless is False
+
+
+def test_algolia_product_record_serializes_source_alias():
+    record = AlgoliaProductRecord(
+        objectID="abc123",
+        name="Oxford Shirt",
+        url="https://shop.example.com/products/oxford",
+        source=ProductSource(
+            url="https://shop.example.com/products/oxford",
+            extractor="jsonld",
+        ),
+        completeness_score=0.75,
+    )
+
+    dumped = record.model_dump(mode="json", by_alias=True)
+    assert dumped["_source"]["url"] == "https://shop.example.com/products/oxford"
+    assert dumped["completeness_score"] == 0.75
+
+
+def test_product_listing_card_contract_has_category_context():
+    card = ProductListingCard(
+        url="https://shop.example.com/products/serum",
+        name="Serum",
+        image="https://shop.example.com/serum.jpg",
+        category_url="https://shop.example.com/skin-care",
+        category_name="Skin Care",
+        price=82.0,
+        currency="USD",
+    )
+
+    assert card.category_name == "Skin Care"
+    assert card.price == 82.0
+
+
+def test_product_crawl_response_includes_artifact_files():
+    resp = ProductCrawlResponse(
+        success=True,
+        query="men shirts",
+        site="shop.example.com",
+        start_url="https://shop.example.com",
+        records=[],
+        total_records=0,
+        files=ProductArtifactFiles(manifest="manifest.json", blocked_pages_json="blocked.json"),
+        blocked_pages=[
+            BlockedPage(
+                url="https://shop.example.com/products/serum",
+                reason="access_denied",
+                category_url="https://shop.example.com/skin-care",
+                category_name="Skin Care",
+                fallback_attempted=True,
+                fallback_used=False,
+            )
+        ],
+        total_blocked_pages=1,
+        duration_ms=10,
+    )
+
+    assert resp.files.manifest == "manifest.json"
+    assert resp.files.blocked_pages_json == "blocked.json"
+    assert resp.total_blocked_pages == 1

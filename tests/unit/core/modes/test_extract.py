@@ -1,4 +1,5 @@
 """Tests for extract mode — LLM-based structured extraction."""
+
 import json
 import pytest
 from unittest.mock import AsyncMock, MagicMock, create_autospec, patch
@@ -6,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, create_autospec, patch
 from crawl4ai.extraction_strategy import ExtractionStrategy
 
 from scout.core.modes.extract import extract
-from scout.core.types import ExtractRequest, ExtractResponse
+from scout.core.types import ExtractRequest
 
 
 def _make_strategy_mock() -> MagicMock:
@@ -16,7 +17,10 @@ def _make_strategy_mock() -> MagicMock:
 
 @pytest.mark.asyncio
 async def test_extract_returns_structured_data():
-    schema = {"type": "object", "properties": {"name": {"type": "string"}, "ceo": {"type": "string"}}}
+    schema = {
+        "type": "object",
+        "properties": {"name": {"type": "string"}, "ceo": {"type": "string"}},
+    }
     mock_result = MagicMock()
     mock_result.success = True
     mock_result.url = "https://example.com"
@@ -26,7 +30,9 @@ async def test_extract_returns_structured_data():
     mock_result.metadata = {"title": "Nike", "description": "", "language": "en"}
 
     with patch("scout.core.modes.extract.AsyncWebCrawler") as MockCrawler:
-        with patch("scout.core.modes.extract.LLMExtractionStrategy", return_value=_make_strategy_mock()):
+        with patch(
+            "scout.core.modes.extract.LLMExtractionStrategy", return_value=_make_strategy_mock()
+        ):
             instance = AsyncMock()
             instance.arun.return_value = mock_result
             MockCrawler.return_value.__aenter__.return_value = instance
@@ -55,12 +61,16 @@ async def test_extract_includes_markdown_fallback():
     mock_result.metadata = {"title": "", "description": "", "language": ""}
 
     with patch("scout.core.modes.extract.AsyncWebCrawler") as MockCrawler:
-        with patch("scout.core.modes.extract.LLMExtractionStrategy", return_value=_make_strategy_mock()):
+        with patch(
+            "scout.core.modes.extract.LLMExtractionStrategy", return_value=_make_strategy_mock()
+        ):
             instance = AsyncMock()
             instance.arun.return_value = mock_result
             MockCrawler.return_value.__aenter__.return_value = instance
 
-            req = ExtractRequest(url="https://example.com", **{"schema": schema}, instruction="Extract")
+            req = ExtractRequest(
+                url="https://example.com", **{"schema": schema}, instruction="Extract"
+            )
             resp = await extract(req, llm_api_key="fake-key")
 
     assert resp.markdown == "Some content"
@@ -78,12 +88,16 @@ async def test_extract_handles_invalid_json_gracefully():
     mock_result.metadata = {"title": "", "description": "", "language": ""}
 
     with patch("scout.core.modes.extract.AsyncWebCrawler") as MockCrawler:
-        with patch("scout.core.modes.extract.LLMExtractionStrategy", return_value=_make_strategy_mock()):
+        with patch(
+            "scout.core.modes.extract.LLMExtractionStrategy", return_value=_make_strategy_mock()
+        ):
             instance = AsyncMock()
             instance.arun.return_value = mock_result
             MockCrawler.return_value.__aenter__.return_value = instance
 
-            req = ExtractRequest(url="https://example.com", **{"schema": schema}, instruction="Extract")
+            req = ExtractRequest(
+                url="https://example.com", **{"schema": schema}, instruction="Extract"
+            )
             resp = await extract(req, llm_api_key="fake-key")
 
     assert resp.success is True

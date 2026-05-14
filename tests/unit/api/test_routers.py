@@ -6,10 +6,13 @@ from fastapi.testclient import TestClient
 
 from scout.api.main import app, get_crawler
 from scout.core.types import (
+    AlgoliaProductRecord,
     CrawlPage,
     CrawlResponse,
     ExtractResponse,
     MapResponse,
+    ProductCrawlResponse,
+    ProductSource,
     ScoutMetadata,
     ScrapeResponse,
     ScreenshotResponse,
@@ -200,6 +203,52 @@ def test_screenshot_returns_200_with_mock_crawler() -> None:
 
 
 # ---------------------------------------------------------------------------
+# /products
+# ---------------------------------------------------------------------------
+
+
+def test_products_returns_200_with_mock_crawler() -> None:
+    """POST /products with valid body and mocked crawler returns Algolia records."""
+    mock_crawler = MagicMock()
+    mock_crawler.products = AsyncMock(
+        return_value=ProductCrawlResponse(
+            success=True,
+            query="men shirts",
+            site="shop.example.com",
+            start_url="https://shop.example.com",
+            records=[
+                AlgoliaProductRecord(
+                    objectID="abc123",
+                    name="Oxford Shirt",
+                    url="https://shop.example.com/products/oxford",
+                    source=ProductSource(
+                        url="https://shop.example.com/products/oxford",
+                        extractor="jsonld",
+                    ),
+                )
+            ],
+            total_records=1,
+            duration_ms=500,
+        )
+    )
+    app.dependency_overrides[get_crawler] = lambda: mock_crawler
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/products",
+            json={"query": "men shirts", "site": "shop.example.com"},
+            headers=_HEADERS,
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["success"] is True
+        assert data["records"][0]["objectID"] == "abc123"
+        assert data["records"][0]["_source"]["extractor"] == "jsonld"
+    finally:
+        app.dependency_overrides.clear()
+
+
+# ---------------------------------------------------------------------------
 # /health
 # ---------------------------------------------------------------------------
 
@@ -213,3 +262,13 @@ def test_health_returns_version_info() -> None:
     assert data["status"] == "ok"
     assert "crawl4ai_version" in data
     assert "scout_version" in data
+
+
+def test_root_returns_html_landing_page() -> None:
+    """GET / returns a simple service page for browser users."""
+    client = TestClient(app)
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
+    assert "Scout" in resp.text
+    assert "/docs" in resp.text

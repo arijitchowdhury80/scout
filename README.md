@@ -1,86 +1,142 @@
 # Scout
 
-Standalone web intelligence platform. Exposes scrape, crawl, map, extract, and screenshot capabilities as a FastAPI HTTP service and a Python library.
+Scout is a standalone web scraping and product intelligence platform built on
+Crawl4AI. It can run as a Python package, CLI, local HTTP service, Docker
+service, or Claude/Codex skill backend.
 
-## Capabilities
+Scout extracts clean web content, crawls site sections, captures screenshots,
+and prepares Algolia-ready product records from public product catalogs.
 
-| Endpoint | What it does |
-|---|---|
-| `POST /scrape` | Fetch a single page — returns clean markdown + metadata |
-| `POST /crawl` | BFS deep crawl from a start URL — returns all pages up to `max_depth` / `max_pages` |
-| `POST /map` | URL discovery via robots.txt → sitemap.xml → sub-sitemaps, BFS fallback for sites without a sitemap |
-| `POST /extract` | Structured data extraction — LLM-based (any schema, any page) or CSS selector-based (fast, no API key) |
-| `POST /screenshot` | Full-page screenshot, returns base64 PNG |
-| `GET /health` | Liveness check, no auth required |
+## What Scout Does
 
-## Quick Start
+| Capability | CLI | HTTP |
+|---|---|---|
+| Scrape one page to markdown/raw HTML | `scout scrape` | `POST /scrape` |
+| Discover URLs on a site | `scout map` | `POST /map` |
+| Crawl multiple pages | `scout crawl` | `POST /crawl` |
+| Extract structured fields | `scout extract` | `POST /extract` |
+| Capture screenshots | `scout screenshot` | `POST /screenshot` |
+| Build Algolia product records | `scout products` | `POST /products` |
+
+## Install
 
 ```bash
-# Install
-pip install -e .
+pip install git+https://github.com/arijitchowdhury80/scout.git
+playwright install chromium
+```
 
-# Configure
+For local development:
+
+```bash
+git clone https://github.com/arijitchowdhury80/scout.git
+cd scout
+pip install -e ".[dev]"
+playwright install chromium
+```
+
+## Run as a CLI
+
+CLI commands run directly through the Python package. You do not need to start
+the HTTP server first.
+
+```bash
+scout scrape https://example.com/about
+scout map https://example.com --pages 200
+scout crawl https://example.com/products --depth 2 --pages 50
+scout products "men shirts" --site example.com --output-dir ./scout-runs/men-shirts
+```
+
+If `scout products` is run interactively without `--output-dir`, Scout prompts
+for a directory. In non-interactive use, it writes under `./scout-runs/`.
+
+## Run as an HTTP Service
+
+```bash
 cp .env.example .env
-# Edit .env: set SCOUT_API_KEY and optionally LLM_API_KEY
-
-# Run
-python3 -m uvicorn scout.api.main:app --host 0.0.0.0 --port 8421
-
-# Verify
-curl http://localhost:8421/health
+scout serve
 ```
 
-## Authentication
+Open:
 
-All endpoints except `/health` require `X-API-Key: <your-key>` header.
+- `http://localhost:8421/` for a small status page
+- `http://localhost:8421/docs` for Swagger API docs
+- `http://localhost:8421/health` for health/version info
 
-## Extract Modes
+All endpoints except `/` and `/health` require:
 
-Scout's `/extract` endpoint supports two strategies:
-
-**LLM extraction** — works on any arbitrary page, no prior knowledge of DOM structure needed:
-```json
-{
-  "url": "https://example.com",
-  "schema": {"type": "object", "properties": {"title": {"type": "string"}}},
-  "instruction": "Extract the page title and description",
-  "llm_provider": "openai/gpt-4o-mini"
-}
+```text
+X-API-Key: dev-key
 ```
-Requires `LLM_API_KEY` to be set server-side.
 
-**CSS extraction** — fast, free, no API key, requires known page structure:
-```json
-{
-  "url": "https://example.com",
-  "css_schema": {
-    "name": "page",
-    "baseSelector": "body",
-    "fields": [
-      {"name": "title", "selector": "h1", "type": "text"}
-    ]
-  }
-}
-```
-Used automatically when `LLM_API_KEY` is not configured.
+Set `SCOUT_API_KEY` in `.env` before exposing Scout beyond local development.
 
-## Running Tests
+## Product Catalog to Algolia
 
 ```bash
-# Unit tests (mocked, fast)
-python3 -m pytest tests/unit/ -v
-
-# Integration tests (live network, real browser — ~30-60s)
-python3 -m pytest tests/integration/ -v -m integration
+scout products "top products" \
+  --site esteelauder.com \
+  --limit-per-category 10 \
+  --max-categories 10 \
+  --output-dir ./scout-runs/estee-lauder
 ```
+
+Scout writes a discoverable run folder:
+
+```text
+scout-runs/estee-lauder/
+  manifest.json
+  urls.json
+  extracted/products.raw.jsonl
+  algolia/products.json
+  algolia/products.ndjson
+  algolia/settings.json
+  report.md
+```
+
+`algolia/products.json` is a JSON array for inspection.
+`algolia/products.ndjson` is newline-delimited for bulk indexing pipelines.
+Each record includes a stable `objectID`, product URL, name, brand,
+description, image fields, price/currency when detected, categories, and
+`_source` provenance.
+
+See [docs/product-to-algolia.md](docs/product-to-algolia.md).
 
 ## Docker
 
 ```bash
-docker compose up
+cp .env.example .env
+docker compose -f docker/docker-compose.yml up --build
 curl http://localhost:8421/health
 ```
 
+## Claude/Codex Skill
+
+Scout can also be used as an agent skill. The skill lives at
+`scout/skill/scout.md` and teaches an agent when to call the local Scout
+service or CLI.
+
+```bash
+bash install-skill.sh
+```
+
+The skill is an integration layer. Scout itself remains independently
+installable and usable from terminal, Docker, HTTP, and Python.
+
+## Development
+
+```bash
+python3 -m pytest tests/unit/ -v
+python3 -m pyright scout/
+ruff check scout/ tests/
+ruff format --check scout/ tests/
+```
+
+## Architecture
+
+See [docs/architecture.md](docs/architecture.md).
+
 ## Attribution
 
-This product includes software developed by UncleCode (https://x.com/unclecode) as part of the Crawl4AI project (https://github.com/unclecode/crawl4ai), licensed under the Apache License 2.0.
+This product includes software developed by UncleCode as part of the
+[Crawl4AI](https://github.com/unclecode/crawl4ai) project, licensed under the
+Apache License 2.0.

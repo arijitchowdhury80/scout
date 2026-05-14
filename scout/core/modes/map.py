@@ -107,9 +107,7 @@ async def _sitemap_discovery(req: MapRequest) -> tuple[list[str], int]:
     # aseed_urls returns list[str] on most domains but list[dict] on some —
     # normalise unconditionally so MapResponse always receives plain strings.
     raw_urls: list[str] = [
-        u["url"] if isinstance(u, dict) and "url" in u else str(u)
-        for u in cast(list, raw)
-        if u
+        u["url"] if isinstance(u, dict) and "url" in u else str(u) for u in cast(list, raw) if u
     ]
 
     raw_count = len(raw_urls)

@@ -44,6 +44,6 @@ COPY scout/ scout/
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-EXPOSE 8000
+EXPOSE 8421
 
-CMD ["uvicorn", "scout.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "scout.api.main:app", "--host", "0.0.0.0", "--port", "8421"]

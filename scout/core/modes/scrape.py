@@ -60,7 +60,7 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
         content_filter=PruningContentFilter(threshold=0.4, threshold_type="fixed")
     )
     browser_cfg = BrowserConfig(
-        headless=True,
+        headless=req.headless,
         java_script_enabled=req.use_js,
         enable_stealth=req.stealth,
     )

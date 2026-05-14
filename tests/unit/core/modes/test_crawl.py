@@ -1,9 +1,10 @@
 """Tests for crawl mode — BFSDeepCrawlStrategy via crawler.arun()."""
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from scout.core.modes.crawl import crawl
-from scout.core.types import CrawlRequest, CrawlResponse
+from scout.core.types import CrawlRequest
 
 
 def _make_crawl_result(url: str, markdown: str = "page content", depth: int = 0) -> MagicMock:

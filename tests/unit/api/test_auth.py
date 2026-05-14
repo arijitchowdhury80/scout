@@ -1,7 +1,6 @@
 """Tests for AuthMiddleware — verifies key-checking and /health bypass."""
 
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 from scout.api.middleware.auth import AuthMiddleware

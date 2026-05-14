@@ -1,12 +1,14 @@
 """Tests for map mode — sitemap-first + BFS fallback URL discovery."""
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from scout.core.modes.map import map_urls, _SITEMAP_MIN_THRESHOLD
-from scout.core.types import MapRequest, MapResponse
+from scout.core.modes.map import map_urls
+from scout.core.types import MapRequest
 
 
 # ── Sitemap path ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_map_uses_sitemap_when_available():
@@ -71,6 +73,7 @@ async def test_map_applies_url_pattern_filter_to_sitemap_results():
 
 # ── BFS fallback path ─────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_map_falls_back_to_bfs_when_sitemap_sparse():
     """When sitemap returns fewer than threshold URLs, BFS fallback runs."""
@@ -105,6 +108,7 @@ async def test_map_falls_back_to_bfs_when_sitemap_sparse():
 
 
 # ── aseed_urls dict normalisation ─────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_map_normalises_dict_urls_from_aseed_urls():
@@ -159,6 +163,7 @@ async def test_map_normalises_mixed_url_list():
 
 
 # ── Exception path ────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_map_handles_exception_gracefully():

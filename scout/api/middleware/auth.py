@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse, Response
 class AuthMiddleware(BaseHTTPMiddleware):
     """Reject requests missing or carrying a wrong X-API-Key header.
 
-    The /health path is whitelisted and always passes through.
+    The / and /health paths are whitelisted and always pass through.
     """
 
     def __init__(self, app: object, api_key: str) -> None:
@@ -17,8 +17,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         self._api_key = api_key
 
     async def dispatch(self, request: Request, call_next: object) -> Response:
-        """Pass /health through; reject all other requests without a valid key."""
-        if request.url.path == "/health":
+        """Pass public routes through; reject other requests without a valid key."""
+        if request.url.path in {"/", "/health"}:
             return await call_next(request)  # type: ignore[misc]
 
         incoming_key = request.headers.get("X-API-Key")

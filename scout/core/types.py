@@ -41,6 +41,7 @@ class ScrapeRequest(BaseModel):
     wait_for: str = ""
     timeout_ms: int = 30000
     stealth: bool = False  # enable_stealth + simulate_user + magic in Crawl4AI
+    headless: bool = True
 
 
 class ScrapeResponse(BaseModel):
@@ -157,5 +158,113 @@ class ScreenshotResponse(BaseModel):
     screenshot_base64: str = ""
     width: int
     height: int
+    error: str = ""
+    duration_ms: int
+
+
+# ---------------------------------------------------------------------------
+# /products
+# ---------------------------------------------------------------------------
+
+
+class ProductCrawlRequest(BaseModel):
+    query: str = ""
+    site: str = ""
+    start_url: str = ""
+    limit_per_category: int = 10
+    max_categories: int = 10
+    max_products: int = 100
+    output_dir: str = ""
+    persist: bool = False
+    use_js: bool = True
+    timeout_ms: int = 60000
+    stealth: bool = False
+    browser_fallback: bool = True
+    browser_fallback_headless: bool = False
+
+
+class ProductSource(BaseModel):
+    url: str
+    extractor: str
+    category_url: str = ""
+    category_name: str = ""
+
+
+class ProductListingCard(BaseModel):
+    url: str
+    name: str = ""
+    brand: str = ""
+    image: str = ""
+    price: float | None = None
+    currency: str = ""
+    category_url: str = ""
+    category_name: str = ""
+
+
+class BlockedPage(BaseModel):
+    url: str
+    reason: str
+    category_url: str = ""
+    category_name: str = ""
+    title: str = ""
+    fallback_attempted: bool = False
+    fallback_used: bool = False
+    fallback_error: str = ""
+
+
+class ProductVariant(BaseModel):
+    sku: str = ""
+    name: str = ""
+    price: float | None = None
+    currency: str = ""
+    color: str = ""
+    size: str = ""
+    in_stock: bool | None = None
+
+
+class AlgoliaProductRecord(BaseModel):
+    model_config = {"populate_by_name": True}
+
+    objectID: str
+    name: str
+    url: str
+    brand: str = ""
+    description: str = ""
+    image: str = ""
+    images: list[str] = Field(default_factory=list)
+    price: float | None = None
+    currency: str = ""
+    categories: list[str] = Field(default_factory=list)
+    hierarchicalCategories: dict[str, str] = Field(default_factory=dict)
+    sku: str = ""
+    variants: list[ProductVariant] = Field(default_factory=list)
+    in_stock: bool | None = None
+    source: ProductSource = Field(serialization_alias="_source")
+    completeness_score: float = 0.0
+
+
+class ProductArtifactFiles(BaseModel):
+    manifest: str = ""
+    urls: str = ""
+    raw_products: str = ""
+    products_json: str = ""
+    products_ndjson: str = ""
+    settings_json: str = ""
+    blocked_pages_json: str = ""
+    report: str = ""
+
+
+class ProductCrawlResponse(BaseModel):
+    success: bool
+    query: str = ""
+    site: str = ""
+    start_url: str = ""
+    output_dir: str = ""
+    records: list[AlgoliaProductRecord] = Field(default_factory=list)
+    total_records: int
+    categories: list[str] = Field(default_factory=list)
+    blocked_pages: list[BlockedPage] = Field(default_factory=list)
+    total_blocked_pages: int = 0
+    files: ProductArtifactFiles = Field(default_factory=ProductArtifactFiles)
     error: str = ""
     duration_ms: int

@@ -3,6 +3,7 @@
 from scout.core.modes.crawl import crawl as _crawl
 from scout.core.modes.extract import extract as _extract
 from scout.core.modes.map import map_urls as _map_urls
+from scout.core.modes.products import products as _products
 from scout.core.modes.scrape import scrape as _scrape
 from scout.core.modes.screenshot import screenshot as _screenshot
 from scout.core.types import (
@@ -12,6 +13,8 @@ from scout.core.types import (
     ExtractResponse,
     MapRequest,
     MapResponse,
+    ProductCrawlRequest,
+    ProductCrawlResponse,
     ScrapeRequest,
     ScrapeResponse,
     ScreenshotRequest,
@@ -43,3 +46,7 @@ class ScoutCrawler:
     async def screenshot(self, req: ScreenshotRequest) -> ScreenshotResponse:
         """Capture a visual screenshot of a URL as a base64-encoded PNG."""
         return await _screenshot(req)
+
+    async def products(self, req: ProductCrawlRequest) -> ProductCrawlResponse:
+        """Crawl product pages and prepare Algolia-ready records."""
+        return await _products(req)

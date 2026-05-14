@@ -1,9 +1,10 @@
 """Tests for scrape mode — single URL fetch."""
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from scout.core.modes.scrape import scrape
-from scout.core.types import ScrapeRequest, ScrapeResponse, ScoutFormats
+from scout.core.types import ScrapeRequest, ScoutFormats
 
 
 @pytest.mark.asyncio
@@ -64,7 +65,10 @@ async def test_scrape_includes_links():
     mock_result.fit_markdown = "content"
     mock_result.html = ""
     mock_result.links = {
-        "internal": [{"href": "https://example.com/about"}, {"href": "https://example.com/contact"}],
+        "internal": [
+            {"href": "https://example.com/about"},
+            {"href": "https://example.com/contact"},
+        ],
         "external": [{"href": "https://google.com"}],
     }
     mock_result.metadata = {"title": "", "description": "", "language": ""}
@@ -100,7 +104,9 @@ async def test_scrape_includes_screenshot_when_requested():
         instance.arun.return_value = mock_result
         MockCrawler.return_value.__aenter__.return_value = instance
 
-        req = ScrapeRequest(url="https://example.com", formats=[ScoutFormats.MARKDOWN, ScoutFormats.SCREENSHOT])
+        req = ScrapeRequest(
+            url="https://example.com", formats=[ScoutFormats.MARKDOWN, ScoutFormats.SCREENSHOT]
+        )
         resp = await scrape(req)
 
     assert resp.screenshot_base64 == "iVBORw0KGgo="
