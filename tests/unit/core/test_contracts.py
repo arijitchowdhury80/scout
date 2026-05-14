@@ -11,12 +11,14 @@ import pytest
 from pydantic import ValidationError
 
 from scout.core.types import (
+    BlockedPage,
     ScoutMetadata,
     ScrapeResponse,
     CrawlPage,
     CrawlResponse,
     ExtractResponse,
     MapResponse,
+    ProductCrawlResponse,
     ScreenshotResponse,
 )
 
@@ -203,6 +205,36 @@ def test_map_response_total_reflects_url_count():
         duration_ms=200,
     )
     assert resp.total == 1
+
+
+# ---------------------------------------------------------------------------
+# ProductCrawlResponse contracts
+# ---------------------------------------------------------------------------
+
+
+def test_product_crawl_response_exposes_blocked_page_evidence():
+    blocked = BlockedPage(
+        url="https://shop.example.com/products/blocked",
+        reason="access_denied",
+        category_url="https://shop.example.com/skin-care",
+        category_name="Skin Care",
+        fallback_attempted=True,
+    )
+
+    resp = ProductCrawlResponse(
+        success=True,
+        query="skin care",
+        start_url="https://shop.example.com/skin-care",
+        records=[],
+        total_records=0,
+        blocked_pages=[blocked],
+        total_blocked_pages=1,
+        duration_ms=100,
+    )
+
+    assert resp.blocked_pages[0].reason == "access_denied"
+    assert resp.blocked_pages[0].fallback_attempted is True
+    assert resp.total_blocked_pages == len(resp.blocked_pages)
 
 
 # ---------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 # - mapped product URLs are grouped under categories with per-category limits
 # - product-only URL lists still produce a usable Products bucket
 # - Lacoste-style .html product links are detected from category page links
-# - Estee Lauder-style same-domain /products/ catalog links are detected
+# - Estee Lauder-style /product-catalog/ links are treated as categories, not products
 # - obvious utility pages are excluded from category candidates
 
 from scout.core.products.discovery import (
@@ -78,17 +78,18 @@ def test_extract_product_links_finds_lacoste_html_products() -> None:
     ]
 
 
-def test_extract_product_links_accepts_same_domain_catalog_links() -> None:
+def test_extract_product_links_rejects_product_catalog_category_links() -> None:
     products = extract_product_links(
         "https://www.esteelauder.com/skin-care",
         [
             "https://www.esteelauder.com/products/681/1799/product-catalog/skincare",
+            "https://www.esteelauder.com/products/serum",
             "https://www.youtube.com/esteelauder/products/fake",
         ],
         limit=10,
     )
 
-    assert products == ["https://www.esteelauder.com/products/681/1799/product-catalog/skincare"]
+    assert products == ["https://www.esteelauder.com/products/serum"]
 
 
 def test_select_category_urls_filters_utility_pages() -> None:

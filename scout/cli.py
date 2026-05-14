@@ -159,6 +159,16 @@ def products(
     max_products: int = typer.Option(100, "--max-products", help="Maximum product records"),
     js: bool = typer.Option(True, "--js/--no-js", help="Enable JS rendering"),
     stealth: bool = typer.Option(False, "--stealth", help="Enable Crawl4AI stealth mode"),
+    browser_fallback: bool = typer.Option(
+        True,
+        "--browser-fallback/--no-browser-fallback",
+        help="Retry blocked product pages through a headed browser fallback channel",
+    ),
+    browser_fallback_headless: bool = typer.Option(
+        False,
+        "--browser-fallback-headless/--browser-fallback-headed",
+        help="Run the fallback browser headless instead of visibly headed",
+    ),
 ) -> None:
     """Crawl products and write Algolia-ready records to a run folder."""
     chosen_output = output_dir or _prompt_output_dir(query=query, site=site)
@@ -173,6 +183,8 @@ def products(
         max_products=max_products,
         use_js=js,
         stealth=stealth,
+        browser_fallback=browser_fallback,
+        browser_fallback_headless=browser_fallback_headless,
     )
     resp = asyncio.run(_products(req))
     _die(resp)

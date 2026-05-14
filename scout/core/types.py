@@ -41,6 +41,7 @@ class ScrapeRequest(BaseModel):
     wait_for: str = ""
     timeout_ms: int = 30000
     stealth: bool = False  # enable_stealth + simulate_user + magic in Crawl4AI
+    headless: bool = True
 
 
 class ScrapeResponse(BaseModel):
@@ -178,6 +179,8 @@ class ProductCrawlRequest(BaseModel):
     use_js: bool = True
     timeout_ms: int = 60000
     stealth: bool = False
+    browser_fallback: bool = True
+    browser_fallback_headless: bool = False
 
 
 class ProductSource(BaseModel):
@@ -185,6 +188,28 @@ class ProductSource(BaseModel):
     extractor: str
     category_url: str = ""
     category_name: str = ""
+
+
+class ProductListingCard(BaseModel):
+    url: str
+    name: str = ""
+    brand: str = ""
+    image: str = ""
+    price: float | None = None
+    currency: str = ""
+    category_url: str = ""
+    category_name: str = ""
+
+
+class BlockedPage(BaseModel):
+    url: str
+    reason: str
+    category_url: str = ""
+    category_name: str = ""
+    title: str = ""
+    fallback_attempted: bool = False
+    fallback_used: bool = False
+    fallback_error: str = ""
 
 
 class ProductVariant(BaseModel):
@@ -215,6 +240,7 @@ class AlgoliaProductRecord(BaseModel):
     variants: list[ProductVariant] = Field(default_factory=list)
     in_stock: bool | None = None
     source: ProductSource = Field(serialization_alias="_source")
+    completeness_score: float = 0.0
 
 
 class ProductArtifactFiles(BaseModel):
@@ -224,6 +250,7 @@ class ProductArtifactFiles(BaseModel):
     products_json: str = ""
     products_ndjson: str = ""
     settings_json: str = ""
+    blocked_pages_json: str = ""
     report: str = ""
 
 
@@ -236,6 +263,8 @@ class ProductCrawlResponse(BaseModel):
     records: list[AlgoliaProductRecord] = Field(default_factory=list)
     total_records: int
     categories: list[str] = Field(default_factory=list)
+    blocked_pages: list[BlockedPage] = Field(default_factory=list)
+    total_blocked_pages: int = 0
     files: ProductArtifactFiles = Field(default_factory=ProductArtifactFiles)
     error: str = ""
     duration_ms: int

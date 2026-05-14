@@ -11,6 +11,7 @@ import json
 from scout.core.artifacts import write_product_artifacts
 from scout.core.types import (
     AlgoliaProductRecord,
+    BlockedPage,
     ProductArtifactFiles,
     ProductCrawlRequest,
     ProductSource,
@@ -29,6 +30,7 @@ def test_write_product_artifacts_creates_discoverable_run_folder(tmp_path) -> No
             url="https://shop.example.com/products/oxford-shirt",
             extractor="jsonld",
         ),
+        completeness_score=0.75,
     )
 
     files = write_product_artifacts(
@@ -37,6 +39,14 @@ def test_write_product_artifacts_creates_discoverable_run_folder(tmp_path) -> No
         categories=["Men > Shirts"],
         discovered_urls=["https://shop.example.com/products/oxford-shirt"],
         raw_products=[record.model_dump(mode="json", by_alias=True)],
+        blocked_pages=[
+            BlockedPage(
+                url="https://shop.example.com/products/blocked",
+                reason="access_denied",
+                category_name="Men Shirts",
+                category_url="https://shop.example.com/collections/men-shirts",
+            )
+        ],
         duration_ms=42,
     )
 
@@ -49,3 +59,7 @@ def test_write_product_artifacts_creates_discoverable_run_folder(tmp_path) -> No
     products = json.loads((tmp_path / "algolia" / "products.json").read_text())
     assert products[0]["objectID"] == "abc123"
     assert products[0]["_source"]["extractor"] == "jsonld"
+    assert files.blocked_pages_json.endswith("blocked_pages.json")
+    blocked = json.loads((tmp_path / "blocked_pages.json").read_text())
+    assert blocked["total"] == 1
+    assert blocked["blocked_pages"][0]["reason"] == "access_denied"

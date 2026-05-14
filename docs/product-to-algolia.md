@@ -35,6 +35,7 @@ curl -s -X POST http://localhost:8421/products \
 scout-runs/<run-id>/
   manifest.json
   urls.json
+  blocked_pages.json
   extracted/products.raw.jsonl
   algolia/products.json
   algolia/products.ndjson
@@ -62,6 +63,7 @@ scout-runs/<run-id>/
   "sku": "OX-1",
   "variants": [],
   "in_stock": true,
+  "completeness_score": 0.75,
   "_source": {
     "url": "https://example.com/products/oxford-shirt",
     "extractor": "jsonld",
@@ -73,12 +75,19 @@ scout-runs/<run-id>/
 
 ## Current Extraction Strategy
 
-Scout v1 uses mapped URLs plus product JSON-LD when available. If a product page
-does not expose JSON-LD, Scout falls back to page metadata so the record remains
-indexable and traceable.
+Scout uses a fallback ladder:
 
-Future improvements can add site-specific CSS schemas and LLM-assisted fallback
-for pages that hide product data in custom JavaScript state.
+1. Discover likely category and product URLs.
+2. Extract product-card data from category/listing pages.
+3. Scrape product detail pages and prefer JSON-LD records when available.
+4. If a product detail page is blocked, retry that URL through the browser fallback channel.
+5. If browser fallback succeeds, mark the record source as `*_browser_fallback`.
+6. If browser fallback is still blocked, keep any listing-page fallback record.
+7. Write blocked detail pages and fallback outcomes to `blocked_pages.json`.
+
+Records include `_source.extractor` so you can distinguish `jsonld`, `listing`,
+and `metadata` records. They also include `completeness_score` so downstream
+indexing or PDP demos can filter partial records when needed.
 
 ## Live Retailer Examples
 
@@ -93,10 +102,10 @@ scout products "men polos" \
   --js
 ```
 
-Estee Lauder category pages expose product-catalog links, but product detail
-requests currently return Akamai "Access Denied" content in local live tests.
-Scout detects and skips those blocked pages so they do not become Algolia
-records. Keep this as a known anti-bot hardening target:
+Estee Lauder is a hard-site example: category pages may be crawlable while
+product detail pages return Akamai "Access Denied" content. Scout now reports
+blocked PDP URLs and keeps listing-page fallback records when category cards
+contain product data:
 
 ```bash
 scout products "skin care" \
@@ -105,7 +114,26 @@ scout products "skin care" \
   --max-products 1 \
   --output-dir ./scout-runs/estee-lauder-skin-care \
   --js \
+  --browser-fallback \
   --stealth
+```
+
+Browser fallback is not the default crawl path. Scout only opens the fallback
+browser after the regular product-page scrape returns blocked content. Disable
+the fallback when you want fully headless/non-interactive behavior:
+
+```bash
+scout products "skin care" \
+  --start-url https://www.esteelauder.com/skin-care \
+  --no-browser-fallback
+```
+
+Inspect these files after the run:
+
+```text
+./scout-runs/estee-lauder-skin-care/report.md
+./scout-runs/estee-lauder-skin-care/blocked_pages.json
+./scout-runs/estee-lauder-skin-care/algolia/products.json
 ```
 
 Run opt-in live tests:

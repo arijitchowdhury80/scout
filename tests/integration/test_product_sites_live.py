@@ -6,13 +6,13 @@ SCOUT_RUN_LIVE_PRODUCT_TESTS=1 python3 -m pytest tests/integration/test_product_
 
 # Scenario list:
 # - Lacoste men polos category yields live JSON-LD product records and artifacts
-# - Estee Lauder skin-care category writes artifacts but currently xfails when Akamai blocks detail pages
+# - Estee Lauder skin-care category writes records or blocked-page evidence
 # - Live tests are skipped by default and require SCOUT_RUN_LIVE_PRODUCT_TESTS=1
 #
 # Validation risk surface:
 # - Proves Scout can crawl at least one real JS retail category and write Algolia records.
 # - Does not prove every retailer can bypass anti-bot controls.
-# - Estee Lauder remains a known anti-bot hardening target.
+# - Estee Lauder remains a hard-site example; listing fallback is expected when possible.
 
 from __future__ import annotations
 
@@ -84,8 +84,7 @@ async def test_estee_lauder_skin_care_live_documents_blocking_or_records(tmp_pat
 
     assert resp.success is True
     assert Path(resp.files.products_json).exists()
-    if resp.total_records == 0:
-        pytest.xfail(
-            "Estee Lauder product detail pages are currently blocked by Akamai in live runs."
-        )
-    assert "access denied" not in resp.records[0].name.lower()
+    assert Path(resp.files.blocked_pages_json).exists()
+    assert resp.total_records > 0 or resp.total_blocked_pages > 0
+    if resp.total_records > 0:
+        assert "access denied" not in resp.records[0].name.lower()

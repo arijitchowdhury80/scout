@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 
 from scout.core.products.jsonld import ProductJsonLd
-from scout.core.types import AlgoliaProductRecord, ProductSource
+from scout.core.types import AlgoliaProductRecord, ProductListingCard, ProductSource
 
 
 def build_algolia_record(
@@ -21,7 +21,7 @@ def build_algolia_record(
     categories = [category_name] if category_name else []
     hierarchical = {"lvl0": category_name} if category_name else {}
 
-    return AlgoliaProductRecord(
+    record = AlgoliaProductRecord(
         objectID=_object_id(url),
         name=name,
         url=url,
@@ -42,7 +42,50 @@ def build_algolia_record(
             category_name=category_name,
         ),
     )
+    record.completeness_score = _completeness_score(record)
+    return record
+
+
+def build_listing_algolia_record(card: ProductListingCard) -> AlgoliaProductRecord:
+    """Create a partial Algolia product record from category/listing card data."""
+    categories = [card.category_name] if card.category_name else []
+    hierarchical = {"lvl0": card.category_name} if card.category_name else {}
+    images = [card.image] if card.image else []
+    record = AlgoliaProductRecord(
+        objectID=_object_id(card.url),
+        name=card.name or card.url.rsplit("/", 1)[-1],
+        url=card.url,
+        brand=card.brand,
+        image=card.image,
+        images=images,
+        price=card.price,
+        currency=card.currency,
+        categories=categories,
+        hierarchicalCategories=hierarchical,
+        source=ProductSource(
+            url=card.url,
+            extractor="listing",
+            category_url=card.category_url,
+            category_name=card.category_name,
+        ),
+    )
+    record.completeness_score = _completeness_score(record)
+    return record
 
 
 def _object_id(url: str) -> str:
     return hashlib.sha256(url.encode("utf-8")).hexdigest()[:24]
+
+
+def _completeness_score(record: AlgoliaProductRecord) -> float:
+    checks = [
+        bool(record.name),
+        bool(record.url),
+        bool(record.image),
+        record.price is not None,
+        bool(record.brand),
+        bool(record.description),
+        bool(record.categories),
+        bool(record.sku),
+    ]
+    return round(sum(1 for item in checks if item) / len(checks), 2)

@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from urllib.parse import urlparse, urlunparse
+
+from scout.core.types import ProductListingCard
 
 
 _PRODUCT_MARKERS = ("/products/", "/product/", "/p/")
@@ -29,6 +31,7 @@ class ProductUrlGroups:
     category_url: str
     category_name: str
     product_urls: list[str]
+    listing_cards: list[ProductListingCard] = field(default_factory=list)
 
 
 def normalize_start_url(site: str, start_url: str) -> str:
@@ -125,6 +128,11 @@ def extract_product_links(category_url: str, links: list[str], limit: int) -> li
     return result
 
 
+def is_product_url(url: str) -> bool:
+    """Return whether a URL looks like a product detail URL."""
+    return _is_product_url(url)
+
+
 def _normalise_url(url: str) -> str:
     parsed = urlparse(url)
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path.rstrip("/"), "", "", ""))
@@ -137,6 +145,8 @@ def _normalise_url_preserve_query(url: str) -> str:
 
 def _is_product_url(url: str) -> bool:
     path = urlparse(url).path.lower()
+    if "/product-catalog/" in path:
+        return False
     filename = path.rsplit("/", 1)[-1]
     return any(marker in path for marker in _PRODUCT_MARKERS) or filename.endswith(".html")
 

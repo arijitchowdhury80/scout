@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 from scout.core.types import (
     AlgoliaProductRecord,
+    BlockedPage,
     ScoutFormats,
     ScoutMetadata,
     ScrapeRequest,
@@ -21,6 +22,7 @@ from scout.core.types import (
     ProductArtifactFiles,
     ProductCrawlRequest,
     ProductCrawlResponse,
+    ProductListingCard,
     ProductSource,
 )
 
@@ -224,6 +226,8 @@ def test_product_crawl_request_defaults():
     assert req.output_dir == ""
     assert req.persist is False
     assert req.use_js is True
+    assert req.browser_fallback is True
+    assert req.browser_fallback_headless is False
 
 
 def test_algolia_product_record_serializes_source_alias():
@@ -235,10 +239,27 @@ def test_algolia_product_record_serializes_source_alias():
             url="https://shop.example.com/products/oxford",
             extractor="jsonld",
         ),
+        completeness_score=0.75,
     )
 
     dumped = record.model_dump(mode="json", by_alias=True)
     assert dumped["_source"]["url"] == "https://shop.example.com/products/oxford"
+    assert dumped["completeness_score"] == 0.75
+
+
+def test_product_listing_card_contract_has_category_context():
+    card = ProductListingCard(
+        url="https://shop.example.com/products/serum",
+        name="Serum",
+        image="https://shop.example.com/serum.jpg",
+        category_url="https://shop.example.com/skin-care",
+        category_name="Skin Care",
+        price=82.0,
+        currency="USD",
+    )
+
+    assert card.category_name == "Skin Care"
+    assert card.price == 82.0
 
 
 def test_product_crawl_response_includes_artifact_files():
@@ -249,8 +270,21 @@ def test_product_crawl_response_includes_artifact_files():
         start_url="https://shop.example.com",
         records=[],
         total_records=0,
-        files=ProductArtifactFiles(manifest="manifest.json"),
+        files=ProductArtifactFiles(manifest="manifest.json", blocked_pages_json="blocked.json"),
+        blocked_pages=[
+            BlockedPage(
+                url="https://shop.example.com/products/serum",
+                reason="access_denied",
+                category_url="https://shop.example.com/skin-care",
+                category_name="Skin Care",
+                fallback_attempted=True,
+                fallback_used=False,
+            )
+        ],
+        total_blocked_pages=1,
         duration_ms=10,
     )
 
     assert resp.files.manifest == "manifest.json"
+    assert resp.files.blocked_pages_json == "blocked.json"
+    assert resp.total_blocked_pages == 1
