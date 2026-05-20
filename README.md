@@ -54,6 +54,39 @@ scout run jobs --profile examples/job-hunter/job-profile.yaml --output-dir ./sco
 scout run prism --query "Nike prospect intelligence" --mode auto --output-dir ./scout-runs/nike-prism
 ```
 
+### Working Directory And Local Keys
+
+For local development, keep secrets and machine-specific settings in
+`.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+Set:
+
+```text
+SCOUT_API_KEY=change-me
+LLM_API_KEY=
+SCOUT_WORKDIR=scout-runs
+```
+
+`.env.local` is ignored by git. Use it for local keys, default run storage, and
+developer-only configuration. Use `.env` only for shared deployment defaults.
+
+When `--output-dir` is provided, Scout writes exactly there. When `--output-dir`
+is omitted, high-level CLI workflows and `scout products` derive a timestamped
+run folder under `--workdir`, `SCOUT_WORKDIR`, or `./scout-runs`. In an
+interactive terminal, Scout prompts:
+
+```text
+Where should Scout save run outputs, interim status, and local configs?
+```
+
+HTTP, Docker, scheduled jobs, and skill-driven runs cannot rely on interactive
+prompts, so they should pass `output_dir`, pass `--workdir` through the CLI, or
+set `SCOUT_WORKDIR` in `.env.local` or the deployment environment.
+
 `scout run` is the high-level workflow surface for company, careers, products,
 jobs, PRISM, investor, research, website-quality, docs, news, social, and
 locations. Every run writes the same artifact contract so CLI, HTTP, scheduled
@@ -72,8 +105,9 @@ Supported modes are `auto`, `crawl4ai`, `webfetch`, `websearch`, `browser`,
 `saved`, and `api`. `auto` starts with standalone acquisition and uses browser
 fallback only after cheaper providers are unavailable or blocked.
 
-If `scout products` is run interactively without `--output-dir`, Scout prompts
-for a directory. In non-interactive use, it writes under `./scout-runs/`.
+If `scout run <use-case>` or `scout products` is run interactively without
+`--output-dir`, Scout prompts for a working directory. In non-interactive use,
+it writes under `SCOUT_WORKDIR` or `./scout-runs/`.
 
 ## Job Hunter
 
@@ -110,7 +144,7 @@ See [examples/job-hunter/README.md](examples/job-hunter/README.md).
 ## Run as an HTTP Service
 
 ```bash
-cp .env.example .env
+cp .env.example .env.local
 scout serve
 ```
 
@@ -126,7 +160,8 @@ All endpoints except `/` and `/health` require:
 X-API-Key: dev-key
 ```
 
-Set `SCOUT_API_KEY` in `.env` before exposing Scout beyond local development.
+Set `SCOUT_API_KEY` in `.env.local` or the deployment environment before
+exposing Scout beyond local development.
 
 High-level workflows are available over HTTP:
 

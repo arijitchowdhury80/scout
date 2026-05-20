@@ -17,6 +17,7 @@ from scout.core.modes.scrape import scrape as _scrape
 from scout.core.modes.screenshot import screenshot as _screenshot
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest
+from scout.core.platform.workspace import default_workdir, resolve_run_output_dir
 from scout.core.types import (
     CrawlRequest,
     ExtractRequest,
@@ -66,8 +67,14 @@ def _run_high_level_use_case(
     profile_path: str = "",
     job_urls: list[str] | None = None,
     mode: str = "auto",
+    workdir: str = "",
 ) -> None:
-    chosen_output = output_dir or _prompt_output_dir(query=query or use_case, site=use_case)
+    chosen_output = _choose_output_dir(
+        output_dir=output_dir,
+        workdir=workdir,
+        use_case=use_case,
+        query=query,
+    )
     resp = run_use_case(
         RunRequest(
             use_case=use_case,
@@ -85,20 +92,26 @@ def _run_high_level_use_case(
 def run_products(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
 ) -> None:
     """Run product catalog extraction."""
-    _run_high_level_use_case("products", query=query, output_dir=output_dir, mode=mode)
+    _run_high_level_use_case(
+        "products", query=query, output_dir=output_dir, mode=mode, workdir=workdir
+    )
 
 
 @run_app.command("company")
 def run_company(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
 ) -> None:
     """Run company intelligence extraction."""
-    _run_high_level_use_case("company", query=query, output_dir=output_dir, mode=mode)
+    _run_high_level_use_case(
+        "company", query=query, output_dir=output_dir, mode=mode, workdir=workdir
+    )
 
 
 @run_app.command("jobs")
@@ -106,6 +119,7 @@ def run_jobs(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
     profile: str = typer.Option("", "--profile", help="Path to a JobSearchProfile YAML file"),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     job_url: list[str] | None = typer.Option(
         None,
         "--job-url",
@@ -121,6 +135,7 @@ def run_jobs(
         profile_path=profile,
         job_urls=job_url or [],
         mode=mode,
+        workdir=workdir,
     )
 
 
@@ -128,90 +143,113 @@ def run_jobs(
 def run_careers(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
 ) -> None:
     """Run careers and hiring intelligence extraction."""
-    _run_high_level_use_case("careers", query=query, output_dir=output_dir, mode=mode)
+    _run_high_level_use_case(
+        "careers", query=query, output_dir=output_dir, mode=mode, workdir=workdir
+    )
 
 
 @run_app.command("prism")
 def run_prism(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
 ) -> None:
     """Run PRISM company intelligence extraction."""
-    _run_high_level_use_case("prism", query=query, output_dir=output_dir, mode=mode)
+    _run_high_level_use_case(
+        "prism", query=query, output_dir=output_dir, mode=mode, workdir=workdir
+    )
 
 
 @run_app.command("investor")
 def run_investor(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
 ) -> None:
     """Run investor intelligence extraction."""
-    _run_high_level_use_case("investor", query=query, output_dir=output_dir, mode=mode)
+    _run_high_level_use_case(
+        "investor", query=query, output_dir=output_dir, mode=mode, workdir=workdir
+    )
 
 
 @run_app.command("research")
 def run_research(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
 ) -> None:
     """Run generic web research extraction."""
-    _run_high_level_use_case("research", query=query, output_dir=output_dir, mode=mode)
+    _run_high_level_use_case(
+        "research", query=query, output_dir=output_dir, mode=mode, workdir=workdir
+    )
 
 
 @run_app.command("website-quality")
 def run_website_quality(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
 ) -> None:
     """Run website quality assessment."""
-    _run_high_level_use_case("website-quality", query=query, output_dir=output_dir, mode=mode)
+    _run_high_level_use_case(
+        "website-quality", query=query, output_dir=output_dir, mode=mode, workdir=workdir
+    )
 
 
 @run_app.command("docs")
 def run_docs(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
 ) -> None:
     """Run documentation extraction."""
-    _run_high_level_use_case("docs", query=query, output_dir=output_dir, mode=mode)
+    _run_high_level_use_case("docs", query=query, output_dir=output_dir, mode=mode, workdir=workdir)
 
 
 @run_app.command("news")
 def run_news(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
 ) -> None:
     """Run newsroom and signal monitoring."""
-    _run_high_level_use_case("news", query=query, output_dir=output_dir, mode=mode)
+    _run_high_level_use_case("news", query=query, output_dir=output_dir, mode=mode, workdir=workdir)
 
 
 @run_app.command("social")
 def run_social(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
 ) -> None:
     """Run social signal normalization."""
-    _run_high_level_use_case("social", query=query, output_dir=output_dir, mode=mode)
+    _run_high_level_use_case(
+        "social", query=query, output_dir=output_dir, mode=mode, workdir=workdir
+    )
 
 
 @run_app.command("locations")
 def run_locations(
     query: str = typer.Option("", "--query", help="Use-case query"),
     mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
 ) -> None:
     """Run store/location extraction."""
-    _run_high_level_use_case("locations", query=query, output_dir=output_dir, mode=mode)
+    _run_high_level_use_case(
+        "locations", query=query, output_dir=output_dir, mode=mode, workdir=workdir
+    )
 
 
 @app.command()
@@ -318,6 +356,7 @@ def products(
     site: str = typer.Option("", "--site", help="Target domain, for example esteelauder.com"),
     start_url: str = typer.Option("", "--start-url", help="Explicit URL to start discovery from"),
     output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
     limit_per_category: int = typer.Option(
         10, "--limit-per-category", help="Products per category"
     ),
@@ -337,7 +376,12 @@ def products(
     ),
 ) -> None:
     """Crawl products and write Algolia-ready records to a run folder."""
-    chosen_output = output_dir or _prompt_output_dir(query=query, site=site)
+    chosen_output = _choose_output_dir(
+        output_dir=output_dir,
+        workdir=workdir,
+        use_case="products",
+        query="-".join(part for part in [site, query] if part),
+    )
     req = ProductCrawlRequest(
         query=query,
         site=site,
@@ -356,16 +400,31 @@ def products(
     _die(resp)
 
 
-def _prompt_output_dir(query: str, site: str) -> str:
-    default = (
-        Path.cwd()
-        / "scout-runs"
-        / "-".join(part.lower().replace(" ", "-") for part in [site, query] if part)
-    )
+def _choose_output_dir(output_dir: str, workdir: str, use_case: str, query: str) -> str:
+    if output_dir:
+        return output_dir
+    chosen_workdir = workdir or _prompt_workdir()
+    return resolve_run_output_dir(use_case=use_case, query=query, workdir=chosen_workdir)
+
+
+def _prompt_workdir() -> str:
+    default = str(Path(default_workdir()))
     if sys.stdin.isatty():
-        value = typer.prompt("Where should Scout save this run?", default=str(default))
-        return str(value)
-    return str(default)
+        return str(
+            typer.prompt(
+                "Where should Scout save run outputs, interim status, and local configs?",
+                default=default,
+            )
+        )
+    return default
+
+
+def _prompt_output_dir(query: str, site: str) -> str:
+    return resolve_run_output_dir(
+        use_case=site or "scout",
+        query=query,
+        workdir=_prompt_workdir(),
+    )
 
 
 @app.command()

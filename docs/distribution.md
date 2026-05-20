@@ -19,6 +19,31 @@ pip install -e ".[dev]"
 playwright install chromium
 ```
 
+## Local Configuration
+
+Use `.env.local` for private keys and machine-specific defaults:
+
+```bash
+cp .env.example .env.local
+```
+
+Supported local settings:
+
+```text
+SCOUT_API_KEY=change-me
+LLM_API_KEY=
+SCOUT_WORKDIR=scout-runs
+HOST=0.0.0.0
+PORT=8421
+```
+
+`.env.local` is ignored by git. Store API keys, local working directories, and
+developer-only overrides there. For shared deployment defaults, use environment
+variables or a deployment-managed `.env`.
+
+`SCOUT_WORKDIR` is the base directory for generated run folders when a caller
+does not pass an exact `--output-dir` or JSON `output_dir`.
+
 ## Docker
 
 ```bash
@@ -66,6 +91,18 @@ scout run jobs --profile examples/job-hunter/job-profile.yaml --mode api --outpu
 scout run prism --query "Nike company intelligence" --mode auto --output-dir ./scout-runs/prism
 scout run investor --query Salesforce --mode saved --output-dir ./scout-runs/investor
 ```
+
+If `--output-dir` is omitted, the CLI uses `--workdir`, then `SCOUT_WORKDIR`,
+then `./scout-runs`. In an interactive terminal, Scout prompts for the working
+directory before creating a timestamped run folder:
+
+```bash
+scout run company --query Adobe --workdir ./scout-runs
+scout products "top products" --site lacoste.com --workdir ./scout-runs
+```
+
+HTTP, Docker, scheduled jobs, and skill calls do not prompt. Configure
+`SCOUT_WORKDIR` or send `output_dir` in the request body.
 
 Job Hunter URL-seeded runs:
 
@@ -115,6 +152,9 @@ curl -s -X POST http://localhost:8421/run/prism \
   -H "X-API-Key: ${SCOUT_API_KEY:-dev-key}" \
   -d '{"query":"Nike","mode":"auto","output_dir":"./scout-runs/nike-prism"}'
 ```
+
+If `output_dir` is omitted, the HTTP app derives a timestamped folder under
+`SCOUT_WORKDIR`.
 
 Execution modes are stable package API values:
 

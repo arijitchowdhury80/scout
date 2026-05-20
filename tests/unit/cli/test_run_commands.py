@@ -137,3 +137,28 @@ def test_run_company_accepts_mode_option() -> None:
         assert result.exit_code == 0
         assert '"use_case": "company"' in result.output
         assert '"host_browser"' in result.output
+
+
+def test_run_company_uses_workdir_option_when_output_dir_missing() -> None:
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            app,
+            [
+                "run",
+                "company",
+                "--query",
+                "Adobe",
+                "--workdir",
+                "scout-work",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert '"use_case": "company"' in result.output
+
+        from pathlib import Path
+
+        run_dirs = list(Path("scout-work").glob("company-adobe-*"))
+        assert len(run_dirs) == 1
+        assert (run_dirs[0] / "manifest.json").exists()

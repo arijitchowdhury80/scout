@@ -8,10 +8,11 @@ class Settings(BaseSettings):
 
     scout_api_key: str = "dev-key"
     llm_api_key: str = ""
+    scout_workdir: str = "scout-runs"
     host: str = "0.0.0.0"
     port: int = 8421
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": (".env", ".env.local"), "env_file_encoding": "utf-8"}
 
 
 settings = Settings()

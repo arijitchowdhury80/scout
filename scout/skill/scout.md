@@ -50,6 +50,29 @@ X-API-Key: dev-key
 
 Use `$SCOUT_API_KEY` when configured.
 
+## Working Directory And Local Config
+
+Scout stores each run in a working directory so artifacts, interim status, and
+local configs are findable. Prefer an explicit output path when the user gives
+one. Otherwise:
+
+1. For CLI runs, pass `--workdir` when the user names a workspace.
+2. If the terminal is interactive and no path is provided, Scout prompts for the
+   working directory.
+3. For HTTP, Docker, scheduled, or skill-driven runs, set `SCOUT_WORKDIR` in
+   `.env.local` or pass JSON `output_dir`.
+
+Local keys and machine-specific defaults belong in `.env.local`:
+
+```text
+SCOUT_API_KEY=change-me
+LLM_API_KEY=
+SCOUT_WORKDIR=scout-runs
+```
+
+Do not put private API keys, job profiles, resume-derived preferences, or
+personal research profiles in the public repository.
+
 ## Execution Modes
 
 Use `--mode` or request JSON `"mode"`:
@@ -75,6 +98,13 @@ scout run news --query "Adobe AI announcements" --mode websearch --output-dir ./
 scout run research --query "companies with weak ecommerce search UX" --mode auto --output-dir ./scout-runs/research
 scout run jobs --profile ./private-job-profile.yaml --mode api --output-dir ./scout-runs/jobs
 scout run products --query "top skincare products" --mode auto --output-dir ./scout-runs/products
+```
+
+When the user wants Scout to choose a run folder:
+
+```bash
+scout run company --query Adobe --mode auto --workdir ./scout-runs
+scout run prism --query Nike --mode auto --workdir ./scout-runs
 ```
 
 Use the specialized product command for deeper product catalog crawling:

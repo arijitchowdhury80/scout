@@ -280,6 +280,24 @@ def test_run_use_case_endpoint_returns_artifact_manifest(tmp_path) -> None:
     assert data["manifest"]["artifacts"]["records_json"].endswith("records.json")
 
 
+def test_run_use_case_endpoint_derives_output_dir_when_missing(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("SCOUT_WORKDIR", str(tmp_path / "scout-work"))
+    client = TestClient(app)
+    resp = client.post(
+        "/run/company",
+        json={"query": "Adobe", "mode": "saved"},
+        headers=_HEADERS,
+    )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert data["output_dir"].startswith(str(tmp_path / "scout-work"))
+    from pathlib import Path
+
+    assert Path(data["output_dir"]).name.startswith("company-adobe-")
+
+
 def test_root_returns_html_landing_page() -> None:
     """GET / returns a simple service page for browser users."""
     client = TestClient(app)
