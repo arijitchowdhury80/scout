@@ -21,6 +21,50 @@ def test_app_serves_self_educating_frontend() -> None:
     assert "Algolia Preparation" in resp.text
 
 
+def test_app_architecture_home_contains_generated_image_one_canvas() -> None:
+    client = TestClient(app)
+
+    resp = client.get("/app")
+
+    assert resp.status_code == 200
+    expected_labels = [
+        "architecture-canvas",
+        "Front Doors",
+        "RunRequest",
+        "Execution Mode Router",
+        "Provider Modes",
+        "Normalized Source Evidence",
+        "Vertical Processors",
+        "Typed Records",
+        "Downstream Consumers",
+        "Claude / Codex Skill",
+        "browser fallback",
+        "saved replay",
+        "api adapters",
+        "Security & Secrets",
+        "Rate Limiting & Throttling",
+        "Logging & Observability",
+        "Retry & Backoff",
+        "Metrics & Monitoring",
+        "Storage & Artifacts",
+        "Configuration & Feature Flags",
+    ]
+    for label in expected_labels:
+        assert label in resp.text
+
+
+def test_app_architecture_home_has_clickable_detail_panel() -> None:
+    client = TestClient(app)
+
+    resp = client.get("/app")
+
+    assert resp.status_code == 200
+    assert 'id="architectureDetailTitle"' in resp.text
+    assert 'data-arch-title="crawl4ai"' in resp.text
+    assert 'data-arch-title="browser fallback"' in resp.text
+    assert 'data-arch-title="Typed Records"' in resp.text
+
+
 def test_run_artifact_endpoints_return_records_sources_and_artifacts(tmp_path: Path) -> None:
     client = TestClient(app)
     output_dir = tmp_path / "company-run"

@@ -138,10 +138,13 @@ When the user wants to run Scout visually, open:
 http://localhost:8421/app
 ```
 
-The frontend includes a self-education screen, execution-mode tabs, working
-directory selection, Product Workbench, Algolia preparation preview, Records
-Explorer, and Evidence Browser. Algolia keys entered in the UI are session-only
-and must not be written to artifacts or repo files.
+The frontend includes a self-education architecture screen, execution-mode
+tabs, working directory selection, Product Workbench, Algolia preparation
+preview, Records Explorer, and Evidence Browser. The architecture screen maps
+front doors, RunRequest, provider modes, normalized evidence, vertical
+processors, typed records, downstream consumers, and cross-cutting concerns.
+Algolia keys entered in the UI are session-only and must not be written to
+artifacts or repo files.
 
 ## Use Cases
 

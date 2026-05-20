@@ -18,6 +18,22 @@ The first production UI includes:
 - Records Explorer
 - Settings
 
+## Architecture Home
+
+The How to use me screen is the first polished frontend slice. It mirrors the
+Generated Image 1 architecture concept and teaches Scout as a flow:
+
+```text
+Front Doors -> RunRequest -> Execution Mode Router -> Provider Modes
+-> Normalized Source Evidence -> Vertical Processors -> Typed Records
+-> Downstream Consumers
+```
+
+Each stage is clickable and updates a detail panel with what the stage does,
+when to use it, and a concrete command or artifact example. The cross-cutting
+rail covers security, throttling, observability, retry policy, metrics, storage,
+and configuration.
+
 ## Working Directory UX
 
 The frontend uses a hybrid working-directory model:
