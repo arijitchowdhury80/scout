@@ -1,30 +1,42 @@
 ---
 name: scout
-description: Use Scout to scrape, crawl, extract, screenshot, or prepare Algolia-ready product records from public websites. Scout is a standalone Crawl4AI-based package that can run as a CLI or a local HTTP service at http://localhost:8421. Invoke Scout when web content needs JavaScript rendering, sitemap discovery, multi-page crawling, structured extraction, PDF text extraction, product catalog crawling, or durable run artifacts. Use it instead of raw curl/WebFetch for company research, careers/investor pages, product catalogs, and demo data preparation.
+description: Use Scout for provider-agnostic web intelligence: company research, PRISM prospect bundles, investor pages, careers/hiring, job extraction and scoring, product catalog records for Algolia, news signals, docs, and generic web research. Scout runs as a standalone CLI, local HTTP app, and skill-backed extraction engine. Use browser fallback only after normal providers are blocked, sparse, or JS-heavy.
 layer: 0-infrastructure
 type: server-backed
 server_port: 8421
 health_check: "curl -s http://localhost:8421/health"
 start_command: "scout serve"
 requires_install: true
-version: 2.0
+version: 3.0
 ---
 
 # Scout
 
-Scout is a standalone web scraping and product intelligence platform built on
-Crawl4AI. This skill is only the agent playbook. Scout also works directly from
-terminal, Docker, HTTP, and Python.
+Scout is a standalone web intelligence engine built on Crawl4AI with a
+provider ladder for host WebFetch/WebSearch, saved replay, API adapters, and
+browser fallback. This skill is the agent playbook. Scout itself must remain
+usable from terminal, HTTP, Docker, and Python.
+
+## First Decision
+
+Use the lightest channel that can produce evidence:
+
+1. CLI for local standalone runs.
+2. HTTP when another process or agent needs a stable local service.
+3. Host WebFetch/WebSearch when the host has stronger page/search access.
+4. Browser fallback only when pages are blocked, JS-shell, interactive, or
+   visual verification is needed.
+5. Saved replay for deterministic tests and previously captured HTML/DOM/PDF.
+
+Browser is a secondary channel, not the default.
 
 ## Health Check
-
-Always check whether the local service is running before HTTP calls:
 
 ```bash
 curl -s http://localhost:8421/health
 ```
 
-If it is not running:
+If not running:
 
 ```bash
 scout serve
@@ -36,174 +48,150 @@ All HTTP endpoints except `/` and `/health` require:
 X-API-Key: dev-key
 ```
 
-Use `$SCOUT_API_KEY` instead when configured.
+Use `$SCOUT_API_KEY` when configured.
 
-## When To Use Scout
+## Execution Modes
 
-Use Scout for:
+Use `--mode` or request JSON `"mode"`:
 
-- JS-rendered pages that basic fetch tools miss
-- URL discovery before scraping
-- Multi-page section crawls
-- PDFs that need text extraction
-- Product catalog crawling and Algolia-ready records
-- Company pages: about, leadership, careers, investor relations
-- Durable run artifacts instead of hidden `/tmp` files
+| Mode | Use |
+|---|---|
+| `auto` | Default provider ladder. |
+| `crawl4ai` | Standalone Crawl4AI acquisition. |
+| `webfetch` | Host-provided page fetch evidence. |
+| `websearch` | Host-provided discovery/search evidence. |
+| `browser` | In-app/internal browser fallback. |
+| `saved` | Saved HTML, DOM, PDF, or fixture replay. |
+| `api` | Provider adapters such as ATS, commerce, investor, and social APIs. |
 
-## Front Doors
-
-### CLI
-
-Use CLI for standalone terminal work. It does not require `scout serve`.
+## High-Level CLI
 
 ```bash
-scout scrape https://example.com/about
-scout map https://example.com --pages 200
-scout crawl https://example.com/careers --depth 2 --pages 30
-scout products "men shirts" --site example.com --output-dir ./scout-runs/men-shirts
+scout run company --query Adobe --mode auto --output-dir ./scout-runs/adobe-company
+scout run careers --query Atlassian --mode auto --output-dir ./scout-runs/atlassian-careers
+scout run investor --query Salesforce --mode auto --output-dir ./scout-runs/salesforce-investor
+scout run prism --query Nike --mode auto --output-dir ./scout-runs/nike-prism
+scout run news --query "Adobe AI announcements" --mode websearch --output-dir ./scout-runs/adobe-news
+scout run research --query "companies with weak ecommerce search UX" --mode auto --output-dir ./scout-runs/research
+scout run jobs --profile ./private-job-profile.yaml --mode api --output-dir ./scout-runs/jobs
+scout run products --query "top skincare products" --mode auto --output-dir ./scout-runs/products
 ```
 
-### HTTP
-
-Use HTTP when another tool or agent needs a stable local service.
-
-```bash
-curl -s -X POST http://localhost:8421/scrape \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: ${SCOUT_API_KEY:-dev-key}" \
-  -d '{"url": "https://example.com/about", "use_js": true}'
-```
-
-## Core Pattern
-
-For most web research:
-
-1. Map the domain.
-2. Filter URLs to the relevant section.
-3. Scrape or crawl those URLs.
-4. Preserve source URLs in the final answer.
-
-```bash
-curl -s --max-time 60 -X POST http://localhost:8421/map \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: ${SCOUT_API_KEY:-dev-key}" \
-  -d '{"url": "https://company.com", "max_pages": 200}'
-```
-
-## Product Catalog To Algolia
-
-Use `/products` or `scout products` when the user asks for products, catalog
-records, demo data, PDP/search data, or Algolia indexing prep.
-
-Prefer explicit target sites. If the user says only "Scout Estee Lauder", use
-`--site esteelauder.com` if obvious; otherwise ask for the target domain.
-
-CLI:
+Use the specialized product command for deeper product catalog crawling:
 
 ```bash
 scout products "top products" \
-  --site esteelauder.com \
+  --site lacoste.com \
   --limit-per-category 10 \
   --max-categories 10 \
-  --output-dir ./scout-runs/estee-lauder
+  --output-dir ./scout-runs/lacoste-products
 ```
 
-HTTP:
+## High-Level HTTP
 
 ```bash
-curl -s --max-time 180 -X POST http://localhost:8421/products \
+curl -s -X POST http://localhost:8421/run/company \
   -H "Content-Type: application/json" \
   -H "X-API-Key: ${SCOUT_API_KEY:-dev-key}" \
   -d '{
-    "query": "top products",
-    "site": "esteelauder.com",
-    "limit_per_category": 10,
-    "max_categories": 10,
-    "output_dir": "./scout-runs/estee-lauder",
-    "persist": true
+    "query": "Adobe",
+    "mode": "auto",
+    "output_dir": "./scout-runs/adobe-company"
   }'
 ```
 
-Product runs write:
+## Use Cases
 
-```text
-manifest.json
-urls.json
-extracted/products.raw.jsonl
-algolia/products.json
-algolia/products.ndjson
-algolia/settings.json
-report.md
-```
+### Company
 
-Use `algolia/products.json` for inspection and `algolia/products.ndjson` for
-bulk indexing pipelines.
+Use for official website, about page, leadership, socials, and key URLs.
 
-## Company Intelligence Playbooks
+Output records: `company.v1`, `executive.v1`, `company_social.v1`.
 
-### About / Company
+### PRISM
 
-Map first, then scrape likely about pages:
+Use for Algolia prospect research bundles: company, exec, investor, careers,
+hiring, and news.
 
-```bash
-scout map https://company.com --pages 200 --pattern about
-scout scrape https://company.com/about --js
-```
+### Investor
 
-Extract mission, founding, headquarters, product summary, and source URL.
+Use for investor relations pages, reports, presentations, filings, financial
+events, and source URLs.
 
-### Leadership
-
-```bash
-scout map https://company.com --pages 200
-scout scrape https://company.com/about/leadership --js
-```
-
-If markdown is sparse, request raw HTML:
-
-```bash
-curl -s -X POST http://localhost:8421/scrape \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: ${SCOUT_API_KEY:-dev-key}" \
-  -d '{"url": "https://company.com/about/leadership", "use_js": true, "formats": ["raw_html"]}'
-```
+Output record: `investor_asset.v1`.
 
 ### Careers
 
-```bash
-scout crawl https://company.com/careers --depth 2 --pages 30 --pattern careers --js
+Use for careers pages, ATS detection, departments, open role categories, and
+hiring signals.
+
+Output record: `career_site.v1`.
+
+### Jobs
+
+Use for job extraction, matching, scoring, monitoring, and quality filtering.
+Do not auto-apply. Keep private profiles outside the public repo.
+
+Output record: `job_posting.v1`.
+
+### Products
+
+Use for product/category extraction and Algolia-ready records. Prefer explicit
+target domains or known category URLs. If a hard site is blocked, try:
+
+1. `scout products ... --site <domain>` with Crawl4AI.
+2. `--stealth` if normal rendering is blocked.
+3. browser fallback only for blocked product pages.
+4. host WebFetch/browser evidence when the skill host can see content.
+
+### News
+
+Use for newsroom/blog/recent announcement signal extraction.
+
+Output record: `news_signal.v1`.
+
+### Research
+
+Use for generic page, site, document, website-quality, documentation, and market
+research workflows.
+
+Output record: `research_record.v1`.
+
+## Artifact Contract
+
+Every `scout run` workflow writes:
+
+```text
+manifest.json
+records.json
+records.jsonl
+source_pages.json
+blocked_pages.json
+validation.json
+extraction_report.md
 ```
 
-### Investor Relations
+Product-specific deep crawls also write Algolia artifacts under `algolia/`.
 
-```bash
-scout map https://company.com --pages 200 --pattern investor
-scout scrape https://company.com/investors --js
-```
+## Citations
 
-### PDFs
+Treat `source_pages.json` as the source registry. It contains deterministic
+`source_id` values, source/final URLs, provider, fetch status, blocked/error
+state, title, content hashes, and content availability flags.
 
-Pass direct PDF URLs to scrape:
+Treat record-level `citations[]` as the field-level bridge back to evidence.
+Each citation should identify `source_id`, `source_url`, `field`, `claim`,
+`snippet`, optional `selector`, and `confidence`.
 
-```bash
-scout scrape https://company.com/reports/annual-report.pdf
-```
-
-## Error Handling
-
-| Symptom | Fix |
-|---|---|
-| Connection refused | Run `scout serve` |
-| HTTP 403 | Add `X-API-Key` header |
-| Sparse markdown | Retry with `use_js=true` or `--js` |
-| Content still missing | Add `wait_for` selector or request raw HTML |
-| Product run writes nowhere | Pass `--output-dir` or set `"persist": true` with `output_dir` |
+If a record has no citations, mention that caveat. Scout also writes
+`missing_citations` warnings to `validation.json`.
 
 ## Answering Users
 
-When returning scraped results, include:
+When returning Scout results, include:
 
-- What Scout command or endpoint was used
-- Where artifacts were written, if any
-- Source URLs
-- Any extraction caveats, such as missing JSON-LD or sparse page content
+- command or endpoint used,
+- output directory,
+- record counts and artifact paths,
+- source URLs, source IDs, and citation coverage,
+- blocked-page or sparse-content caveats.

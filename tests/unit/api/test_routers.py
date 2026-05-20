@@ -264,6 +264,22 @@ def test_health_returns_version_info() -> None:
     assert "scout_version" in data
 
 
+def test_run_use_case_endpoint_returns_artifact_manifest(tmp_path) -> None:
+    client = TestClient(app)
+    output_dir = tmp_path / "company-run"
+    resp = client.post(
+        "/run/company",
+        json={"query": "Adobe", "mode": "saved", "output_dir": str(output_dir)},
+        headers=_HEADERS,
+    )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert data["use_case"] == "company"
+    assert data["manifest"]["artifacts"]["records_json"].endswith("records.json")
+
+
 def test_root_returns_html_landing_page() -> None:
     """GET / returns a simple service page for browser users."""
     client = TestClient(app)

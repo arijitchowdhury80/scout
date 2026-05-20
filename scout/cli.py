@@ -15,6 +15,8 @@ from scout.core.modes.map import map_urls as _map
 from scout.core.modes.products import products as _products
 from scout.core.modes.scrape import scrape as _scrape
 from scout.core.modes.screenshot import screenshot as _screenshot
+from scout.core.platform.run import run_use_case
+from scout.core.platform.types import RunRequest
 from scout.core.types import (
     CrawlRequest,
     ExtractRequest,
@@ -34,6 +36,15 @@ app = typer.Typer(
     ),
     no_args_is_help=True,
 )
+run_app = typer.Typer(
+    help=(
+        "Run high-level Scout use cases: products, jobs, prism, investor, research, "
+        "website-quality, docs, news, social, locations."
+    )
+)
+app.add_typer(run_app, name="run")
+
+_MODE_HELP = "Execution mode: auto, crawl4ai, webfetch, websearch, browser, saved, api"
 
 
 def _out(data: dict) -> None:
@@ -46,6 +57,161 @@ def _die(resp: object) -> None:
     _out(d)
     if not d.get("success", True):
         raise SystemExit(1)
+
+
+def _run_high_level_use_case(
+    use_case: str,
+    query: str = "",
+    output_dir: str = "",
+    profile_path: str = "",
+    job_urls: list[str] | None = None,
+    mode: str = "auto",
+) -> None:
+    chosen_output = output_dir or _prompt_output_dir(query=query or use_case, site=use_case)
+    resp = run_use_case(
+        RunRequest(
+            use_case=use_case,
+            query=query,
+            mode=mode,
+            profile_path=profile_path,
+            job_urls=job_urls or [],
+            output_dir=chosen_output,
+        )
+    )
+    _out(resp.model_dump(mode="json"))
+
+
+@run_app.command("products")
+def run_products(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run product catalog extraction."""
+    _run_high_level_use_case("products", query=query, output_dir=output_dir, mode=mode)
+
+
+@run_app.command("company")
+def run_company(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run company intelligence extraction."""
+    _run_high_level_use_case("company", query=query, output_dir=output_dir, mode=mode)
+
+
+@run_app.command("jobs")
+def run_jobs(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    profile: str = typer.Option("", "--profile", help="Path to a JobSearchProfile YAML file"),
+    job_url: list[str] | None = typer.Option(
+        None,
+        "--job-url",
+        help="Seed job URL to extract and score. Repeat for multiple jobs.",
+    ),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run job hunter extraction."""
+    _run_high_level_use_case(
+        "jobs",
+        query=query,
+        output_dir=output_dir,
+        profile_path=profile,
+        job_urls=job_url or [],
+        mode=mode,
+    )
+
+
+@run_app.command("careers")
+def run_careers(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run careers and hiring intelligence extraction."""
+    _run_high_level_use_case("careers", query=query, output_dir=output_dir, mode=mode)
+
+
+@run_app.command("prism")
+def run_prism(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run PRISM company intelligence extraction."""
+    _run_high_level_use_case("prism", query=query, output_dir=output_dir, mode=mode)
+
+
+@run_app.command("investor")
+def run_investor(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run investor intelligence extraction."""
+    _run_high_level_use_case("investor", query=query, output_dir=output_dir, mode=mode)
+
+
+@run_app.command("research")
+def run_research(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run generic web research extraction."""
+    _run_high_level_use_case("research", query=query, output_dir=output_dir, mode=mode)
+
+
+@run_app.command("website-quality")
+def run_website_quality(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run website quality assessment."""
+    _run_high_level_use_case("website-quality", query=query, output_dir=output_dir, mode=mode)
+
+
+@run_app.command("docs")
+def run_docs(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run documentation extraction."""
+    _run_high_level_use_case("docs", query=query, output_dir=output_dir, mode=mode)
+
+
+@run_app.command("news")
+def run_news(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run newsroom and signal monitoring."""
+    _run_high_level_use_case("news", query=query, output_dir=output_dir, mode=mode)
+
+
+@run_app.command("social")
+def run_social(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run social signal normalization."""
+    _run_high_level_use_case("social", query=query, output_dir=output_dir, mode=mode)
+
+
+@run_app.command("locations")
+def run_locations(
+    query: str = typer.Option("", "--query", help="Use-case query"),
+    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
+    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
+) -> None:
+    """Run store/location extraction."""
+    _run_high_level_use_case("locations", query=query, output_dir=output_dir, mode=mode)
 
 
 @app.command()

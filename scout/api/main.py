@@ -9,7 +9,7 @@ from fastapi.responses import HTMLResponse
 from scout.api.config import settings
 from scout.api.deps import get_crawler
 from scout.api.middleware.auth import AuthMiddleware
-from scout.api.routers import crawl, extract, health, products
+from scout.api.routers import crawl, extract, health, products, run
 from scout.api.routers import map as map_router
 from scout.api.routers import scrape, screenshot
 from scout.core.crawler import ScoutCrawler
@@ -35,6 +35,7 @@ app.include_router(scrape.router)
 app.include_router(crawl.router)
 app.include_router(extract.router)
 app.include_router(products.router)
+app.include_router(run.router)
 app.include_router(map_router.router)
 app.include_router(screenshot.router)
 

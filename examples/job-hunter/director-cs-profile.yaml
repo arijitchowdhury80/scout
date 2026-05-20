@@ -1,0 +1,26 @@
+desired_titles:
+  - Director Enterprise Customer Success
+  - Director Customer Success
+  - Senior Director Customer Success
+  - VP Customer Success
+salary_min_usd: 250000
+locations:
+  - Remote
+  - United States
+seniority:
+  - Director
+  - Senior Director
+  - VP
+role_keywords:
+  - AI
+  - enterprise
+  - customer success
+  - renewals
+  - expansion
+  - executive relationships
+must_have_terms:
+  - enterprise
+  - customer success
+reject_terms:
+  - intern
+  - support representative
