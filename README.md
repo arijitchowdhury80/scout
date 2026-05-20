@@ -151,6 +151,7 @@ scout serve
 Open:
 
 - `http://localhost:8421/` for a small status page
+- `http://localhost:8421/app` for the Scout frontend
 - `http://localhost:8421/docs` for Swagger API docs
 - `http://localhost:8421/health` for health/version info
 
@@ -179,6 +180,10 @@ curl -s -X POST http://localhost:8421/run/company \
 The response includes the manifest and paths for `records.json`,
 `records.jsonl`, `source_pages.json`, `blocked_pages.json`, `validation.json`,
 and `extraction_report.md`.
+
+The frontend at `/app` provides a self-educating Run Console, Product
+Workbench, Evidence Browser, Records Explorer, and Algolia preparation panel.
+Algolia credentials entered there are session-only and are not persisted.
 
 `source_pages.json` is the source registry. It stores deterministic
 `source_id` values, source/final URLs, provider, fetch status, blocked/error

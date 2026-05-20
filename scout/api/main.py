@@ -9,7 +9,8 @@ from fastapi.responses import HTMLResponse
 from scout.api.config import settings
 from scout.api.deps import get_crawler
 from scout.api.middleware.auth import AuthMiddleware
-from scout.api.routers import crawl, extract, health, products, run
+from scout.api.frontend import scout_app_html
+from scout.api.routers import algolia, crawl, extract, health, products, run, runs
 from scout.api.routers import map as map_router
 from scout.api.routers import scrape, screenshot
 from scout.core.crawler import ScoutCrawler
@@ -36,6 +37,8 @@ app.include_router(crawl.router)
 app.include_router(extract.router)
 app.include_router(products.router)
 app.include_router(run.router)
+app.include_router(runs.router)
+app.include_router(algolia.router)
 app.include_router(map_router.router)
 app.include_router(screenshot.router)
 
@@ -60,9 +63,16 @@ async def root() -> str:
         <p>Self-hosted web scraping and product intelligence built on Crawl4AI.</p>
         <ul>
           <li><a href="/health">Health</a></li>
+          <li><a href="/app">Scout app</a></li>
           <li><a href="/docs">API docs</a></li>
         </ul>
         <p>CLI: <code>scout products "men shirts" --site example.com</code></p>
       </body>
     </html>
     """
+
+
+@app.get("/app", response_class=HTMLResponse, include_in_schema=False)
+async def scout_app() -> str:
+    """Return the Scout self-educating frontend app."""
+    return scout_app_html()

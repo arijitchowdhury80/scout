@@ -130,6 +130,19 @@ curl -s -X POST http://localhost:8421/run/company \
   }'
 ```
 
+## Frontend
+
+When the user wants to run Scout visually, open:
+
+```text
+http://localhost:8421/app
+```
+
+The frontend includes a self-education screen, execution-mode tabs, working
+directory selection, Product Workbench, Algolia preparation preview, Records
+Explorer, and Evidence Browser. Algolia keys entered in the UI are session-only
+and must not be written to artifacts or repo files.
+
 ## Use Cases
 
 ### Company

@@ -156,6 +156,16 @@ curl -s -X POST http://localhost:8421/run/prism \
 If `output_dir` is omitted, the HTTP app derives a timestamped folder under
 `SCOUT_WORKDIR`.
 
+The standalone web UI is available at:
+
+```text
+http://localhost:8421/app
+```
+
+It provides the Run Console, execution mode tabs, Product Workbench, evidence
+inspection, record preview, and Algolia preparation hooks. Algolia ingestion is
+preview-only in Production V1; real indexing is a future extension.
+
 Execution modes are stable package API values:
 
 | Mode | Intended distribution path |

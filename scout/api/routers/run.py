@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from scout.api.config import settings
+from scout.api.run_store import remember_run
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest, RunResponse
 from scout.core.platform.workspace import resolve_run_output_dir
@@ -25,4 +26,7 @@ async def run_high_level_use_case(use_case: str, req: RunRequest) -> RunResponse
             ),
         }
     )
-    return run_use_case(data)
+    resp = run_use_case(data)
+    if resp.manifest is not None:
+        remember_run(resp.manifest)
+    return resp

@@ -18,7 +18,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: object) -> Response:
         """Pass public routes through; reject other requests without a valid key."""
-        if request.url.path in {"/", "/health"}:
+        if request.url.path in {"/", "/app", "/health"}:
             return await call_next(request)  # type: ignore[misc]
 
         incoming_key = request.headers.get("X-API-Key")
