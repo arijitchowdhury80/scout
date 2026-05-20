@@ -60,7 +60,7 @@ that need more than one raw fetch.
 
 ```bash
 scout run company --query Adobe --mode auto --output-dir ./scout-runs/company
-scout run careers --query Atlassian --mode crawl4ai --output-dir ./scout-runs/careers
+scout run careers --query Algolia --mode crawl4ai --output-dir ./scout-runs/careers
 scout run products --query "men shirts" --mode auto --output-dir ./scout-runs/products
 scout run jobs --profile examples/job-hunter/job-profile.yaml --mode api --output-dir ./scout-runs/jobs
 scout run prism --query "Nike company intelligence" --mode auto --output-dir ./scout-runs/prism

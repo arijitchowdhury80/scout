@@ -63,7 +63,7 @@ Execution modes are explicit:
 
 ```bash
 scout run company --query Adobe --mode auto --output-dir ./scout-runs/adobe-company
-scout run careers --query Atlassian --mode crawl4ai --output-dir ./scout-runs/atlassian-careers
+scout run careers --query Algolia --mode crawl4ai --output-dir ./scout-runs/algolia-careers
 scout run investor --query Salesforce --mode saved --output-dir ./scout-runs/salesforce-investor
 scout run products --query "top skincare products" --mode browser --output-dir ./scout-runs/estee-products
 ```
@@ -199,7 +199,9 @@ surface is:
 | `research` | `research_record.v1` |
 
 See [docs/use-cases.md](docs/use-cases.md) and
-[docs/execution-modes.md](docs/execution-modes.md).
+[docs/execution-modes.md](docs/execution-modes.md). Validation targets are
+tracked in [docs/target-matrix.md](docs/target-matrix.md), with an executable
+registry in `scout.core.platform.targets`.
 
 ## Docker
 

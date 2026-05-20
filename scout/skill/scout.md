@@ -68,7 +68,7 @@ Use `--mode` or request JSON `"mode"`:
 
 ```bash
 scout run company --query Adobe --mode auto --output-dir ./scout-runs/adobe-company
-scout run careers --query Atlassian --mode auto --output-dir ./scout-runs/atlassian-careers
+scout run careers --query Algolia --mode auto --output-dir ./scout-runs/algolia-careers
 scout run investor --query Salesforce --mode auto --output-dir ./scout-runs/salesforce-investor
 scout run prism --query Nike --mode auto --output-dir ./scout-runs/nike-prism
 scout run news --query "Adobe AI announcements" --mode websearch --output-dir ./scout-runs/adobe-news
@@ -156,6 +156,16 @@ Use for generic page, site, document, website-quality, documentation, and market
 research workflows.
 
 Output record: `research_record.v1`.
+
+## Validation Target Matrix
+
+Use the balanced target matrix when designing tests or examples:
+
+- Private B2B SaaS: Algolia, Constructor
+- Private retail commerce: L.L.Bean, Patagonia
+- Public companies: Adobe, Home Depot
+- Specialized primary targets: Estée Lauder, British Airways
+- Secondary targets: Nike, Amplience, Salesforce, Intuit
 
 ## Artifact Contract
 

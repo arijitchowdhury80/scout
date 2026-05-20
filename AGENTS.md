@@ -81,13 +81,13 @@ must use sanitized fixtures.
 <claude-mem-context>
 # Memory Context
 
-# [Scout] recent context, 2026-05-20 4:10am EDT
+# [Scout] recent context, 2026-05-20 4:45am EDT
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (16,524t read) | 171,466t work | 90% savings
+Stats: 50 obs (14,169t read) | 98,591t work | 86% savings
 
 ### May 13, 2026
 S381 Get up to speed on Scout skill, evaluate its codebase, fix installation instructions and directory structure issues, enhance it to scrape products for Algolia indexing, and refactor it to be a pure scraper without unnecessary bloat. Work includes brainstorming, planning, documentation, and GitHub updates. (May 13 at 5:05 PM)
@@ -96,56 +96,56 @@ S380 Verify if a new scout repository needs to be created on GitHub, and plan mi
 S382 Get up to speed on Scout skill, evaluate its codebase, fix installation instructions and directory structure issues, enhance it to scrape products for Algolia indexing, and refactor it to be a pure scraper without unnecessary bloat. (May 14 at 2:13 AM)
 S386 Validate Scout's architectural fit for multiple intelligence-gathering use cases: company research, investor analysis, job applications, prospect research, and social platforms. Confirm appropriate scope and positioning. (May 14 at 7:56 PM)
 ### May 20, 2026
-1638 2:17a 🟣 Provider-Agnostic Platform Abstraction Layer Implemented
-1639 " ✅ Use Case Handlers Abstraction Created
-1640 " ✅ CLI and HTTP API Structure Aligned with Platform Architecture
-1642 " 🟣 HTTP API Application with FastAPI, AuthMiddleware, and Router Registration
-1643 " 🟣 API Router Test Suite with Mocked Crawler and Dependency Injection
-1644 " 🟣 Use Case Registry with 10 Domain-Specific Intelligence Operations
-1645 " 🟣 PRISM Company Intelligence Record Schemas
-1646 " 🟣 CLI Extended with High-Level Use Case Subcommands
-1647 2:18a 🟣 Execution Mode Contract and Provider Ladder Tests Written
-1648 " 🟣 Execution Mode Enum and Provider Ladder Implementation
-1649 " ✅ RunRequest Updated to Accept Execution Mode Parameter
-1651 " 🟣 Intelligence Use Case Record Schemas TDD Tests Written
-1652 2:19a 🟣 Intelligence Record Schemas Implemented for Investor, Careers, News, Research
-1655 " 🟣 Use Case Runner Tests Written — TDD for Multi-Domain V1 Extraction
-1656 2:20a ✅ Platform Dispatcher Integrated with Execution Mode Provider Ladder
-1658 " 🔵 Use Case Runner Tests Reveal Missing Registry Entries for Company and Careers
-1659 2:21a 🟣 V1 Intelligence Use Case Runners Implemented — Deterministic Seed Records
-1660 " ✅ Platform Dispatcher Integrated with Intelligence Use Case Runners
-1662 " 🟣 CLI Run Subcommands Extended with Mode Option and Use Case Discovery
-1663 " 🟣 HTTP API /run/{use_case} Endpoint Tests Added
-1665 2:22a 🔵 CLI and API Run Endpoint Tests Fail — Implementation Gaps Identified
-1666 " 🟣 CLI Run Commands Extended with --mode Option
-1667 " 🟣 HTTP API /run/{use_case} Endpoint Implemented
-1668 " ✅ HTTP API Main App Integrated with /run/{use_case} Router
-1671 2:23a ✅ RunRequest.use_case Made Optional for API Endpoint
-1674 " ✅ API Test Fixed — Status/Version Assertions Moved to Health Test
-1684 2:26a 🔵 Products Use Case Test Reveals Implementation Gap
-1685 " ✅ Products Use Case Added to Intelligence Runner
-1686 " ✅ Platform Dispatcher Updated to Route Products Through Intelligence Runner
-1696 4:00a 🔵 Scout Provenance Architecture: SourceEvidence and FetchResult Core Types
-1697 4:01a 🔵 Intelligence Use Case "Research" Architecture: Seed Records with Deferred Evidence Collection
-1698 4:03a 🔵 Citation/Provenance Tracking Pattern Across Runner Implementations
-1699 " 🔵 Record Schemas: Source Attribution Fields Vary Across Domains
-1700 " 🟣 Citation Type and Source ID Determinism: TDD Test Cases Added
-1701 " 🟣 Artifact and Validation Tests: Citation Registry with Content Hashing
-1702 4:04a 🟣 Use Case Integration Tests: Citations Required Across All Record Types
-1703 " 🟣 Job Runner Citation Tests: Multi-Field Citations with Source Tracking
-1704 " 🔵 Test Execution: All Citation Tests Fail with Expected ImportError
-1705 " 🟣 Citation Type and Deterministic source_id Implementation
-1706 4:05a 🟣 Source Page Registry Entry Generation with Content Hashing
-1707 " 🟣 Citation Field Added to PRISM Record Types
-1708 " 🟣 Citation Fields Added to Intelligence Record Types
-1709 " 🟣 Citation Fields Added to Jobs Record Types
-1710 " 🟣 Citation Field Added to ProductRecord
-1711 4:06a 🟣 Intelligence Runner Citations Implementation with Seed Sources
-1712 4:07a 🟣 Jobs Runner Citations Implementation with Profile-Level Sources
-1713 " 🔵 All Citation Tests Passing: TDD GREEN Phase Complete
-1714 " 🔵 Citation Implementation Plan: 3 of 5 Steps Completed
-1716 " ✅ README Updated with source_pages.json Citation Registry Explanation
-1717 " ✅ Architecture Documentation: Citation Model Section Added
+1721 4:11a 🔵 Test Failure Details: Report Missing Coverage Section
+1722 " 🟣 Citation Coverage Summary Implementation in Artifacts
+1723 " ✅ Coverage Summary Implementation Applied to Artifacts Module
+1724 " 🔵 Citation Coverage Report Test Passing: GREEN Phase Complete
+1725 " ✅ Distribution Documentation: Citation-Grade Provenance Artifacts
+1726 " ✅ Execution Modes Documentation: Provider-Agnostic Citation Normalization
+1727 " ✅ Execution Modes Documentation Updated with Citation Normalization Section
+1728 " ✅ Skill Guidance Updated: Citations Section and User Communication Standards
+1729 " ✅ Use Cases Documentation: Citation Requirements Standard Across All Verticals
+1730 " ✅ Use Cases Documentation Patch Applied: Citation Requirements Codified
+1731 4:12a ✅ Project Wiki Updated: Citation ADR and Development Log Entries
+1733 " 🔵 Citation Implementation Plan: 4 of 5 Steps Complete, Final Verification Underway
+1735 " 🔵 Citation Test Suite Verification: All 19 Tests Pass with Clean Code Quality
+1736 " 🔵 Type Safety Verification Complete: Pyright Passes with Zero Errors
+1738 " 🔵 Full Unit Test Suite Verification: 169 Tests Pass with Zero Regressions
+1739 4:13a 🔵 Code Formatting Complete: All 97 Files Properly Formatted
+1740 " 🔵 Citation Implementation Complete: All Verification Checks Pass
+1741 " 🔵 Final Quality Check: Ruff Linting Confirms All Checks Pass
+1742 " 🔵 Final Type Safety Verification: Pyright Confirms Zero Issues
+1743 " 🔵 Full Test Suite Complete: 175 Passed, 2 Skipped, Zero Regressions
+1744 4:14a 🔵 Live CLI Test: Citation Implementation Working End-to-End
+1745 " 🔵 Live Jobs Runner Test: Citation Implementation Working for Job Hunter
+1747 " 🔵 Citation Validation: Bidirectional Linkage Verified, 100% Coverage Achieved
+1748 " 🔵 HTTP Server Started: Scout API Ready for Citation Testing
+1749 " 🔵 HTTP Server Ready: Scout API Online and Accepting Requests
+1750 " 🔵 HTTP API Health Check: Service Online and Responsive
+1751 " 🔵 HTTP API Citation Endpoint: /run/company Working End-to-End
+1752 " 🔵 HTTP API Citation Validation: 100% Coverage, Bidirectional Linkage Verified
+1753 " 🔵 HTTP Server Shutdown: All Tests Complete, No Errors
+1754 4:15a ✅ Project Vault Updated: Citation Verification Complete Log Entry
+1755 " 🔵 Citation Implementation Plan: 100% Complete - All 5 Steps Delivered
+1756 4:25a 🔵 Scout mode system and crawl4ai integration architecture
+1757 " 🔵 Scout mode-based provider fallback system and execution flow
+1758 4:30a 🟣 Target Matrix Expanded to Include Estée Lauder and British Airways
+1759 4:31a 🔵 Test for Target Matrix Fails — Module Not Implemented
+1762 " 🟣 Scout Target Matrix Module Implemented
+1763 " 🔵 Target Matrix Tests: 3 Pass, 1 Fails on Use-Case Filtering
+1764 " 🔵 Test Failure: targets_for_use_case() Includes Secondary Targets by Default
+1766 " 🔵 Test Failure: Products Use Case Missing Nike — Secondary Target Expected
+1768 4:32a 🟣 Scout Target Matrix Tests All Pass — TDD Cycle Complete
+1769 " ✅ Target Matrix Documentation Created
+1770 " ✅ Use-Cases Documentation Updated to Reference Target Matrix
+1771 " ✅ Architecture Documentation Enhanced with Validation Targets Section
+1774 4:33a ✅ Scout Skill Documentation Updated with Target Matrix Reference
+1777 " ✅ Documentation Examples Standardized to Primary Targets; Decision Recorded in Project Wiki
+1779 " 🔵 Code Format Check Fails on targets.py
+1781 4:34a 🔵 Test Suite and Type Checking Pass; Formatting-Only Issue Remains
+1783 " 🔵 Code Formatting Applied Successfully; All Tests Still Pass
+1784 " 🟣 Scout Target Matrix Feature Complete — All Quality Checks Pass
+1787 " 🟣 Full Unit Test Suite Passes — 173 Tests Green, No Regressions
 
-Access 171k tokens of past work via get_observations([IDs]) or mem-search skill.
+Access 99k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

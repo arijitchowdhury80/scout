@@ -116,6 +116,20 @@ The skill is a playbook. It should choose the lightest available path:
 | `news` | Newsroom/blog/recent announcements | `news_signal.v1` |
 | `research` | Generic web/page/document research | `research_record.v1` |
 
+## Validation Targets
+
+Scout validates against a balanced target matrix rather than a SaaS-only sample:
+
+- Private B2B SaaS: Algolia, Constructor
+- Private retail commerce: L.L.Bean, Patagonia
+- Public companies: Adobe, Home Depot
+- Specialized primary targets: Estée Lauder for hard-site retail behavior and
+  British Airways for travel/research/website-quality behavior
+
+Secondary targets include Nike, Amplience, Salesforce, and Intuit. The
+executable registry lives in `scout.core.platform.targets`; see
+[docs/target-matrix.md](target-matrix.md).
+
 ## Artifact Contract
 
 Every high-level run writes:

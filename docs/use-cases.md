@@ -18,7 +18,7 @@ Records:
 - `executive.v1`
 - `company_social.v1`
 
-Test targets: Adobe, Salesforce, Nike, Atlassian, Intuit.
+Test targets: all primary targets in [docs/target-matrix.md](target-matrix.md).
 
 ## PRISM Prospect Research
 
@@ -31,7 +31,7 @@ scout run prism --query Nike --mode auto --output-dir ./scout-runs/nike-prism
 
 Records: company, executive, company social, investor, career, and news records.
 
-Test targets: Nike, Salesforce, Adobe, Lacoste, Estée Lauder.
+Test targets: all primary targets in [docs/target-matrix.md](target-matrix.md).
 
 ## Investor Intelligence
 
@@ -46,7 +46,8 @@ Records:
 
 - `investor_asset.v1`
 
-Test targets: Salesforce IR, Adobe IR, Intuit IR, Microsoft IR, Nike IR.
+Test targets: Adobe, Home Depot, Estée Lauder where public-parent evidence is
+available, and British Airways where public-parent evidence is useful.
 
 ## Careers And Hiring
 
@@ -54,14 +55,14 @@ Goal: identify careers pages, ATS platform, departments, hiring signals, and
 role categories.
 
 ```bash
-scout run careers --query Atlassian --mode auto --output-dir ./scout-runs/atlassian-careers
+scout run careers --query Algolia --mode auto --output-dir ./scout-runs/algolia-careers
 ```
 
 Records:
 
 - `career_site.v1`
 
-Test targets: Adobe, Atlassian, Intuit, Salesforce, Kong.
+Test targets: all primary targets in [docs/target-matrix.md](target-matrix.md).
 
 ## Job Hunter
 
@@ -87,7 +88,8 @@ Boundaries:
 - Private resume-derived data belongs in ignored local profiles or vault files.
 - Public fixtures must stay sanitized.
 
-Test targets: Greenhouse, Lever, Ashby, Workday, Intuit careers.
+Test targets: all primary targets plus ATS fixtures for Greenhouse, Lever,
+Ashby, and Workday.
 
 ## Product Catalogs
 
@@ -113,7 +115,7 @@ Records:
 - product records with stable `objectID`, URL, name, brand, image, price,
   categories, variants, rating/review fields, and provenance when available.
 
-Test targets: Lacoste, Estée Lauder, Sephora, Nike, Patagonia.
+Test targets: L.L.Bean, Patagonia, Home Depot, Estée Lauder, and Nike.
 
 ## News And Signals
 
@@ -128,8 +130,8 @@ Records:
 
 - `news_signal.v1`
 
-Test targets: Adobe newsroom, Salesforce news, Nike stories, Atlassian blog,
-Intuit blog.
+Test targets: all primary targets in [docs/target-matrix.md](target-matrix.md),
+including latest 3-5 blog posts when available.
 
 ## Generic Research
 
@@ -145,8 +147,8 @@ Records:
 
 - `research_record.v1`
 
-Test targets: company about pages, public docs sites, blogs, PDFs, simple
-marketing pages.
+Test targets: British Airways, Algolia docs/blog, Constructor docs/blog,
+Amplience site/docs, company about pages, PDFs, and simple marketing pages.
 
 ## Citation Requirements
 
