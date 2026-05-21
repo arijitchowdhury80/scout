@@ -1025,6 +1025,8 @@ def scout_app_html() -> str:
       async function startRun() {
         const payload = activePayload();
         if (!payload.url) {
+          el("runStatus").textContent = "Enter a Target / Start URL before starting execution.";
+          el("targetUrl").focus();
           toast("Enter a target URL before starting.");
           return;
         }

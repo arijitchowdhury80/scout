@@ -237,6 +237,15 @@ def test_start_execution_shows_active_run_immediately_and_clear_resets(page: Pag
     expect(page.locator("#resultsPanel")).to_be_hidden()
 
 
+def test_start_execution_without_target_shows_inline_validation(page: Page) -> None:
+    page.locator("#targetUrl").fill("")
+    page.locator("#startExecution").click()
+
+    expect(page.locator("#runStatus")).to_contain_text("Enter a Target / Start URL")
+    expect(page.locator("#targetUrl")).to_be_focused()
+    assert not page.console_errors  # type: ignore[attr-defined]
+
+
 def test_cancel_run_marks_ui_cancelled(page: Page) -> None:
     page.route(
         "**/app/runs",
