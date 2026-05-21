@@ -115,6 +115,13 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
                 _keep_best_record(records_by_url, record)
 
         records = list(records_by_url.values())[: req.max_products]
+        if not records and not blocked_pages:
+            blocked_pages.append(
+                _empty_product_evidence(
+                    start_url=start_url,
+                    fallback_attempted=req.browser_fallback,
+                )
+            )
         raw_products = [record.model_dump(mode="json", by_alias=True) for record in records]
         categories = [group.category_name for group in groups]
         duration_ms = int((time.monotonic() - started) * 1000)
@@ -219,6 +226,16 @@ def _blocked_page(
         fallback_attempted=fallback_attempted,
         fallback_used=fallback_used,
         fallback_error=fallback_error,
+    )
+
+
+def _empty_product_evidence(start_url: str, fallback_attempted: bool) -> BlockedPage:
+    """Record zero-product extraction as evidence instead of a silent success."""
+    return BlockedPage(
+        url=start_url,
+        reason="no_product_records",
+        title="No product records extracted",
+        fallback_attempted=fallback_attempted,
     )
 
 

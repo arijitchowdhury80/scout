@@ -81,71 +81,112 @@ must use sanitized fixtures.
 <claude-mem-context>
 # Memory Context
 
-# [Scout] recent context, 2026-05-20 4:45am EDT
+# [Scout] recent context, 2026-05-21 2:48am EDT
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision 🚨security_alert 🔐security_note
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (14,169t read) | 98,591t work | 86% savings
+Stats: 50 obs (17,024t read) | 256,170t work | 93% savings
 
 ### May 13, 2026
 S381 Get up to speed on Scout skill, evaluate its codebase, fix installation instructions and directory structure issues, enhance it to scrape products for Algolia indexing, and refactor it to be a pure scraper without unnecessary bloat. Work includes brainstorming, planning, documentation, and GitHub updates. (May 13 at 5:05 PM)
 S380 Verify if a new scout repository needs to be created on GitHub, and plan migration strategy for Scout standalone package (May 13 at 5:05 PM)
 ### May 14, 2026
 S382 Get up to speed on Scout skill, evaluate its codebase, fix installation instructions and directory structure issues, enhance it to scrape products for Algolia indexing, and refactor it to be a pure scraper without unnecessary bloat. (May 14 at 2:13 AM)
-S386 Validate Scout's architectural fit for multiple intelligence-gathering use cases: company research, investor analysis, job applications, prospect research, and social platforms. Confirm appropriate scope and positioning. (May 14 at 7:56 PM)
+S386 Validate Scout's architectural fit for multiple intelligence-gathering use cases: company research, investor analysis, job applications, prospect research, and social platforms. Confirm appropriate scope and positioning. (May 14 at 2:13 AM)
+S389 Comprehensive system testing via internal browser: validate every route, click, and journey through the Scout Intelligence Platform application (May 14 at 7:56 PM)
 ### May 20, 2026
-1721 4:11a 🔵 Test Failure Details: Report Missing Coverage Section
-1722 " 🟣 Citation Coverage Summary Implementation in Artifacts
-1723 " ✅ Coverage Summary Implementation Applied to Artifacts Module
-1724 " 🔵 Citation Coverage Report Test Passing: GREEN Phase Complete
-1725 " ✅ Distribution Documentation: Citation-Grade Provenance Artifacts
-1726 " ✅ Execution Modes Documentation: Provider-Agnostic Citation Normalization
-1727 " ✅ Execution Modes Documentation Updated with Citation Normalization Section
-1728 " ✅ Skill Guidance Updated: Citations Section and User Communication Standards
-1729 " ✅ Use Cases Documentation: Citation Requirements Standard Across All Verticals
-1730 " ✅ Use Cases Documentation Patch Applied: Citation Requirements Codified
-1731 4:12a ✅ Project Wiki Updated: Citation ADR and Development Log Entries
-1733 " 🔵 Citation Implementation Plan: 4 of 5 Steps Complete, Final Verification Underway
-1735 " 🔵 Citation Test Suite Verification: All 19 Tests Pass with Clean Code Quality
-1736 " 🔵 Type Safety Verification Complete: Pyright Passes with Zero Errors
-1738 " 🔵 Full Unit Test Suite Verification: 169 Tests Pass with Zero Regressions
-1739 4:13a 🔵 Code Formatting Complete: All 97 Files Properly Formatted
-1740 " 🔵 Citation Implementation Complete: All Verification Checks Pass
-1741 " 🔵 Final Quality Check: Ruff Linting Confirms All Checks Pass
-1742 " 🔵 Final Type Safety Verification: Pyright Confirms Zero Issues
-1743 " 🔵 Full Test Suite Complete: 175 Passed, 2 Skipped, Zero Regressions
-1744 4:14a 🔵 Live CLI Test: Citation Implementation Working End-to-End
-1745 " 🔵 Live Jobs Runner Test: Citation Implementation Working for Job Hunter
-1747 " 🔵 Citation Validation: Bidirectional Linkage Verified, 100% Coverage Achieved
-1748 " 🔵 HTTP Server Started: Scout API Ready for Citation Testing
-1749 " 🔵 HTTP Server Ready: Scout API Online and Accepting Requests
-1750 " 🔵 HTTP API Health Check: Service Online and Responsive
-1751 " 🔵 HTTP API Citation Endpoint: /run/company Working End-to-End
-1752 " 🔵 HTTP API Citation Validation: 100% Coverage, Bidirectional Linkage Verified
-1753 " 🔵 HTTP Server Shutdown: All Tests Complete, No Errors
-1754 4:15a ✅ Project Vault Updated: Citation Verification Complete Log Entry
-1755 " 🔵 Citation Implementation Plan: 100% Complete - All 5 Steps Delivered
-1756 4:25a 🔵 Scout mode system and crawl4ai integration architecture
-1757 " 🔵 Scout mode-based provider fallback system and execution flow
-1758 4:30a 🟣 Target Matrix Expanded to Include Estée Lauder and British Airways
-1759 4:31a 🔵 Test for Target Matrix Fails — Module Not Implemented
-1762 " 🟣 Scout Target Matrix Module Implemented
-1763 " 🔵 Target Matrix Tests: 3 Pass, 1 Fails on Use-Case Filtering
-1764 " 🔵 Test Failure: targets_for_use_case() Includes Secondary Targets by Default
-1766 " 🔵 Test Failure: Products Use Case Missing Nike — Secondary Target Expected
-1768 4:32a 🟣 Scout Target Matrix Tests All Pass — TDD Cycle Complete
-1769 " ✅ Target Matrix Documentation Created
-1770 " ✅ Use-Cases Documentation Updated to Reference Target Matrix
-1771 " ✅ Architecture Documentation Enhanced with Validation Targets Section
-1774 4:33a ✅ Scout Skill Documentation Updated with Target Matrix Reference
-1777 " ✅ Documentation Examples Standardized to Primary Targets; Decision Recorded in Project Wiki
-1779 " 🔵 Code Format Check Fails on targets.py
-1781 4:34a 🔵 Test Suite and Type Checking Pass; Formatting-Only Issue Remains
-1783 " 🔵 Code Formatting Applied Successfully; All Tests Still Pass
-1784 " 🟣 Scout Target Matrix Feature Complete — All Quality Checks Pass
-1787 " 🟣 Full Unit Test Suite Passes — 173 Tests Green, No Regressions
+S390 User needs thorough and exhaustive end-to-end testing to validate all buttons, tabs, and features for two companies (Estee Lauder and Nike) - this is the 5th request for this testing (May 20 at 3:12 PM)
+### May 21, 2026
+2422 1:36a 🔵 Directory picker implementation uses native HTML5 file input with webkitdirectory
+2423 " 🔄 Directory picker refactored from file input to native API call
+2425 1:37a ✅ Tests updated to verify API-based directory picker instead of file input
+2429 " ✅ Unit test assertions updated to verify API endpoint presence and file input removal
+2431 " 🔵 All directory picker tests pass after refactoring to API-based implementation
+2432 1:38a 🔵 Live application verification confirms directory picker refactoring is complete
+2433 " 🔵 Code quality checks pass but formatting needs to be applied to test file
+2437 " 🔵 Directory picker refactoring passes complete quality and test verification
+2441 1:43a ⚖️ Scout UI scope: Build all planned screens and use-case-specific form contracts
+2442 1:44a 🔵 New UI scope tests fail; navigation controls remain disabled and use-case labels not yet implemented
+2443 " ✅ Frontend HTML and CSS updated to enable navigation and add use-case-specific form labels
+2444 1:45a ✅ Added utility screen section and dynamic target example element to frontend
+2445 " ✅ Added comprehensive use-case contracts, utility screen definitions, and preset/target data to frontend
+2446 1:46a ✅ Implemented utility screen navigation and use-case-specific form contracts in JavaScript
+2447 " ✅ Wired navigation, utility screen, and utility feature event handlers; completed "All screens now" UI implementation
+2448 1:47a 🔵 "All screens now" UI implementation complete: all 9 e2e tests pass
+2449 " ✅ Live target tests updated to match refactored frontend DOM and element IDs
+2450 1:48a 🔵 Complete implementation verification: all 25 tests pass, zero type/lint/format issues
+2451 " 🔵 Test files need ruff formatting after recent edits
+2452 1:49a 🔵 Final verification complete: all systems pass, project in clean state
+2453 " 🔵 Complete unit test suite passes: 194 tests
+2454 1:50a 🔵 Complete test suite passes: 209 tests, 41 skipped (live tests)
+2465 2:00a 🔵 Scout UI execution hangs during product crawl workflow test
+2466 2:01a 🔴 Scout UI test fixed to handle execution button state transitions
+2467 2:02a 🔵 Scout crawl execution completes but returns zero product records for Estée Lauder
+2468 2:03a ✅ Scout test assertion simplified to remove redundant status_text check
+2470 2:05a 🔴 Scout Estée Lauder test now passes after assertion correction
+2490 2:16a 🔵 Estée Lauder product page crawl fails with Playwright timeout
+2491 " 🔴 Add timeout handling for product extraction with graceful failure recording
+2493 " ✅ Update test expectations to recognize timeout as blocked_with_evidence status
+2495 2:17a 🔵 Unit and E2E tests pass after timeout handling implementation
+2505 2:19a 🔵 Estée Lauder product crawl test now passes with timeout handling
+2531 2:29a 🔵 Scout timeout failure on Estée Lauder hard site product scraping
+2532 2:30a 🟣 Scout app-run watchdog timeout mechanism
+2541 2:40a 🔵 Scout test suite has Playwright timeout on Estée Lauder product scraping
+2542 2:41a 🔴 Scout adds explicit browser mode timeout handling in product scraping
+2543 2:43a 🔄 Scout frontend redesigned to app-first composite layout
+2544 " 🟣 Scout API adds app_runs and workdir routers for UI workflow support
+2545 " ✅ Scout products mode tracks empty product evidence instead of silent success
+2546 " ✅ Scout project metadata and agents documentation updated
+2547 " ✅ Scout test suite expanded with e2e, live, and app-runs unit tests
+2548 " ✅ Scout documentation expanded with UI validation, design, and internal browser validation
+2549 " ✅ Scout middleware and main app configuration updated for app platform
+2550 2:44a 🟣 Scout auth middleware expanded with public path whitelist for app UI
+2551 " 🟣 Scout implements app_runs router for UI-driven run session lifecycle
+2552 " 🟣 Scout implements workdir router for directory browsing and native folder picker
+2553 " 🟣 Scout implements comprehensive E2E tests for app-first UI controls
+2554 " 🟣 Scout implements live website UI tests covering 39 real targets
+2555 " ⚖️ Scout adopts app-first UI as primary product surface
+2556 " 🔵 Scout validation shows 188 unit tests, 2 E2E, 39 live tests passing with clean type checks
+S391 Evaluate Scout skill and plan enhancements to make it a pure web scraper for Algolia product indexing and general intelligence gathering; get up to speed on codebase, identify issues, and prepare fixes (May 21 at 2:44 AM)
+**Investigated**: Explored Scout codebase structure and recent changes. Examined:
+- Browser mode timeout issue in product scraping (test_estee_lauder_hard_site_modes_from_ui failing with 180s timeout)
+- Frontend HTML redesign (app-first UI with topbar, rail, setup pane, workspace, drawer)
+- New app_runs router for UI-driven run sessions with event tracking and state management
+- New workdir router for directory browsing and macOS native folder picker
+- Auth middleware expansion to whitelist public paths for browser-facing UI
+- Test suite expansion: E2E tests for UI controls, live tests for 39 real websites
+- Documentation: app-first UI design decision, validation results, responsive screenshots
+- Project metadata (AGENTS.md) reflecting platform foundation status
 
-Access 99k tokens of past work via get_observations([IDs]) or mem-search skill.
+**Learned**: Scout has undergone significant architectural transformation from self-educating interface to app-first platform:
+- Three-state UX model: Run Setup (configure target/mode/output) → Live Execution (timeline/cancellation) → Results Review (records/sources/evidence)
+- Browser mode timeout problem addressed by recording blocked/fallback evidence instead of hanging
+- App-runs router manages in-memory run registry with async task execution and 150s watchdog timeout
+- Empty product extraction now explicitly tracked as blocked evidence (reason: "no_product_records") instead of silent success
+- Frontend uses composite four-column layout: rail (62px) + setup-pane + workspace + drawer for responsive design
+- Separation of concerns: new /app/runs API separate from legacy /run and /products endpoints
+- Comprehensive test coverage validates UI controls, real websites, and type safety
+
+**Completed**: Scout platform foundation refactored to app-first model with:
+- Frontend redesigned: color palette modernized (blue-teal primary), layout changed to four-column grid, all typography/spacing/shadows updated
+- App_runs router implemented: AppRunState, AppRunRequest, event streaming, timeout protection, product-specific execution
+- Workdir router implemented: directory browsing (/workdir/browse), macOS native picker (/workdir/pick-native)
+- Auth middleware expanded: public_paths set now includes /app, /docs, /openapi.json, /favicon.ico, /redoc
+- Products mode enhanced: empty extraction now recorded as blocked evidence with reason "no_product_records"
+- E2E test suite: 2 comprehensive browser-based UI control tests covering layout, execution, cancellation, record/source/blocked panels
+- Live test suite: 39 real-website tests covering 6 product targets (Nike, Estée Lauder, Home Depot, etc.) and 33 intelligence targets (company, PRISM, careers, news, investor)
+- Validation documentation: test results (188 unit + 2 E2E + 39 live all passing), type checking clean (Pyright 0 errors), responsive screenshots (desktop, laptop, tablet, mobile)
+- AGENTS.md updated: Phase status shows platform execution modes and multi-use-case run surface at FOUNDATION COMPLETE
+
+**Next Steps**: Primary session appears to be in review/documentation phase after major refactor. Likely next steps:
+- Prepare GitHub push with all changes (branch: codex/scout-platform-foundation)
+- Address original user requests about Scout being too "fat" and needing pure scraper focus
+- Evaluate what extra functionality should be removed/simplified
+- Prepare product readiness for Algolia indexing workflow
+- Plan PRISM integration smoke test
+
+
+Access 256k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

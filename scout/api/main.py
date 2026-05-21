@@ -4,13 +4,23 @@ from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 
 from scout.api.config import settings
 from scout.api.deps import get_crawler
 from scout.api.middleware.auth import AuthMiddleware
 from scout.api.frontend import scout_app_html
-from scout.api.routers import algolia, crawl, extract, health, products, run, runs
+from scout.api.routers import (
+    algolia,
+    app_runs,
+    crawl,
+    extract,
+    health,
+    products,
+    run,
+    runs,
+    workdir,
+)
 from scout.api.routers import map as map_router
 from scout.api.routers import scrape, screenshot
 from scout.core.crawler import ScoutCrawler
@@ -39,8 +49,10 @@ app.include_router(products.router)
 app.include_router(run.router)
 app.include_router(runs.router)
 app.include_router(algolia.router)
+app.include_router(app_runs.router)
 app.include_router(map_router.router)
 app.include_router(screenshot.router)
+app.include_router(workdir.router)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -76,3 +88,9 @@ async def root() -> str:
 async def scout_app() -> str:
     """Return the Scout self-educating frontend app."""
     return scout_app_html()
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon() -> Response:
+    """Return an empty favicon response to keep browser probes quiet."""
+    return Response(status_code=204)

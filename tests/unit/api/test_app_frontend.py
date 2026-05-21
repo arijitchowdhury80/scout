@@ -15,54 +15,97 @@ def test_app_serves_self_educating_frontend() -> None:
 
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
-    assert "How to use me" in resp.text
-    assert "Product Workbench" in resp.text
+    assert "Run Setup" in resp.text
+    assert "Live Execution" in resp.text
+    assert "Results Review" in resp.text
     assert 'data-mode="auto"' in resp.text
-    assert "Algolia Preparation" in resp.text
+    assert 'fetchJson("/app/runs"' in resp.text
+    assert 'data-copy-target="commandPreview"' in resp.text
+    assert "Crawl Settings" in resp.text
+    assert "Tune how Scout collects pages. Defaults are safe for most runs." in resp.text
+    assert "Developer Details" in resp.text
+    assert 'id="developerDetails"' in resp.text
+    assert 'id="addOptionMenu"' in resp.text
+    assert 'id="livePanel"' in resp.text
+    assert 'id="resultsPanel"' in resp.text
+    assert 'id="recordsTable"' in resp.text
+    assert 'id="browserEvidence"' in resp.text
+    assert 'id="detailDrawer"' in resp.text
+    assert 'id="cancelRun"' in resp.text
+    assert 'id="clearRun"' in resp.text
+    assert 'id="runStatus"' in resp.text
+    assert 'id="workdir"' in resp.text
+    assert 'id="pickDir"' in resp.text
+    assert 'id="workdirPicker"' not in resp.text
+    assert 'id="workdirCandidate"' not in resp.text
+    assert 'id="workdirDialog"' not in resp.text
+    assert 'id="directoryList"' not in resp.text
+    assert 'id="useCurrentDir"' not in resp.text
+    assert 'id="nativeDirPicker"' not in resp.text
+    assert "/workdir/pick-native" in resp.text
+    assert "Working directory selected" in resp.text
+    assert "Product Workbench - Estée Lauder" not in resp.text
+    assert "412 / 412 records mapped" not in resp.text
+    assert "not implemented yet" not in resp.text
+    assert "coming next" not in resp.text
+    assert "Advanced Night Repair Synchronized" not in resp.text
+    assert "2025-05-15" not in resp.text
+    assert "session-only-key" not in resp.text
+    assert "sk_live_" not in resp.text
+    assert "product-grid/skincare" not in resp.text
+    assert 'id="clearStartUrl"' in resp.text
 
 
-def test_app_architecture_home_contains_generated_image_one_canvas() -> None:
+def test_favicon_probe_is_public_and_quiet() -> None:
+    client = TestClient(app)
+
+    resp = client.get("/favicon.ico")
+
+    assert resp.status_code == 204
+    assert resp.text == ""
+
+
+def test_app_first_home_contains_three_state_workspace() -> None:
     client = TestClient(app)
 
     resp = client.get("/app")
 
     assert resp.status_code == 200
     expected_labels = [
-        "architecture-canvas",
-        "Front Doors",
-        "RunRequest",
-        "Execution Mode Router",
-        "Provider Modes",
-        "Normalized Source Evidence",
-        "Vertical Processors",
-        "Typed Records",
-        "Downstream Consumers",
-        "Claude / Codex Skill",
-        "browser fallback",
-        "saved replay",
-        "api adapters",
-        "Security & Secrets",
-        "Rate Limiting & Throttling",
-        "Logging & Observability",
-        "Retry & Backoff",
-        "Metrics & Monitoring",
-        "Storage & Artifacts",
-        "Configuration & Feature Flags",
+        "Run",
+        "History",
+        "Presets",
+        "Targets",
+        "Data",
+        "Integrations",
+        "Settings",
+        "Help",
+        "Run Setup",
+        "Live Execution",
+        "Progress Timeline",
+        "Browser Evidence",
+        "Results Review",
+        "Overview",
+        "Records",
+        "Sources",
+        "Blocked",
+        "Artifacts",
+        "Logs",
     ]
     for label in expected_labels:
         assert label in resp.text
 
 
-def test_app_architecture_home_has_clickable_detail_panel() -> None:
+def test_app_first_home_has_selected_record_drawer() -> None:
     client = TestClient(app)
 
     resp = client.get("/app")
 
     assert resp.status_code == 200
-    assert 'id="architectureDetailTitle"' in resp.text
-    assert 'data-arch-title="crawl4ai"' in resp.text
-    assert 'data-arch-title="browser fallback"' in resp.text
-    assert 'data-arch-title="Typed Records"' in resp.text
+    assert 'id="detailDrawer"' in resp.text
+    assert 'id="drawerContent"' in resp.text
+    assert "Selected Record" in resp.text
+    assert "openRecordDrawer" in resp.text
 
 
 def test_run_artifact_endpoints_return_records_sources_and_artifacts(tmp_path: Path) -> None:

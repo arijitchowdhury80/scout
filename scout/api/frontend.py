@@ -4,7 +4,7 @@ from __future__ import annotations
 
 
 def scout_app_html() -> str:
-    """Return the self-educating Scout frontend HTML."""
+    """Return the app-first Scout frontend HTML."""
     return """<!doctype html>
 <html lang="en">
   <head>
@@ -14,530 +14,1240 @@ def scout_app_html() -> str:
     <style>
       :root {
         color-scheme: light;
-        --ink: #17201b;
-        --muted: #5d6961;
-        --line: #d8ded9;
-        --surface: #f8faf8;
+        --ink: #132033;
+        --muted: #637083;
+        --line: #d7e0eb;
+        --soft-line: #e8eef6;
+        --bg: #f7fafc;
         --panel: #ffffff;
-        --accent: #0f766e;
-        --accent-2: #364fc7;
-        --warn: #a16207;
-        --bad: #b42318;
-        --good: #047857;
+        --teal: #007f8c;
+        --teal-dark: #00606a;
+        --teal-soft: #e5f7f8;
+        --blue: #2764ad;
+        --green: #13845b;
+        --green-soft: #e3f6ec;
+        --red: #c23b32;
+        --red-soft: #fde8e5;
+        --amber: #ce6b09;
+        --amber-soft: #fff2dc;
+        --shadow: 0 18px 45px rgba(25, 43, 72, 0.08);
       }
+
       * { box-sizing: border-box; }
       body {
         margin: 0;
+        min-width: 1120px;
+        background: var(--bg);
+        color: var(--ink);
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        color: var(--ink);
-        background: var(--surface);
+        font-size: 14px;
       }
-      header {
+      button, input, select, textarea { font: inherit; }
+      button { cursor: pointer; }
+      button:disabled { cursor: not-allowed; opacity: 0.62; }
+
+      .topbar {
+        height: 56px;
         display: flex;
-        justify-content: space-between;
-        gap: 24px;
         align-items: center;
-        padding: 18px 28px;
+        justify-content: space-between;
+        padding: 0 20px;
         border-bottom: 1px solid var(--line);
-        background: var(--panel);
-        position: sticky;
-        top: 0;
-        z-index: 2;
+        background: rgba(255, 255, 255, 0.94);
       }
-      h1, h2, h3 { margin: 0; letter-spacing: 0; }
-      h1 { font-size: 24px; }
-      h2 { font-size: 18px; margin-bottom: 12px; }
-      h3 { font-size: 15px; margin-bottom: 8px; }
-      p { color: var(--muted); line-height: 1.5; }
-      main { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 70px); }
-      nav {
-        padding: 20px;
-        border-right: 1px solid var(--line);
-        background: #eef4f1;
-      }
-      nav button, .mode-tab, .primary, .secondary {
-        border: 1px solid var(--line);
-        background: var(--panel);
-        color: var(--ink);
+      .brand { display: flex; align-items: center; gap: 10px; }
+      .logo {
+        width: 30px;
+        height: 30px;
         border-radius: 8px;
-        cursor: pointer;
+        display: grid;
+        place-items: center;
+        background: var(--teal);
+        color: #fff;
+        font-weight: 900;
+        font-size: 20px;
       }
-      nav button {
-        display: block;
-        width: 100%;
-        text-align: left;
-        padding: 12px;
-        margin-bottom: 8px;
-        font-weight: 650;
-      }
-      nav button.active { border-color: var(--accent); color: var(--accent); }
-      section { display: none; padding: 24px; }
-      section.active { display: block; }
-      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-      .panel {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 16px;
-      }
-      .mode-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-      .mode-tab { padding: 9px 12px; }
-      .mode-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
-      label { display: block; font-size: 13px; font-weight: 700; margin: 12px 0 5px; }
-      input, select, textarea {
-        width: 100%;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 10px;
+      .brand strong { display: block; font-size: 14px; letter-spacing: 0.04em; }
+      .brand span { display: block; color: var(--muted); font-size: 10px; }
+      .topnav { display: flex; align-items: center; gap: 26px; font-size: 12px; font-weight: 700; color: #40506a; }
+      .topnav button, .topnav a {
+        border: 0;
+        background: transparent;
+        color: inherit;
         font: inherit;
+        text-decoration: none;
+        padding: 20px 0 17px;
+      }
+      .topnav .active { color: var(--teal); border-bottom: 2px solid var(--teal); }
+      .topnav button:disabled { cursor: not-allowed; opacity: 0.45; }
+      .user-pill { display: flex; align-items: center; gap: 12px; }
+      .avatar { width: 28px; height: 28px; border-radius: 50%; background: #d8e0eb; display: grid; place-items: center; font-weight: 800; }
+
+      .app-shell {
+        display: grid;
+        grid-template-columns: 62px minmax(420px, 1.05fr) minmax(520px, 1.35fr) minmax(0, 360px);
+        min-height: calc(100vh - 56px);
+      }
+      .app-shell.utility-mode {
+        grid-template-columns: 62px minmax(0, 1fr) minmax(0, 360px);
+      }
+      .app-shell.utility-mode .setup-pane {
+        display: none;
+      }
+      .rail {
+        border-right: 1px solid var(--line);
         background: #fff;
+        padding: 14px 8px;
       }
-      textarea { min-height: 86px; resize: vertical; }
-      code, pre {
-        background: #eef2f7;
+      .rail button {
+        width: 46px;
+        min-height: 48px;
+        border: 0;
         border-radius: 8px;
-        font-family: "SFMono-Regular", Consolas, monospace;
+        background: transparent;
+        color: #52627a;
+        font-size: 10px;
+        font-weight: 750;
+        margin-bottom: 7px;
       }
-      pre { padding: 12px; overflow: auto; max-height: 340px; }
-      .primary { background: var(--accent); color: white; border-color: var(--accent); padding: 10px 14px; font-weight: 750; }
-      .secondary { padding: 10px 14px; font-weight: 700; }
-      .status { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #e5f4ef; color: var(--good); font-size: 12px; font-weight: 750; }
-      .warn { background: #fef3c7; color: var(--warn); }
-      .bad { background: #fee4e2; color: var(--bad); }
-      table { width: 100%; border-collapse: collapse; font-size: 13px; }
-      th, td { border-bottom: 1px solid var(--line); padding: 9px; text-align: left; vertical-align: top; }
-      .diagram { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-items: center; }
-      .diagram div { padding: 12px; background: #f6f8fb; border: 1px solid var(--line); border-radius: 8px; text-align: center; font-weight: 750; }
-      .diagram span { color: var(--accent-2); font-weight: 900; text-align: center; }
-      .architecture-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
-      .architecture-canvas {
-        overflow-x: auto;
-        background: #fbfdfc;
-        border: 1px solid var(--line);
-        border-radius: 8px;
+      .rail button.active { background: var(--teal-soft); color: var(--teal-dark); }
+      .rail button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+      .rail span { display: block; font-size: 17px; margin-bottom: 3px; }
+
+      .setup-pane, .workspace, .drawer {
         padding: 18px;
       }
-      .architecture-flow {
-        min-width: 1180px;
-        display: grid;
-        grid-template-columns: 140px 32px 150px 32px 160px 32px 190px 32px 190px 32px 190px 32px 150px 32px 160px;
-        gap: 14px;
-        align-items: center;
+      .setup-pane {
+        border-right: 1px solid var(--line);
+        background: #fff;
       }
-      .arch-column-title {
-        color: #1d4ed8;
-        font-size: 12px;
+      .workspace { min-width: 0; }
+      .drawer {
+        border-left: 1px solid var(--line);
+        background: #fff;
+      }
+      .hidden { display: none !important; }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+      .card-pad { padding: 18px; }
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      h1, h2, h3, p { margin: 0; letter-spacing: 0; }
+      h1 { font-size: 17px; }
+      h2 { font-size: 16px; }
+      h3 { font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: #27364b; }
+      p { color: var(--muted); line-height: 1.45; }
+      .subtle { color: var(--muted); font-size: 12px; }
+
+      label.label {
+        display: block;
+        margin: 16px 0 7px;
+        color: #29384d;
+        font-size: 11px;
         font-weight: 850;
-        min-height: 34px;
+        letter-spacing: 0.045em;
         text-transform: uppercase;
       }
-      .arch-column-title:nth-child(1) { grid-column: 1; grid-row: 1; }
-      .arch-column-title:nth-child(2) { grid-column: 3; grid-row: 1; }
-      .arch-column-title:nth-child(3) { grid-column: 5; grid-row: 1; }
-      .arch-column-title:nth-child(4) { grid-column: 7; grid-row: 1; }
-      .arch-column-title:nth-child(5) { grid-column: 9; grid-row: 1; }
-      .arch-column-title:nth-child(6) { grid-column: 11; grid-row: 1; }
-      .arch-column-title:nth-child(7) { grid-column: 13; grid-row: 1; }
-      .arch-column-title:nth-child(8) { grid-column: 15; grid-row: 1; }
-      .architecture-flow > :nth-child(9) { grid-column: 1; grid-row: 2; }
-      .architecture-flow > :nth-child(10) { grid-column: 2; grid-row: 2; }
-      .architecture-flow > :nth-child(11) { grid-column: 3; grid-row: 2; }
-      .architecture-flow > :nth-child(12) { grid-column: 4; grid-row: 2; }
-      .architecture-flow > :nth-child(13) { grid-column: 5; grid-row: 2; }
-      .architecture-flow > :nth-child(14) { grid-column: 6; grid-row: 2; }
-      .architecture-flow > :nth-child(15) { grid-column: 7; grid-row: 2; }
-      .architecture-flow > :nth-child(16) { grid-column: 8; grid-row: 2; }
-      .architecture-flow > :nth-child(17) { grid-column: 9; grid-row: 2; }
-      .architecture-flow > :nth-child(18) { grid-column: 10; grid-row: 2; }
-      .architecture-flow > :nth-child(19) { grid-column: 11; grid-row: 2; }
-      .architecture-flow > :nth-child(20) { grid-column: 12; grid-row: 2; }
-      .architecture-flow > :nth-child(21) { grid-column: 13; grid-row: 2; }
-      .architecture-flow > :nth-child(22) { grid-column: 14; grid-row: 2; }
-      .architecture-flow > :nth-child(23) { grid-column: 15; grid-row: 2; }
-      .arch-column-title.green { color: #166534; }
-      .arch-stack { display: grid; gap: 10px; }
-      .arch-card, .arch-node {
-        border: 1px solid #8fb3ff;
-        background: #f8fbff;
-        border-radius: 8px;
-        padding: 12px;
-        min-height: 74px;
-        box-shadow: 0 8px 20px rgba(29, 78, 216, 0.05);
-      }
-      .arch-node {
+      input, select {
         width: 100%;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: #fff;
         color: var(--ink);
-        cursor: pointer;
-        text-align: left;
-        font: inherit;
+        padding: 0 10px;
+        outline-color: var(--teal);
       }
-      .arch-node strong, .arch-card strong { display: block; font-size: 14px; margin-bottom: 4px; }
-      .arch-node small, .arch-card small { color: var(--muted); display: block; line-height: 1.35; }
-      .arch-node:hover, .arch-node.active { border-color: var(--accent-2); outline: 2px solid rgba(54, 79, 199, 0.12); }
-      .arch-green {
-        border-color: #9fce9f;
-        background: #f5fbf4;
-        box-shadow: 0 8px 20px rgba(22, 101, 52, 0.05);
+      .input-row { display: flex; gap: 8px; align-items: center; }
+      .mode-tabs, .tabs { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; background: #f8fbff; }
+      .mode-tabs button, .tabs button {
+        border: 0;
+        border-right: 1px solid var(--line);
+        background: transparent;
+        min-height: 38px;
+        padding: 0 13px;
+        color: #334158;
+        font-size: 12px;
+        font-weight: 750;
       }
-      .arch-dashed { border-style: dashed; background: #fbfbfb; }
-      .arch-arrow { color: #2563eb; font-weight: 900; text-align: center; }
-      .arch-evidence ul, .arch-card ul {
-        margin: 8px 0 0;
-        padding-left: 18px;
-        color: var(--muted);
-        line-height: 1.55;
+      .mode-tabs button:last-child, .tabs button:last-child { border-right: 0; }
+      .mode-tabs button.active, .tabs button.active { background: var(--teal); color: #fff; }
+
+      .settings-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 32px;
+        border: 1px solid #bcd2ea;
+        border-radius: 6px;
+        background: #eef6ff;
+        color: #1f4f86;
+        padding: 0 9px;
+        font-size: 12px;
+        font-weight: 750;
       }
-      .arch-concerns {
-        min-width: 1180px;
-        display: grid;
-        grid-template-columns: repeat(7, minmax(130px, 1fr));
-        gap: 10px;
-        margin-top: 16px;
-        padding: 12px;
-        border: 1px dashed #7ea6ff;
+      .chip button { border: 0; background: transparent; color: inherit; padding: 0; font-weight: 900; }
+      .secondary, .ghost, .danger, .primary {
+        min-height: 38px;
+        border-radius: 7px;
+        padding: 0 14px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .primary { border: 0; background: linear-gradient(135deg, var(--teal), #006b78); color: #fff; min-width: 170px; }
+      .secondary { border: 1px solid var(--line); background: #fff; color: #253246; }
+      .ghost { border: 1px solid transparent; background: transparent; color: #40506a; }
+      .danger { border: 1px solid #efb8b2; background: #fff; color: var(--red); }
+      .button-row { display: flex; gap: 9px; align-items: center; margin-top: 20px; }
+
+      .menu {
+        position: absolute;
+        z-index: 5;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        box-shadow: var(--shadow);
+        padding: 6px;
+      }
+      .menu button { display: block; width: 190px; border: 0; background: #fff; text-align: left; padding: 9px; border-radius: 6px; }
+      .menu button:hover { background: var(--teal-soft); }
+
+      details {
+        margin-top: 22px;
+        border: 1px solid var(--line);
         border-radius: 8px;
-        background: #f8fbff;
+        background: #fff;
       }
-      .concern { font-size: 12px; font-weight: 800; color: #1e3a8a; }
-      .detail-panel { position: sticky; top: 96px; }
-      .detail-panel code { display: block; padding: 10px; white-space: pre-wrap; }
-      @media (max-width: 860px) {
-        main { grid-template-columns: 1fr; }
-        nav { border-right: 0; border-bottom: 1px solid var(--line); }
-        .grid { grid-template-columns: 1fr; }
-        .architecture-wrap { grid-template-columns: 1fr; }
-        .detail-panel { position: static; }
-        header { align-items: flex-start; flex-direction: column; }
+      summary { padding: 13px; font-weight: 850; cursor: pointer; }
+      pre {
+        overflow: auto;
+        white-space: pre-wrap;
+        margin: 0;
+        border-top: 1px solid var(--soft-line);
+        background: #102033;
+        color: #e7edf5;
+        padding: 13px;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .copy-line { display: flex; justify-content: space-between; align-items: center; padding: 10px 13px; border-top: 1px solid var(--soft-line); }
+
+      .checklist { margin-top: 18px; padding: 13px; border: 1px solid var(--line); border-radius: 8px; background: #fbfdff; }
+      .checklist li { margin: 9px 0; color: #40506a; font-size: 12px; }
+      .checklist .done { color: var(--green); font-weight: 800; }
+
+      .status-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 25px;
+        border-radius: 999px;
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 850;
+      }
+      .badge.running { background: #e7f0ff; color: var(--blue); }
+      .badge.complete { background: var(--green-soft); color: var(--green); }
+      .badge.failed, .badge.cancelled { background: var(--red-soft); color: var(--red); }
+      .badge.queued { background: var(--amber-soft); color: var(--amber); }
+
+      .ready-box {
+        min-height: 520px;
+        display: grid;
+        place-items: center;
+        text-align: center;
+      }
+      .compass {
+        width: 96px;
+        height: 96px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 14px;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        background: radial-gradient(circle, var(--teal-soft), #fff);
+        color: var(--teal);
+        font-size: 36px;
+      }
+
+      .live-grid { display: grid; grid-template-columns: 260px 1fr 250px; gap: 14px; }
+      .timeline { list-style: none; padding: 0; margin: 0; }
+      .timeline li {
+        position: relative;
+        margin: 0 0 16px 18px;
+        padding-left: 14px;
+        color: #334158;
+        font-size: 12px;
+      }
+      .timeline li:before {
+        content: "";
+        position: absolute;
+        left: -18px;
+        top: 2px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--line);
+      }
+      .timeline li.success:before { background: var(--green); }
+      .timeline li.error:before { background: var(--red); }
+      .timeline li.warning:before { background: var(--amber); }
+      .timeline strong { display: block; text-transform: capitalize; }
+      .browser-frame {
+        min-height: 360px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+      }
+      .browser-bar { display: flex; gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid var(--soft-line); }
+      .browser-url { flex: 1; border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; color: #40506a; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .browser-shot {
+        min-height: 300px;
+        padding: 28px;
+        background: linear-gradient(180deg, #ffffff, #f4f8fc);
+      }
+      .site-preview { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 18px; }
+      .product-preview-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 18px; }
+      .fake-product { min-height: 138px; border: 1px solid var(--soft-line); background: #f2f5f8; display: grid; place-items: center; color: #7b8799; }
+      .event-log { max-height: 420px; overflow: auto; }
+      .event-log div { border: 1px solid var(--soft-line); border-radius: 7px; padding: 9px; margin-bottom: 8px; font-size: 12px; }
+
+      .metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 14px 0; }
+      .metric { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 12px; }
+      .metric span { display: block; color: #40506a; font-size: 10px; font-weight: 850; letter-spacing: 0.05em; text-transform: uppercase; }
+      .metric strong { display: block; margin-top: 8px; font-size: 22px; color: var(--teal); }
+      .workspace-tabs { margin-bottom: 14px; border-width: 0 0 1px; border-radius: 0; background: transparent; overflow: visible; }
+      .workspace-tabs button { border: 0; border-bottom: 2px solid transparent; background: transparent; color: #314057; }
+      .workspace-tabs button.active { background: transparent; color: var(--teal); border-bottom-color: var(--teal); }
+
+      table { width: 100%; border-collapse: collapse; font-size: 12px; }
+      th, td { border-bottom: 1px solid var(--soft-line); padding: 10px; text-align: left; vertical-align: top; }
+      th { background: #f8fbff; color: #29384d; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+      tr[data-record-index] { cursor: pointer; }
+      tr[data-record-index]:hover { background: var(--teal-soft); }
+      .source-badge { display: inline-flex; padding: 3px 8px; border-radius: 999px; background: var(--green-soft); color: var(--green); font-weight: 850; font-size: 11px; }
+      .warn-box, .ok-box {
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 12px;
+        font-size: 12px;
+      }
+      .warn-box { border: 1px solid #f4c39d; background: var(--amber-soft); color: #7d4108; }
+      .ok-box { border: 1px solid #b8e4c7; background: var(--green-soft); color: #0c5e40; }
+
+      .drawer.closed { display: none; }
+      .drawer .selected-image {
+        width: 90px;
+        height: 120px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        object-fit: cover;
+        background: #f4f7fa;
+      }
+      .kv { display: grid; grid-template-columns: 110px 1fr; gap: 8px; margin-top: 10px; font-size: 12px; }
+      .kv strong { color: #506177; }
+      .tab-panel.hidden { display: none; }
+      .utility-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .utility-card { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 14px; }
+      .utility-card h3 { margin-bottom: 8px; }
+      .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+      #toast {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 20;
+        min-width: 180px;
+        border-radius: 8px;
+        background: var(--ink);
+        color: #fff;
+        padding: 12px 14px;
+        box-shadow: var(--shadow);
       }
     </style>
   </head>
   <body>
-    <header>
-      <div>
-        <h1>Scout Intelligence Platform</h1>
-        <p>Web evidence to cited records for PRISM, products, jobs, company intel, and research.</p>
-      </div>
-      <span class="status">Local app</span>
-    </header>
-    <main>
-      <nav aria-label="Scout screens">
-        <button class="active" data-screen="how">How to use me</button>
-        <button data-screen="run">Run Console</button>
-        <button data-screen="products">Product Workbench</button>
-        <button data-screen="monitor">Run Monitor</button>
-        <button data-screen="evidence">Evidence Browser</button>
-        <button data-screen="records">Records Explorer</button>
-        <button data-screen="settings">Settings</button>
+    <header class="topbar">
+      <div class="brand"><div class="logo">S</div><div><strong>SCOUT</strong><span>Intelligence Platform</span></div></div>
+      <nav class="topnav">
+        <button class="active" type="button" data-top-section="runs">Runs</button>
+        <button type="button" data-top-section="projects">Projects</button>
+        <button type="button" data-top-section="settings">Settings</button>
+        <a href="/docs" data-top-section="docs">Docs</a>
       </nav>
-      <div>
-        <section id="how" class="active">
-          <div hidden>
-            <button data-mode="auto">auto</button>
-            <button data-mode="crawl4ai">crawl4ai</button>
-            <button data-mode="webfetch">webfetch</button>
-            <button data-mode="websearch">websearch</button>
-            <button data-mode="browser">browser</button>
-            <button data-mode="saved">saved</button>
-            <button data-mode="api">api</button>
-          </div>
-          <h2>How to use me</h2>
-          <p>Scout turns web evidence into cited records through a provider ladder, vertical processors, and one durable artifact contract.</p>
-          <div class="architecture-wrap">
-            <div class="architecture-canvas" aria-label="Scout architecture canvas">
-              <div class="architecture-flow">
-                <div class="arch-column-title">Front Doors<br />(Entry Points)</div>
-                <div class="arch-column-title">RunRequest</div>
-                <div class="arch-column-title">Orchestration</div>
-                <div class="arch-column-title">Provider Modes<br />(Ordered by Preference)</div>
-                <div class="arch-column-title green">Normalization</div>
-                <div class="arch-column-title green">Vertical Processors</div>
-                <div class="arch-column-title green">Typed Records</div>
-                <div class="arch-column-title">Downstream Consumers</div>
+      <div class="user-pill"><span>•</span><div class="avatar">A</div></div>
+    </header>
 
-                <div class="arch-stack">
-                  <button class="arch-node" type="button" data-arch-title="CLI" data-arch-body="Terminal entry point for local runs, scripts, scheduled jobs, and power users." data-arch-example="scout run prism --query Nike --mode auto --workdir scout-runs"><strong>CLI</strong><small>scout run ...</small></button>
-                  <button class="arch-node" type="button" data-arch-title="HTTP App" data-arch-body="Local REST API and self-educating frontend. Good for agents, browser workflows, and integrations." data-arch-example="POST /run/company"><strong>HTTP App</strong><small>REST API + /app</small></button>
-                  <button class="arch-node" type="button" data-arch-title="Claude / Codex Skill" data-arch-body="Skill-hosted entry point that can use Scout plus host tools such as WebFetch, WebSearch, and browser evidence when available." data-arch-example="Use Scout to research Adobe"><strong>Claude / Codex Skill</strong><small>Skill / MCP</small></button>
-                </div>
-                <div class="arch-arrow">-&gt;</div>
-                <button class="arch-node" type="button" data-arch-title="RunRequest" data-arch-body="The common request contract. It carries use case, query, targets, limits, execution mode, output directory, and optional profile/job/product inputs." data-arch-example='{"query":"Adobe","mode":"auto","output_dir":"scout-runs/adobe"}'><strong>RunRequest</strong><small>target / scope<br />constraints<br />modes / prefs<br />metadata</small></button>
-                <div class="arch-arrow">-&gt;</div>
-                <button class="arch-node" type="button" data-arch-title="Execution Mode Router" data-arch-body="Selects and orders providers based on mode, configuration, availability, and success heuristics. Browser fallback remains secondary." data-arch-example="auto: crawl4ai -> api -> saved -> webfetch -> websearch -> browser"><strong>Execution Mode Router</strong><small>Selects provider ladder</small></button>
-                <div class="arch-arrow">-&gt;</div>
-                <div class="arch-stack">
-                  <button class="arch-node" type="button" data-arch-title="crawl4ai" data-arch-body="Default standalone acquisition provider for normal pages, maps, crawls, screenshots, and JS rendering." data-arch-example="scout run company --query Adobe --mode crawl4ai"><strong>crawl4ai</strong><small>Default</small></button>
-                  <button class="arch-node" type="button" data-arch-title="webfetch" data-arch-body="Host-provided page fetch evidence used when the skill environment can retrieve content better than local crawling." data-arch-example="mode=webfetch"><strong>webfetch</strong><small>host page evidence</small></button>
-                  <button class="arch-node" type="button" data-arch-title="websearch" data-arch-body="Host-provided discovery for finding official pages, news, blogs, investor pages, and candidate URLs." data-arch-example="mode=websearch"><strong>websearch</strong><small>discovery</small></button>
-                  <button class="arch-node arch-dashed" type="button" data-arch-title="browser fallback" data-arch-body="Secondary fallback for blocked pages, JS shells, visual verification, and browser/session evidence. Not a universal bypass." data-arch-example="mode=browser"><strong>browser fallback</strong><small>Secondary / Not Default</small></button>
-                  <button class="arch-node" type="button" data-arch-title="saved replay" data-arch-body="Deterministic replay of saved HTML, DOM snapshots, PDFs, and fixtures for tests or repeatable extraction." data-arch-example="mode=saved"><strong>saved replay</strong><small>fixtures and snapshots</small></button>
-                  <button class="arch-node" type="button" data-arch-title="api adapters" data-arch-body="Provider APIs such as ATS boards, commerce feeds, investor feeds, and future social providers." data-arch-example="mode=api"><strong>api adapters</strong><small>provider APIs</small></button>
-                </div>
-                <div class="arch-arrow">-&gt;</div>
-                <button class="arch-node arch-green arch-evidence" type="button" data-arch-title="Normalized Source Evidence" data-arch-body="Every provider result becomes a normalized source page with provenance, status, hashes, links, content, and citation identity." data-arch-example="source_pages.json + citations[]"><strong>Normalized Source Evidence</strong><small>with Provenance</small><ul><li>content</li><li>metadata</li><li>links</li><li>status</li><li>fingerprints</li></ul></button>
-                <div class="arch-arrow">-&gt;</div>
-                <div class="arch-stack">
-                  <button class="arch-node arch-green" type="button" data-arch-title="Vertical Processors" data-arch-body="Domain-specific extractors convert normalized evidence into useful records for each Scout use case." data-arch-example="company, PRISM, investor, careers, jobs, products, news, research"><strong>Vertical Processors</strong><small>domain extraction</small></button>
-                  <div class="arch-card arch-green"><strong>company</strong><small>overview, leaders, socials</small></div>
-                  <div class="arch-card arch-green"><strong>PRISM</strong><small>prospect bundle</small></div>
-                  <div class="arch-card arch-green"><strong>investor</strong><small>IR, filings, decks</small></div>
-                  <div class="arch-card arch-green"><strong>careers</strong><small>ATS and hiring signals</small></div>
-                  <div class="arch-card arch-green"><strong>jobs</strong><small>job matching</small></div>
-                  <div class="arch-card arch-green"><strong>products</strong><small>catalog records</small></div>
-                  <div class="arch-card arch-green"><strong>news</strong><small>blogs and signals</small></div>
-                  <div class="arch-card arch-green"><strong>research</strong><small>generic evidence</small></div>
-                </div>
-                <div class="arch-arrow">-&gt;</div>
-                <button class="arch-node arch-green" type="button" data-arch-title="Typed Records" data-arch-body="Validated, deduplicated, normalized structured records with schemas, stable objectIDs, citations, and confidence." data-arch-example="records.json / records.jsonl"><strong>Typed Records</strong><small>schema-backed data<br />citations included</small></button>
-                <div class="arch-arrow">-&gt;</div>
-                <div class="arch-stack">
-                  <button class="arch-node" type="button" data-arch-title="Downstream Consumers" data-arch-body="Consumers use Scout records for Algolia indexing, PRISM signals, monitoring, reports, and agent workflows." data-arch-example="Algolia, PRISM, job monitor, reports, agents"><strong>Downstream Consumers</strong><small>where records go</small></button>
-                  <div class="arch-card"><strong>ALGOLIA</strong><small>Search &amp; Index</small></div>
-                  <div class="arch-card"><strong>PRISM</strong><small>Signals &amp; Insights</small></div>
-                  <div class="arch-card"><strong>JOB MONITOR</strong><small>Tracking &amp; Alerts</small></div>
-                  <div class="arch-card"><strong>REPORTS</strong><small>Dashboards &amp; reports</small></div>
-                  <div class="arch-card"><strong>AGENTS</strong><small>Automation workflows</small></div>
-                </div>
+    <div class="app-shell" id="appShell">
+      <aside class="rail">
+        <button class="active" data-rail-section="run"><span>□</span>Run</button>
+        <button data-rail-section="history"><span>↻</span>History</button>
+        <button data-rail-section="presets"><span>▤</span>Presets</button>
+        <button data-rail-section="targets"><span>⌖</span>Targets</button>
+        <button data-rail-section="data"><span>▥</span>Data</button>
+        <button data-rail-section="integrations"><span>⌬</span>Integrations</button>
+        <button data-rail-section="settings"><span>⚙</span>Settings</button>
+        <button data-rail-section="help"><span>?</span>Help</button>
+      </aside>
+
+      <section class="setup-pane">
+        <div class="card card-pad">
+          <div class="section-title"><div><h1>Run Setup</h1><p class="subtle">Configure your run and click Start Execution.</p></div></div>
+
+          <label class="label" for="useCase">Use Case</label>
+          <select id="useCase">
+            <option value="products">Product Intelligence - E-commerce</option>
+            <option value="prism">PRISM Company Intelligence</option>
+            <option value="company">Company Intelligence</option>
+            <option value="investor">Investor Intelligence</option>
+            <option value="careers">Careers and Hiring</option>
+            <option value="jobs">Jobs</option>
+            <option value="news">News and Blogs</option>
+            <option value="research">Research</option>
+            <option value="docs">Documentation</option>
+            <option value="website-quality">Website Quality</option>
+          </select>
+          <p id="useCaseHelp" class="subtle" style="margin-top:8px;"></p>
+          <div id="expectedOutputs" class="ok-box"></div>
+
+          <label class="label" id="targetLabel" for="targetUrl">Target URL</label>
+          <div class="input-row">
+            <input id="targetUrl" placeholder="https://www.esteelauder.com/products/681/product-catalog/skin-care" />
+            <button id="clearStartUrl" class="secondary" type="button">×</button>
+          </div>
+          <p class="subtle" id="targetExample">Example: https://www.esteelauder.com/products/681/product-catalog/skin-care</p>
+
+          <label class="label">Execution Mode</label>
+          <div class="mode-tabs" id="modeTabs">
+            <button type="button" class="active" data-mode="auto">Auto</button>
+            <button type="button" data-mode="crawl4ai">Crawl4AI</button>
+            <button type="button" data-mode="webfetch">WebFetch</button>
+            <button type="button" data-mode="websearch">WebSearch</button>
+            <button type="button" data-mode="browser">Browser</button>
+            <button type="button" data-mode="saved">Saved</button>
+            <button type="button" data-mode="api">API</button>
+          </div>
+          <p id="modeHelp" class="subtle" style="margin-top:8px;">Auto mode selects the best strategy and adapts as it runs.</p>
+
+          <label class="label">Crawl Settings</label>
+          <p class="subtle">Tune how Scout collects pages. Defaults are safe for most runs.</p>
+          <div class="settings-row" id="crawlChips"></div>
+          <div style="position:relative;">
+            <button id="addOption" class="secondary" type="button">+ Add option</button>
+            <div id="addOptionMenu" class="menu hidden"></div>
+          </div>
+
+          <label class="label" for="workdir">Working Directory</label>
+          <div class="input-row">
+            <input id="workdir" value="/tmp/scout-runs/app" />
+            <button id="pickDir" class="secondary" type="button">Browse</button>
+          </div>
+          <p class="subtle">All outputs, logs, and artifacts will be saved here.</p>
+
+          <ul class="checklist" id="checklist">
+            <li data-check="useCase">○ Use case selected</li>
+            <li data-check="target">○ Target URL entered</li>
+            <li data-check="workdir">○ Working directory set</li>
+            <li data-check="settings">○ Crawl settings configured</li>
+            <li data-check="mode">○ Execution mode selected</li>
+          </ul>
+
+          <div class="button-row">
+            <button id="startExecution" class="primary" type="button">▶ Start Execution</button>
+            <button id="clearRun" class="secondary" type="button">Clear Run</button>
+          </div>
+          <p id="runStatus" class="subtle" style="margin-top:8px;">Ready. The app will show run status immediately after Start Execution.</p>
+
+          <details id="developerDetails">
+            <summary>Developer Details (CLI / API)</summary>
+            <div class="copy-line"><strong>CLI command</strong><button class="secondary" type="button" data-copy-target="commandPreview">Copy</button></div>
+            <pre id="commandPreview"></pre>
+            <div class="copy-line"><strong>API request</strong><button class="secondary" type="button" data-copy-target="httpPreview">Copy</button></div>
+            <pre id="httpPreview"></pre>
+          </details>
+        </div>
+      </section>
+
+      <main class="workspace">
+        <section id="readyPanel" class="card card-pad ready-box">
+          <div>
+            <div class="compass">⌖</div>
+            <h2>Ready to run</h2>
+            <p>Configure a target and click Start Execution. Scout will switch into live execution with status, logs, and browser evidence.</p>
+          </div>
+        </section>
+
+        <section id="livePanel" class="hidden">
+          <div class="card card-pad">
+            <div class="status-header">
+              <div>
+                <div class="badge running" id="runStateBadge">queued</div>
+                <h2 style="margin-top:8px;">Live Execution</h2>
+                <p class="subtle">Run ID: <span id="activeRunId">none</span></p>
               </div>
-              <div class="arch-concerns" aria-label="Cross-cutting concerns">
-                <div class="concern">Security & Secrets</div>
-                <div class="concern">Rate Limiting & Throttling</div>
-                <div class="concern">Logging & Observability</div>
-                <div class="concern">Retry & Backoff</div>
-                <div class="concern">Metrics & Monitoring</div>
-                <div class="concern">Storage & Artifacts</div>
-                <div class="concern">Configuration & Feature Flags</div>
+              <div class="button-row" style="margin:0;">
+                <button id="cancelRun" class="danger" type="button">Cancel Run</button>
+                <button class="secondary" type="button" data-clear-action>Clear Run</button>
               </div>
             </div>
-            <aside class="panel detail-panel" aria-live="polite">
-              <h2 id="architectureDetailTitle">Normalized Source Evidence</h2>
-              <p id="architectureDetailBody">Every provider result becomes citation-ready source evidence before a vertical processor creates records.</p>
-              <h3>Example</h3>
-              <code id="architectureDetailExample">source_pages.json + citations[]</code>
-              <h3>Artifact lifecycle</h3>
-              <pre>manifest.json
-records.json
-records.jsonl
-source_pages.json
-blocked_pages.json
-validation.json
-extraction_report.md</pre>
-            </aside>
-          </div>
-        </section>
-
-        <section id="run">
-          <h2>Run Console</h2>
-          <div class="mode-tabs" id="modeTabs"></div>
-          <div class="grid">
-            <div class="panel">
-              <label for="apiKey">Scout API key</label>
-              <input id="apiKey" type="password" value="dev-key" autocomplete="off" />
-              <label for="useCase">Use case</label>
-              <select id="useCase">
-                <option>company</option><option>prism</option><option>investor</option>
-                <option>careers</option><option>jobs</option><option>products</option>
-                <option>news</option><option>research</option><option>docs</option>
-                <option>website-quality</option><option>social</option><option>locations</option>
-              </select>
-              <label for="query">Query</label>
-              <input id="query" value="Adobe" />
-              <label for="workdir">Working directory</label>
-              <input id="workdir" value="scout-runs" />
-              <button class="secondary" id="pickDir" type="button">Choose folder</button>
-              <button class="primary" id="runScout" type="button">Run Scout</button>
-            </div>
-            <div class="panel">
-              <h3>Generated command</h3>
-              <pre id="commandPreview"></pre>
-              <h3>HTTP request</h3>
-              <pre id="httpPreview"></pre>
-              <h3>Latest response</h3>
-              <pre id="runOutput">{}</pre>
+            <div class="live-grid">
+              <div>
+                <h3>Progress Timeline</h3>
+                <ul id="timeline" class="timeline"></ul>
+              </div>
+              <div>
+                <h3>Browser Evidence (Live)</h3>
+                <div id="browserEvidence" class="browser-frame"></div>
+              </div>
+              <div>
+                <h3>Live Event Log</h3>
+                <div id="eventLog" class="event-log"></div>
+              </div>
             </div>
           </div>
         </section>
 
-        <section id="products">
-          <h2>Product Workbench</h2>
-          <div class="grid">
-            <div class="panel">
-              <label for="productSite">Website/domain</label>
-              <input id="productSite" value="esteelauder.com" />
-              <label for="productQuery">Product query</label>
-              <input id="productQuery" value="top skincare products" />
-              <label for="startUrl">Start URL</label>
-              <input id="startUrl" placeholder="https://www.esteelauder.com/products/681/product-catalog/skin-care" />
-              <label for="categoryLimit">Categories</label>
-              <input id="categoryLimit" type="number" value="3" min="1" />
-              <label for="productLimit">Max products</label>
-              <input id="productLimit" type="number" value="10" min="1" />
-              <button class="primary" id="runProducts" type="button">Scrape products</button>
+        <section id="resultsPanel" class="hidden" style="margin-top:14px;">
+          <div class="card card-pad">
+            <div class="status-header">
+              <div><h2>Results Review</h2><p class="subtle">Merged records, sources, blocked evidence, artifacts, and logs.</p></div>
+              <span id="completedAt" class="subtle"></span>
             </div>
-            <div class="panel">
-              <h3>Algolia Preparation</h3>
-              <label for="algoliaApp">Algolia App ID</label>
-              <input id="algoliaApp" autocomplete="off" />
-              <label for="algoliaKey">Algolia API key</label>
-              <input id="algoliaKey" type="password" autocomplete="off" />
-              <label for="algoliaIndex">Index name</label>
-              <input id="algoliaIndex" value="products_dev" />
-              <button class="secondary" id="previewAlgolia" type="button">Preview Algolia readiness</button>
-              <button class="secondary" type="button" disabled>Ingest to Algolia - future extension</button>
-              <pre id="algoliaPreview">{}</pre>
+            <div class="metrics">
+              <div class="metric"><span>Pages Processed</span><strong id="metricPages">0</strong></div>
+              <div class="metric"><span>Product Records</span><strong id="metricRecords">0</strong></div>
+              <div class="metric"><span>Unique Sources</span><strong id="metricSources">0</strong></div>
+              <div class="metric"><span>Blocked Pages</span><strong id="metricBlocked">0</strong></div>
+              <div class="metric"><span>Warnings</span><strong id="metricWarnings">0</strong></div>
             </div>
-          </div>
-          <div class="panel" style="margin-top:16px;">
-            <h3>Record preview</h3>
-            <div id="productSummary"><span class="status warn">No product run yet</span></div>
-            <table id="productTable"><thead><tr><th>Name</th><th>Brand</th><th>Price</th><th>Completeness</th><th>Source</th></tr></thead><tbody></tbody></table>
-            <pre id="productJson">[]</pre>
+            <div class="tabs workspace-tabs" id="resultTabs">
+              <button class="active" data-panel="overviewPanel" type="button">Overview</button>
+              <button data-panel="browserPanel" type="button">Browser</button>
+              <button data-panel="recordsPanel" type="button">Records</button>
+              <button data-panel="sourcesPanel" type="button">Sources</button>
+              <button data-panel="blockedPanel" type="button">Blocked</button>
+              <button data-panel="artifactsPanel" type="button">Artifacts</button>
+              <button data-panel="logsPanel" type="button">Logs</button>
+            </div>
+            <div id="overviewPanel" class="tab-panel"></div>
+            <div id="browserPanel" class="tab-panel hidden"></div>
+            <div id="recordsPanel" class="tab-panel hidden">
+              <table id="recordsTable"><thead><tr><th>#</th><th>Product Name</th><th>Brand</th><th>Price</th><th>SKU</th><th>Source</th></tr></thead><tbody></tbody></table>
+            </div>
+            <div id="sourcesPanel" class="tab-panel hidden"></div>
+            <div id="blockedPanel" class="tab-panel hidden"></div>
+            <div id="artifactsPanel" class="tab-panel hidden"></div>
+            <div id="logsPanel" class="tab-panel hidden"></div>
           </div>
         </section>
 
-        <section id="monitor"><h2>Run Monitor</h2><div class="panel"><pre id="monitorOutput">Run a workflow to see provider attempts, warnings, blocked pages, and artifact paths.</pre></div></section>
-        <section id="evidence"><h2>Evidence Browser</h2><div class="panel"><pre id="sourceOutput">Run a workflow, then load source pages and citations here.</pre></div></section>
-        <section id="records"><h2>Records Explorer</h2><div class="panel"><pre id="recordsOutput">Records will appear here after a run.</pre></div></section>
-        <section id="settings"><h2>Settings</h2><div class="panel"><p>Keys live in <code>.env.local</code>. Secret values are never shown here.</p><pre>SCOUT_WORKDIR=scout-runs
-SCOUT_API_KEY=configured/not shown
-LLM_API_KEY=configured/not shown</pre></div></section>
-      </div>
-    </main>
+        <section id="utilityScreen" class="hidden">
+          <div class="card card-pad">
+            <div class="status-header">
+              <div>
+                <h2 id="screenTitle">Projects</h2>
+                <p id="screenDescription" class="subtle"></p>
+              </div>
+              <button id="returnToRun" class="secondary" type="button">Back to Run</button>
+            </div>
+            <div id="screenContent"></div>
+          </div>
+        </section>
+      </main>
+
+      <aside class="drawer closed" id="detailDrawer">
+        <div class="status-header">
+          <h2>Selected Record</h2>
+          <button id="closeDrawer" class="ghost" type="button">×</button>
+        </div>
+        <div id="drawerContent"><p class="subtle">Select a record or source to inspect evidence.</p></div>
+      </aside>
+    </div>
+
+    <div id="toast" class="hidden"></div>
+
     <script>
-      const modes = ["auto", "crawl4ai", "webfetch", "websearch", "browser", "saved", "api"];
-      let selectedMode = "auto";
-      let latestRecords = [];
-      const $ = (id) => document.getElementById(id);
-
-      document.querySelectorAll("nav button").forEach((button) => {
-        button.addEventListener("click", () => {
-          document.querySelectorAll("nav button").forEach((b) => b.classList.remove("active"));
-          document.querySelectorAll("section").forEach((s) => s.classList.remove("active"));
-          button.classList.add("active");
-          $(button.dataset.screen).classList.add("active");
-        });
-      });
-
-      document.querySelectorAll(".arch-node").forEach((node) => {
-        node.addEventListener("click", () => {
-          document.querySelectorAll(".arch-node").forEach((item) => item.classList.remove("active"));
-          node.classList.add("active");
-          $("architectureDetailTitle").textContent = node.dataset.archTitle || "Scout architecture";
-          $("architectureDetailBody").textContent = node.dataset.archBody || "";
-          $("architectureDetailExample").textContent = node.dataset.archExample || "";
-        });
-      });
-
-      modes.forEach((mode) => {
-        const button = document.createElement("button");
-        button.className = "mode-tab" + (mode === selectedMode ? " active" : "");
-        button.dataset.mode = mode;
-        button.textContent = mode;
-        button.addEventListener("click", () => {
-          selectedMode = mode;
-          document.querySelectorAll(".mode-tab").forEach((b) => b.classList.remove("active"));
-          button.classList.add("active");
-          updatePreviews();
-        });
-        $("modeTabs").appendChild(button);
-      });
-
-      ["useCase", "query", "workdir"].forEach((id) => $(id).addEventListener("input", updatePreviews));
-
-      $("pickDir").addEventListener("click", async () => {
-        if ("showDirectoryPicker" in window) {
-          const dir = await window.showDirectoryPicker();
-          $("workdir").value = dir.name;
-        } else {
-          $("workdir").focus();
+      const API_KEY = "dev-key";
+      const state = {
+        mode: "auto",
+        runId: null,
+        poller: null,
+        screen: "run",
+        history: [],
+        records: [],
+        sources: [],
+        blocked: [],
+        events: [],
+        artifacts: {},
+        browserEvidence: {},
+        options: { max_depth: 3, respect_robots_txt: true, delay_seconds: 1.0 }
+      };
+      const optionDefaults = { max_depth: 3, respect_robots_txt: true, delay_seconds: 1.0 };
+      const optionLabels = {
+        max_depth: "Max Depth",
+        respect_robots_txt: "Respect robots.txt",
+        delay_seconds: "Delay"
+      };
+      const useCaseContracts = {
+        products: {
+          label: "Product/category URL",
+          placeholder: "https://www.esteelauder.com/products/681/product-catalog/skin-care",
+          example: "Example: https://www.esteelauder.com/products/681/product-catalog/skin-care",
+          help: "Extract product/category data and prepare Algolia-ready product records.",
+          outputs: "Outputs: product records, listing/detail sources, blocked detail pages, Algolia prep."
+        },
+        prism: {
+          label: "Company name, domain, or PRISM target URL",
+          placeholder: "Nike or https://www.nike.com",
+          example: "Example: Adobe, Nike, https://www.algolia.com",
+          help: "Build a PRISM prospect bundle across company, executives, investor, careers, and news evidence.",
+          outputs: "Outputs: company, executive, social, investor, career, and news records."
+        },
+        company: {
+          label: "Company name, domain, or about URL",
+          placeholder: "https://www.adobe.com/about-adobe.html",
+          example: "Example: https://www.adobe.com/about-adobe.html",
+          help: "Extract company overview, key URLs, leadership, and social evidence.",
+          outputs: "Outputs: company.v1, executive.v1, company_social.v1."
+        },
+        investor: {
+          label: "Investor relations URL or company domain",
+          placeholder: "https://www.adobe.com/investor-relations.html",
+          example: "Example: https://ir.homedepot.com",
+          help: "Collect investor pages, reports, presentations, filings, and events.",
+          outputs: "Outputs: investor_asset.v1 records and filing/report citations."
+        },
+        careers: {
+          label: "Careers URL or company domain",
+          placeholder: "https://www.algolia.com/careers/",
+          example: "Example: https://www.adobe.com/careers.html",
+          help: "Find careers pages, ATS hints, departments, and hiring signals.",
+          outputs: "Outputs: career_site.v1 records and hiring evidence."
+        },
+        jobs: {
+          label: "Company domain or job URL",
+          placeholder: "https://job-boards.greenhouse.io/eve/jobs/4245857009",
+          example: "Example: Greenhouse, Ashby, Workday, or native job URL.",
+          help: "Extract and score job postings against a profile or target role criteria.",
+          outputs: "Outputs: job_posting.v1 records, match scores, reject reasons, ATS evidence."
+        },
+        news: {
+          label: "Newsroom, blog URL, or company domain",
+          placeholder: "https://www.constructor.io/blog/",
+          example: "Example: https://blog.algolia.com or https://newsroom.homedepot.com",
+          help: "Collect recent company news, blogs, announcements, and dated source links.",
+          outputs: "Outputs: news_signal.v1 records with dates, URLs, and citations."
+        },
+        research: {
+          label: "URL, domain, or research prompt",
+          placeholder: "companies with weak ecommerce search UX",
+          example: "Example: British Airways website quality research",
+          help: "Normalize broad web research evidence into reusable records.",
+          outputs: "Outputs: research_record.v1 records, source evidence, summaries, citations."
+        },
+        docs: {
+          label: "Documentation URL or sitemap URL",
+          placeholder: "https://www.algolia.com/doc/",
+          example: "Example: https://www.algolia.com/doc/",
+          help: "Collect documentation pages, sections, markdown, and source URLs.",
+          outputs: "Outputs: documentation records, source pages, markdown/DOM evidence."
+        },
+        "website-quality": {
+          label: "Website URL",
+          placeholder: "https://www.britishairways.com/",
+          example: "Example: https://www.britishairways.com/",
+          help: "Assess website quality, UX/content gaps, and competitor improvement opportunities.",
+          outputs: "Outputs: website-quality findings, evidence snippets, source citations."
         }
-        updatePreviews();
-      });
+      };
+      const utilityScreens = {
+        history: { title: "Run History", description: "Review app runs from this session and reopen results." },
+        presets: { title: "Presets", description: "Apply repeatable run templates for common Scout workflows." },
+        targets: { title: "Target Catalog", description: "Use the balanced Scout test target matrix directly in the app." },
+        data: { title: "Data Browser", description: "Inspect records, sources, blocked pages, artifacts, and reports for the active run." },
+        integrations: { title: "Integrations", description: "Prepare records for Algolia and future downstream ingestion." },
+        settings: { title: "Settings", description: "Inspect local workdir, API key status, live-test flag, and runtime information." },
+        help: { title: "How to Use Scout", description: "Learn Scout workflows, execution modes, artifacts, and citation evidence." },
+        projects: { title: "Projects", description: "Organize run outputs by project and open artifact locations." }
+      };
+      const targetCatalog = [
+        ["Algolia", "Private B2B SaaS", "https://www.algolia.com/", "PRISM, company, careers, blogs, docs"],
+        ["Constructor", "Private B2B SaaS", "https://constructor.com/", "PRISM, competitor intel, company, careers, blogs"],
+        ["L.L.Bean", "Private retail commerce", "https://www.llbean.com/", "Products, careers, company"],
+        ["Patagonia", "Private retail commerce", "https://www.patagonia.com/", "Products, company, sustainability/blog"],
+        ["Adobe", "Public company", "https://www.adobe.com/", "Company, investor, careers, blogs/news"],
+        ["Home Depot", "Public retail", "https://www.homedepot.com/", "Investor, careers, product catalog, news"],
+        ["Estée Lauder", "Hard-site retail", "https://www.esteelauder.com/products/681/product-catalog/skin-care", "Hard-site product/category fallback"],
+        ["British Airways", "Travel", "https://www.britishairways.com/", "Travel company intel, careers, website quality"]
+      ];
+      const presets = [
+        ["Estée Lauder skincare products", "products", "https://www.esteelauder.com/products/681/product-catalog/skin-care"],
+        ["Nike company intelligence", "company", "https://www.nike.com/"],
+        ["Adobe investor intelligence", "investor", "https://www.adobe.com/investor-relations.html"],
+        ["Algolia careers", "careers", "https://www.algolia.com/careers/"],
+        ["Constructor news/blogs", "news", "https://constructor.com/blog/"],
+        ["British Airways website quality", "website-quality", "https://www.britishairways.com/"]
+      ];
 
-      $("runScout").addEventListener("click", async () => {
-        const useCase = $("useCase").value;
-        const body = { query: $("query").value, mode: selectedMode, output_dir: "", targets: [], max_records: 250 };
-        const res = await fetch(`/run/${useCase}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-API-Key": $("apiKey").value },
-          body: JSON.stringify({ ...body, output_dir: `${$("workdir").value}/${useCase}-${Date.now()}` })
-        });
-        const data = await res.json();
-        $("runOutput").textContent = JSON.stringify(data, null, 2);
-        $("monitorOutput").textContent = JSON.stringify(data.manifest || data, null, 2);
-        if (data.manifest && data.manifest.run_id) {
-          await loadArtifacts(data.manifest.run_id);
-        }
-      });
+      const el = (id) => document.getElementById(id);
+      const qs = (selector, root = document) => root.querySelector(selector);
+      const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
-      $("runProducts").addEventListener("click", async () => {
-        const res = await fetch("/products", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-API-Key": $("apiKey").value },
-          body: JSON.stringify({
-            query: $("productQuery").value,
-            site: $("productSite").value,
-            start_url: $("startUrl").value,
-            max_categories: Number($("categoryLimit").value),
-            max_products: Number($("productLimit").value),
-            persist: true,
-            output_dir: `${$("workdir").value}/products-${Date.now()}`
-          })
-        });
-        const data = await res.json();
-        latestRecords = data.records || [];
-        renderProducts(data);
-      });
-
-      $("previewAlgolia").addEventListener("click", async () => {
-        const res = await fetch("/algolia/preview", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-API-Key": $("apiKey").value },
-          body: JSON.stringify({
-            app_id: $("algoliaApp").value,
-            api_key: $("algoliaKey").value,
-            index_name: $("algoliaIndex").value,
-            records: latestRecords
-          })
-        });
-        $("algoliaPreview").textContent = JSON.stringify(await res.json(), null, 2);
-      });
-
-      async function loadArtifacts(runId) {
-        const headers = { "X-API-Key": $("apiKey").value };
-        const [records, sources] = await Promise.all([
-          fetch(`/runs/${runId}/records`, { headers }).then((r) => r.json()),
-          fetch(`/runs/${runId}/sources`, { headers }).then((r) => r.json())
-        ]);
-        $("recordsOutput").textContent = JSON.stringify(records, null, 2);
-        $("sourceOutput").textContent = JSON.stringify(sources, null, 2);
+      function toast(message) {
+        const node = el("toast");
+        node.textContent = message;
+        node.classList.remove("hidden");
+        window.setTimeout(() => node.classList.add("hidden"), 1800);
       }
 
-      function renderProducts(data) {
-        $("productSummary").innerHTML = `<span class="status">${data.total_records || 0} records</span> <span class="status ${data.total_blocked_pages ? "bad" : ""}">${data.total_blocked_pages || 0} blocked</span>`;
-        const tbody = $("productTable").querySelector("tbody");
-        tbody.innerHTML = "";
-        latestRecords.forEach((record) => {
+      function modeLabel() {
+        return state.mode;
+      }
+
+      function useCaseLabel() {
+        return el("useCase").value;
+      }
+
+      function activePayload() {
+        return {
+          use_case: useCaseLabel(),
+          mode: modeLabel(),
+          url: el("targetUrl").value.trim(),
+          query: el("targetUrl").value.trim(),
+          output_dir: el("workdir").value.trim(),
+          browser_fallback: true,
+          ...state.options
+        };
+      }
+
+      function currentUseCaseContract() {
+        return useCaseContracts[useCaseLabel()] || useCaseContracts.products;
+      }
+
+      function updateUseCaseContract() {
+        const contract = currentUseCaseContract();
+        el("targetLabel").textContent = contract.label;
+        el("targetUrl").placeholder = contract.placeholder;
+        el("targetExample").textContent = contract.example;
+        el("useCaseHelp").textContent = contract.help;
+        el("expectedOutputs").textContent = contract.outputs;
+        renderMetrics();
+        updateDeveloperDetails();
+      }
+
+      function showRunWorkspace() {
+        state.screen = "run";
+        el("appShell").classList.remove("utility-mode");
+        el("utilityScreen").classList.add("hidden");
+        if (!state.runId) {
+          el("readyPanel").classList.remove("hidden");
+        }
+        qsa("[data-rail-section]").forEach((button) => button.classList.toggle("active", button.dataset.railSection === "run"));
+        qsa("[data-top-section]").forEach((button) => button.classList.toggle("active", button.dataset.topSection === "runs"));
+      }
+
+      function showUtilityScreen(screen) {
+        const meta = utilityScreens[screen] || utilityScreens.history;
+        state.screen = screen;
+        el("appShell").classList.add("utility-mode");
+        el("readyPanel").classList.add("hidden");
+        el("livePanel").classList.add("hidden");
+        el("resultsPanel").classList.add("hidden");
+        el("utilityScreen").classList.remove("hidden");
+        el("detailDrawer").classList.add("closed");
+        el("screenTitle").textContent = meta.title;
+        el("screenDescription").textContent = meta.description;
+        qsa("[data-rail-section]").forEach((button) => button.classList.toggle("active", button.dataset.railSection === screen));
+        qsa("[data-top-section]").forEach((button) => button.classList.toggle("active", button.dataset.topSection === screen || (screen === "projects" && button.dataset.topSection === "projects")));
+        renderUtilityScreen(screen);
+      }
+
+      function applyPreset(useCase, url) {
+        el("useCase").value = useCase;
+        el("targetUrl").value = url;
+        updateUseCaseContract();
+        showRunWorkspace();
+        toast("Preset applied");
+      }
+
+      function renderUtilityScreen(screen) {
+        const content = el("screenContent");
+        if (screen === "history") {
+          content.innerHTML = state.history.length
+            ? `<table><thead><tr><th>Run ID</th><th>Use Case</th><th>Status</th><th>Records</th><th>Action</th></tr></thead><tbody>${state.history.map((run) => `<tr><td>${escapeHtml(run.run_id)}</td><td>${escapeHtml(run.use_case)}</td><td>${escapeHtml(run.status)}</td><td>${(run.records || []).length}</td><td><button class="secondary" type="button" data-open-history="${escapeAttr(run.run_id)}">Reopen</button></td></tr>`).join("")}</tbody></table>`
+            : `<div class="warn-box">No app runs in this browser session yet. Start a run to populate history.</div>`;
+          return;
+        }
+        if (screen === "presets") {
+          content.innerHTML = `<div class="utility-grid">${presets.map(([name, useCase, url]) => `<div class="utility-card"><h3>${escapeHtml(name)}</h3><p class="subtle">${escapeHtml(url)}</p><button class="secondary" type="button" data-preset-use-case="${escapeAttr(useCase)}" data-preset-url="${escapeAttr(url)}">Use Preset</button></div>`).join("")}</div>`;
+          return;
+        }
+        if (screen === "targets") {
+          content.innerHTML = `<table><thead><tr><th>Company</th><th>Segment</th><th>Primary Use</th><th>Action</th></tr></thead><tbody>${targetCatalog.map(([name, segment, url, use]) => `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(segment)}</td><td>${escapeHtml(use)}</td><td><button class="secondary" type="button" data-target-url="${escapeAttr(url)}">Use Target</button></td></tr>`).join("")}</tbody></table>`;
+          return;
+        }
+        if (screen === "data" || screen === "projects") {
+          content.innerHTML = `<div class="toolbar"><button class="secondary" type="button" data-panel="recordsPanel">Records</button><button class="secondary" type="button" data-panel="sourcesPanel">Sources</button><button class="secondary" type="button" data-panel="artifactsPanel">Artifacts</button><button class="secondary" type="button" data-download-records>Download Records</button></div>${Object.keys(state.artifacts).length ? el("artifactsPanel").innerHTML : "<div class='warn-box'>No active run artifacts yet.</div>"}`;
+          return;
+        }
+        if (screen === "integrations") {
+          content.innerHTML = `<div class="utility-grid"><div class="utility-card"><h3>Algolia Preparation</h3><label class="label">App ID</label><input id="algoliaAppId" placeholder="Your Algolia app ID"><label class="label">API Key</label><input id="algoliaApiKey" type="password" placeholder="Session only"><label class="label">Index Name</label><input id="algoliaIndexName" placeholder="products_dev"><button class="secondary" type="button" data-preview-algolia>Preview Readiness</button></div><div class="utility-card"><h3>Preview</h3><div id="algoliaPreview">No preview yet.</div></div><div class="utility-card"><h3>Security</h3><p class="subtle">Credentials stay in this browser session and are not written to artifacts.</p></div></div>`;
+          return;
+        }
+        if (screen === "settings") {
+          content.innerHTML = `<div class="utility-grid"><div class="utility-card"><h3>Working Directory</h3><p>${escapeHtml(el("workdir").value)}</p></div><div class="utility-card"><h3>API Key</h3><p>Configured for local app requests.</p></div><div class="utility-card"><h3>Live Tests</h3><p>${escapeHtml(String(Boolean(window.SCOUT_LIVE_TESTS)))}</p></div></div>`;
+          return;
+        }
+        if (screen === "help") {
+          content.innerHTML = `<div class="utility-grid"><div class="utility-card"><h3>1. Configure</h3><p class="subtle">Choose a use case, target, mode, crawl settings, and working directory.</p></div><div class="utility-card"><h3>2. Execute</h3><p class="subtle">Start a run and watch the run ID, timeline, browser evidence, and logs.</p></div><div class="utility-card"><h3>3. Review</h3><p class="subtle">Inspect records, sources, blocked pages, artifacts, logs, and citations.</p></div></div>`;
+        }
+      }
+
+      function updateChecklist() {
+        const target = el("targetUrl").value.trim();
+        const workdir = el("workdir").value.trim();
+        const checks = {
+          useCase: true,
+          target: Boolean(target),
+          workdir: Boolean(workdir),
+          settings: true,
+          mode: Boolean(state.mode)
+        };
+        qsa("#checklist li").forEach((item) => {
+          const key = item.dataset.check;
+          item.classList.toggle("done", checks[key]);
+          item.textContent = `${checks[key] ? "✓" : "○"} ${item.textContent.replace(/^[✓○] /, "")}`;
+        });
+      }
+
+      function updateDeveloperDetails() {
+        const payload = activePayload();
+        const optionFlags = Object.entries(state.options).map(([key, value]) => {
+          if (key === "max_depth") return `  --max-depth ${value}`;
+          if (key === "respect_robots_txt") return `  --respect-robots-txt ${value}`;
+          if (key === "delay_seconds") return `  --delay ${value}`;
+          return "";
+        }).filter(Boolean).join(" \\\\\\n");
+        el("commandPreview").textContent = `scout run ${payload.use_case} \\\\\\n  --mode ${payload.mode} \\\\\\n  --url "${payload.url}" \\\\\\n  --output "${payload.output_dir}"${optionFlags ? " \\\\\\n" + optionFlags : ""}`;
+        el("httpPreview").textContent = `POST /app/runs\\nX-API-Key: dev-key\\nContent-Type: application/json\\n\\n${JSON.stringify(payload, null, 2)}`;
+        updateChecklist();
+      }
+
+      function optionValueText(key, value) {
+        if (key === "respect_robots_txt") return value ? "On" : "Off";
+        if (key === "delay_seconds") return `${value}s`;
+        return String(value);
+      }
+
+      function renderOptionChips() {
+        const wrap = el("crawlChips");
+        wrap.innerHTML = "";
+        Object.entries(state.options).forEach(([key, value]) => {
+          const chip = document.createElement("span");
+          chip.className = "chip";
+          chip.dataset.optionChip = key;
+          chip.innerHTML = `${optionLabels[key]}: ${optionValueText(key, value)} <button type="button" aria-label="Remove ${optionLabels[key]}" data-remove-option="${key}">×</button>`;
+          wrap.appendChild(chip);
+        });
+        updateDeveloperDetails();
+      }
+
+      function renderAddOptionMenu() {
+        const menu = el("addOptionMenu");
+        const missing = Object.keys(optionDefaults).filter((key) => !(key in state.options));
+        menu.innerHTML = "";
+        if (!missing.length) {
+          const message = document.createElement("div");
+          message.style.padding = "9px";
+          message.textContent = "All crawl settings are already active.";
+          menu.appendChild(message);
+          return;
+        }
+        missing.forEach((key) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.dataset.addOption = key;
+          button.textContent = `Restore ${optionLabels[key]}`;
+          menu.appendChild(button);
+        });
+      }
+
+      function setRunState(status) {
+        const badge = el("runStateBadge");
+        badge.textContent = status || "queued";
+        badge.className = `badge ${status || "queued"}`;
+      }
+
+      function renderBrowserEvidence(evidence) {
+        const url = evidence.url || el("targetUrl").value.trim() || "No URL loaded";
+        const title = evidence.title || "Scout browser evidence";
+        const note = evidence.note || "Waiting for captured browser evidence.";
+        el("browserEvidence").innerHTML = `
+          <div class="browser-bar"><span>●</span><div class="browser-url">${escapeHtml(url)}</div></div>
+          <div class="browser-shot">
+            <div class="site-preview">
+              <h2>${escapeHtml(title)}</h2>
+              <p>${escapeHtml(note)}</p>
+              <div class="product-preview-grid">
+                <div class="fake-product">Listing evidence</div>
+                <div class="fake-product">Rendered DOM / Markdown</div>
+              </div>
+              <p class="subtle" style="margin-top:14px;">Provider: ${escapeHtml(evidence.provider || state.mode)} · Viewport: ${escapeHtml(evidence.viewport || "not captured")}</p>
+            </div>
+          </div>`;
+      }
+
+      function renderTimeline(events) {
+        el("timeline").innerHTML = events.map((event) => `<li class="${escapeHtml(event.level || "info")}"><strong>${escapeHtml(event.stage)}</strong>${escapeHtml(event.message || "")}</li>`).join("");
+        el("eventLog").innerHTML = events.map((event) => `<div><strong>${escapeHtml(event.stage)}</strong><br>${escapeHtml(event.message || "")}<br><span class="subtle">${escapeHtml(event.timestamp || "")}</span></div>`).join("");
+      }
+
+      function renderMetrics() {
+        el("metricPages").textContent = state.sources.length;
+        el("metricRecords").textContent = state.records.length;
+        el("metricSources").textContent = state.sources.length;
+        el("metricBlocked").textContent = state.blocked.length;
+        el("metricWarnings").textContent = state.events.filter((event) => event.level === "warning").length;
+      }
+
+      function renderRecords() {
+        const tbody = qs("#recordsTable tbody");
+        if (!state.records.length) {
+          tbody.innerHTML = `<tr><td colspan="6">No records yet. Start a run or inspect blocked/fallback evidence.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = state.records.map((record, index) => {
           const source = record._source || record.source || {};
-          const row = document.createElement("tr");
-          row.innerHTML = `<td>${escapeHtml(record.name || "")}</td><td>${escapeHtml(record.brand || "")}</td><td>${record.price ?? ""}</td><td>${record.completeness_score ?? ""}</td><td>${escapeHtml(source.extractor || "")}</td>`;
-          tbody.appendChild(row);
-        });
-        $("productJson").textContent = JSON.stringify(latestRecords, null, 2);
+          const sourceType = record.source_type || (source.extractor === "listing_card" ? "Listing" : "Detail");
+          const price = record.price == null ? "" : `$${record.price}`;
+          return `<tr data-record-index="${index}">
+            <td>${index + 1}</td>
+            <td>${escapeHtml(record.name || "")}</td>
+            <td>${escapeHtml(record.brand || "")}</td>
+            <td>${escapeHtml(price)}</td>
+            <td>${escapeHtml(record.sku || "")}</td>
+            <td><span class="source-badge">${escapeHtml(sourceType)}</span></td>
+          </tr>`;
+        }).join("");
       }
 
-      function updatePreviews() {
-        const useCase = $("useCase").value;
-        const query = $("query").value;
-        const workdir = $("workdir").value;
-        $("commandPreview").textContent = `scout run ${useCase} --query "${query}" --mode ${selectedMode} --workdir ${workdir}`;
-        $("httpPreview").textContent = `POST /run/${useCase}\\n{\\n  "query": "${query}",\\n  "mode": "${selectedMode}",\\n  "output_dir": "${workdir}/${useCase}-<timestamp>"\\n}`;
+      function renderResultPanels() {
+        const listingCount = state.records.filter((record) => {
+          const source = record._source || record.source || {};
+          return record.source_type === "Listing" || source.extractor === "listing_card";
+        }).length;
+        el("overviewPanel").innerHTML = `
+          <div class="${state.records.length ? "ok-box" : "warn-box"}">${state.records.length ? `${listingCount || state.records.length} listing records found.` : "No records found yet."}</div>
+          <div id="blockedSummary" class="${state.blocked.length ? "warn-box" : "ok-box"}">${state.blocked.length ? `Detail pages blocked: ${state.blocked.length}. Blocked enrichment is reported separately from listing records.` : "No blocked pages reported."}</div>`;
+        el("browserPanel").innerHTML = el("browserEvidence").innerHTML;
+        el("sourcesPanel").innerHTML = state.sources.length
+          ? `<table><thead><tr><th>URL</th><th>Provider</th><th>Status</th><th>Confidence</th></tr></thead><tbody>${state.sources.map((source) => `<tr><td>${escapeHtml(source.source_url || source.url || "")}</td><td>${escapeHtml(source.provider || "")}</td><td>${escapeHtml(source.status || source.status_code || "")}</td><td>${escapeHtml(String(source.confidence ?? ""))}</td></tr>`).join("")}</tbody></table>`
+          : `<p class="subtle">No sources loaded.</p>`;
+        el("blockedPanel").innerHTML = state.blocked.length
+          ? `<table><thead><tr><th>URL</th><th>Reason</th><th>Fallback</th></tr></thead><tbody>${state.blocked.map((item) => `<tr><td>${escapeHtml(item.url || "")}</td><td>${escapeHtml(item.reason || "")}</td><td>${item.fallback_attempted ? "Attempted" : "Not attempted"}</td></tr>`).join("")}</tbody></table>`
+          : `<p class="subtle">No blocked pages.</p>`;
+        el("artifactsPanel").innerHTML = Object.keys(state.artifacts).length
+          ? `<table><thead><tr><th>Artifact</th><th>Path</th></tr></thead><tbody>${Object.entries(state.artifacts).map(([key, value]) => `<tr><td>${escapeHtml(key)}</td><td>${escapeHtml(String(value || ""))}</td></tr>`).join("")}</tbody></table>`
+          : `<p class="subtle">No artifacts loaded.</p>`;
+        el("logsPanel").innerHTML = el("eventLog").innerHTML;
+        renderRecords();
+        qsa("#resultTabs button").forEach((button) => button.classList.remove("active"));
+        qs('[data-panel="recordsPanel"]').classList.add("active");
+        qsa(".tab-panel").forEach((panel) => panel.classList.add("hidden"));
+        el("recordsPanel").classList.remove("hidden");
+      }
+
+      function renderRun(data) {
+        state.runId = data.run_id || state.runId;
+        state.records = data.records || [];
+        state.sources = data.sources || [];
+        state.blocked = data.blocked_pages || [];
+        state.events = data.events || [];
+        state.artifacts = data.artifacts || {};
+        state.browserEvidence = data.browser_evidence || {};
+        el("readyPanel").classList.add("hidden");
+        el("livePanel").classList.remove("hidden");
+        el("activeRunId").textContent = state.runId || "none";
+        setRunState(data.status || "queued");
+        renderTimeline(state.events);
+        renderBrowserEvidence(state.browserEvidence);
+        if (["complete", "failed", "cancelled"].includes(data.status)) {
+          el("startExecution").disabled = false;
+          el("startExecution").textContent = "▶ Start Execution";
+          el("resultsPanel").classList.remove("hidden");
+          el("completedAt").textContent = data.updated_at || "";
+          renderMetrics();
+          renderResultPanels();
+          const existing = state.history.findIndex((run) => run.run_id === data.run_id);
+          if (existing >= 0) state.history[existing] = data;
+          else state.history.unshift(data);
+          stopPolling();
+        }
+      }
+
+      function stopPolling() {
+        if (state.poller) {
+          window.clearInterval(state.poller);
+          state.poller = null;
+        }
+      }
+
+      async function fetchJson(url, options = {}) {
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": API_KEY,
+            ...(options.headers || {})
+          }
+        });
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`${response.status} ${text}`);
+        }
+        return await response.json();
+      }
+
+      async function startRun() {
+        const payload = activePayload();
+        if (!payload.url) {
+          toast("Enter a target URL before starting.");
+          return;
+        }
+        el("startExecution").disabled = true;
+        el("startExecution").textContent = "Running...";
+        el("runStatus").textContent = "Run created. Loading live execution...";
+        try {
+          const data = await fetchJson("/app/runs", { method: "POST", body: JSON.stringify(payload) });
+          renderRun(data);
+          stopPolling();
+          state.poller = window.setInterval(async () => {
+            try {
+              const next = await fetchJson(`/app/runs/${state.runId}`);
+              renderRun(next);
+            } catch (error) {
+              stopPolling();
+              toast(error.message);
+            }
+          }, 700);
+        } catch (error) {
+          el("startExecution").disabled = false;
+          el("startExecution").textContent = "▶ Start Execution";
+          el("runStatus").textContent = `Run failed to start: ${error.message}`;
+          toast("Run failed to start");
+        }
+      }
+
+      async function cancelRun() {
+        if (!state.runId) return;
+        const data = await fetchJson(`/app/runs/${state.runId}/cancel`, { method: "POST" });
+        renderRun(data);
+      }
+
+      async function openNativeDirectoryPicker() {
+        el("pickDir").disabled = true;
+        try {
+          const result = await fetchJson("/workdir/pick-native", {
+            method: "POST",
+            body: JSON.stringify({ current_path: el("workdir").value.trim() || "~" })
+          });
+          if (result.picked && result.path) {
+            el("workdir").value = result.path;
+            updateDeveloperDetails();
+            toast("Working directory selected");
+          } else if (result.cancelled) {
+            toast("Folder selection cancelled");
+          } else {
+            toast("Native folder picker unavailable. Edit the path directly.");
+          }
+        } catch (error) {
+          toast(`Folder picker failed: ${error.message}`);
+        } finally {
+          el("pickDir").disabled = false;
+        }
+      }
+
+      function clearRun() {
+        stopPolling();
+        state.runId = null;
+        state.records = [];
+        state.sources = [];
+        state.blocked = [];
+        state.events = [];
+        state.artifacts = {};
+        state.browserEvidence = {};
+        el("readyPanel").classList.remove("hidden");
+        el("livePanel").classList.add("hidden");
+        el("resultsPanel").classList.add("hidden");
+        el("detailDrawer").classList.add("closed");
+        el("startExecution").disabled = false;
+        el("startExecution").textContent = "▶ Start Execution";
+        el("runStatus").textContent = "Ready. The app will show run status immediately after Start Execution.";
+        renderMetrics();
+      }
+
+      function openRecordDrawer(index) {
+        const record = state.records[index];
+        if (!record) return;
+        const source = record._source || record.source || {};
+        el("detailDrawer").classList.remove("closed");
+        el("drawerContent").innerHTML = `
+          ${record.image ? `<img class="selected-image" src="${escapeAttr(record.image)}" alt="">` : ""}
+          <h3 style="margin-top:12px;">${escapeHtml(record.name || "Record")}</h3>
+          <div class="kv"><strong>Brand</strong><span>${escapeHtml(record.brand || "")}</span></div>
+          <div class="kv"><strong>Price</strong><span>${escapeHtml(record.price == null ? "" : `$${record.price}`)}</span></div>
+          <div class="kv"><strong>URL</strong><span>${escapeHtml(record.url || "")}</span></div>
+          <div class="kv"><strong>Evidence Source</strong><span>${escapeHtml(source.category_url || source.url || record.url || "")}</span></div>
+          <div class="kv"><strong>Citations</strong><span>${(record.citations || []).length}</span></div>
+          <div class="ok-box">Selecting a record keeps the evidence and citation context in the same workspace.</div>`;
       }
 
       function escapeHtml(value) {
-        return String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[ch]));
+        return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
       }
+      function escapeAttr(value) { return escapeHtml(value).replace(/"/g, "&quot;"); }
 
-      updatePreviews();
+      document.addEventListener("click", async (event) => {
+        const target = event.target;
+        const railButton = target.closest("[data-rail-section]");
+        if (railButton) {
+          const section = railButton.dataset.railSection;
+          if (section === "run") showRunWorkspace();
+          else showUtilityScreen(section);
+        }
+
+        const topButton = target.closest("[data-top-section]");
+        if (topButton && topButton.tagName !== "A") {
+          const section = topButton.dataset.topSection;
+          if (section === "runs") showRunWorkspace();
+          else showUtilityScreen(section);
+        }
+
+        const presetButton = target.closest("[data-preset-use-case]");
+        if (presetButton) {
+          applyPreset(presetButton.dataset.presetUseCase, presetButton.dataset.presetUrl);
+        }
+
+        const targetButton = target.closest("[data-target-url]");
+        if (targetButton) {
+          el("targetUrl").value = targetButton.dataset.targetUrl;
+          updateDeveloperDetails();
+          showRunWorkspace();
+          toast("Target applied");
+        }
+
+        const historyButton = target.closest("[data-open-history]");
+        if (historyButton) {
+          const run = state.history.find((item) => item.run_id === historyButton.dataset.openHistory);
+          if (run) {
+            showRunWorkspace();
+            renderRun(run);
+          }
+        }
+
+        const downloadButton = target.closest("[data-download-records]");
+        if (downloadButton) {
+          const blob = new Blob([JSON.stringify(state.records, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `${state.runId || "scout"}-records.json`;
+          link.click();
+          URL.revokeObjectURL(url);
+          toast("Records download prepared");
+        }
+
+        const algoliaButton = target.closest("[data-preview-algolia]");
+        if (algoliaButton) {
+          const missing = [];
+          if (!el("algoliaIndexName").value.trim()) missing.push("index name");
+          if (!state.records.length) missing.push("records");
+          el("algoliaPreview").textContent = missing.length
+            ? `Not ready: missing ${missing.join(", ")}.`
+            : `Ready: ${state.records.length} records can be prepared for ${el("algoliaIndexName").value.trim()}.`;
+        }
+
+        const modeButton = target.closest("[data-mode]");
+        if (modeButton) {
+          qsa("[data-mode]").forEach((button) => button.classList.remove("active"));
+          modeButton.classList.add("active");
+          state.mode = modeButton.dataset.mode;
+          el("modeHelp").textContent = `${modeButton.textContent} mode selected.`;
+          updateDeveloperDetails();
+        }
+
+        const removeOption = target.closest("[data-remove-option]");
+        if (removeOption) {
+          delete state.options[removeOption.dataset.removeOption];
+          renderOptionChips();
+        }
+
+        if (target.closest("#addOption")) {
+          renderAddOptionMenu();
+          el("addOptionMenu").classList.toggle("hidden");
+        }
+
+        const addOption = target.closest("[data-add-option]");
+        if (addOption) {
+          state.options[addOption.dataset.addOption] = optionDefaults[addOption.dataset.addOption];
+          el("addOptionMenu").classList.add("hidden");
+          renderOptionChips();
+        }
+
+        const copyButton = target.closest("[data-copy-target]");
+        if (copyButton) {
+          const source = el(copyButton.dataset.copyTarget);
+          await navigator.clipboard.writeText(source.textContent);
+          toast("Copied");
+        }
+
+        const tab = target.closest("[data-panel]");
+        if (tab) {
+          if (state.screen !== "run") showRunWorkspace();
+          if (state.runId || state.records.length || state.sources.length || state.blocked.length) {
+            el("readyPanel").classList.add("hidden");
+            el("resultsPanel").classList.remove("hidden");
+          }
+          qsa("#resultTabs button").forEach((button) => button.classList.remove("active"));
+          tab.classList.add("active");
+          qsa(".tab-panel").forEach((panel) => panel.classList.add("hidden"));
+          el(tab.dataset.panel).classList.remove("hidden");
+        }
+
+        const row = target.closest("[data-record-index]");
+        if (row) openRecordDrawer(Number(row.dataset.recordIndex));
+      });
+
+      el("targetUrl").addEventListener("input", updateDeveloperDetails);
+      el("workdir").addEventListener("input", updateDeveloperDetails);
+      el("useCase").addEventListener("change", updateUseCaseContract);
+      el("clearStartUrl").addEventListener("click", () => { el("targetUrl").value = ""; updateDeveloperDetails(); });
+      el("pickDir").addEventListener("click", openNativeDirectoryPicker);
+      el("startExecution").addEventListener("click", startRun);
+      el("cancelRun").addEventListener("click", cancelRun);
+      el("clearRun").addEventListener("click", clearRun);
+      qsa("[data-clear-action]").forEach((button) => button.addEventListener("click", clearRun));
+      el("closeDrawer").addEventListener("click", () => el("detailDrawer").classList.add("closed"));
+
+      renderOptionChips();
+      updateUseCaseContract();
+      renderBrowserEvidence({});
+      renderRecords();
+      renderMetrics();
     </script>
   </body>
 </html>"""
