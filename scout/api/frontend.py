@@ -453,7 +453,7 @@ def scout_app_html() -> str:
 
           <label class="label" for="workdir">Working Directory</label>
           <div class="input-row">
-            <input id="workdir" value="/tmp/scout-runs/app" />
+            <input id="workdir" value="/Users/arijitchowdhury/AI-Development/Scout/tests" />
             <button id="pickDir" class="secondary" type="button">Browse</button>
           </div>
           <p class="subtle">All outputs, logs, and artifacts will be saved here.</p>

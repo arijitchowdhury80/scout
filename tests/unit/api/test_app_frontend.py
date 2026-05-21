@@ -35,6 +35,7 @@ def test_app_serves_self_educating_frontend() -> None:
     assert 'id="clearRun"' in resp.text
     assert 'id="runStatus"' in resp.text
     assert 'id="workdir"' in resp.text
+    assert "/Users/arijitchowdhury/AI-Development/Scout/tests" in resp.text
     assert 'id="pickDir"' in resp.text
     assert 'id="workdirPicker"' not in resp.text
     assert 'id="workdirCandidate"' not in resp.text
