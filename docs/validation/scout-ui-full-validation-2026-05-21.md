@@ -105,6 +105,35 @@ not committed as a permanent artifact because it is runtime evidence.
   for every use case. The workflow spec pages and approved base mockup now define
   the contract for the next UI build pass.
 
+## Browser Workbench Recovery Addendum
+
+Added after the app recovery pass on 2026-05-21:
+
+- Backend `scout-browser` mode now launches a Playwright-controlled browser and captures screenshot, DOM, rendered text, links, console errors, and network failures.
+- The Browser Workbench now occupies the primary live-execution workspace instead of a small placeholder card.
+- Active runs survive navigation through the global Active Run banner and `Return to Run` action.
+- Rail labels are widened and verified not to clip.
+- User Browser mode is represented as a future Chrome CDP / browser-extension bridge and does not pretend to access the user's browser session yet.
+
+Fresh verification performed for this addendum:
+
+| Check | Result |
+|---|---|
+| `python3 -m pytest tests/e2e/test_app_ui_exhaustive.py -q` | 14 passed |
+| `python3 -m pytest tests/unit/api/test_app_runs.py tests/unit/api/test_app_frontend.py -q` | 12 passed |
+| `SCOUT_LIVE_TESTS=1 python3 -m pytest tests/live/test_app_live_targets.py -q` | 39 passed |
+| `python3 -m pytest tests/ -q` | 216 passed, 41 skipped |
+| `python3 -m pyright scout/api/routers/app_runs.py` | 0 errors |
+| `ruff check scout/api/routers/app_runs.py scout/api/frontend.py tests/unit/api/test_app_runs.py tests/unit/api/test_app_frontend.py tests/e2e/test_app_ui_exhaustive.py` | passed |
+| Estée Lauder `scout-browser` smoke via `/app/runs` | failed with explicit blocked evidence, screenshot, DOM/text/link artifacts |
+
+Estée Lauder hard-site evidence from the smoke run:
+
+- Status: `failed`
+- Reason: `scout_browser_access_denied`
+- Browser evidence: screenshot captured
+- Artifacts written: `manifest.json`, `records.json`, `source_pages.json`, `blocked_pages.json`, `extraction_report.md`, `browser/screenshot.png`, `browser/dom.html`, `browser/text.txt`, `browser/links.json`
+
 ## Screenshots And Visual Evidence
 
 - `docs/design/scout-app-first-ux-approved-mockup-2026-05-21.png`

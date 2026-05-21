@@ -84,7 +84,7 @@ def test_app_first_home_contains_three_state_workspace() -> None:
         "Run Setup",
         "Live Execution",
         "Progress Timeline",
-        "Browser Evidence",
+        "Browser Workbench",
         "Results Review",
         "Overview",
         "Records",

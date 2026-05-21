@@ -156,7 +156,7 @@ def test_estee_lauder_hard_site_modes_from_ui(page: Page, tmp_path: Path) -> Non
             url="https://www.esteelauder.com/products/681/product-catalog/skin-care",
             output_dir=tmp_path / "estee-lauder-hard-site" / mode,
         )
-        for mode in ["auto", "crawl4ai", "browser"]
+        for mode in ["auto", "crawl4ai", "scout-browser"]
     ]
 
     for result in results:

@@ -149,7 +149,15 @@ def test_start_execution_shows_active_run_immediately_and_clear_resets(page: Pag
                     "sources": [],
                     "blocked_pages": [],
                     "artifacts": {},
-                    "browser_evidence": {},
+                    "browser_evidence": {
+                        "url": "https://www.esteelauder.com/products/681/product-catalog/skin-care",
+                        "title": "Skincare",
+                        "session_type": "Scout browser session",
+                        "provider": "scout-browser",
+                        "status": "captured",
+                        "screenshot_data_url": "data:image/png;base64,ZmFrZS1wbmc=",
+                        "text_preview": "Advanced Night Repair Serum listing evidence",
+                    },
                 }
             ),
         ),
@@ -207,6 +215,11 @@ def test_start_execution_shows_active_run_immediately_and_clear_resets(page: Pag
                     "browser_evidence": {
                         "url": "https://www.esteelauder.com/products/681/product-catalog/skin-care",
                         "title": "Skincare",
+                        "session_type": "Scout browser session",
+                        "provider": "scout-browser",
+                        "status": "captured",
+                        "screenshot_data_url": "data:image/png;base64,ZmFrZS1wbmc=",
+                        "text_preview": "Advanced Night Repair Serum listing evidence",
                         "note": "Your browser session can view this page; Scout crawler details may differ.",
                     },
                 }
@@ -222,6 +235,8 @@ def test_start_execution_shows_active_run_immediately_and_clear_resets(page: Pag
     expect(page.locator("#livePanel")).to_be_visible()
     expect(page.locator("#activeRunId")).to_contain_text("app_run_test123")
     expect(page.locator("#timeline")).to_contain_text("Discovering URLs")
+    expect(page.locator("#browserEvidence")).to_contain_text("Scout browser session")
+    expect(page.locator("#browserEvidence img")).to_be_visible()
     expect(page.locator("#resultsPanel")).to_be_visible(timeout=10000)
     expect(page.locator("#recordsTable")).to_contain_text("Advanced Night Repair Serum")
     expect(page.locator("#blockedSummary")).to_contain_text("Detail pages blocked")
@@ -235,6 +250,101 @@ def test_start_execution_shows_active_run_immediately_and_clear_resets(page: Pag
     expect(page.locator("#readyPanel")).to_be_visible()
     expect(page.locator("#livePanel")).to_be_hidden()
     expect(page.locator("#resultsPanel")).to_be_hidden()
+
+
+def test_active_run_survives_navigation_and_return_to_run(page: Page) -> None:
+    page.route(
+        "**/app/runs",
+        lambda route: route.fulfill(
+            status=200,
+            content_type="application/json",
+            body=json.dumps(
+                {
+                    "run_id": "app_run_nav",
+                    "status": "running",
+                    "use_case": "products",
+                    "mode": "scout-browser",
+                    "target_url": "https://www.nike.com/w/mens-shirts",
+                    "events": [{"stage": "queued", "message": "Run created", "level": "info"}],
+                    "records": [],
+                    "sources": [],
+                    "blocked_pages": [],
+                    "artifacts": {},
+                    "browser_evidence": {
+                        "url": "https://www.nike.com/w/mens-shirts",
+                        "title": "Nike products",
+                        "session_type": "Scout browser session",
+                        "status": "captured",
+                        "screenshot_data_url": "data:image/png;base64,ZmFrZS1wbmc=",
+                    },
+                }
+            ),
+        ),
+    )
+    page.route(
+        "**/app/runs/app_run_nav",
+        lambda route: route.fulfill(
+            status=200,
+            content_type="application/json",
+            body=json.dumps(
+                {
+                    "run_id": "app_run_nav",
+                    "status": "running",
+                    "use_case": "products",
+                    "mode": "scout-browser",
+                    "target_url": "https://www.nike.com/w/mens-shirts",
+                    "events": [
+                        {"stage": "queued", "message": "Run created", "level": "info"},
+                        {
+                            "stage": "capturing",
+                            "message": "Browser screenshot captured",
+                            "level": "success",
+                        },
+                    ],
+                    "records": [],
+                    "sources": [],
+                    "blocked_pages": [],
+                    "artifacts": {},
+                    "browser_evidence": {
+                        "url": "https://www.nike.com/w/mens-shirts",
+                        "title": "Nike products",
+                        "session_type": "Scout browser session",
+                        "status": "captured",
+                        "screenshot_data_url": "data:image/png;base64,ZmFrZS1wbmc=",
+                    },
+                }
+            ),
+        ),
+    )
+
+    page.locator("#targetUrl").fill("https://www.nike.com/w/mens-shirts")
+    page.locator("[data-mode='scout-browser']").click()
+    page.locator("#startExecution").click()
+    expect(page.locator("#livePanel")).to_be_visible()
+
+    page.locator("[data-rail-section='history']").click()
+
+    expect(page.locator("#utilityScreen")).to_be_visible()
+    expect(page.locator("#activeRunBanner")).to_be_visible()
+    expect(page.locator("#activeRunBanner")).to_contain_text("app_run_nav")
+
+    page.locator("#returnToActiveRun").click()
+
+    expect(page.locator("#livePanel")).to_be_visible()
+    expect(page.locator("#activeRunId")).to_contain_text("app_run_nav")
+    expect(page.locator("#browserEvidence")).to_contain_text("Nike products")
+
+
+def test_left_rail_labels_are_not_clipped(page: Page) -> None:
+    clipped = page.evaluate(
+        """() => [...document.querySelectorAll('.rail button')]
+          .map((button) => ({
+            label: button.innerText,
+            clipped: button.scrollWidth > button.clientWidth
+          }))
+          .filter((item) => item.clipped)"""
+    )
+    assert clipped == []
 
 
 def test_start_execution_without_target_shows_inline_validation(page: Page) -> None:

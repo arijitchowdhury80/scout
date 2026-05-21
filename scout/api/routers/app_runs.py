@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import secrets
 from datetime import UTC, datetime
@@ -188,7 +189,7 @@ def _write_app_artifacts(run: AppRunState) -> dict[str, str]:
         ),
         encoding="utf-8",
     )
-    return {
+    artifacts = {
         "manifest": str(manifest_path),
         "records_json": str(records_path),
         "source_pages_json": str(sources_path),
@@ -196,6 +197,116 @@ def _write_app_artifacts(run: AppRunState) -> dict[str, str]:
         "report_md": str(report_path),
         "output_dir": str(output_dir),
     }
+    for evidence_key, artifact_key in (
+        ("screenshot_path", "browser_screenshot"),
+        ("dom_path", "browser_dom"),
+        ("text_path", "browser_text"),
+        ("links_path", "browser_links"),
+    ):
+        value = run.browser_evidence.get(evidence_key)
+        if value:
+            artifacts[artifact_key] = str(value)
+    return artifacts
+
+
+async def _capture_scout_browser_evidence(
+    *, run_id: str, url: str, output_dir: str
+) -> dict[str, Any]:
+    browser_dir = Path(output_dir) / "browser"
+    browser_dir.mkdir(parents=True, exist_ok=True)
+    screenshot_path = browser_dir / "screenshot.png"
+    dom_path = browser_dir / "dom.html"
+    text_path = browser_dir / "text.txt"
+    links_path = browser_dir / "links.json"
+    console_errors: list[str] = []
+    network_failures: list[str] = []
+    try:
+        from playwright.async_api import async_playwright
+    except ImportError as exc:  # pragma: no cover - dependency boundary
+        return {
+            "url": url,
+            "title": "Scout browser unavailable",
+            "provider": "scout-browser",
+            "session_type": "Scout browser session",
+            "status": "unavailable",
+            "note": f"Playwright is not available in this environment: {exc}",
+            "captured_at": _now(),
+        }
+
+    try:
+        async with async_playwright() as playwright:
+            browser = await playwright.chromium.launch(headless=True)
+            context = await browser.new_context(
+                viewport={"width": 1440, "height": 900},
+                user_agent=(
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/125.0.0.0 Safari/537.36"
+                ),
+            )
+            page = await context.new_page()
+            page.on(
+                "console",
+                lambda msg: console_errors.append(msg.text) if msg.type == "error" else None,
+            )
+            page.on("requestfailed", lambda request: network_failures.append(request.url))
+            _append(run_id, "browser", "Scout Browser opening target page")
+            response = await page.goto(url, wait_until="domcontentloaded", timeout=45_000)
+            try:
+                await page.wait_for_load_state("networkidle", timeout=8_000)
+            except Exception:
+                _append(run_id, "browser", "Network did not become idle; capturing current page")
+            await page.screenshot(path=str(screenshot_path), full_page=True)
+            title = await page.title()
+            html = await page.content()
+            text = await page.locator("body").inner_text(timeout=5_000)
+            current_url = page.url
+            links = await page.eval_on_selector_all(
+                "a[href]",
+                """anchors => anchors.slice(0, 200).map((a) => ({
+                    text: (a.innerText || '').trim().slice(0, 180),
+                    href: a.href
+                }))""",
+            )
+            dom_path.write_text(html, encoding="utf-8")
+            text_path.write_text(text, encoding="utf-8")
+            links_path.write_text(json.dumps(links, indent=2), encoding="utf-8")
+            await context.close()
+            await browser.close()
+            encoded = base64.b64encode(screenshot_path.read_bytes()).decode("ascii")
+            return {
+                "url": current_url,
+                "title": title or "Scout browser capture",
+                "provider": "scout-browser",
+                "session_type": "Scout browser session",
+                "status": "captured",
+                "status_code": response.status if response else None,
+                "screenshot_path": str(screenshot_path),
+                "screenshot_data_url": f"data:image/png;base64,{encoded}",
+                "dom_path": str(dom_path),
+                "text_path": str(text_path),
+                "links_path": str(links_path),
+                "text_preview": text[:4000],
+                "links": links[:25],
+                "console_errors": console_errors[:25],
+                "network_failures": network_failures[:25],
+                "viewport": "1440x900",
+                "captured_at": _now(),
+                "note": "Scout Browser captured a rendered page snapshot for extraction review.",
+            }
+    except Exception as exc:
+        return {
+            "url": url,
+            "title": "Scout browser capture failed",
+            "provider": "scout-browser",
+            "session_type": "Scout browser session",
+            "status": "failed",
+            "error": str(exc),
+            "console_errors": console_errors[:25],
+            "network_failures": network_failures[:25],
+            "captured_at": _now(),
+            "note": "Scout Browser could not capture this page. The run preserves the failure as evidence.",
+        }
 
 
 def _sources_from_product(resp: ProductCrawlResponse) -> list[dict[str, Any]]:
@@ -289,41 +400,131 @@ async def _execute_products(run_id: str, req: AppRunRequest, crawler: ScoutCrawl
         browser_fallback=req.browser_fallback,
     )
     _append(run_id, "rendering", "Rendering pages and collecting source evidence")
-    if req.mode == "browser":
+    if req.mode in {"scout-browser", "browser"}:
+        run.browser_evidence = await _capture_scout_browser_evidence(
+            run_id=run_id, url=req.url, output_dir=req.output_dir
+        )
+        captured = run.browser_evidence.get("status") == "captured"
+        status_code = run.browser_evidence.get("status_code")
+        text_preview = str(run.browser_evidence.get("text_preview", "")).lower()
+        blocked_capture = bool(
+            (isinstance(status_code, int) and status_code >= 400)
+            or "access denied" in text_preview
+            or "permission to access" in text_preview
+            or "blocked" in text_preview
+        )
+        run.sources = [
+            {
+                "source_url": run.browser_evidence.get("url") or req.url,
+                "provider": "scout-browser",
+                "status_code": status_code,
+                "status": "blocked"
+                if blocked_capture
+                else run.browser_evidence.get("status") or "captured",
+                "confidence": 0.2 if blocked_capture else 0.7 if captured else 0.2,
+                "captured_at": run.browser_evidence.get("captured_at") or _now(),
+                "type": "browser_snapshot",
+                "session_type": "Scout browser session",
+            }
+        ]
+        if blocked_capture:
+            run.blocked_pages = [
+                {
+                    "url": req.url,
+                    "reason": "scout_browser_access_denied",
+                    "category_url": req.url,
+                    "category_name": req.query or req.url,
+                    "title": run.browser_evidence.get("title", "Access denied"),
+                    "fallback_attempted": True,
+                    "fallback_used": True,
+                    "fallback_error": "Scout Browser captured a rendered blocked/access-denied page.",
+                }
+            ]
+            run.status = "failed"
+            _append(
+                run_id,
+                "blocked",
+                "Scout Browser captured a blocked/access-denied page and saved the evidence",
+                "warning",
+            )
+        elif not captured:
+            run.blocked_pages = [
+                {
+                    "url": req.url,
+                    "reason": "scout_browser_capture_failed",
+                    "category_url": req.url,
+                    "category_name": req.query or req.url,
+                    "title": run.browser_evidence.get("title", "Scout Browser capture failed"),
+                    "fallback_attempted": True,
+                    "fallback_used": False,
+                    "fallback_error": run.browser_evidence.get("error")
+                    or run.browser_evidence.get("note"),
+                }
+            ]
+            run.status = "failed"
+            _append(run_id, "blocked", "Scout Browser could not capture the page", "warning")
+        else:
+            _append(
+                run_id,
+                "browser",
+                "Scout Browser captured screenshot, DOM, text, and links",
+                "success",
+            )
+            run.warnings.append(
+                "Scout Browser capture completed. Product record extraction from browser DOM is the next parser pass."
+            )
+            run.status = "complete"
+        run.artifacts = _write_app_artifacts(run)
+        _append(run_id, "artifacts", "Browser evidence artifacts written")
+        _append(
+            run_id,
+            run.status,
+            "Scout Browser captured blocked evidence"
+            if blocked_capture
+            else "Scout Browser evidence captured"
+            if captured
+            else "Scout Browser capture failed",
+            "warning" if blocked_capture else "success" if captured else "error",
+        )
+        run.updated_at = _now()
+        return
+    if req.mode == "user-browser":
         run.blocked_pages = [
             {
                 "url": req.url,
-                "reason": "browser_mode_not_available",
+                "reason": "user_browser_bridge_not_connected",
                 "category_url": req.url,
                 "category_name": req.query or req.url,
-                "title": "Browser fallback evidence unavailable",
+                "title": "User browser bridge not connected",
                 "fallback_attempted": True,
                 "fallback_used": False,
                 "fallback_error": (
-                    "Explicit browser mode is recorded as blocked evidence until "
-                    "Scout has a real embedded/session browser capture channel."
+                    "User Browser mode needs a Chrome CDP or extension bridge. "
+                    "Scout preserved this as an explicit setup requirement instead "
+                    "of pretending it can access your browser session."
                 ),
             }
         ]
         run.sources = [
             {
                 "source_url": req.url,
-                "provider": "browser",
+                "provider": "user-browser",
                 "status_code": None,
                 "status": "blocked",
                 "confidence": 0,
                 "captured_at": _now(),
                 "type": "blocked",
-                "reason": "browser_mode_not_available",
+                "reason": "user_browser_bridge_not_connected",
             }
         ]
         run.browser_evidence = {
             "url": req.url,
-            "title": "Browser fallback not captured",
-            "provider": "browser",
+            "title": "User browser bridge not connected",
+            "provider": "user-browser",
+            "session_type": "User browser session",
             "note": (
-                "Scout did not launch an unmanaged browser here. It preserved a "
-                "browser-mode blocked/fallback record instead of leaving the UI running."
+                "This mode is for pages visible in your own browser session. It requires a "
+                "Chrome remote-debugging or extension bridge before Scout can capture it."
             ),
         }
         run.status = "failed"
@@ -331,10 +532,10 @@ async def _execute_products(run_id: str, req: AppRunRequest, crawler: ScoutCrawl
         _append(
             run_id,
             "blocked",
-            "Browser mode recorded blocked/fallback evidence without launching a browser",
+            "User Browser mode requires a connected bridge",
             "warning",
         )
-        _append(run_id, "failed", "Browser-mode evidence capture is not available yet", "error")
+        _append(run_id, "failed", "User browser bridge is not connected", "error")
         return
     try:
         resp = await asyncio.wait_for(crawler.products(product_req), timeout=120)

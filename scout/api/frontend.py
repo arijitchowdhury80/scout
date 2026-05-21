@@ -85,13 +85,19 @@ def scout_app_html() -> str:
 
       .app-shell {
         display: grid;
-        grid-template-columns: 62px minmax(420px, 1.05fr) minmax(520px, 1.35fr) minmax(0, 360px);
+        grid-template-columns: 96px minmax(360px, 460px) minmax(0, 1fr) minmax(0, 360px);
         min-height: calc(100vh - 56px);
       }
       .app-shell.utility-mode {
-        grid-template-columns: 62px minmax(0, 1fr) minmax(0, 360px);
+        grid-template-columns: 96px minmax(0, 1fr) minmax(0, 360px);
       }
       .app-shell.utility-mode .setup-pane {
+        display: none;
+      }
+      .app-shell.running-mode {
+        grid-template-columns: 96px minmax(320px, 390px) minmax(0, 1fr);
+      }
+      .app-shell.running-mode .drawer {
         display: none;
       }
       .rail {
@@ -100,7 +106,7 @@ def scout_app_html() -> str:
         padding: 14px 8px;
       }
       .rail button {
-        width: 46px;
+        width: 78px;
         min-height: 48px;
         border: 0;
         border-radius: 8px;
@@ -109,6 +115,8 @@ def scout_app_html() -> str:
         font-size: 10px;
         font-weight: 750;
         margin-bottom: 7px;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .rail button.active { background: var(--teal-soft); color: var(--teal-dark); }
       .rail button:disabled {
@@ -173,6 +181,7 @@ def scout_app_html() -> str:
       }
       .input-row { display: flex; gap: 8px; align-items: center; }
       .mode-tabs, .tabs { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; background: #f8fbff; }
+      .mode-tabs { align-items: stretch; flex-wrap: wrap; overflow: visible; }
       .mode-tabs button, .tabs button {
         border: 0;
         border-right: 1px solid var(--line);
@@ -182,7 +191,9 @@ def scout_app_html() -> str:
         color: #334158;
         font-size: 12px;
         font-weight: 750;
+        white-space: nowrap;
       }
+      .mode-tabs button { flex: 1 1 92px; border-bottom: 1px solid var(--line); }
       .mode-tabs button:last-child, .tabs button:last-child { border-right: 0; }
       .mode-tabs button.active, .tabs button.active { background: var(--teal); color: #fff; }
 
@@ -284,7 +295,32 @@ def scout_app_html() -> str:
         font-size: 36px;
       }
 
-      .live-grid { display: grid; grid-template-columns: 260px 1fr 250px; gap: 14px; }
+      .active-run-banner {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        border: 1px solid #b8e4c7;
+        background: var(--green-soft);
+        color: #0c5e40;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .active-run-banner.visible { display: flex; }
+      .live-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 14px;
+        align-items: stretch;
+      }
+      .live-side {
+        display: grid;
+        gap: 14px;
+        align-content: start;
+      }
       .timeline { list-style: none; padding: 0; margin: 0; }
       .timeline li {
         position: relative;
@@ -308,7 +344,7 @@ def scout_app_html() -> str:
       .timeline li.warning:before { background: var(--amber); }
       .timeline strong { display: block; text-transform: capitalize; }
       .browser-frame {
-        min-height: 360px;
+        min-height: calc(100vh - 235px);
         border: 1px solid var(--line);
         border-radius: 8px;
         overflow: hidden;
@@ -316,15 +352,41 @@ def scout_app_html() -> str:
       }
       .browser-bar { display: flex; gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid var(--soft-line); }
       .browser-url { flex: 1; border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; color: #40506a; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .workbench-toolbar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 8px;
+        border-bottom: 1px solid var(--soft-line);
+        background: #f8fbff;
+      }
+      .workbench-toolbar button {
+        min-height: 30px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        color: #40506a;
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .workbench-toolbar button:disabled { opacity: 0.55; cursor: not-allowed; }
       .browser-shot {
-        min-height: 300px;
+        min-height: calc(100vh - 330px);
         padding: 28px;
         background: linear-gradient(180deg, #ffffff, #f4f8fc);
+      }
+      .browser-shot img {
+        width: 100%;
+        max-height: calc(100vh - 360px);
+        object-fit: contain;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
       }
       .site-preview { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 18px; }
       .product-preview-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 18px; }
       .fake-product { min-height: 138px; border: 1px solid var(--soft-line); background: #f2f5f8; display: grid; place-items: center; color: #7b8799; }
-      .event-log { max-height: 420px; overflow: auto; }
+      .event-log { max-height: 320px; overflow: auto; }
       .event-log div { border: 1px solid var(--soft-line); border-radius: 7px; padding: 9px; margin-bottom: 8px; font-size: 12px; }
 
       .metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 14px 0; }
@@ -434,10 +496,11 @@ def scout_app_html() -> str:
           <label class="label">Execution Mode</label>
           <div class="mode-tabs" id="modeTabs">
             <button type="button" class="active" data-mode="auto">Auto</button>
-            <button type="button" data-mode="crawl4ai">Crawl4AI</button>
+            <button type="button" data-mode="crawl4ai">Crawler</button>
             <button type="button" data-mode="webfetch">WebFetch</button>
             <button type="button" data-mode="websearch">WebSearch</button>
-            <button type="button" data-mode="browser">Browser</button>
+            <button type="button" data-mode="scout-browser">Scout Browser</button>
+            <button type="button" data-mode="user-browser">User Browser</button>
             <button type="button" data-mode="saved">Saved</button>
             <button type="button" data-mode="api">API</button>
           </div>
@@ -483,6 +546,10 @@ def scout_app_html() -> str:
       </section>
 
       <main class="workspace">
+        <div id="activeRunBanner" class="active-run-banner">
+          <span id="activeRunBannerText">Active run</span>
+          <button id="returnToActiveRun" class="secondary" type="button">Return to Run</button>
+        </div>
         <section id="readyPanel" class="card card-pad ready-box">
           <div>
             <div class="compass">⌖</div>
@@ -506,16 +573,18 @@ def scout_app_html() -> str:
             </div>
             <div class="live-grid">
               <div>
-                <h3>Progress Timeline</h3>
-                <ul id="timeline" class="timeline"></ul>
-              </div>
-              <div>
-                <h3>Browser Evidence (Live)</h3>
+                <h3>Browser Workbench</h3>
                 <div id="browserEvidence" class="browser-frame"></div>
               </div>
-              <div>
-                <h3>Live Event Log</h3>
-                <div id="eventLog" class="event-log"></div>
+              <div class="live-side">
+                <div>
+                  <h3>Progress Timeline</h3>
+                  <ul id="timeline" class="timeline"></ul>
+                </div>
+                <div>
+                  <h3>Live Event Log</h3>
+                  <div id="eventLog" class="event-log"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -718,6 +787,12 @@ def scout_app_html() -> str:
         return state.mode;
       }
 
+      function modeSessionLabel(mode = state.mode) {
+        if (mode === "scout-browser" || mode === "browser") return "Scout browser session";
+        if (mode === "user-browser") return "User browser session";
+        return "Crawler session";
+      }
+
       function useCaseLabel() {
         return el("useCase").value;
       }
@@ -753,8 +828,13 @@ def scout_app_html() -> str:
         state.screen = "run";
         el("appShell").classList.remove("utility-mode");
         el("utilityScreen").classList.add("hidden");
-        if (!state.runId) {
+        if (state.runId) {
+          el("readyPanel").classList.add("hidden");
+          el("livePanel").classList.remove("hidden");
+          el("activeRunBanner").classList.add("visible");
+        } else {
           el("readyPanel").classList.remove("hidden");
+          el("activeRunBanner").classList.remove("visible");
         }
         qsa("[data-rail-section]").forEach((button) => button.classList.toggle("active", button.dataset.railSection === "run"));
         qsa("[data-top-section]").forEach((button) => button.classList.toggle("active", button.dataset.topSection === "runs"));
@@ -764,6 +844,7 @@ def scout_app_html() -> str:
         const meta = utilityScreens[screen] || utilityScreens.history;
         state.screen = screen;
         el("appShell").classList.add("utility-mode");
+        if (state.runId) el("activeRunBanner").classList.add("visible");
         el("readyPanel").classList.add("hidden");
         el("livePanel").classList.add("hidden");
         el("resultsPanel").classList.add("hidden");
@@ -895,19 +976,34 @@ def scout_app_html() -> str:
       function renderBrowserEvidence(evidence) {
         const url = evidence.url || el("targetUrl").value.trim() || "No URL loaded";
         const title = evidence.title || "Scout browser evidence";
+        const session = evidence.session_type || modeSessionLabel(evidence.provider || state.mode);
+        const status = evidence.status || "waiting";
         const note = evidence.note || "Waiting for captured browser evidence.";
+        const screenshot = evidence.screenshot_data_url
+          ? `<img src="${escapeAttr(evidence.screenshot_data_url)}" alt="Captured browser evidence for ${escapeAttr(title)}">`
+          : `<div class="site-preview"><h2>${escapeHtml(title)}</h2><p>${escapeHtml(note)}</p><div class="product-preview-grid"><div class="fake-product">Screenshot pending</div><div class="fake-product">DOM / Markdown pending</div></div></div>`;
+        const textPreview = evidence.text_preview
+          ? `<div class="ok-box"><strong>Extracted text preview</strong><br>${escapeHtml(String(evidence.text_preview).slice(0, 700))}</div>`
+          : "";
+        const failures = (evidence.network_failures || []).length
+          ? `<div class="warn-box">Network failures captured: ${escapeHtml(String((evidence.network_failures || []).length))}</div>`
+          : "";
         el("browserEvidence").innerHTML = `
           <div class="browser-bar"><span>●</span><div class="browser-url">${escapeHtml(url)}</div></div>
+          <div class="workbench-toolbar">
+            <button type="button" disabled title="Interactive browser navigation is the next workbench slice. Current mode captures rendered snapshots.">Back</button>
+            <button type="button" disabled title="Interactive browser navigation is the next workbench slice. Current mode captures rendered snapshots.">Forward</button>
+            <button type="button" disabled title="Use Start Execution to refresh the current capture in this slice.">Refresh</button>
+            <button type="button" disabled title="Capture is automatic when a Scout Browser run starts.">Capture</button>
+            <button type="button" disabled title="DOM-to-product extraction from browser evidence is the next parser slice.">Extract</button>
+            <button type="button" disabled title="Evidence is saved automatically to the selected working directory.">Save Evidence</button>
+          </div>
           <div class="browser-shot">
-            <div class="site-preview">
-              <h2>${escapeHtml(title)}</h2>
-              <p>${escapeHtml(note)}</p>
-              <div class="product-preview-grid">
-                <div class="fake-product">Listing evidence</div>
-                <div class="fake-product">Rendered DOM / Markdown</div>
-              </div>
-              <p class="subtle" style="margin-top:14px;">Provider: ${escapeHtml(evidence.provider || state.mode)} · Viewport: ${escapeHtml(evidence.viewport || "not captured")}</p>
-            </div>
+            <h2>${escapeHtml(title)}</h2>
+            <p class="subtle">${escapeHtml(session)} · ${escapeHtml(status)} · Provider: ${escapeHtml(evidence.provider || state.mode)} · Viewport: ${escapeHtml(evidence.viewport || "not captured")}</p>
+            ${screenshot}
+            ${textPreview}
+            ${failures}
           </div>`;
       }
 
@@ -979,13 +1075,18 @@ def scout_app_html() -> str:
         state.events = data.events || [];
         state.artifacts = data.artifacts || {};
         state.browserEvidence = data.browser_evidence || {};
+        el("appShell").classList.add("running-mode");
+        el("activeRunBanner").classList.add("visible");
+        el("activeRunBannerText").textContent = `Active run ${state.runId || ""} · ${data.status || "queued"} · ${data.use_case || useCaseLabel()} · ${(state.records || []).length} records`;
         el("readyPanel").classList.add("hidden");
         el("livePanel").classList.remove("hidden");
         el("activeRunId").textContent = state.runId || "none";
+        el("runStatus").textContent = `Run ${state.runId || ""}: ${data.status || "queued"} · ${state.events.length} events · ${state.records.length} records`;
         setRunState(data.status || "queued");
         renderTimeline(state.events);
         renderBrowserEvidence(state.browserEvidence);
         if (["complete", "failed", "cancelled"].includes(data.status)) {
+          el("appShell").classList.remove("running-mode");
           el("startExecution").disabled = false;
           el("startExecution").textContent = "▶ Start Execution";
           el("resultsPanel").classList.remove("hidden");
@@ -1092,6 +1193,8 @@ def scout_app_html() -> str:
         state.events = [];
         state.artifacts = {};
         state.browserEvidence = {};
+        el("appShell").classList.remove("running-mode", "utility-mode");
+        el("activeRunBanner").classList.remove("visible");
         el("readyPanel").classList.remove("hidden");
         el("livePanel").classList.add("hidden");
         el("resultsPanel").classList.add("hidden");
@@ -1188,7 +1291,7 @@ def scout_app_html() -> str:
           qsa("[data-mode]").forEach((button) => button.classList.remove("active"));
           modeButton.classList.add("active");
           state.mode = modeButton.dataset.mode;
-          el("modeHelp").textContent = `${modeButton.textContent} mode selected.`;
+          el("modeHelp").textContent = `${modeButton.textContent} selected. Scout will use a ${modeSessionLabel(state.mode).toLowerCase()}.`;
           updateDeveloperDetails();
         }
 
@@ -1244,6 +1347,7 @@ def scout_app_html() -> str:
       el("clearRun").addEventListener("click", clearRun);
       qsa("[data-clear-action]").forEach((button) => button.addEventListener("click", clearRun));
       el("closeDrawer").addEventListener("click", () => el("detailDrawer").classList.add("closed"));
+      el("returnToActiveRun").addEventListener("click", showRunWorkspace);
 
       renderOptionChips();
       updateUseCaseContract();
