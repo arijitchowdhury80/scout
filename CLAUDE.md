@@ -7,7 +7,7 @@ Scout is a self-hosted web intelligence platform built on Crawl4AI. It replaces 
 ## Resume Context
 
 - **SESSION.md** — current task, exact resume action, all decisions, remaining work
-- **Memory** — `~/.claude/projects/-Users-arijitchowdhury-AI-Development-PIP/memory/`
+- **Memory** — `~/.claude/projects/-Users-arijitchowdhury-AI-Development-Scout/memory/`
 - **Workspace** — `docs/workspace/scout-core/` — PRD (with acceptance criteria), pre-mortem, strategy
 
 ## Hard Constraints
@@ -32,12 +32,12 @@ ruff check scout/ && ruff format --check scout/
 
 ## Phase Status
 
-- Phase 1 core library: **COMPLETE**
-- Phase 1 API layer: **COMPLETE**
-- Phase 1 Docker: **COMPLETE**
-- Phase 2 Claude skill file: **COMPLETE** (not yet registered)
-- **Smoke test: PENDING** ← do this next
-- **PRISM Phase 4 integration: PENDING** ← main goal, after smoke test
+- Phase 1 core library / API / Docker: **COMPLETE**
+- Products mode: **REAL end-to-end** (incl. browser fallback + User Browser CDP capture)
+- 9 intelligence use cases: **STUBS** (fake seed records) — Phase C rebuild scope
+- **Phase A (audit + fixes + one-pager): COMPLETE 2026-06-12** — see docs/audit/2026-06-12/ui-audit.md
+- **Phase B (design ADRs + mockups + acquisition specs): NEXT** ← see SESSION.md + ~/.claude/plans/i-am-building-scout-glittery-jellyfish.md
+- Phase C (SQLite/SSE/embedded browser/Algolia push + 9 live use cases): pending Phase B approval
 
 ## Reference Artifacts
 
