@@ -1,4 +1,8 @@
-from scout.core.platform.providers import ProviderCapability, ProviderRuntime
+from scout.core.platform.providers import (
+    ProviderCapability,
+    ProviderRuntime,
+    capability_for_provider,
+)
 from scout.core.platform.types import FetchProviderKind
 
 
@@ -28,3 +32,11 @@ def test_provider_capability_marks_cli_provider() -> None:
     )
 
     assert capability.supports_discovery is True
+
+
+def test_cdp_provider_capability_supports_browser_sessions() -> None:
+    capability = capability_for_provider(FetchProviderKind.CDP)
+
+    assert capability.kind == FetchProviderKind.CDP
+    assert capability.runtime == ProviderRuntime.STANDALONE
+    assert capability.supports_browser_session is True

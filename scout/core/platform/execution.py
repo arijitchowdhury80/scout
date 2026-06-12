@@ -13,6 +13,7 @@ class ExecutionMode(str, Enum):
     WEBFETCH = "webfetch"
     WEBSEARCH = "websearch"
     BROWSER = "browser"
+    USER_BROWSER = "user-browser"
     SAVED = "saved"
     API = "api"
 
@@ -35,6 +36,8 @@ def provider_ladder_for_mode(mode: ExecutionMode) -> list[FetchProviderKind]:
         return [FetchProviderKind.WEBSEARCH]
     if mode == ExecutionMode.BROWSER:
         return [FetchProviderKind.HOST_BROWSER]
+    if mode == ExecutionMode.USER_BROWSER:
+        return [FetchProviderKind.CDP]
     if mode == ExecutionMode.SAVED:
         return [FetchProviderKind.SAVED]
     if mode == ExecutionMode.API:

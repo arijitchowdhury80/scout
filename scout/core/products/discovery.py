@@ -8,7 +8,7 @@ from urllib.parse import urlparse, urlunparse
 from scout.core.types import ProductListingCard
 
 
-_PRODUCT_MARKERS = ("/products/", "/product/", "/p/")
+_PRODUCT_MARKERS = ("/products/", "/product/", "/p/", "/t/")
 _CATEGORY_MARKERS = ("/collections/", "/category/", "/categories/", "/c/")
 _UTILITY_SEGMENTS = {
     "account",
@@ -145,7 +145,7 @@ def _normalise_url_preserve_query(url: str) -> str:
 
 def _is_product_url(url: str) -> bool:
     path = urlparse(url).path.lower()
-    if "/product-catalog/" in path:
+    if "/products/" in path and "/product-catalog/" in path:
         return False
     filename = path.rsplit("/", 1)[-1]
     return any(marker in path for marker in _PRODUCT_MARKERS) or filename.endswith(".html")

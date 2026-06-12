@@ -84,7 +84,7 @@ def test_app_first_home_contains_three_state_workspace() -> None:
         "Run Setup",
         "Live Execution",
         "Progress Timeline",
-        "Browser Workbench",
+        "Capture Workbench",
         "Results Review",
         "Overview",
         "Records",
@@ -107,6 +107,47 @@ def test_app_first_home_has_selected_record_drawer() -> None:
     assert 'id="drawerContent"' in resp.text
     assert "Selected Record" in resp.text
     assert "openRecordDrawer" in resp.text
+
+
+def test_app_readiness_panel_uses_real_form_state_not_hardcoded_completion() -> None:
+    client = TestClient(app)
+
+    resp = client.get("/app")
+
+    assert resp.status_code == 200
+    assert 'id="readinessPanel"' in resp.text
+    assert "Run Readiness" in resp.text
+    assert "Pending URL" in resp.text
+    assert "Ready to start" in resp.text
+    assert "User Browser is a manual escalation only" in resp.text
+    assert "Use case selected" not in resp.text
+    assert "Crawl settings configured" not in resp.text
+    assert "Execution mode selected" not in resp.text
+
+
+def test_browser_workbench_copy_is_honest_about_snapshot_limitations() -> None:
+    client = TestClient(app)
+
+    resp = client.get("/app")
+
+    assert resp.status_code == 200
+    assert "Capture Workbench" in resp.text
+    assert "not a live embedded browser" in resp.text
+    assert "Open in User Browser" in resp.text
+    assert "User Browser bridge needed" in resp.text
+    assert "User Browser is not invoked automatically" in resp.text
+
+
+def test_user_browser_frontend_exposes_chrome_cdp_capture_flow() -> None:
+    client = TestClient(app)
+
+    resp = client.get("/app")
+
+    assert resp.status_code == 200
+    assert "Capture Active Tab" in resp.text
+    assert "/capture-active-tab" in resp.text
+    assert "/app/browser/status" in resp.text
+    assert "waiting_for_user_capture" in resp.text
 
 
 def test_run_artifact_endpoints_return_records_sources_and_artifacts(tmp_path: Path) -> None:

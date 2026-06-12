@@ -6,12 +6,14 @@
 # - product-only URL lists still produce a usable Products bucket
 # - Lacoste-style .html product links are detected from category page links
 # - Estee Lauder-style /product-catalog/ links are treated as categories, not products
+# - Estee Lauder singular /product/ details and Nike /t/ details are accepted as products
 # - obvious utility pages are excluded from category candidates
 
 from scout.core.products.discovery import (
     ProductUrlGroups,
     extract_product_links,
     group_product_urls,
+    is_product_url,
     normalize_start_url,
     select_category_urls,
 )
@@ -90,6 +92,14 @@ def test_extract_product_links_rejects_product_catalog_category_links() -> None:
     )
 
     assert products == ["https://www.esteelauder.com/products/serum"]
+
+
+def test_is_product_url_accepts_hard_site_detail_patterns_without_catalog_categories() -> None:
+    assert is_product_url(
+        "https://www.esteelauder.com/product/681/141225/product-catalog/skincare/serum"
+    )
+    assert is_product_url("https://www.nike.com/t/dri-fit-mens-fitness-t-shirt-abc123")
+    assert not is_product_url("https://www.esteelauder.com/products/681/product-catalog/skin-care")
 
 
 def test_select_category_urls_filters_utility_pages() -> None:

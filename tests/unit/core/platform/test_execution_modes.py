@@ -16,11 +16,16 @@ def test_auto_mode_provider_ladder_keeps_browser_as_fallback() -> None:
 
     assert ladder[:2] == [FetchProviderKind.CRAWL4AI, FetchProviderKind.API]
     assert FetchProviderKind.HOST_BROWSER in ladder
+    assert FetchProviderKind.CDP not in ladder
     assert ladder.index(FetchProviderKind.HOST_BROWSER) > ladder.index(FetchProviderKind.CRAWL4AI)
 
 
 def test_browser_mode_uses_only_browser_provider() -> None:
     assert provider_ladder_for_mode(ExecutionMode.BROWSER) == [FetchProviderKind.HOST_BROWSER]
+
+
+def test_user_browser_mode_uses_cdp_provider() -> None:
+    assert provider_ladder_for_mode(ExecutionMode.USER_BROWSER) == [FetchProviderKind.CDP]
 
 
 def test_skill_host_modes_map_to_host_providers() -> None:

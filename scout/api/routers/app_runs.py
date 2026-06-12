@@ -15,10 +15,17 @@ from pydantic import BaseModel, Field
 
 from scout.api.config import settings
 from scout.api.deps import get_crawler
+from scout.api.user_browser import (
+    UserBrowserCaptureRequest,
+    UserBrowserOpenRequest,
+    browser_service,
+)
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest
 from scout.core.platform.workspace import resolve_run_output_dir
+from scout.core.products.algolia import build_listing_algolia_record
+from scout.core.products.listing import extract_listing_cards
 from scout.core.types import ProductCrawlRequest, ProductCrawlResponse
 
 router = APIRouter(prefix="/app/runs", tags=["app-runs"])
@@ -151,11 +158,15 @@ def _write_app_artifacts(run: AppRunState) -> dict[str, str]:
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest_path = output_dir / "manifest.json"
     records_path = output_dir / "records.json"
+    records_jsonl_path = output_dir / "records.jsonl"
     sources_path = output_dir / "source_pages.json"
     blocked_path = output_dir / "blocked_pages.json"
     report_path = output_dir / "extraction_report.md"
 
     records_path.write_text(json.dumps(run.records, indent=2), encoding="utf-8")
+    records_jsonl_path.write_text(
+        "\n".join(json.dumps(record) for record in run.records), encoding="utf-8"
+    )
     sources_path.write_text(json.dumps(run.sources, indent=2), encoding="utf-8")
     blocked_path.write_text(json.dumps(run.blocked_pages, indent=2), encoding="utf-8")
     manifest_path.write_text(
@@ -192,6 +203,7 @@ def _write_app_artifacts(run: AppRunState) -> dict[str, str]:
     artifacts = {
         "manifest": str(manifest_path),
         "records_json": str(records_path),
+        "records_jsonl": str(records_jsonl_path),
         "source_pages_json": str(sources_path),
         "blocked_pages_json": str(blocked_path),
         "report_md": str(report_path),
@@ -378,6 +390,76 @@ def _browser_evidence_for_product(resp: ProductCrawlResponse) -> dict[str, Any]:
     }
 
 
+def _records_from_browser_dom(
+    *,
+    evidence: dict[str, Any],
+    target_url: str,
+    category_name: str,
+    provider: str,
+) -> list[dict[str, Any]]:
+    dom_path = str(evidence.get("dom_path") or "")
+    if not dom_path:
+        return []
+    file_path = Path(dom_path)
+    if not file_path.exists():
+        return []
+    links = evidence.get("links")
+    if not isinstance(links, list):
+        links = _read_json_file(str(evidence.get("links_path") or "")) or []
+    normalized_links = [
+        str(item.get("href") if isinstance(item, dict) else item) for item in links if item
+    ]
+    cards = extract_listing_cards(
+        category_url=target_url,
+        category_name=category_name,
+        html=file_path.read_text(encoding="utf-8"),
+        links=normalized_links,
+        limit=50,
+    )
+    extractor = f"{provider.replace('-', '_')}_dom"
+    records = []
+    for card in cards:
+        record = build_listing_algolia_record(card)
+        record.source.extractor = extractor
+        records.append(record.model_dump(mode="json", by_alias=True))
+    return records
+
+
+def _write_user_browser_capture(
+    *,
+    run: AppRunState,
+    capture: UserBrowserCaptureRequest,
+) -> dict[str, Any]:
+    browser_dir = Path(run.output_dir) / "browser" / "user-browser"
+    browser_dir.mkdir(parents=True, exist_ok=True)
+    dom_path = browser_dir / "dom.html"
+    text_path = browser_dir / "text.txt"
+    links_path = browser_dir / "links.json"
+    screenshot_path = browser_dir / "screenshot.png"
+    dom_path.write_text(capture.html, encoding="utf-8")
+    text_path.write_text(capture.text, encoding="utf-8")
+    links_path.write_text(json.dumps(capture.links, indent=2), encoding="utf-8")
+    if capture.screenshot_data_url.startswith("data:image/") and "," in capture.screenshot_data_url:
+        encoded = capture.screenshot_data_url.split(",", 1)[1]
+        screenshot_path.write_bytes(base64.b64decode(encoded))
+    return {
+        "url": capture.url,
+        "title": capture.title or "User browser capture",
+        "provider": "user-browser",
+        "session_type": "User browser session",
+        "status": "captured",
+        "screenshot_path": str(screenshot_path) if screenshot_path.exists() else "",
+        "screenshot_data_url": capture.screenshot_data_url,
+        "dom_path": str(dom_path),
+        "text_path": str(text_path),
+        "links_path": str(links_path),
+        "text_preview": capture.text[:4000],
+        "links": capture.links[:25],
+        "captured_at": _now(),
+        "note": "User Browser bridge capture ingested DOM/text/link evidence for extraction.",
+    }
+
+
 async def _execute_products(run_id: str, req: AppRunRequest, crawler: ScoutCrawler) -> None:
     run = _APP_RUNS[run_id]
     if run.status == "cancelled":
@@ -470,9 +552,35 @@ async def _execute_products(run_id: str, req: AppRunRequest, crawler: ScoutCrawl
                 "Scout Browser captured screenshot, DOM, text, and links",
                 "success",
             )
-            run.warnings.append(
-                "Scout Browser capture completed. Product record extraction from browser DOM is the next parser pass."
+            run.records = _records_from_browser_dom(
+                evidence=run.browser_evidence,
+                target_url=req.url,
+                category_name=req.query or run.browser_evidence.get("title") or "Products",
+                provider="scout-browser",
             )
+            if run.records:
+                run.sources = [
+                    {
+                        "source_url": run.browser_evidence.get("url") or req.url,
+                        "provider": "scout_browser_dom",
+                        "status_code": status_code,
+                        "status": "ok",
+                        "confidence": 0.7,
+                        "captured_at": run.browser_evidence.get("captured_at") or _now(),
+                        "type": "browser_dom_listing",
+                        "session_type": "Scout browser session",
+                    }
+                ]
+                _append(
+                    run_id,
+                    "extracting",
+                    f"Extracted {len(run.records)} product records from browser DOM",
+                    "success",
+                )
+            else:
+                run.warnings.append(
+                    "Scout Browser capture completed, but no product records were parsed from the DOM."
+                )
             run.status = "complete"
         run.artifacts = _write_app_artifacts(run)
         _append(run_id, "artifacts", "Browser evidence artifacts written")
@@ -489,53 +597,60 @@ async def _execute_products(run_id: str, req: AppRunRequest, crawler: ScoutCrawl
         run.updated_at = _now()
         return
     if req.mode == "user-browser":
-        run.blocked_pages = [
-            {
-                "url": req.url,
-                "reason": "user_browser_bridge_not_connected",
-                "category_url": req.url,
-                "category_name": req.query or req.url,
-                "title": "User browser bridge not connected",
-                "fallback_attempted": True,
-                "fallback_used": False,
-                "fallback_error": (
-                    "User Browser mode needs a Chrome CDP or extension bridge. "
-                    "Scout preserved this as an explicit setup requirement instead "
-                    "of pretending it can access your browser session."
-                ),
-            }
-        ]
+        _append(run_id, "browser", "Opening Scout-managed Chrome for User Browser capture")
+        session = await browser_service.open_browser(
+            UserBrowserOpenRequest(url=req.url, run_id=run_id)
+        )
         run.sources = [
             {
                 "source_url": req.url,
-                "provider": "user-browser",
+                "provider": "cdp",
                 "status_code": None,
-                "status": "blocked",
-                "confidence": 0,
+                "status": "waiting_for_user_capture" if session.connected else session.status,
+                "confidence": 0.6 if session.connected else 0,
                 "captured_at": _now(),
-                "type": "blocked",
-                "reason": "user_browser_bridge_not_connected",
+                "type": "browser_session",
+                "debugging_port": session.debugging_port,
+                "profile_dir": session.profile_dir,
             }
         ]
         run.browser_evidence = {
-            "url": req.url,
-            "title": "User browser bridge not connected",
+            "url": session.active_url or req.url,
+            "title": session.title or "User Browser capture pending",
             "provider": "user-browser",
             "session_type": "User browser session",
+            "status": session.status,
+            "connected": session.connected,
+            "debugging_port": session.debugging_port,
+            "profile_dir": session.profile_dir,
+            "chrome_pid": session.chrome_pid,
+            "error": session.error,
             "note": (
-                "This mode is for pages visible in your own browser session. It requires a "
-                "Chrome remote-debugging or extension bridge before Scout can capture it."
+                "Chrome is open in a Scout-managed profile. Browse normally, then click "
+                "Capture Active Tab to send DOM evidence into Scout."
+                if session.connected
+                else session.error or "Scout could not open Chrome for User Browser capture."
             ),
         }
-        run.status = "failed"
-        run.artifacts = _write_app_artifacts(run)
-        _append(
-            run_id,
-            "blocked",
-            "User Browser mode requires a connected bridge",
-            "warning",
-        )
-        _append(run_id, "failed", "User browser bridge is not connected", "error")
+        if session.connected:
+            run.status = "waiting_for_user_capture"
+            _append(run_id, "waiting", "Chrome opened. Waiting for Capture Active Tab.")
+        else:
+            run.status = "failed"
+            run.blocked_pages = [
+                {
+                    "url": req.url,
+                    "reason": "user_browser_open_failed",
+                    "category_url": req.url,
+                    "category_name": req.query or req.url,
+                    "title": "User browser open failed",
+                    "fallback_attempted": True,
+                    "fallback_used": False,
+                    "fallback_error": session.error or session.status,
+                }
+            ]
+            run.artifacts = _write_app_artifacts(run)
+            _append(run_id, "failed", session.error or "User Browser open failed", "error")
         return
     try:
         resp = await asyncio.wait_for(crawler.products(product_req), timeout=120)
@@ -761,6 +876,108 @@ async def get_app_run_events(run_id: str) -> dict[str, Any]:
     if run is None:
         raise HTTPException(status_code=404, detail="Run not found")
     return {"run_id": run_id, "events": [event.model_dump(mode="json") for event in run.events]}
+
+
+def _apply_user_browser_capture(
+    run_id: str,
+    capture: UserBrowserCaptureRequest,
+) -> AppRunState:
+    run = _APP_RUNS.get(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    task = _APP_TASKS.pop(run_id, None)
+    if task is not None and not task.done():
+        task.cancel()
+    watchdog = _APP_WATCHDOGS.pop(run_id, None)
+    if watchdog is not None and not watchdog.done():
+        watchdog.cancel()
+
+    run.status = "running"
+    run.target_url = capture.url or run.target_url
+    run.browser_evidence = _write_user_browser_capture(run=run, capture=capture)
+    run.records = _records_from_browser_dom(
+        evidence=run.browser_evidence,
+        target_url=capture.url or run.target_url,
+        category_name=capture.title or run.use_case.title(),
+        provider="user-browser",
+    )
+    run.blocked_pages = []
+    run.sources = [
+        {
+            "source_url": run.browser_evidence.get("url") or run.target_url,
+            "provider": "user_browser_dom",
+            "status_code": None,
+            "status": "ok" if run.records else "no_records",
+            "confidence": 0.75 if run.records else 0.2,
+            "captured_at": run.browser_evidence.get("captured_at") or _now(),
+            "type": "browser_dom_listing",
+            "session_type": "User browser session",
+        }
+    ]
+    if run.records:
+        run.status = "complete"
+        _append(
+            run_id,
+            "extracting",
+            f"Extracted {len(run.records)} product records from User Browser DOM",
+            "success",
+        )
+        _append(run_id, "complete", "User Browser capture ingested", "success")
+    else:
+        run.status = "failed"
+        run.warnings.append(
+            "User Browser capture was ingested, but no product records were parsed."
+        )
+        _append(run_id, "blocked", "No product records parsed from User Browser DOM", "warning")
+        _append(run_id, "failed", "User Browser capture produced no product records", "error")
+    run.artifacts = _write_app_artifacts(run)
+    run.updated_at = _now()
+    return run
+
+
+@router.post("/{run_id}/user-browser-capture", response_model=AppRunState)
+async def ingest_user_browser_capture(
+    run_id: str,
+    capture: UserBrowserCaptureRequest,
+) -> AppRunState:
+    return _apply_user_browser_capture(run_id, capture)
+
+
+@router.post("/{run_id}/capture-active-tab", response_model=AppRunState)
+async def capture_active_user_browser_tab(run_id: str) -> AppRunState:
+    run = _APP_RUNS.get(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    try:
+        capture = await browser_service.capture_active_tab(run.target_url)
+    except Exception as exc:
+        run.status = "failed"
+        run.errors.append(str(exc))
+        run.browser_evidence = {
+            "url": run.target_url,
+            "title": "User Browser capture failed",
+            "provider": "user-browser",
+            "session_type": "User browser session",
+            "status": "failed",
+            "error": str(exc),
+            "note": "Scout could not capture the active Chrome tab through CDP.",
+        }
+        run.blocked_pages = [
+            {
+                "url": run.target_url,
+                "reason": "user_browser_capture_failed",
+                "category_url": run.target_url,
+                "category_name": run.target_url,
+                "title": "User Browser capture failed",
+                "fallback_attempted": True,
+                "fallback_used": False,
+                "fallback_error": str(exc),
+            }
+        ]
+        run.artifacts = _write_app_artifacts(run)
+        _append(run_id, "failed", f"User Browser capture failed: {exc}", "error")
+        return run
+    return _apply_user_browser_capture(run_id, capture)
 
 
 @router.post("/{run_id}/cancel", response_model=AppRunState)

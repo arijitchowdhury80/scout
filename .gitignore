@@ -6,6 +6,15 @@
 __pycache__/
 *.py[cod]
 scout-runs/
+
+# Run artifacts written when an app run's workdir points at tests/
+tests/browser/
+tests/blocked_pages.json
+tests/extraction_report.md
+tests/manifest.json
+tests/records.json
+tests/records.jsonl
+tests/source_pages.json
 dist/
 build/
 *.egg-info/

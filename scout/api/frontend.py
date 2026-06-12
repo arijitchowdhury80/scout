@@ -36,7 +36,6 @@ def scout_app_html() -> str:
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        min-width: 1120px;
         background: var(--bg);
         color: var(--ink);
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -95,7 +94,10 @@ def scout_app_html() -> str:
         display: none;
       }
       .app-shell.running-mode {
-        grid-template-columns: 96px minmax(320px, 390px) minmax(0, 1fr);
+        grid-template-columns: 96px minmax(0, 1fr);
+      }
+      .app-shell.running-mode .setup-pane {
+        display: none;
       }
       .app-shell.running-mode .drawer {
         display: none;
@@ -257,9 +259,47 @@ def scout_app_html() -> str:
       }
       .copy-line { display: flex; justify-content: space-between; align-items: center; padding: 10px 13px; border-top: 1px solid var(--soft-line); }
 
-      .checklist { margin-top: 18px; padding: 13px; border: 1px solid var(--line); border-radius: 8px; background: #fbfdff; }
-      .checklist li { margin: 9px 0; color: #40506a; font-size: 12px; }
-      .checklist .done { color: var(--green); font-weight: 800; }
+      .readiness-panel {
+        margin-top: 18px;
+        padding: 13px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfdff;
+      }
+      .readiness-panel h3 { margin-bottom: 10px; }
+      .readiness-item {
+        display: grid;
+        grid-template-columns: 14px minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: start;
+        padding: 8px 0;
+        border-top: 1px solid var(--soft-line);
+        color: #40506a;
+        font-size: 12px;
+      }
+      .readiness-item:first-of-type { border-top: 0; }
+      .readiness-item strong { display: block; color: #24334a; }
+      .readiness-item span { overflow-wrap: anywhere; }
+      .readiness-dot {
+        width: 9px;
+        height: 9px;
+        margin-top: 4px;
+        border-radius: 50%;
+        background: var(--line);
+      }
+      .readiness-item.ready .readiness-dot { background: var(--green); }
+      .readiness-item.warn .readiness-dot { background: var(--amber); }
+      .readiness-state {
+        border-radius: 999px;
+        padding: 2px 8px;
+        background: #eef3f8;
+        color: #40506a;
+        font-size: 10px;
+        font-weight: 850;
+        white-space: nowrap;
+      }
+      .readiness-item.ready .readiness-state { background: var(--green-soft); color: var(--green); }
+      .readiness-item.warn .readiness-state { background: var(--amber-soft); color: var(--amber); }
 
       .status-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
       .badge {
@@ -312,7 +352,7 @@ def scout_app_html() -> str:
       .active-run-banner.visible { display: flex; }
       .live-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
+        grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.75fr);
         gap: 14px;
         align-items: stretch;
       }
@@ -372,8 +412,9 @@ def scout_app_html() -> str:
       .workbench-toolbar button:disabled { opacity: 0.55; cursor: not-allowed; }
       .browser-shot {
         min-height: calc(100vh - 330px);
-        padding: 28px;
+        padding: 22px;
         background: linear-gradient(180deg, #ffffff, #f4f8fc);
+        overflow: auto;
       }
       .browser-shot img {
         width: 100%;
@@ -411,6 +452,17 @@ def scout_app_html() -> str:
       }
       .warn-box { border: 1px solid #f4c39d; background: var(--amber-soft); color: #7d4108; }
       .ok-box { border: 1px solid #b8e4c7; background: var(--green-soft); color: #0c5e40; }
+      .warn-box, .ok-box, .browser-shot p { overflow-wrap: anywhere; }
+      .browser-truth {
+        border: 1px solid #bfd3ea;
+        background: #eef6ff;
+        color: #21496f;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 12px;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
 
       .drawer.closed { display: none; }
       .drawer .selected-image {
@@ -504,7 +556,7 @@ def scout_app_html() -> str:
             <button type="button" data-mode="saved">Saved</button>
             <button type="button" data-mode="api">API</button>
           </div>
-          <p id="modeHelp" class="subtle" style="margin-top:8px;">Auto mode selects the best strategy and adapts as it runs.</p>
+          <p id="modeHelp" class="subtle" style="margin-top:8px;">Auto starts with crawler and Scout Browser capture. User Browser is a manual escalation only after those paths fail or need human interaction.</p>
 
           <label class="label">Crawl Settings</label>
           <p class="subtle">Tune how Scout collects pages. Defaults are safe for most runs.</p>
@@ -521,13 +573,34 @@ def scout_app_html() -> str:
           </div>
           <p class="subtle">All outputs, logs, and artifacts will be saved here.</p>
 
-          <ul class="checklist" id="checklist">
-            <li data-check="useCase">○ Use case selected</li>
-            <li data-check="target">○ Target URL entered</li>
-            <li data-check="workdir">○ Working directory set</li>
-            <li data-check="settings">○ Crawl settings configured</li>
-            <li data-check="mode">○ Execution mode selected</li>
-          </ul>
+          <div class="readiness-panel" id="readinessPanel">
+            <h3>Run Readiness</h3>
+            <div class="readiness-item" data-ready-item="target">
+              <div class="readiness-dot"></div>
+              <span><strong>Target</strong><span data-ready-text="target">Pending URL</span></span>
+              <span class="readiness-state" data-ready-state="target">Required</span>
+            </div>
+            <div class="readiness-item" data-ready-item="mode">
+              <div class="readiness-dot"></div>
+              <span><strong>Mode</strong><span data-ready-text="mode">Auto selected by default</span></span>
+              <span class="readiness-state" data-ready-state="mode">Default</span>
+            </div>
+            <div class="readiness-item" data-ready-item="output">
+              <div class="readiness-dot"></div>
+              <span><strong>Output folder</strong><span data-ready-text="output">Pending folder</span></span>
+              <span class="readiness-state" data-ready-state="output">Required</span>
+            </div>
+            <div class="readiness-item warn" data-ready-item="capture">
+              <div class="readiness-dot"></div>
+              <span><strong>Browser reality</strong><span data-ready-text="capture">Scout Browser is a separate capture session. Hard sites may still block it.</span></span>
+              <span class="readiness-state" data-ready-state="capture">Known limit</span>
+            </div>
+            <div class="readiness-item" data-ready-item="start">
+              <div class="readiness-dot"></div>
+              <span><strong>Start state</strong><span data-ready-text="start">Waiting for required inputs</span></span>
+              <span class="readiness-state" data-ready-state="start">Not ready</span>
+            </div>
+          </div>
 
           <div class="button-row">
             <button id="startExecution" class="primary" type="button">▶ Start Execution</button>
@@ -573,7 +646,7 @@ def scout_app_html() -> str:
             </div>
             <div class="live-grid">
               <div>
-                <h3>Browser Workbench</h3>
+                  <h3>Capture Workbench</h3>
                 <div id="browserEvidence" class="browser-frame"></div>
               </div>
               <div class="live-side">
@@ -663,6 +736,7 @@ def scout_app_html() -> str:
         events: [],
         artifacts: {},
         browserEvidence: {},
+        browserSession: {},
         options: { max_depth: 3, respect_robots_txt: true, delay_seconds: 1.0 }
       };
       const optionDefaults = { max_depth: 3, respect_robots_txt: true, delay_seconds: 1.0 };
@@ -898,21 +972,65 @@ def scout_app_html() -> str:
         }
       }
 
-      function updateChecklist() {
+      function setReadinessItem(key, status, text, stateLabel) {
+        const item = qs(`[data-ready-item="${key}"]`);
+        const textNode = qs(`[data-ready-text="${key}"]`);
+        const stateNode = qs(`[data-ready-state="${key}"]`);
+        if (!item || !textNode || !stateNode) return;
+        item.classList.remove("ready", "warn");
+        if (status) item.classList.add(status);
+        textNode.textContent = text;
+        stateNode.textContent = stateLabel;
+      }
+
+      function updateReadinessPanel(runData = null) {
         const target = el("targetUrl").value.trim();
         const workdir = el("workdir").value.trim();
-        const checks = {
-          useCase: true,
-          target: Boolean(target),
-          workdir: Boolean(workdir),
-          settings: true,
-          mode: Boolean(state.mode)
-        };
-        qsa("#checklist li").forEach((item) => {
-          const key = item.dataset.check;
-          item.classList.toggle("done", checks[key]);
-          item.textContent = `${checks[key] ? "✓" : "○"} ${item.textContent.replace(/^[✓○] /, "")}`;
-        });
+        const mode = modeLabel();
+        const hasTarget = Boolean(target);
+        const hasWorkdir = Boolean(workdir);
+        setReadinessItem(
+          "target",
+          hasTarget ? "ready" : "",
+          hasTarget ? target : "Pending URL",
+          hasTarget ? "Ready" : "Required"
+        );
+        setReadinessItem(
+          "mode",
+          mode === "auto" ? "warn" : "ready",
+          `${mode} selected`,
+          mode === "auto" ? "Default" : "Selected"
+        );
+        setReadinessItem(
+          "output",
+          hasWorkdir ? "ready" : "",
+          hasWorkdir ? workdir : "Pending folder",
+          hasWorkdir ? "Ready" : "Required"
+        );
+        const captureText = mode === "user-browser"
+          ? "Manual escalation: opens Scout-managed Chrome only when you intentionally choose User Browser for a blocked/human-gated page."
+          : mode === "scout-browser" || mode === "browser"
+          ? "Scout Browser is the automated embedded Playwright capture path. Use it before escalating to User Browser."
+          : "Crawler modes do not open your real browser. User Browser is not invoked automatically.";
+        setReadinessItem("capture", "warn", captureText, "Known limit");
+        if (runData) {
+          const records = (runData.records || []).length;
+          const blocked = (runData.blocked_pages || []).length;
+          const status = runData.status || "queued";
+          setReadinessItem(
+            "start",
+            status === "complete" && records ? "ready" : status === "failed" || blocked ? "warn" : "",
+            `Last run ${status}: ${records} records, ${blocked} blocked pages`,
+            status
+          );
+          return;
+        }
+        setReadinessItem(
+          "start",
+          hasTarget && hasWorkdir ? "ready" : "",
+          hasTarget && hasWorkdir ? "Ready to start" : "Waiting for required inputs",
+          hasTarget && hasWorkdir ? "Ready" : "Not ready"
+        );
       }
 
       function updateDeveloperDetails() {
@@ -925,7 +1043,7 @@ def scout_app_html() -> str:
         }).filter(Boolean).join(" \\\\\\n");
         el("commandPreview").textContent = `scout run ${payload.use_case} \\\\\\n  --mode ${payload.mode} \\\\\\n  --url "${payload.url}" \\\\\\n  --output "${payload.output_dir}"${optionFlags ? " \\\\\\n" + optionFlags : ""}`;
         el("httpPreview").textContent = `POST /app/runs\\nX-API-Key: dev-key\\nContent-Type: application/json\\n\\n${JSON.stringify(payload, null, 2)}`;
-        updateChecklist();
+        updateReadinessPanel();
       }
 
       function optionValueText(key, value) {
@@ -979,6 +1097,10 @@ def scout_app_html() -> str:
         const session = evidence.session_type || modeSessionLabel(evidence.provider || state.mode);
         const status = evidence.status || "waiting";
         const note = evidence.note || "Waiting for captured browser evidence.";
+        const blocked = /access denied|blocked|permission/i.test(`${title} ${note} ${evidence.text_preview || ""}`);
+        const truth = evidence.provider === "user-browser"
+          ? "User Browser capture uses evidence posted from your real browser session."
+          : "Scout Browser is not a live embedded browser. It is a separate automated capture session, so hard sites can still block it.";
         const screenshot = evidence.screenshot_data_url
           ? `<img src="${escapeAttr(evidence.screenshot_data_url)}" alt="Captured browser evidence for ${escapeAttr(title)}">`
           : `<div class="site-preview"><h2>${escapeHtml(title)}</h2><p>${escapeHtml(note)}</p><div class="product-preview-grid"><div class="fake-product">Screenshot pending</div><div class="fake-product">DOM / Markdown pending</div></div></div>`;
@@ -988,22 +1110,32 @@ def scout_app_html() -> str:
         const failures = (evidence.network_failures || []).length
           ? `<div class="warn-box">Network failures captured: ${escapeHtml(String((evidence.network_failures || []).length))}</div>`
           : "";
+        const sessionDetails = evidence.provider === "user-browser"
+          ? `<div class="browser-truth"><strong>Chrome CDP</strong><br>Status: ${escapeHtml(evidence.status || "waiting_for_user_capture")}<br>Port: ${escapeHtml(evidence.debugging_port || "not connected")}<br>Profile: ${escapeHtml(evidence.profile_dir || "Scout-managed profile pending")}</div>`
+          : "";
+        const blockedGuidance = blocked
+          ? `<div class="warn-box"><strong>User Browser bridge needed</strong><br>This target blocked Scout's separate browser context. To make this work for hard sites, Scout needs a Chrome/CDP or extension bridge that captures the page from your real browser session and posts DOM evidence to <code>/app/runs/{run_id}/user-browser-capture</code>.</div>`
+          : "";
+        const canCapture = state.runId && evidence.provider === "user-browser" && ["opened", "captured", "waiting"].includes(String(evidence.status || "opened"));
         el("browserEvidence").innerHTML = `
           <div class="browser-bar"><span>●</span><div class="browser-url">${escapeHtml(url)}</div></div>
           <div class="workbench-toolbar">
-            <button type="button" disabled title="Interactive browser navigation is the next workbench slice. Current mode captures rendered snapshots.">Back</button>
-            <button type="button" disabled title="Interactive browser navigation is the next workbench slice. Current mode captures rendered snapshots.">Forward</button>
-            <button type="button" disabled title="Use Start Execution to refresh the current capture in this slice.">Refresh</button>
-            <button type="button" disabled title="Capture is automatic when a Scout Browser run starts.">Capture</button>
-            <button type="button" disabled title="DOM-to-product extraction from browser evidence is the next parser slice.">Extract</button>
+            <button type="button" data-open-current-url title="Open this target in your normal browser session.">Open in User Browser</button>
+            <button type="button" disabled title="A live embedded browser is not available in this web app.">Back</button>
+            <button type="button" disabled title="A live embedded browser is not available in this web app.">Forward</button>
+            <button type="button" disabled title="Use Start Execution to refresh Scout's separate capture session.">Refresh Capture</button>
+            <button type="button" data-capture-active-tab ${canCapture ? "" : "disabled"} title="Capture Active Tab through the Scout-managed Chrome CDP session.">Capture Active Tab</button>
             <button type="button" disabled title="Evidence is saved automatically to the selected working directory.">Save Evidence</button>
           </div>
           <div class="browser-shot">
             <h2>${escapeHtml(title)}</h2>
             <p class="subtle">${escapeHtml(session)} · ${escapeHtml(status)} · Provider: ${escapeHtml(evidence.provider || state.mode)} · Viewport: ${escapeHtml(evidence.viewport || "not captured")}</p>
+            <div class="browser-truth">${escapeHtml(truth)}</div>
+            ${sessionDetails}
             ${screenshot}
             ${textPreview}
             ${failures}
+            ${blockedGuidance}
           </div>`;
       }
 
@@ -1085,6 +1217,7 @@ def scout_app_html() -> str:
         setRunState(data.status || "queued");
         renderTimeline(state.events);
         renderBrowserEvidence(state.browserEvidence);
+        updateReadinessPanel(data);
         if (["complete", "failed", "cancelled"].includes(data.status)) {
           el("appShell").classList.remove("running-mode");
           el("startExecution").disabled = false;
@@ -1161,6 +1294,30 @@ def scout_app_html() -> str:
         renderRun(data);
       }
 
+      async function captureActiveTab() {
+        if (!state.runId) {
+          toast("Start a User Browser run first");
+          return;
+        }
+        el("runStatus").textContent = "Capturing active Chrome tab...";
+        try {
+          const data = await fetchJson(`/app/runs/${state.runId}/capture-active-tab`, { method: "POST" });
+          renderRun(data);
+          toast(data.status === "complete" ? "Active tab captured" : "Capture finished with warnings");
+        } catch (error) {
+          el("runStatus").textContent = `Capture failed: ${error.message}`;
+          toast("Capture failed");
+        }
+      }
+
+      async function refreshBrowserStatus() {
+        try {
+          state.browserSession = await fetchJson("/app/browser/status");
+        } catch (error) {
+          state.browserSession = { connected: false, status: "unavailable", error: error.message };
+        }
+      }
+
       async function openNativeDirectoryPicker() {
         el("pickDir").disabled = true;
         try {
@@ -1202,6 +1359,7 @@ def scout_app_html() -> str:
         el("startExecution").disabled = false;
         el("startExecution").textContent = "▶ Start Execution";
         el("runStatus").textContent = "Ready. The app will show run status immediately after Start Execution.";
+        updateReadinessPanel();
         renderMetrics();
       }
 
@@ -1291,7 +1449,11 @@ def scout_app_html() -> str:
           qsa("[data-mode]").forEach((button) => button.classList.remove("active"));
           modeButton.classList.add("active");
           state.mode = modeButton.dataset.mode;
-          el("modeHelp").textContent = `${modeButton.textContent} selected. Scout will use a ${modeSessionLabel(state.mode).toLowerCase()}.`;
+          el("modeHelp").textContent = state.mode === "user-browser"
+            ? "User Browser selected manually. Scout will open Chrome/CDP and wait for you to capture the active tab."
+            : state.mode === "auto"
+            ? "Auto selected. Scout will not open User Browser unless you explicitly switch modes after a block."
+            : `${modeButton.textContent} selected. Scout will use a ${modeSessionLabel(state.mode).toLowerCase()}.`;
           updateDeveloperDetails();
         }
 
@@ -1318,6 +1480,17 @@ def scout_app_html() -> str:
           const source = el(copyButton.dataset.copyTarget);
           await navigator.clipboard.writeText(source.textContent);
           toast("Copied");
+        }
+
+        const openCurrentUrl = target.closest("[data-open-current-url]");
+        if (openCurrentUrl) {
+          const url = (state.browserEvidence && state.browserEvidence.url) || el("targetUrl").value.trim();
+          if (url) window.open(url, "_blank", "noopener,noreferrer");
+        }
+
+        const captureActive = target.closest("[data-capture-active-tab]");
+        if (captureActive) {
+          await captureActiveTab();
         }
 
         const tab = target.closest("[data-panel]");
@@ -1354,6 +1527,7 @@ def scout_app_html() -> str:
       renderBrowserEvidence({});
       renderRecords();
       renderMetrics();
+      updateReadinessPanel();
     </script>
   </body>
 </html>"""

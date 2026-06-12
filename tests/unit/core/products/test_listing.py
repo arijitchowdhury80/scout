@@ -7,6 +7,7 @@
 # - unrelated navigation links are ignored
 # - CTA/catalog links are ignored instead of becoming low-quality records
 # - navigation promo product links are ignored unless they appear in product-card context
+# - product cards with details on the enclosing tile are extracted from browser DOM
 """
 
 from scout.core.products.listing import extract_listing_cards
@@ -115,3 +116,44 @@ def test_extract_listing_cards_ignores_navigation_promo_product_links() -> None:
 
     assert len(cards) == 1
     assert cards[0].name == "Advanced Night Repair Serum"
+
+
+def test_extract_listing_cards_uses_enclosing_product_tile_details() -> None:
+    html = """
+    <div class="product-grid">
+      <div class="product-brief"
+           data-product-name="Advanced Night Repair Serum"
+           data-brand="Estée Lauder">
+        <a class="product-brief__image"
+           href="/product/681/141225/product-catalog/skincare/advanced-night-repair-serum">
+          <picture>
+            <source srcset="/media/anr-large.jpg 2x, /media/anr-small.jpg 1x">
+            <img alt="" src="/media/anr.jpg">
+          </picture>
+        </a>
+        <span class="product-brief__price">$85.00</span>
+      </div>
+      <article class="product-card" aria-label="Nike Dri-FIT Men's Fitness T-Shirt">
+        <a href="/t/dri-fit-mens-fitness-t-shirt-abc123">
+          <img src="https://static.nike.com/a/images/t-shirt.png" alt="">
+        </a>
+        <div>$35</div>
+      </article>
+    </div>
+    """
+
+    cards = extract_listing_cards(
+        category_url="https://www.esteelauder.com/products/681/product-catalog/skin-care",
+        category_name="Skin Care",
+        html=html,
+        links=[],
+        limit=10,
+    )
+
+    assert len(cards) == 2
+    assert cards[0].name == "Advanced Night Repair Serum"
+    assert cards[0].brand == "Estée Lauder"
+    assert cards[0].price == 85.0
+    assert cards[0].image == "https://www.esteelauder.com/media/anr.jpg"
+    assert cards[1].name == "Nike Dri-FIT Men's Fitness T-Shirt"
+    assert cards[1].price == 35.0

@@ -12,6 +12,7 @@ from scout.api.middleware.auth import AuthMiddleware
 from scout.api.frontend import scout_app_html
 from scout.api.routers import (
     algolia,
+    app_browser,
     app_runs,
     crawl,
     extract,
@@ -49,6 +50,7 @@ app.include_router(products.router)
 app.include_router(run.router)
 app.include_router(runs.router)
 app.include_router(algolia.router)
+app.include_router(app_browser.router)
 app.include_router(app_runs.router)
 app.include_router(map_router.router)
 app.include_router(screenshot.router)
