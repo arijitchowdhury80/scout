@@ -8,13 +8,21 @@ __pycache__/
 scout-runs/
 
 # Run artifacts written when an app run's workdir points at tests/
+tests/algolia/
 tests/browser/
+tests/extracted/
 tests/blocked_pages.json
 tests/extraction_report.md
 tests/manifest.json
 tests/records.json
 tests/records.jsonl
+tests/report.md
 tests/source_pages.json
+tests/urls.json
+tests/validation.json
+
+# Playwright MCP session output
+.playwright-mcp/
 dist/
 build/
 *.egg-info/
