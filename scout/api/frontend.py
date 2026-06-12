@@ -688,7 +688,7 @@ def scout_app_html() -> str:
             <div id="overviewPanel" class="tab-panel"></div>
             <div id="browserPanel" class="tab-panel hidden"></div>
             <div id="recordsPanel" class="tab-panel hidden">
-              <table id="recordsTable"><thead><tr><th>#</th><th>Product Name</th><th>Brand</th><th>Price</th><th>SKU</th><th>Source</th></tr></thead><tbody></tbody></table>
+              <table id="recordsTable"><thead id="recordsTableHead"><tr><th>#</th><th>Product Name</th><th>Brand</th><th>Price</th><th>SKU</th><th>Source</th></tr></thead><tbody></tbody></table>
             </div>
             <div id="sourcesPanel" class="tab-panel hidden"></div>
             <div id="blockedPanel" class="tab-panel hidden"></div>
@@ -867,6 +867,20 @@ def scout_app_html() -> str:
         return "Crawler session";
       }
 
+      function modeHelpFor(mode, label) {
+        const helpByMode = {
+          "auto": "Auto selected. Scout will not open User Browser unless you explicitly switch modes after a block.",
+          "user-browser": "User Browser selected manually. Scout will open Chrome/CDP and wait for you to capture the active tab.",
+          "scout-browser": "Scout Browser selected. Scout will use a scout browser session.",
+          "crawl4ai": "Crawler selected. Scout will use a Crawl4AI crawler session.",
+          "webfetch": "WebFetch selected. Scout will fetch pages over plain HTTP without a browser.",
+          "websearch": "WebSearch selected. Scout will gather evidence from web search results.",
+          "saved": "Saved selected. Scout will load evidence from a saved snapshot instead of the live web.",
+          "api": "API selected. Scout will use structured API providers where available."
+        };
+        return helpByMode[mode] || `${label} selected. Scout will use a ${modeSessionLabel(mode).toLowerCase()}.`;
+      }
+
       function useCaseLabel() {
         return el("useCase").value;
       }
@@ -956,7 +970,7 @@ def scout_app_html() -> str:
           return;
         }
         if (screen === "data" || screen === "projects") {
-          content.innerHTML = `<div class="toolbar"><button class="secondary" type="button" data-panel="recordsPanel">Records</button><button class="secondary" type="button" data-panel="sourcesPanel">Sources</button><button class="secondary" type="button" data-panel="artifactsPanel">Artifacts</button><button class="secondary" type="button" data-download-records>Download Records</button></div>${Object.keys(state.artifacts).length ? el("artifactsPanel").innerHTML : "<div class='warn-box'>No active run artifacts yet.</div>"}`;
+          content.innerHTML = `<div class="toolbar"><button class="secondary" type="button" data-panel="recordsPanel">Records</button><button class="secondary" type="button" data-panel="sourcesPanel">Sources</button><button class="secondary" type="button" data-panel="artifactsPanel">Artifacts</button><button class="secondary" type="button" data-download-records ${state.records.length ? "" : "disabled"} title="${state.records.length ? "Download records as JSON" : "No records to download yet."}">Download Records</button></div>${Object.keys(state.artifacts).length ? el("artifactsPanel").innerHTML : "<div class='warn-box'>No active run artifacts yet.</div>"}`;
           return;
         }
         if (screen === "integrations") {
@@ -1152,15 +1166,36 @@ def scout_app_html() -> str:
         el("metricWarnings").textContent = state.events.filter((event) => event.level === "warning").length;
       }
 
+      function isProductRun() {
+        return (state.runUseCase || useCaseLabel()) === "products";
+      }
+
+      function recordsTableHeaders() {
+        return isProductRun()
+          ? "<tr><th>#</th><th>Product Name</th><th>Brand</th><th>Price</th><th>SKU</th><th>Source</th></tr>"
+          : "<tr><th>#</th><th>Record Name</th><th>Type</th><th>Confidence</th><th>Source</th></tr>";
+      }
+
       function renderRecords() {
         const tbody = qs("#recordsTable tbody");
+        el("recordsTableHead").innerHTML = recordsTableHeaders();
+        const columns = isProductRun() ? 6 : 5;
         if (!state.records.length) {
-          tbody.innerHTML = `<tr><td colspan="6">No records yet. Start a run or inspect blocked/fallback evidence.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="${columns}">No records yet. Start a run or inspect blocked/fallback evidence.</td></tr>`;
           return;
         }
         tbody.innerHTML = state.records.map((record, index) => {
           const source = record._source || record.source || {};
           const sourceType = record.source_type || (source.extractor === "listing_card" ? "Listing" : "Detail");
+          if (!isProductRun()) {
+            return `<tr data-record-index="${index}">
+              <td>${index + 1}</td>
+              <td>${escapeHtml(record.name || record.title || "")}</td>
+              <td>${escapeHtml(record.record_type || "")}</td>
+              <td>${escapeHtml(record.confidence == null ? "" : String(record.confidence))}</td>
+              <td><span class="source-badge">${escapeHtml(sourceType)}</span></td>
+            </tr>`;
+          }
           const price = record.price == null ? "" : `$${record.price}`;
           return `<tr data-record-index="${index}">
             <td>${index + 1}</td>
@@ -1201,6 +1236,7 @@ def scout_app_html() -> str:
 
       function renderRun(data) {
         state.runId = data.run_id || state.runId;
+        state.runUseCase = data.use_case || state.runUseCase;
         state.records = data.records || [];
         state.sources = data.sources || [];
         state.blocked = data.blocked_pages || [];
@@ -1344,6 +1380,7 @@ def scout_app_html() -> str:
       function clearRun() {
         stopPolling();
         state.runId = null;
+        state.runUseCase = null;
         state.records = [];
         state.sources = [];
         state.blocked = [];
@@ -1424,6 +1461,10 @@ def scout_app_html() -> str:
 
         const downloadButton = target.closest("[data-download-records]");
         if (downloadButton) {
+          if (!state.records.length) {
+            toast("No records to download yet.");
+            return;
+          }
           const blob = new Blob([JSON.stringify(state.records, null, 2)], { type: "application/json" });
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
@@ -1449,11 +1490,7 @@ def scout_app_html() -> str:
           qsa("[data-mode]").forEach((button) => button.classList.remove("active"));
           modeButton.classList.add("active");
           state.mode = modeButton.dataset.mode;
-          el("modeHelp").textContent = state.mode === "user-browser"
-            ? "User Browser selected manually. Scout will open Chrome/CDP and wait for you to capture the active tab."
-            : state.mode === "auto"
-            ? "Auto selected. Scout will not open User Browser unless you explicitly switch modes after a block."
-            : `${modeButton.textContent} selected. Scout will use a ${modeSessionLabel(state.mode).toLowerCase()}.`;
+          el("modeHelp").textContent = modeHelpFor(state.mode, modeButton.textContent);
           updateDeveloperDetails();
         }
 

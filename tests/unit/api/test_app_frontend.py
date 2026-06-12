@@ -223,3 +223,43 @@ def test_algolia_preview_reports_missing_required_fields() -> None:
     assert "index_name" in data["missing_required_fields"]
     assert "records[0].objectID" in data["missing_required_fields"]
     assert "records[0].url" in data["missing_required_fields"]
+
+
+def test_mode_help_copy_is_mode_specific_not_generic_crawler() -> None:
+    """Each execution mode must describe its own session type, not claim a
+    generic crawler session (audit finding 2026-06-12 #1)."""
+    client = TestClient(app)
+
+    resp = client.get("/app")
+
+    assert resp.status_code == 200
+    assert "WebFetch selected. Scout will fetch pages over plain HTTP without a browser." in resp.text
+    assert "WebSearch selected. Scout will gather evidence from web search results." in resp.text
+    assert "Saved selected. Scout will load evidence from a saved snapshot instead of the live web." in resp.text
+    assert "API selected. Scout will use structured API providers where available." in resp.text
+    assert "Crawler selected. Scout will use a Crawl4AI crawler session." in resp.text
+
+
+def test_download_records_button_guards_against_empty_state() -> None:
+    """Download Records must be disabled when there are no records, per the UI
+    interaction contract (audit finding 2026-06-12 #2)."""
+    client = TestClient(app)
+
+    resp = client.get("/app")
+
+    assert resp.status_code == 200
+    assert 'data-download-records ${state.records.length ? "" : "disabled"}' in resp.text
+    assert "No records to download yet." in resp.text
+
+
+def test_records_table_headers_adapt_to_use_case() -> None:
+    """Non-product runs must not show product-only columns (audit finding
+    2026-06-12 #3)."""
+    client = TestClient(app)
+
+    resp = client.get("/app")
+
+    assert resp.status_code == 200
+    assert "function recordsTableHeaders" in resp.text
+    assert "<th>Record Name</th><th>Type</th><th>Confidence</th>" in resp.text
+    assert 'id="recordsTableHead"' in resp.text
