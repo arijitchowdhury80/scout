@@ -634,3 +634,29 @@ def _classify_control(control: dict[str, object]) -> str:
     if tag == "input" and control_type in {"text", "password", "number", "url", ""}:
         return "functional"
     return "fail"
+
+
+def test_layout_fills_viewport_without_page_scroll_or_wasted_drawer_gutter(page: Page) -> None:
+    """At a typical laptop size the app must use the full viewport: no whole-page
+    vertical scroll (panes scroll independently) and no 360px gutter reserved
+    for the closed record drawer (audit follow-up 2026-06-12)."""
+    page.set_viewport_size({"width": 1440, "height": 820})
+    page.wait_for_timeout(150)
+
+    metrics = page.evaluate(
+        """() => {
+          const workspace = document.querySelector('.workspace');
+          return {
+            pageScrolls: document.documentElement.scrollHeight > window.innerHeight + 1,
+            workspaceWidth: workspace.getBoundingClientRect().width,
+            drawerClosed: document.getElementById('detailDrawer').classList.contains('closed'),
+          };
+        }"""
+    )
+
+    assert metrics["drawerClosed"] is True
+    assert metrics["pageScrolls"] is False, "whole page scrolls; panes must scroll independently"
+    assert metrics["workspaceWidth"] > 700, (
+        f"workspace got {metrics['workspaceWidth']}px of 1440px; "
+        "closed drawer must not reserve a gutter"
+    )

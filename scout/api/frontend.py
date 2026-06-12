@@ -84,11 +84,14 @@ def scout_app_html() -> str:
 
       .app-shell {
         display: grid;
-        grid-template-columns: 96px minmax(360px, 460px) minmax(0, 1fr) minmax(0, 360px);
-        min-height: calc(100vh - 56px);
+        /* "auto" lets the drawer column collapse to 0 while .drawer.closed is
+           display:none, so the workspace gets the freed space. */
+        grid-template-columns: 96px minmax(360px, 460px) minmax(0, 1fr) auto;
+        height: calc(100vh - 56px);
+        overflow: hidden;
       }
       .app-shell.utility-mode {
-        grid-template-columns: 96px minmax(0, 1fr) minmax(0, 360px);
+        grid-template-columns: 96px minmax(0, 1fr) auto;
       }
       .app-shell.utility-mode .setup-pane {
         display: none;
@@ -129,7 +132,10 @@ def scout_app_html() -> str:
 
       .setup-pane, .workspace, .drawer {
         padding: 18px;
+        overflow-y: auto;
+        min-height: 0;
       }
+      .rail { overflow-y: auto; }
       .setup-pane {
         border-right: 1px solid var(--line);
         background: #fff;
@@ -138,6 +144,7 @@ def scout_app_html() -> str:
       .drawer {
         border-left: 1px solid var(--line);
         background: #fff;
+        width: 360px;
       }
       .hidden { display: none !important; }
 
