@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scout — Web Intelligence for the Algolia Field Team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gelasio:ital,wght@0,400;0,600;0,700;1,400&family=Ubuntu+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #111111;
+    --text: #111827;
+    --muted: #6b7280;
+    --rule: #e5e7eb;
+    --surface: #ffffff;
+    --accent: #16A34A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--surface);
+    color: var(--text);
+    font-family: "Gelasio", Georgia, serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 56px 40px 40px;
+  }
+  .kicker {
+    font-family: "Ubuntu Mono", monospace;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 18px;
+    color: var(--ink);
+  }
+  .lede {
+    font-size: 20px;
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--ink);
+    border-left: 3px solid var(--ink);
+    padding-left: 20px;
+    margin: 0 0 36px;
+  }
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 36px 0 10px;
+    color: var(--ink);
+  }
+  h2 .num {
+    font-family: "Ubuntu Mono", monospace;
+    font-size: 13px;
+    color: var(--muted);
+    vertical-align: middle;
+    margin-right: 10px;
+    letter-spacing: 0.1em;
+  }
+  p { margin: 0 0 14px; max-width: 68ch; }
+  ul { margin: 0 0 14px; padding-left: 22px; }
+  li { margin-bottom: 8px; max-width: 66ch; }
+  strong { font-weight: 600; color: var(--ink); }
+  .status { font-style: italic; color: var(--muted); }
+  hr {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 32px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0 8px;
+    font-size: 15px;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 12px 9px 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th {
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 2px solid var(--ink);
+  }
+  td.win { font-weight: 600; color: var(--accent); }
+  .personas { display: grid; grid-template-columns: 1fr; gap: 0; }
+  .footer {
+    margin-top: 36px;
+    padding-top: 16px;
+    border-top: 2px solid var(--ink);
+    font-size: 13px;
+    color: var(--muted);
+    font-family: "Ubuntu Mono", monospace;
+    line-height: 1.7;
+  }
+  @media print {
+    @page { margin: 9mm 12mm; size: A4; }
+    body { font-size: 10.5px; line-height: 1.45; }
+    .page { padding: 0; max-width: none; }
+    .kicker { font-size: 9px; margin-bottom: 6px; }
+    h1 { font-size: 21px; margin-bottom: 8px; }
+    .lede { font-size: 12px; margin-bottom: 12px; padding-left: 12px; }
+    h2 { font-size: 12.5px; margin: 10px 0 4px; break-after: avoid; }
+    p, li { margin-bottom: 3px; max-width: none; }
+    ul { margin-bottom: 5px; padding-left: 16px; }
+    hr { margin: 8px 0; }
+    .personas { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .personas h2 { margin-top: 0; }
+    table { font-size: 9.5px; margin: 8px 0 4px; }
+    th, td { padding: 3px 6px 3px 0; }
+    .footer { margin-top: 10px; padding-top: 8px; font-size: 9px; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="kicker">Internal Tool · Algolia Field Enablement</div>
+  <h1>Scout — web intelligence for the Algolia field team</h1>
+  <p class="lede">Scout turns any prospect's website into structured, citable sales intelligence — on your laptop, in minutes, with zero per-crawl SaaS fees.</p>
+
+  <h2>What it is</h2>
+  <p>Scout is a self-hosted web intelligence platform. You give it a company URL and a job to do — pull their product catalog, map their leadership team, find their careers page, collect their investor materials — and it crawls the site, extracts structured records, and saves everything with evidence: which page each fact came from, when it was fetched, and how confident the extraction is.</p>
+  <p>It runs entirely on your machine (one Python service plus a browser engine). No Apify subscription, no per-result billing, no sending prospect research through a third-party scraping vendor.</p>
+
+  <h2>What it does</h2>
+  <ul>
+    <li><strong>Product catalog extraction</strong> — point Scout at a retailer's category page and get back <strong>Algolia-ready product records</strong> (objectID, name, brand, price, images, category hierarchy) as JSON, ready to index for a demo. <span class="status">Live today.</span></li>
+    <li><strong>Company intelligence</strong> — company profile, leadership, social presence, careers and ATS signals, investor relations assets, recent news. <span class="status">Rolling out — UI and data contracts are in place; live extraction is being built use case by use case.</span></li>
+    <li><strong>Hard-site handling</strong> — when a WAF blocks the crawler (Estée Lauder, Nike-class sites), Scout says so honestly, preserves the blocked-page evidence, and offers a one-click escalation: it drives <strong>your real Chrome browser</strong>, captures what you see, and extracts records from that.</li>
+    <li><strong>Evidence on everything</strong> — every record carries source URLs, timestamps, and confidence scores. No naked numbers in front of a prospect.</li>
+  </ul>
+
+  <hr>
+
+  <div class="personas">
+    <section>
+      <h2><span class="num">SE</span>For Solutions Engineers</h2>
+      <p>The slowest part of a killer demo is getting the prospect's own data into an index. Scout collapses that.</p>
+      <ul>
+        <li>"Build me a demo index from <code>prospect.com/collections/bestsellers</code>" → run products mode → records.json with names, prices, SKUs, images → push to an Algolia index. A morning of manual scraping becomes a coffee break.</li>
+        <li>Blocked-page evidence is itself a talking point: show the prospect exactly which of their pages resist automated access — relevant to any data-ingestion conversation.</li>
+        <li>Runs are reproducible: the same config produces the same artifact set, so a demo built for discovery can be rebuilt for the POC.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="num">AE</span>For Account Executives</h2>
+      <p>Walk into the call knowing the account the way they know themselves.</p>
+      <ul>
+        <li>One run per prospect gives you a dossier folder: who runs the company, what they sell, where they're hiring, what they told investors — each fact linked to the page it came from.</li>
+        <li>Catalog runs quantify the opportunity: "we extracted 4,000 SKUs across 12 categories from your site" is a concrete, evidence-backed opener about search and discovery scale.</li>
+        <li>Self-hosted means prospect research never leaves your machine — no vendor logs of which accounts you're working.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="num">BDR</span>For BDRs</h2>
+      <p>Personalization at volume without the tab-hopping.</p>
+      <ul>
+        <li>Careers runs surface hiring signals (which teams are growing, which ATS they use) — natural relevance hooks for sequencing.</li>
+        <li>News runs collect the latest announcements with dates and links, so the "saw your launch last week" line is real and current.</li>
+        <li>Presets and the target catalog make repeat research a two-click operation: pick the account, pick the use case, run.</li>
+      </ul>
+    </section>
+  </div>
+
+  <h2>Why it matters</h2>
+  <table>
+    <thead>
+      <tr><th></th><th>Apify / SaaS scrapers</th><th>Manual research</th><th>Scout</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Cost per run</strong></td><td>Metered billing</td><td>Your afternoon</td><td class="win">$0 marginal</td></tr>
+      <tr><td><strong>Data residency</strong></td><td>Vendor cloud</td><td>Your head</td><td class="win">Your laptop</td></tr>
+      <tr><td><strong>Output</strong></td><td>Raw HTML/JSON</td><td>Notes</td><td class="win">Typed records + citations</td></tr>
+      <tr><td><strong>Repeatability</strong></td><td>Per-actor config</td><td>None</td><td class="win">Saved presets, identical artifacts</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Status &amp; getting started</h2>
+  <p>Scout is an internal tool under active development. Product catalog extraction is production-quality today; the company, careers, investor, and news intelligence flows are being brought live use case by use case on the same engine. Run it locally: <code>scout serve</code>, open <code>http://localhost:8421/app</code>, pick a use case, paste a URL, Start Execution.</p>
+
+  <div class="footer">
+    Contact: Arijit Chowdhury · Repo: AI-Development/Scout · All extraction respects per-domain rate limits and robots.txt by default.
+  </div>
+</main>
+</body>
+</html>
