@@ -20,7 +20,7 @@
 - name (F: og:site_name / title / JSON-LD), legal_name (F: JSON-LD if present)
 - website (F), description (F: meta/og description — verbatim), description_source (F)
 - about_url, careers_url, ir_url, contact_url (F: discovered hrefs, each verified 200)
-- social_urls{linkedin, x, instagram, facebook, youtube, tiktok} (F: footer/header hrefs — URL only, not fetched)
+- social_urls[] {platform, url, verified} (F: footer/header hrefs; **absorbs the former `social` use case** — each URL HEAD/GET-verified for reachability + canonical redirect; `verified` flag set; NO post scraping, ToS posture)
 - logo_url (F: JSON-LD/og:image), locations[] (F: contact/footer addresses if structurally present)
 - source_urls[], citations[] per field, confidence
 

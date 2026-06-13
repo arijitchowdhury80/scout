@@ -26,16 +26,18 @@ Each spec defines: **Input contract** (target forms accepted) · **Acquisition p
 
 ## Use-case index
 
-| Spec | Use case | Status today | Consumer skill |
+Use-case set and ICP rationale: `docs/decisions/2026-06-13-scout-icp-and-use-case-set.md`. Two faces — **Intelligence verticals** (below, built breadth-first in Phase C) and **Core modes** (`docs/specs/core-modes.md`, the general-crawler / Ring-2 surface, not built breadth-first).
+
+| Spec | Vertical | Status today | Consumer skill |
 |---|---|---|---|
-| 01 | company | stub | algolia-intel-company |
+| 01 | company (incl. social URL-verification) | stub | algolia-intel-company (+ -social verify half) |
 | 02 | careers | stub | algolia-intel-hiring |
 | 03 | news | stub | algolia-intel-news |
-| 04 | investor | stub | algolia-intel-investor (assets half) |
-| 05 | filings & transcripts (NEW) | absent | algolia-intel-investor (quotes half) |
-| 06 | docs | stub | (general research) |
-| 07 | website-quality | stub | algolia-audit-research (context) |
-| 08 | research (narrowed) | stub | (general) |
-| 09 | social (URL-verify only) | stub | algolia-intel-social (verification half) |
+| 04 | investor & filings (merged) | stub / absent | algolia-intel-investor |
+| 05 | tech-stack (NEW, DOM/network only) | absent | algolia-intel-techstack (DOM half) |
+| 06 | search-probe (NEW, needs embedded browser) | absent | algolia-audit-browser |
+| 07 | site-signals (was "website-quality") | stub | search audit |
 | 10 | products | LIVE | SE demo indexing |
-| 11 | prospect bundle (was "prism") | stub | PRISM / algolia-audit-research |
+| 11 | bundle (incl. competitor-set variant) | stub | PRISM / algolia-audit-research |
+
+Demoted to Core modes (`core-modes.md`), not Intelligence verticals: `research` → list-fetch primitive; `docs` → docs-map (deferred). Folded in: `social` → company (`verified` flag on socials).
