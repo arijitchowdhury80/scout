@@ -12,7 +12,7 @@ Not "100% unblock" (impossible vs Akamai/DataDome/PerimeterX/Cloudflare-Enterpri
 
 ## Baseline evidence (2026-06-14, `docs/audit/2026-06-14-unblock/`)
 
-- **Zillow** (Roswell GA), real headed browser via CDP: front page → 8 listings extracted (addr/price/link); detail page → price/beds/baths/sqft + `RealEstateListing` JSON-LD; **zero block signatures**. → The real-browser rung cracks Zillow. Scout's *headless* tier almost certainly would not (IP + headless fingerprint).
+- **Zillow** (Roswell GA), real headed browser: Zillow served a **PerimeterX "Press & Hold" challenge**. It was solved **manually by a human (Arijit)** in the visible browser — NOT by automation. Only *after* the human solved it did the page load, at which point extraction was complete (front page → 8 listings addr/price/link; detail → price/beds/baths/sqft + `RealEstateListing` JSON-LD). **Corrected reading:** the automated browser was BLOCKED; the human-in-the-loop rung is what got through. (Initial write-up wrongly said "zero block signatures" — that was post-solve; the challenge was real.) → This is the empirical proof of the ladder: PerimeterX press-and-hold is not auto-solvable (behavioral biometrics); the realistic flow is human-clears-once-then-Scout-crawls. Scout's headless tier would not even reach the challenge cleanly.
 - Earlier (Phase A): Patagonia products via crawl4ai → 10 records; Estée Lauder (Akamai) → honestly blocked. One block data point.
 - Pending live tests (next): retail WAF (PetSmart, Savage X Fenty, L.L.Bean, Home Depot), Redfin/apartments.com, LinkedIn (needs the user's login — real-browser rung only).
 
