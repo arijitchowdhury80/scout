@@ -473,6 +473,9 @@ class _CDPBridge:
     async def capture(self, url: str) -> CaptureLike:
         return await self._svc.capture_active_tab(url)  # type: ignore[attr-defined,no-any-return]
 
+    async def navigate_capture(self, url: str) -> CaptureLike:
+        return await self._svc.navigate_capture(url)  # type: ignore[attr-defined,no-any-return]
+
 
 @app.command()
 def unblock(
@@ -482,10 +485,22 @@ def unblock(
     max_wait: float = typer.Option(
         180.0, "--max-wait", help="Max seconds to wait for you to clear the challenge"
     ),
+    crawl_from_here: bool = typer.Option(
+        False,
+        "--crawl-from-here/--no-crawl-from-here",
+        help="After the page clears, visit the top detail links in the same session and extract each",
+    ),
+    link_contains: str = typer.Option(
+        "", "--link-contains", help="Only follow detail links whose URL contains this (e.g. /homedetails/)"
+    ),
+    limit: int = typer.Option(5, "--limit", help="Max detail pages to crawl from the cleared page"),
 ) -> None:
     """Human-assisted capture: open a URL in a real browser, you clear any
-    'press & hold' / login, and Scout captures the page the moment it's clear."""
+    'press & hold' / login, and Scout captures the page the moment it's clear.
+    With --crawl-from-here, Scout then walks the top detail links in that same
+    cleared session and extracts each (markdown + JSON-LD) as a record."""
     from scout.api.user_browser import ChromeCDPService
+    from scout.core.crawl_from_here import crawl_from_here as _crawl_from_here
     from scout.core.human_assisted import human_assisted_acquire
 
     bridge = _CDPBridge(ChromeCDPService())
@@ -502,13 +517,41 @@ def unblock(
         human_assisted_acquire(url, bridge, sleep=_sleep, poll_interval=poll, max_wait=max_wait)
     )
     summary = outcome.model_dump(mode="json")
+    summary.pop("html", None)  # keep the JSON summary readable; html is large
 
-    if out and outcome.status == "cleared":
-        target = Path(out).expanduser()
+    target = Path(out).expanduser() if out else None
+    if target and outcome.status == "cleared":
         target.mkdir(parents=True, exist_ok=True)
         (target / "capture.md").write_text(outcome.markdown, encoding="utf-8")
         (target / "capture.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
         typer.echo(f"Captured cleared page -> {target}", err=True)
+
+    if crawl_from_here and outcome.status == "cleared":
+        typer.echo(
+            f"Crawling up to {limit} detail pages from the cleared session"
+            + (f" (links containing '{link_contains}')" if link_contains else "")
+            + " ...",
+            err=True,
+        )
+        crawl_result = asyncio.run(
+            _crawl_from_here(
+                outcome.html, outcome.final_url or url, bridge,
+                sleep=_sleep, contains=link_contains, limit=limit,
+            )
+        )
+        summary["crawl_from_here"] = crawl_result.model_dump(mode="json")
+        typer.echo(
+            f"Crawled {crawl_result.crawled} pages "
+            f"({crawl_result.blocked} re-challenged) from {crawl_result.discovered} discovered.",
+            err=True,
+        )
+        if target:
+            (target / "detail_records.json").write_text(
+                crawl_result.model_dump_json(indent=2), encoding="utf-8"
+            )
+            for i, rec in enumerate(crawl_result.records, 1):
+                (target / f"detail_{i:02d}.md").write_text(rec.markdown, encoding="utf-8")
+            typer.echo(f"Wrote {len(crawl_result.records)} detail records -> {target}", err=True)
 
     _out(summary)
     if outcome.status != "cleared":

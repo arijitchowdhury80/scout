@@ -202,6 +202,56 @@ class ChromeCDPService:
             links=links[:25],
         )
 
+    async def navigate_capture(self, url: str) -> UserBrowserCaptureRequest:
+        """Navigate the live (already-cleared) session to `url` and capture it.
+
+        Reuses the same Chrome process — so the anti-bot cookie earned when the
+        human cleared the challenge carries over and detail pages don't
+        re-challenge. Used by crawl-from-here.
+        """
+        if not self._state.debugging_port or not self._cdp_reachable(self._state.debugging_port):
+            raise RuntimeError("Chrome CDP endpoint is not reachable for navigation.")
+        try:
+            from playwright.async_api import async_playwright
+        except ImportError as exc:  # pragma: no cover - dependency boundary
+            raise RuntimeError(f"Playwright is not available: {exc}") from exc
+
+        async with async_playwright() as playwright:
+            browser = await playwright.chromium.connect_over_cdp(
+                f"http://127.0.0.1:{self._state.debugging_port}"
+            )
+            contexts = browser.contexts
+            context = contexts[0] if contexts else await browser.new_context()
+            pages = [page for ctx in browser.contexts for page in ctx.pages]
+            page = pages[-1] if pages else await context.new_page()
+            try:
+                await page.goto(url, wait_until="domcontentloaded", timeout=30_000)
+            except Exception:
+                pass
+            try:
+                await page.wait_for_load_state("networkidle", timeout=5_000)
+            except Exception:
+                pass
+            title = await page.title()
+            html = await page.content()
+            try:
+                text = await page.locator("body").inner_text(timeout=5_000)
+            except Exception:
+                text = ""
+            links = await page.eval_on_selector_all(
+                "a[href]",
+                """anchors => anchors.slice(0, 200).map((a) => ({
+                    text: (a.innerText || '').trim().slice(0, 180),
+                    href: a.href
+                }))""",
+            )
+            current_url = page.url
+            await browser.close()
+
+        return UserBrowserCaptureRequest(
+            url=current_url, title=title, html=html, text=text, links=links[:25]
+        )
+
     def _reusable_state(self, profile_dir: Path) -> UserBrowserSessionState | None:
         candidates = [self._state, self._load_state(profile_dir)]
         for candidate in candidates:

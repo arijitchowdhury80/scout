@@ -21,6 +21,10 @@ class FakeService:
         self.captured_url = url
         return object()
 
+    async def navigate_capture(self, url):
+        self.navigated_url = url
+        return object()
+
 
 def test_bridge_open_delegates_with_url() -> None:
     svc = FakeService()
@@ -32,6 +36,12 @@ def test_bridge_capture_delegates_with_url() -> None:
     svc = FakeService()
     asyncio.run(_CDPBridge(svc).capture("https://zillow.com/x"))
     assert svc.captured_url == "https://zillow.com/x"
+
+
+def test_bridge_navigate_capture_delegates_with_url() -> None:
+    svc = FakeService()
+    asyncio.run(_CDPBridge(svc).navigate_capture("https://zillow.com/homedetails/1/"))
+    assert svc.navigated_url == "https://zillow.com/homedetails/1/"
 
 
 def test_unblock_command_is_registered() -> None:

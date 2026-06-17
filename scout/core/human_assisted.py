@@ -48,6 +48,7 @@ class HumanAssistedOutcome(BaseModel):
     final_url: str = ""
     title: str = ""
     markdown: str = ""
+    html: str = ""  # cleared-page HTML, so crawl-from-here can discover detail links
     blocked_vendor: str = ""
     error: str = ""
 
@@ -93,6 +94,7 @@ async def human_assisted_acquire(
                 final_url=cap.url,
                 title=cap.title,
                 markdown=cap.text or "",
+                html=cap.html or "",
             )
         last_vendor = signal.vendor
 
