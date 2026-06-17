@@ -6,8 +6,12 @@ import asyncio
 import json
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import typer
+
+if TYPE_CHECKING:
+    from scout.core.human_assisted import CaptureLike
 
 from scout.core.modes.crawl import crawl as _crawl
 from scout.core.modes.extract import extract as _extract
@@ -452,6 +456,63 @@ def screenshot(
         typer.echo(f"Screenshot saved to {out} ({resp.width}x{resp.height}px)")
     else:
         _die(resp)
+
+
+class _CDPBridge:
+    """Adapter: lets the engine's human_assisted flow drive the Chrome CDP
+    service without the engine importing the api layer (boundary stays clean)."""
+
+    def __init__(self, service: object) -> None:
+        self._svc = service
+
+    async def open(self, url: str) -> object:
+        from scout.api.user_browser import UserBrowserOpenRequest
+
+        return await self._svc.open_browser(UserBrowserOpenRequest(url=url))  # type: ignore[attr-defined]
+
+    async def capture(self, url: str) -> CaptureLike:
+        return await self._svc.capture_active_tab(url)  # type: ignore[attr-defined,no-any-return]
+
+
+@app.command()
+def unblock(
+    url: str = typer.Argument(..., help="URL to open in a real, visible browser"),
+    out: str = typer.Option("", "--out", help="Directory to write the captured markdown + summary"),
+    poll: float = typer.Option(2.0, "--poll", help="Seconds between checks while you solve the challenge"),
+    max_wait: float = typer.Option(
+        180.0, "--max-wait", help="Max seconds to wait for you to clear the challenge"
+    ),
+) -> None:
+    """Human-assisted capture: open a URL in a real browser, you clear any
+    'press & hold' / login, and Scout captures the page the moment it's clear."""
+    from scout.api.user_browser import ChromeCDPService
+    from scout.core.human_assisted import human_assisted_acquire
+
+    bridge = _CDPBridge(ChromeCDPService())
+
+    async def _sleep(seconds: float) -> None:
+        await asyncio.sleep(seconds)
+
+    typer.echo(
+        f"Opening {url} in a real browser. Solve any press-and-hold / login when it appears; "
+        "Scout will capture automatically once the page clears.",
+        err=True,
+    )
+    outcome = asyncio.run(
+        human_assisted_acquire(url, bridge, sleep=_sleep, poll_interval=poll, max_wait=max_wait)
+    )
+    summary = outcome.model_dump(mode="json")
+
+    if out and outcome.status == "cleared":
+        target = Path(out).expanduser()
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "capture.md").write_text(outcome.markdown, encoding="utf-8")
+        (target / "capture.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+        typer.echo(f"Captured cleared page -> {target}", err=True)
+
+    _out(summary)
+    if outcome.status != "cleared":
+        raise SystemExit(1)
 
 
 @app.command()
