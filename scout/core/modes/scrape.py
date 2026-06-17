@@ -13,6 +13,7 @@ from __future__ import annotations
 import time
 from datetime import datetime, timezone
 from typing import cast
+from urllib.parse import urlparse
 
 import structlog
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode, CrawlResult
@@ -48,6 +49,51 @@ def _extract_links(links_dict: dict) -> list[str]:
     return result
 
 
+def _build_browser_config(req: ScrapeRequest) -> BrowserConfig:
+    """Map a ScrapeRequest onto Crawl4AI BrowserConfig (read receipt 2026-06-17:
+    proxy / user_agent / user_agent_mode are BrowserConfig params)."""
+    kwargs: dict = {
+        "headless": req.headless,
+        "java_script_enabled": req.use_js,
+        "enable_stealth": req.stealth,
+    }
+    if req.proxy:
+        # 'proxy' is deprecated in Crawl4AI; use proxy_config (Playwright shape).
+        parsed = urlparse(req.proxy)
+        server = parsed.scheme + "://" + (parsed.hostname or "")
+        if parsed.port:
+            server += f":{parsed.port}"
+        proxy_config: dict = {"server": server}
+        if parsed.username:
+            proxy_config["username"] = parsed.username
+        if parsed.password:
+            proxy_config["password"] = parsed.password
+        kwargs["proxy_config"] = proxy_config
+    if req.user_agent:
+        kwargs["user_agent"] = req.user_agent
+    if req.user_agent_mode:
+        kwargs["user_agent_mode"] = req.user_agent_mode
+    return BrowserConfig(**kwargs)
+
+
+def _build_run_config(req: ScrapeRequest, *, want_screenshot: bool) -> CrawlerRunConfig:
+    """Map a ScrapeRequest onto Crawl4AI CrawlerRunConfig (read receipt:
+    simulate_user / magic / override_navigator / mean_delay live here)."""
+    kwargs: dict = {
+        "cache_mode": CacheMode.BYPASS,
+        "screenshot": want_screenshot,
+        "page_timeout": req.timeout_ms,
+        "wait_for": req.wait_for,
+        "simulate_user": req.stealth,
+        "magic": req.stealth,
+        # stealth runs get navigator override for free; or opt in explicitly
+        "override_navigator": req.stealth or req.override_navigator,
+    }
+    if req.mean_delay is not None:
+        kwargs["mean_delay"] = req.mean_delay
+    return CrawlerRunConfig(**kwargs)
+
+
 async def scrape(req: ScrapeRequest) -> ScrapeResponse:
     """Fetch a single URL and return clean content."""
     started = time.monotonic()
@@ -59,20 +105,9 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
     md_generator = DefaultMarkdownGenerator(
         content_filter=PruningContentFilter(threshold=0.4, threshold_type="fixed")
     )
-    browser_cfg = BrowserConfig(
-        headless=req.headless,
-        java_script_enabled=req.use_js,
-        enable_stealth=req.stealth,
-    )
-    run_cfg = CrawlerRunConfig(
-        cache_mode=CacheMode.BYPASS,
-        markdown_generator=md_generator,
-        screenshot=want_screenshot,
-        page_timeout=req.timeout_ms,
-        wait_for=req.wait_for,
-        simulate_user=req.stealth,
-        magic=req.stealth,
-    )
+    browser_cfg = _build_browser_config(req)
+    run_cfg = _build_run_config(req, want_screenshot=want_screenshot)
+    run_cfg.markdown_generator = md_generator
 
     def _empty_meta() -> ScoutMetadata:
         return ScoutMetadata(url=req.url, crawled_at=crawled_at)

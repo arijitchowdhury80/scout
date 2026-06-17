@@ -42,6 +42,12 @@ class ScrapeRequest(BaseModel):
     timeout_ms: int = 30000
     stealth: bool = False  # enable_stealth + simulate_user + magic in Crawl4AI
     headless: bool = True
+    # --- acquisition-ladder stealth knobs (T1 rung); all opt-in, defaults inert ---
+    proxy: str | None = None  # e.g. "http://user:pass@host:port" → Crawl4AI BrowserConfig.proxy
+    user_agent: str | None = None  # explicit UA; overrides default
+    user_agent_mode: str | None = None  # "random" rotates a realistic UA per run
+    override_navigator: bool = False  # patch navigator.* to defeat headless fingerprinting
+    mean_delay: float | None = None  # human-like pacing between actions (seconds)
 
 
 class ScrapeResponse(BaseModel):
