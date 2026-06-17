@@ -23,6 +23,10 @@ _HARD_STATUSES = {403, 429, 503}
 
 # Vendor → list of high-precision signatures (lowercased substring or regex).
 # Order matters: first vendor with a hit wins.
+# CRITICAL (live finding 2026-06-17): match the CHALLENGE, never the vendor's
+# SDK. Anti-bot scripts (_px, datadome, akamai, incapsula) stay loaded on the
+# CLEARED page — keying on them flags every protected-but-passed page as blocked
+# forever. Every signature below is challenge/interstitial text, not SDK presence.
 _VENDOR_SIGNATURES: list[tuple[str, tuple[str, ...]]] = [
     (
         "cloudflare",
@@ -33,7 +37,7 @@ _VENDOR_SIGNATURES: list[tuple[str, tuple[str, ...]]] = [
             "challenge-platform",
             "cf_chl_",
             "checking your browser before accessing",
-            "ray id",
+            "enable javascript and cookies to continue",
         ),
     ),
     (
@@ -41,15 +45,12 @@ _VENDOR_SIGNATURES: list[tuple[str, tuple[str, ...]]] = [
         (
             "geo.captcha-delivery.com",
             "captcha-delivery",
-            "datadome",
         ),
     ),
     (
         "perimeterx",
         (
             "px-captcha",
-            "_px",
-            "perimeterx",
             "press & hold",
             "press and hold",
             "hold to confirm",
@@ -59,16 +60,12 @@ _VENDOR_SIGNATURES: list[tuple[str, tuple[str, ...]]] = [
         "akamai",
         (
             "errors.edgesuite.net",
-            "akamai",
-            "reference #",
         ),
     ),
     (
         "imperva",
         (
             "powered and protected by incapsula",
-            "incapsula",
-            "_incap_",
             "request unsuccessful",
         ),
     ),

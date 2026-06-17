@@ -93,3 +93,35 @@ def test_unusual_traffic_phrase_detected() -> None:
         html="<p>Our systems have detected unusual traffic from your network.</p>",
     )
     assert sig.blocked is True
+
+
+# --- Regression: live finding 2026-06-17 (Zillow). Anti-bot SDK scripts stay
+# loaded on the CLEARED page; their mere presence must NOT read as blocked. ---
+
+
+def test_cleared_perimeterx_page_with_sdk_present_is_not_blocked() -> None:
+    sig = detect_block(
+        status_code=200,
+        title="Estée Lauder Skincare | Shop Serum, Moisturizer & More",
+        html='<script src="/_px/client/main.js"></script><h1>Serums</h1>' + "content " * 100,
+    )
+    assert sig.blocked is False
+
+
+def test_cleared_datadome_page_with_sdk_present_is_not_blocked() -> None:
+    sig = detect_block(
+        status_code=200,
+        title="Roswell GA Rentals",
+        html='<script>window.DataDome={};</script><div>86 listings</div>' + "x" * 400,
+    )
+    assert sig.blocked is False
+
+
+def test_cleared_akamai_cdn_reference_is_not_blocked() -> None:
+    # "akamai" appears in CDN asset URLs on normal pages — not a block.
+    sig = detect_block(
+        status_code=200,
+        title="Home",
+        html='<img src="https://cdn.akamai.net/logo.png"><h1>Welcome</h1>' + "y" * 400,
+    )
+    assert sig.blocked is False
