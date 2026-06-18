@@ -32,6 +32,11 @@ _PAGE = """<!doctype html>
   .status { padding: 6px 14px; font-size: 12px; color: #9ca3af; border-bottom: 1px solid rgba(255,255,255,.06); }
   #blockbar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(245,158,11,.14); border-bottom: 1px solid rgba(245,158,11,.4); color: #fde68a; font-size: 13px; }
   #blockbar button { background: #b45309; }
+  #capturedbar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(16,185,129,.15); border-bottom: 1px solid rgba(16,185,129,.4); color: #6ee7b7; font-size: 13px; }
+  #capturedbar button { background: #047857; }
+  .stage { position: relative; }
+  #capturedOverlay { display: none; position: absolute; inset: 12px; background: rgba(4,120,87,.92); border-radius: 8px; color: #ecfdf5; align-items: center; justify-content: center; flex-direction: column; gap: 8px; text-align: center; padding: 24px; }
+  #capturedOverlay h2 { margin: 0; font-size: 18px; }
   .stage { display: grid; place-items: center; padding: 12px; }
   canvas { background: #101522; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; max-width: 100%; cursor: crosshair; }
   .hint { padding: 8px 14px; font-size: 12px; color: #fcd34d; background: rgba(245,158,11,.08); border-top: 1px solid rgba(245,158,11,.2); }
@@ -54,7 +59,19 @@ _PAGE = """<!doctype html>
     <button id="bannerNative">Solve in real browser →</button>
     <button id="bannerGrab" class="secondary">Then grab the page</button>
   </div>
-  <div class="stage"><canvas id="screen" width="1280" height="800" tabindex="0"></canvas></div>
+  <div id="capturedbar">
+    <span>✓ Captured <b id="capturedtitle"></b> (<span id="capturedchars">0</span> chars) from your real browser.</span>
+    <button id="downloadCapture">Download</button>
+    <button id="previewCapture" class="secondary">Preview</button>
+  </div>
+  <div class="stage">
+    <canvas id="screen" width="1280" height="800" tabindex="0"></canvas>
+    <div id="capturedOverlay">
+      <h2>✓ Captured from your real browser</h2>
+      <div id="capturedOverlayText"></div>
+      <div style="font-size:12px;opacity:.8">(The canvas behind is the separate embedded session — ignore it.)</div>
+    </div>
+  </div>
   <div class="hint">This browser runs inside Scout. If a site shows a "press &amp; hold" challenge, solve it right here on the canvas. (Hardest behavioral walls may still need the native-window fallback.)</div>
   <pre id="out"></pre>
 
@@ -152,14 +169,36 @@ _PAGE = """<!doctype html>
       setStatus("Opening " + url + " in your REAL browser — solve the press & hold there, then click grab.");
       await api("/app/browser/open", { url });
     }
+    let lastCapture = null;
     async function nativeGrab() {
       const url = normalizeUrl(document.getElementById("url").value);
       setStatus("Capturing from your real browser…");
       const res = await api("/app/browser/capture", { url });
-      if (res.error) setStatus("Native capture error: " + res.error);
-      else if (res.blocked) setStatus("Still blocked (" + res.vendor + ") — finish the press & hold, then grab again.");
-      else { setStatus("Captured: " + res.title + " (" + res.chars + " chars)"); document.getElementById("blockbar").style.display = "none"; log(res); }
+      if (res.error) { setStatus("Native capture error: " + res.error); return; }
+      if (res.blocked) { setStatus("Still blocked (" + res.vendor + ") — finish the press & hold, then grab again."); return; }
+      // Success — make it unmissable (the embedded canvas behind may still show
+      // its own challenge; that's a different, now-irrelevant browser).
+      lastCapture = res;
+      document.getElementById("blockbar").style.display = "none";
+      document.getElementById("capturedtitle").textContent = res.title || url;
+      document.getElementById("capturedchars").textContent = res.chars;
+      document.getElementById("capturedbar").style.display = "flex";
+      document.getElementById("capturedOverlayText").textContent = (res.title || url) + " — " + res.chars + " chars";
+      document.getElementById("capturedOverlay").style.display = "flex";
+      setStatus("Captured: " + res.title + " (" + res.chars + " chars) from your real browser.");
     }
+    document.getElementById("downloadCapture").onclick = () => {
+      if (!lastCapture) return;
+      const blob = new Blob([lastCapture.text || ""], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "scout-capture.txt";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+    document.getElementById("previewCapture").onclick = () => {
+      if (lastCapture) log((lastCapture.text || "").slice(0, 4000));
+    };
     document.getElementById("nativeOpen").onclick = nativeOpen;
     document.getElementById("nativeGrab").onclick = nativeGrab;
     document.getElementById("bannerNative").onclick = nativeOpen;

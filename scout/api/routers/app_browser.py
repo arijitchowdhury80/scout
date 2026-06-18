@@ -47,7 +47,7 @@ async def capture_native(req: UserBrowserOpenRequest) -> NativeCaptureResult:
         chars=len(cap.html),
         blocked=signal.blocked,
         vendor=signal.vendor,
-        text=cap.text[:20000],
+        text=cap.text[:2_000_000],  # full clean text of the cleared page
     )
 
 
