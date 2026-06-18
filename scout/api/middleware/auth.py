@@ -22,6 +22,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/",
             "/app",
             "/app/",
+            "/app/live-browser",
             "/docs",
             "/docs/oauth2-redirect",
             "/favicon.ico",

@@ -14,11 +14,19 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse
 
 from scout.api.config import settings
+from scout.api.live_browser_page import live_browser_page_html
 from scout.core.live_browser import LiveBrowserSession
 
 router = APIRouter(tags=["live-browser"])
+
+
+@router.get("/app/live-browser", response_class=HTMLResponse, include_in_schema=False)
+async def live_browser_console() -> str:
+    """The embedded-browser console page (canvas streamed from /app/live)."""
+    return live_browser_page_html(settings.scout_api_key)
 
 # Embedded browser runs headless and is streamed into the UI (no popup window).
 _HEADLESS = True
