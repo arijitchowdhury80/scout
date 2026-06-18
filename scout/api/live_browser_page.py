@@ -23,12 +23,15 @@ _PAGE = """<!doctype html>
 <style>
   :root { color-scheme: dark; }
   body { margin: 0; background: #09090b; color: #fafafa; font: 14px/1.5 system-ui, sans-serif; }
-  header { display: flex; gap: 8px; align-items: center; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.1); }
+  header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.1); }
   header .brand { font-weight: 700; letter-spacing: .04em; }
-  input#url { flex: 1; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.2); color: #fafafa; border-radius: 8px; padding: 8px 12px; font-family: ui-monospace, monospace; }
-  button { background: #0C5CAB; color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+  input#url { flex: 1 1 240px; min-width: 0; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.2); color: #fafafa; border-radius: 8px; padding: 8px 12px; font-family: ui-monospace, monospace; }
+  button { background: #0C5CAB; color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   button.secondary { background: rgba(255,255,255,.08); }
+  button.native { background: #b45309; }
   .status { padding: 6px 14px; font-size: 12px; color: #9ca3af; border-bottom: 1px solid rgba(255,255,255,.06); }
+  #blockbar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: rgba(245,158,11,.14); border-bottom: 1px solid rgba(245,158,11,.4); color: #fde68a; font-size: 13px; }
+  #blockbar button { background: #b45309; }
   .stage { display: grid; place-items: center; padding: 12px; }
   canvas { background: #101522; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; max-width: 100%; cursor: crosshair; }
   .hint { padding: 8px 14px; font-size: 12px; color: #fcd34d; background: rgba(245,158,11,.08); border-top: 1px solid rgba(245,158,11,.2); }
@@ -42,10 +45,15 @@ _PAGE = """<!doctype html>
     <button id="go">Open</button>
     <button id="snap" class="secondary">Capture</button>
     <button id="stop" class="secondary">Stop</button>
-    <button id="nativeOpen" class="secondary" title="Open in your real browser to solve a press &amp; hold">Native&nbsp;solve</button>
-    <button id="nativeGrab" class="secondary" title="Capture the cleared page from your real browser">Native&nbsp;grab</button>
+    <button id="nativeOpen" class="native" title="Open in your real browser to solve a press &amp; hold">Native&nbsp;solve</button>
+    <button id="nativeGrab" class="native" title="Capture the cleared page from your real browser">Native&nbsp;grab</button>
   </header>
-  <div class="status" id="status">Idle. Enter a URL and click Open.</div>
+  <div class="status" id="status">Idle. Type a URL and press Enter (or click Open).</div>
+  <div id="blockbar">
+    <span>⚠ This site is blocking automated access (<span id="blockvendor">bot wall</span>). Forwarded clicks won't clear a press &amp; hold — solve it in your real browser.</span>
+    <button id="bannerNative">Solve in real browser →</button>
+    <button id="bannerGrab" class="secondary">Then grab the page</button>
+  </div>
   <div class="stage"><canvas id="screen" width="1280" height="800" tabindex="0"></canvas></div>
   <div class="hint">This browser runs inside Scout. If a site shows a "press &amp; hold" challenge, solve it right here on the canvas. (Hardest behavioral walls may still need the native-window fallback.)</div>
   <pre id="out"></pre>
@@ -90,6 +98,11 @@ _PAGE = """<!doctype html>
             ctx.drawImage(img, 0, 0);
           };
           img.src = "data:image/jpeg;base64," + msg.data;
+        } else if (msg.kind === "blocked") {
+          document.getElementById("blockvendor").textContent = msg.vendor || "bot wall";
+          document.getElementById("blockbar").style.display = "flex";
+        } else if (msg.kind === "cleared") {
+          document.getElementById("blockbar").style.display = "none";
         } else if (msg.kind === "error") {
           setStatus("Error: " + msg.message);
         } else {
@@ -134,19 +147,23 @@ _PAGE = """<!doctype html>
       });
       return r.json();
     }
-    document.getElementById("nativeOpen").onclick = async () => {
+    async function nativeOpen() {
       const url = normalizeUrl(document.getElementById("url").value);
-      setStatus("Opening " + url + " in your REAL browser — solve the press & hold there, then click Native grab.");
+      setStatus("Opening " + url + " in your REAL browser — solve the press & hold there, then click grab.");
       await api("/app/browser/open", { url });
-    };
-    document.getElementById("nativeGrab").onclick = async () => {
+    }
+    async function nativeGrab() {
       const url = normalizeUrl(document.getElementById("url").value);
       setStatus("Capturing from your real browser…");
       const res = await api("/app/browser/capture", { url });
       if (res.error) setStatus("Native capture error: " + res.error);
-      else if (res.blocked) setStatus("Still blocked (" + res.vendor + ") — finish the press & hold, then Native grab again.");
-      else { setStatus("Captured: " + res.title + " (" + res.chars + " chars)"); log(res); }
-    };
+      else if (res.blocked) setStatus("Still blocked (" + res.vendor + ") — finish the press & hold, then grab again.");
+      else { setStatus("Captured: " + res.title + " (" + res.chars + " chars)"); document.getElementById("blockbar").style.display = "none"; log(res); }
+    }
+    document.getElementById("nativeOpen").onclick = nativeOpen;
+    document.getElementById("nativeGrab").onclick = nativeGrab;
+    document.getElementById("bannerNative").onclick = nativeOpen;
+    document.getElementById("bannerGrab").onclick = nativeGrab;
   </script>
 </body>
 </html>

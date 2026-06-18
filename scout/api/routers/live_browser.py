@@ -11,6 +11,8 @@ passed as a query param (browsers can't set headers on a WebSocket).
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -18,15 +20,41 @@ from fastapi.responses import HTMLResponse
 
 from scout.api.config import settings
 from scout.api.live_browser_page import live_browser_page_html
+from scout.core.blocking import detect_block
 from scout.core.live_browser import LiveBrowserSession
 
 router = APIRouter(tags=["live-browser"])
 
 
+async def _watch_for_blocks(session: Any, websocket: WebSocket, interval: float = 2.5) -> None:
+    """Poll the live page; tell the UI when it's behind a bot wall vs cleared,
+    so the prominent 'solve in native browser' banner appears automatically."""
+    last: bool | None = None
+    while True:
+        await asyncio.sleep(interval)
+        try:
+            _url, title, html = await session.snapshot()
+        except Exception:  # noqa: BLE001 — page mid-navigation; try again next tick
+            continue
+        signal = detect_block(None, title=title, html=html)
+        if signal.blocked != last:
+            last = signal.blocked
+            payload = (
+                {"kind": "blocked", "vendor": signal.vendor}
+                if signal.blocked
+                else {"kind": "cleared"}
+            )
+            with contextlib.suppress(Exception):
+                await websocket.send_json(payload)
+
+
 @router.get("/app/live-browser", response_class=HTMLResponse, include_in_schema=False)
-async def live_browser_console() -> str:
+async def live_browser_console() -> HTMLResponse:
     """The embedded-browser console page (canvas streamed from /app/live)."""
-    return live_browser_page_html(settings.scout_api_key)
+    return HTMLResponse(
+        live_browser_page_html(settings.scout_api_key),
+        headers={"Cache-Control": "no-store, must-revalidate"},
+    )
 
 # Embedded browser runs headless and is streamed into the UI (no popup window).
 _HEADLESS = True
@@ -89,12 +117,18 @@ async def live_browser_ws(websocket: WebSocket, key: str = "", url: str = "") ->
                 pass
 
         await session.start_screencast(_on_frame)
+        watcher = asyncio.ensure_future(_watch_for_blocks(session, websocket))
 
-        while True:
-            msg = await websocket.receive_json()
-            response = await handle_client_message(session, msg)
-            if response is not None:
-                await websocket.send_json(response)
+        try:
+            while True:
+                msg = await websocket.receive_json()
+                response = await handle_client_message(session, msg)
+                if response is not None:
+                    await websocket.send_json(response)
+        finally:
+            watcher.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await watcher
     except WebSocketDisconnect:
         pass
     finally:
