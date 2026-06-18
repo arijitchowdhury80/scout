@@ -42,6 +42,8 @@ _PAGE = """<!doctype html>
     <button id="go">Open</button>
     <button id="snap" class="secondary">Capture</button>
     <button id="stop" class="secondary">Stop</button>
+    <button id="nativeOpen" class="secondary" title="Open in your real browser to solve a press &amp; hold">Native&nbsp;solve</button>
+    <button id="nativeGrab" class="secondary" title="Capture the cleared page from your real browser">Native&nbsp;grab</button>
   </header>
   <div class="status" id="status">Idle. Enter a URL and click Open.</div>
   <div class="stage"><canvas id="screen" width="1280" height="800" tabindex="0"></canvas></div>
@@ -116,6 +118,35 @@ _PAGE = """<!doctype html>
     document.getElementById("go").onclick = () => connect(document.getElementById("url").value.trim());
     document.getElementById("snap").onclick = () => send({ kind: "snapshot" });
     document.getElementById("stop").onclick = stop;
+
+    // Enter in the URL bar opens (was: had to click Open).
+    document.getElementById("url").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") connect(document.getElementById("url").value.trim());
+    });
+
+    // Native-window fallback for behavioral walls (PerimeterX press & hold)
+    // that forwarded canvas input can't clear.
+    async function api(path, body) {
+      const r = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-API-Key": KEY },
+        body: JSON.stringify(body),
+      });
+      return r.json();
+    }
+    document.getElementById("nativeOpen").onclick = async () => {
+      const url = normalizeUrl(document.getElementById("url").value);
+      setStatus("Opening " + url + " in your REAL browser — solve the press & hold there, then click Native grab.");
+      await api("/app/browser/open", { url });
+    };
+    document.getElementById("nativeGrab").onclick = async () => {
+      const url = normalizeUrl(document.getElementById("url").value);
+      setStatus("Capturing from your real browser…");
+      const res = await api("/app/browser/capture", { url });
+      if (res.error) setStatus("Native capture error: " + res.error);
+      else if (res.blocked) setStatus("Still blocked (" + res.vendor + ") — finish the press & hold, then Native grab again.");
+      else { setStatus("Captured: " + res.title + " (" + res.chars + " chars)"); log(res); }
+    };
   </script>
 </body>
 </html>
