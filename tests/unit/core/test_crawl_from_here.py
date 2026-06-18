@@ -113,8 +113,6 @@ def test_crawl_from_here_visits_each_link_and_extracts() -> None:
 
 
 def test_crawl_from_here_records_navigation_errors_without_crashing() -> None:
-    a = "https://www.zillow.com/homedetails/301-River/123_zpid/"
-
     class BoomBridge:
         visited = []
 

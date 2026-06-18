@@ -17,6 +17,7 @@ from scout.api.routers import (
     crawl,
     extract,
     health,
+    live_browser,
     products,
     run,
     runs,
@@ -52,6 +53,7 @@ app.include_router(runs.router)
 app.include_router(algolia.router)
 app.include_router(app_browser.router)
 app.include_router(app_runs.router)
+app.include_router(live_browser.router)
 app.include_router(map_router.router)
 app.include_router(screenshot.router)
 app.include_router(workdir.router)

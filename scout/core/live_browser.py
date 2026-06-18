@@ -112,6 +112,10 @@ class LiveBrowserSession:
             {"format": "jpeg", "quality": quality, "maxWidth": max_width, "maxHeight": max_height},
         )
 
+    async def navigate(self, url: str) -> None:
+        """Drive the live page to a new URL (e.g. user typed in the URL bar)."""
+        await self._page.goto(url, wait_until="domcontentloaded")
+
     async def dispatch(self, event: dict[str, Any]) -> None:
         """Forward one UI input event into the live page via CDP."""
         method, params = input_event_to_cdp(event)
