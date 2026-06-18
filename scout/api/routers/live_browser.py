@@ -73,7 +73,14 @@ async def live_browser_ws(websocket: WebSocket, key: str = "", url: str = "") ->
 
     session = _make_session()
     try:
-        await session.start(url or "about:blank", headless=_HEADLESS)
+        try:
+            await session.start(url or "about:blank", headless=_HEADLESS)
+        except Exception as exc:  # noqa: BLE001 — tell the client why, don't just drop
+            await websocket.send_json(
+                {"kind": "error", "message": f"could not open page: {exc}"}
+            )
+            await websocket.close(code=1011)
+            return
 
         async def _on_frame(data: str) -> None:
             try:

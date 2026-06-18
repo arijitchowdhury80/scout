@@ -59,8 +59,18 @@ _PAGE = """<!doctype html>
     function setStatus(t) { statusEl.textContent = t; }
     function log(o) { out.textContent = (typeof o === "string" ? o : JSON.stringify(o, null, 2)) + "\\n" + out.textContent; }
 
-    function connect(url) {
+    function normalizeUrl(u) {
+      u = (u || "").trim();
+      if (!u) return "";
+      return /^(https?:|about:|data:|file:)/.test(u) ? u : "https://" + u;
+    }
+
+    function connect(rawUrl) {
       stop();
+      const url = normalizeUrl(rawUrl);
+      if (!url) { setStatus("Enter a URL first."); return; }
+      document.getElementById("url").value = url;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       const proto = location.protocol === "https:" ? "wss" : "ws";
       ws = new WebSocket(`${proto}://${location.host}/app/live?key=${encodeURIComponent(KEY)}&url=${encodeURIComponent(url)}`);
       setStatus("Connecting to " + url + " …");

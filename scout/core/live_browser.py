@@ -23,6 +23,19 @@ from typing import Any
 # Map a UI mouse "button" string to the CDP button name.
 _BUTTONS = {"left", "middle", "right", "back", "forward"}
 
+_URL_SCHEMES = ("http://", "https://", "about:", "data:", "file:")
+
+
+def normalize_url(url: str) -> str:
+    """Accept a bare domain and make it navigable (live finding 2026-06-18:
+    'algolia.com' failed goto with 'invalid URL'). Empty → about:blank."""
+    url = (url or "").strip()
+    if not url:
+        return "about:blank"
+    if url.startswith(_URL_SCHEMES):
+        return url
+    return "https://" + url
+
 
 def input_event_to_cdp(event: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     """Translate a Scout-UI canvas input event into a (CDP method, params) pair.
@@ -90,7 +103,7 @@ class LiveBrowserSession:
         self._browser = await self._pw.chromium.launch(headless=headless)
         self._page = await self._browser.new_page()
         self._cdp = await self._page.context.new_cdp_session(self._page)
-        await self._page.goto(url, wait_until="domcontentloaded")
+        await self._page.goto(normalize_url(url), wait_until="domcontentloaded")
 
     async def start_screencast(
         self, on_frame: Any, *, quality: int = 60, max_width: int = 1280, max_height: int = 800
@@ -114,7 +127,7 @@ class LiveBrowserSession:
 
     async def navigate(self, url: str) -> None:
         """Drive the live page to a new URL (e.g. user typed in the URL bar)."""
-        await self._page.goto(url, wait_until="domcontentloaded")
+        await self._page.goto(normalize_url(url), wait_until="domcontentloaded")
 
     async def dispatch(self, event: dict[str, Any]) -> None:
         """Forward one UI input event into the live page via CDP."""

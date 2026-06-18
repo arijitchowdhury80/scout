@@ -54,3 +54,28 @@ def test_keyup_maps_to_key_up() -> None:
 def test_unknown_event_type_raises() -> None:
     with pytest.raises(ValueError):
         input_event_to_cdp({"type": "teleport", "x": 0, "y": 0})
+
+
+# --- URL normalization (live finding 2026-06-18: bare domain failed goto) ---
+
+
+def test_bare_domain_gets_https() -> None:
+    from scout.core.live_browser import normalize_url
+
+    assert normalize_url("algolia.com") == "https://algolia.com"
+    assert normalize_url("  zillow.com/x ") == "https://zillow.com/x"
+
+
+def test_existing_scheme_is_preserved() -> None:
+    from scout.core.live_browser import normalize_url
+
+    assert normalize_url("https://x.com") == "https://x.com"
+    assert normalize_url("http://x.com") == "http://x.com"
+    assert normalize_url("about:blank") == "about:blank"
+
+
+def test_empty_url_becomes_about_blank() -> None:
+    from scout.core.live_browser import normalize_url
+
+    assert normalize_url("") == "about:blank"
+    assert normalize_url("   ") == "about:blank"
