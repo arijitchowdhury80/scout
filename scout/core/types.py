@@ -123,6 +123,27 @@ class ExtractResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Capture structuring
+#
+# Turn an already-fetched page (e.g. a human-cleared native-browser grab) into
+# clean markdown + optional typed records WITHOUT re-fetching. Re-fetching a
+# cleared page would re-trigger the anti-bot wall the human just solved, so the
+# captured HTML is run through Crawl4AI via the `raw://` scheme instead.
+# ---------------------------------------------------------------------------
+
+
+class CaptureExtraction(BaseModel):
+    success: bool
+    source_url: str = ""
+    markdown: str = ""  # clean filtered markdown (always populated on success)
+    records: list[dict] = Field(default_factory=list)  # typed records iff a schema was given
+    record_count: int = 0
+    word_count: int = 0
+    error: str = ""
+    duration_ms: int = 0
+
+
+# ---------------------------------------------------------------------------
 # /map
 # ---------------------------------------------------------------------------
 
