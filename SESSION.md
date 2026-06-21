@@ -11,16 +11,17 @@ Scout = **standalone universal acquisition engine** (`scout.core` library + HTTP
 ## Resume Action (next session, in order)
 
 1. Read this file fully, then memory `scout-phased-rebuild-plan.md` for the full arc + all locked decisions.
-2. **Build the next slice: structured-record extraction from the cleared native capture** (details below). TDD — RED before GREEN.
-3. Then, in order: crawl-into-each-listing from the cleared native session (harvest) → wire the embedded pane into the main `/app` → expose `unblock`/`harvest` as API endpoints for PRISM.
+2. **Surface the structuring engine in the UI:** the `/app/live-browser` console "Native grab" still renders the raw blob — wire its results panel to show `markdown` + `records` from `/app/browser/capture` (the endpoint already returns them).
+3. **Per-listing detail from the cleared native session** (browse-and-harvest: human navigates, Scout structures each cleared page; note the Jun 17 finding that crawl-from-here AUTO-nav re-challenges on PerimeterX).
+4. Expose `unblock`/`harvest`/structure as **API endpoints for PRISM**; wire the embedded pane into the main `/app`.
 
-## The immediate next action (decided 2026-06-21)
+## DONE 2026-06-21 — structured-record extraction (commit `7ce395b`)
 
-**Problem:** the native-grab fallback returns a ~1.2M-char raw-text blob, not structured records. The user's real ask: "top N listings, every detail, as typed data."
+**Problem:** the native-grab fallback returned a ~1.2M-char raw-text blob, not structured records.
 
-**Root cause (verified in code):** the native-grab path bypasses Crawl4AI. [app_browser.py:43](scout/api/routers/app_browser.py:43) → `capture_active_tab` ([user_browser.py:181](scout/api/user_browser.py:181)) does `page.content()` + `body.inner_text()` via Playwright and returns raw text. It never runs that HTML through Scout's own Crawl4AI extraction pipeline (the one `scrape`/`extract`/`products` modes use).
+**Root cause (verified in code):** the native-grab path bypassed Crawl4AI — `capture_active_tab` ([user_browser.py:181](scout/api/user_browser.py:181)) did `page.content()` + `body.inner_text()` via Playwright and returned raw text, never routing it through Scout's own engine. It was a *bypassed-engine* problem, not a missing extractor. See memory `blob-means-bypassed-engine.md`.
 
-**Approach (user-confirmed):** feed the cleared page's already-captured HTML back through Crawl4AI via its **`raw://` scheme** (verified crawl4ai 0.7.7, async_crawler_strategy.py:485) — NO re-fetch (re-fetch re-triggers the wall). Reuses `scout/core/modes/extract.py` machinery: `DefaultMarkdownGenerator` + `PruningContentFilter` for clean markdown (free path), `JsonCssExtractionStrategy`/`LLMExtractionStrategy` for typed records when a caller supplies a schema. This reconnects the bypassed native-grab path to Scout's foundation rather than adding a new extractor.
+**Fix (shipped):** `scout/core/capture_extract.py::structure_capture()` feeds the held HTML back through `AsyncWebCrawler` via the **`raw://` scheme** (crawl4ai 0.7.7 async_crawler_strategy.py:485 — strips prefix, processes bytes, status 200, **no network fetch** → no wall re-trigger). Returns `CaptureExtraction` = clean markdown (default/free) + typed `records` when a CSS or LLM schema is supplied. `/app/browser/capture` now returns `markdown`/`records`/`record_count` for a cleared page and **skips structuring while still blocked**. Tests: 6 unit + 2 integration (real Crawl4AI, `.invalid` host proves no fetch) + 2 API contract. 277 unit green, pyright 0, ruff clean.
 
 ## Locked architecture (do not relitigate)
 
@@ -42,7 +43,7 @@ Scout = **standalone universal acquisition engine** (`scout.core` library + HTTP
 
 ## What has NOT been done (do not claim otherwise)
 
-- Native grab still returns raw text, NOT structured records (THE next slice).
+- Native grab now returns structured markdown + records from the API, but the `/app/live-browser` console UI still renders the old raw blob — NOT yet wired to show records.
 - Embedded pane not yet wired into the main `/app` (lives at `/app/live-browser`).
 - NO `unblock`/`harvest` API endpoints for PRISM yet.
 - Harvest / crawl-from-cleared-native-session not built.
