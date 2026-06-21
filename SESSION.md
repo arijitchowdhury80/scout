@@ -21,7 +21,15 @@ Scout = **standalone universal acquisition engine** (`scout.core` library + HTTP
 
 **Root cause (verified in code):** the native-grab path bypassed Crawl4AI — `capture_active_tab` ([user_browser.py:181](scout/api/user_browser.py:181)) did `page.content()` + `body.inner_text()` via Playwright and returned raw text, never routing it through Scout's own engine. It was a *bypassed-engine* problem, not a missing extractor. See memory `blob-means-bypassed-engine.md`.
 
-**Fix (shipped):** `scout/core/capture_extract.py::structure_capture()` feeds the held HTML back through `AsyncWebCrawler` via the **`raw://` scheme** (crawl4ai 0.7.7 async_crawler_strategy.py:485 — strips prefix, processes bytes, status 200, **no network fetch** → no wall re-trigger). Returns `CaptureExtraction` = clean markdown (default/free) + typed `records` when a CSS or LLM schema is supplied. `/app/browser/capture` now returns `markdown`/`records`/`record_count` for a cleared page and **skips structuring while still blocked**. Tests: 6 unit + 2 integration (real Crawl4AI, `.invalid` host proves no fetch) + 2 API contract. 277 unit green, pyright 0, ruff clean.
+**Fix (shipped):** `scout/core/capture_extract.py::structure_capture()` feeds the held HTML back through `AsyncWebCrawler` via the **`raw://` scheme** (crawl4ai 0.7.7 async_crawler_strategy.py:485 — strips prefix, processes bytes, status 200, **no network fetch** → no wall re-trigger). Returns `CaptureExtraction` = clean markdown (default/free) + typed `records` when a CSS or LLM schema is supplied. `/app/browser/capture` now returns `markdown`/`records`/`record_count` for a cleared page and **skips structuring while still blocked**. Tests: 6 unit + 2 integration (real Crawl4AI, `.invalid` host proves no fetch) + 2 API contract.
+
+## DONE 2026-06-21 — Crawl4AI-over-CDP: the core law enforced (commit `62f4896`)
+
+**Law (Arijit, stated twice):** Crawl4AI is THE engine — for **fetch AND extract**, not just extract. No content path may bypass it. (The screencast *viewport* is exempt — viewing ≠ acquisition.)
+
+**Audit:** 3 raw-Playwright paths existed (`user_browser.py` capture, `app_runs.py` capture, `live_browser.py` screencast). The content ones now route through Crawl4AI.
+
+**Fix (shipped):** `scout/core/cdp_acquire.py::acquire_open_page(cdp_url, url)` attaches Crawl4AI to the human-cleared Chrome over CDP (`browser_mode="cdp"`+`cdp_url`) and drives the **exact cleared tab without navigating** (`js_only=True` → no `goto` → no wall re-trigger; managed `get_page` adopts the tab by url-match, browser_manager.py:1078; `scan_full_page` flushes lazy-load). `/app/browser/capture`: **CDP-attach is PRIMARY** for a cleared tab, `raw://` snapshot is the **fallback**. **Decisive proof:** integration test launches real Chromium, injects a unique marker into the LIVE DOM, runs `acquire_open_page(js_only)` — the marker survives into output, proving Crawl4AI read the tab in place (a `goto` would wipe it). See memory `crawl4ai-owns-cleared-session-via-cdp.md`. **284 unit green, pyright 0, ruff clean** (cumulative across both slices). Open: hardest-site (real PerimeterX-cleared session via CDP) still needs Arijit's Mac + a live solve.
 
 ## Locked architecture (do not relitigate)
 
