@@ -35,11 +35,14 @@ def test_capture_requires_api_key() -> None:
 
 
 def test_capture_structures_cleared_page_into_records(monkeypatch) -> None:
-    """A cleared (non-blocked) capture is run through Scout's Crawl4AI engine
-    via structure_capture — the response carries clean markdown + typed records,
-    not just the raw text blob."""
+    """With NO live CDP port, a cleared (non-blocked) capture falls back to
+    structuring the static snapshot via raw:// (structure_capture) — the
+    response carries clean markdown + typed records, not just the text blob."""
     from scout.api.routers import app_browser
     from scout.core.types import CaptureExtraction
+
+    # No open session → no debugging_port → fall back to the raw:// snapshot path.
+    browser_service._state = UserBrowserSessionState(connected=False, status="not_started")
 
     async def fake_capture(_url: str):
         return UserBrowserCaptureRequest(
@@ -118,6 +121,105 @@ def test_capture_skips_structuring_when_still_blocked(monkeypatch) -> None:
     assert body["record_count"] == 0
     assert body["records"] == []
     assert called["structured"] is False
+
+
+def test_capture_prefers_crawl4ai_over_cdp_for_live_tab(monkeypatch) -> None:
+    """When a live CDP port is open, the cleared tab is driven by Crawl4AI over
+    CDP (acquire_open_page) — the CORE engine on the live, fully-rendered page —
+    NOT the static raw:// snapshot. structure_capture must not run."""
+    from scout.api.routers import app_browser
+    from scout.core.types import CaptureExtraction
+
+    browser_service._state = UserBrowserSessionState(
+        connected=True, status="opened", debugging_port=49321
+    )
+
+    async def fake_capture(_url: str):
+        return UserBrowserCaptureRequest(
+            url="https://zillow.com/roswell",
+            title="Roswell Rentals",
+            html="<li class='card'>snapshot</li>",
+            text="snapshot",
+        )
+
+    seen = {"cdp_url": "", "structured": False}
+
+    async def fake_acquire(cdp_url, url, **kwargs):
+        seen["cdp_url"] = cdp_url
+        return CaptureExtraction(
+            success=True,
+            source_url=url,
+            markdown="# Roswell Rentals (live)",
+            records=[{"address": "101 Oak St"}],
+            record_count=1,
+            word_count=4,
+        )
+
+    async def fake_structure(html, **kwargs):  # pragma: no cover - must NOT run
+        seen["structured"] = True
+        raise AssertionError("snapshot fallback must not run when CDP acquire succeeds")
+
+    monkeypatch.setattr(app_browser.browser_service, "capture_active_tab", fake_capture)
+    monkeypatch.setattr(app_browser, "acquire_open_page", fake_acquire)
+    monkeypatch.setattr(app_browser, "structure_capture", fake_structure)
+
+    client = TestClient(app)
+    resp = client.post(
+        "/app/browser/capture", json={"url": "https://zillow.com/roswell"}, headers=_HEADERS
+    )
+
+    body = resp.json()
+    assert body["record_count"] == 1
+    assert body["records"][0]["address"] == "101 Oak St"
+    assert "live" in body["markdown"]
+    assert seen["cdp_url"] == "http://127.0.0.1:49321"
+    assert seen["structured"] is False
+
+
+def test_capture_falls_back_to_snapshot_when_cdp_acquire_fails(monkeypatch) -> None:
+    """If Crawl4AI-over-CDP fails on the live tab, fall back to structuring the
+    static snapshot via raw:// — still the core engine, never raw text."""
+    from scout.api.routers import app_browser
+    from scout.core.types import CaptureExtraction
+
+    browser_service._state = UserBrowserSessionState(
+        connected=True, status="opened", debugging_port=49321
+    )
+
+    async def fake_capture(_url: str):
+        return UserBrowserCaptureRequest(
+            url="https://zillow.com/roswell",
+            title="Roswell Rentals",
+            html="<li class='card'>snapshot html</li>",
+            text="snapshot",
+        )
+
+    async def fake_acquire(cdp_url, url, **kwargs):
+        return CaptureExtraction(success=False, source_url=url, error="cdp attach failed")
+
+    async def fake_structure(html, **kwargs):
+        assert "snapshot html" in html
+        return CaptureExtraction(
+            success=True,
+            source_url=kwargs.get("source_url", ""),
+            markdown="# from snapshot",
+            records=[{"address": "fallback"}],
+            record_count=1,
+        )
+
+    monkeypatch.setattr(app_browser.browser_service, "capture_active_tab", fake_capture)
+    monkeypatch.setattr(app_browser, "acquire_open_page", fake_acquire)
+    monkeypatch.setattr(app_browser, "structure_capture", fake_structure)
+
+    client = TestClient(app)
+    resp = client.post(
+        "/app/browser/capture", json={"url": "https://zillow.com/roswell"}, headers=_HEADERS
+    )
+
+    body = resp.json()
+    assert body["record_count"] == 1
+    assert body["records"][0]["address"] == "fallback"
+    assert "snapshot" in body["markdown"]
 
 
 from scout.api.user_browser import UserBrowserCaptureRequest  # noqa: E402

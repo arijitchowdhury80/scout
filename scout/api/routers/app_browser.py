@@ -13,6 +13,7 @@ from scout.api.user_browser import (
 )
 from scout.core.blocking import detect_block
 from scout.core.capture_extract import structure_capture
+from scout.core.cdp_acquire import acquire_open_page
 
 router = APIRouter(prefix="/app/browser", tags=["app-browser"])
 
@@ -74,10 +75,26 @@ async def capture_native(req: NativeCaptureRequest) -> NativeCaptureResult:
     )
 
     if not signal.blocked:
-        structured = await structure_capture(
-            cap.html, source_url=cap.url, css_schema=req.css_schema
-        )
-        if structured.success:
+        structured = None
+        # Primary: drive the live cleared tab with Crawl4AI over CDP (the core
+        # engine on a fully-rendered page — js_only, so no re-nav / wall
+        # re-trigger). Falls back to structuring the static snapshot via raw://.
+        state = await browser_service.status()
+        if state.debugging_port:
+            cdp = await acquire_open_page(
+                f"http://127.0.0.1:{state.debugging_port}",
+                cap.url,
+                css_schema=req.css_schema,
+            )
+            if cdp.success:
+                structured = cdp
+        if structured is None:
+            snapshot = await structure_capture(
+                cap.html, source_url=cap.url, css_schema=req.css_schema
+            )
+            if snapshot.success:
+                structured = snapshot
+        if structured is not None:
             result = result.model_copy(
                 update={
                     "markdown": structured.markdown,
