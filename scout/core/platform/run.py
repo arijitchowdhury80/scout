@@ -14,7 +14,18 @@ from scout.core.platform.types import RunManifest, RunRequest, RunResponse
 if TYPE_CHECKING:
     from scout.core.crawler import ScoutCrawler
 
-_REAL_RUNNERS = {"company", "careers", "investor", "news"}
+_REAL_RUNNERS = {
+    "company",
+    "careers",
+    "investor",
+    "news",
+    "research",
+    "docs",
+    "social",
+    "locations",
+    "website-quality",
+    "products",
+}
 _LIVE_MODES = {"auto", "crawl4ai", "browser", "user-browser"}
 
 
@@ -134,6 +145,33 @@ async def _run_real_vertical(
             from scout.core.use_cases.runners.news import run_news
 
             records = await run_news(req, crawler)
+        elif req.use_case == "research":
+            from scout.core.use_cases.runners.research import run_research
+
+            records = await run_research(req, crawler)
+        elif req.use_case == "docs":
+            from scout.core.use_cases.runners.docs import run_docs
+
+            records = await run_docs(req, crawler)
+        elif req.use_case == "social":
+            from scout.core.use_cases.runners.social import run_social
+
+            records = await run_social(req, crawler)
+        elif req.use_case == "locations":
+            from scout.core.use_cases.runners.locations import run_locations
+
+            records = await run_locations(req, crawler)
+        elif req.use_case == "website-quality":
+            from scout.core.use_cases.runners.website_quality import run_website_quality
+
+            records = await run_website_quality(req, crawler)
+        elif req.use_case == "products":
+            from scout.core.types import ProductCrawlRequest
+
+            prod_resp = await crawler.products(
+                ProductCrawlRequest(site=req.url or "", query=req.query)
+            )
+            records = [r.model_dump(mode="json") for r in prod_resp.records]
     except Exception as exc:
         errors.append(str(exc))
 
@@ -177,11 +215,15 @@ async def _run_real_vertical(
 
 
 async def _run_prism(req: RunRequest, crawler: "ScoutCrawler", description: str) -> RunResponse:
-    """PRISM = company + careers + investor + news combined."""
+    """PRISM = all intelligence verticals combined."""
     from scout.core.use_cases.runners.careers import run_careers
     from scout.core.use_cases.runners.company import run_company
     from scout.core.use_cases.runners.investor import run_investor
     from scout.core.use_cases.runners.news import run_news
+    from scout.core.use_cases.runners.research import run_research
+    from scout.core.use_cases.runners.social import run_social
+    from scout.core.use_cases.runners.locations import run_locations
+    from scout.core.use_cases.runners.website_quality import run_website_quality
     from scout.core.platform.execution import ExecutionMode, provider_ladder_for_mode
 
     started_at = _now_iso()
@@ -190,7 +232,16 @@ async def _run_prism(req: RunRequest, crawler: "ScoutCrawler", description: str)
     all_records: list[dict] = []
     errors: list[str] = []
 
-    for runner in [run_company, run_careers, run_investor, run_news]:
+    for runner in [
+        run_company,
+        run_careers,
+        run_investor,
+        run_news,
+        run_research,
+        run_social,
+        run_locations,
+        run_website_quality,
+    ]:
         try:
             records = await runner(req, crawler)
             all_records.extend(records)
