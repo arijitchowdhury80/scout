@@ -10,7 +10,11 @@ import structlog
 from scout.core.artifacts import write_product_artifacts
 from scout.core.modes.map import map_urls
 from scout.core.modes.scrape import scrape
-from scout.core.products.algolia import build_algolia_record, build_listing_algolia_record, is_junk_record
+from scout.core.products.algolia import (
+    build_algolia_record,
+    build_listing_algolia_record,
+    is_junk_record,
+)
 from scout.core.products.discovery import ProductUrlGroups, group_product_urls, normalize_start_url
 from scout.core.products.discovery import extract_product_links, select_category_urls
 from scout.core.products.jsonld import extract_product_jsonld
@@ -114,9 +118,9 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
                 )
                 _keep_best_record(records_by_url, record)
 
-        records = [
-            r for r in records_by_url.values() if not is_junk_record(r.name)
-        ][: req.max_products]
+        records = [r for r in records_by_url.values() if not is_junk_record(r.name)][
+            : req.max_products
+        ]
         if not records and not blocked_pages:
             blocked_pages.append(
                 _empty_product_evidence(

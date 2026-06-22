@@ -64,7 +64,9 @@ async def test_careers_investor_news_and_research_runs_write_typed_records(tmp_p
 async def test_prism_run_composes_company_careers_investor_and_news_records(tmp_path) -> None:
     output_dir = tmp_path / "prism-run"
 
-    resp = await run_use_case(RunRequest(use_case="prism", query="Adobe", output_dir=str(output_dir)))
+    resp = await run_use_case(
+        RunRequest(use_case="prism", query="Adobe", output_dir=str(output_dir))
+    )
 
     assert resp.success is True
     record_types = {record["record_type"] for record in _records(output_dir)}

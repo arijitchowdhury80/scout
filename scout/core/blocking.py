@@ -58,9 +58,7 @@ _VENDOR_SIGNATURES: list[tuple[str, tuple[str, ...]]] = [
     ),
     (
         "akamai",
-        (
-            "errors.edgesuite.net",
-        ),
+        ("errors.edgesuite.net",),
     ),
     (
         "imperva",

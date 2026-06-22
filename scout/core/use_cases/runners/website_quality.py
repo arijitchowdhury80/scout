@@ -91,15 +91,17 @@ async def run_website_quality(req: RunRequest, crawler: ScoutCrawler) -> list[di
     word_count = len(markdown.split())
     link_count = len(_LINK_TAG.findall(html))
 
-    signal_count = sum([
-        has_viewport,
-        has_description,
-        has_og,
-        has_structured,
-        uses_https,
-        uses_semantic,
-        has_h1,
-    ])
+    signal_count = sum(
+        [
+            has_viewport,
+            has_description,
+            has_og,
+            has_structured,
+            uses_https,
+            uses_semantic,
+            has_h1,
+        ]
+    )
     confidence = min(0.9, 0.3 + signal_count * 0.08)
 
     record = WebsiteQualityRecord(

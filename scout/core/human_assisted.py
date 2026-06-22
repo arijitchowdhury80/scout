@@ -81,9 +81,7 @@ async def human_assisted_acquire(
         try:
             cap = await bridge.capture(url)
         except Exception as exc:  # noqa: BLE001
-            return HumanAssistedOutcome(
-                status="error", polls=polls, error=f"capture failed: {exc}"
-            )
+            return HumanAssistedOutcome(status="error", polls=polls, error=f"capture failed: {exc}")
 
         signal = detect_block(None, title=cap.title, html=cap.html, markdown=cap.text)
         content = cap.text or cap.html or ""
@@ -99,8 +97,6 @@ async def human_assisted_acquire(
         last_vendor = signal.vendor
 
         if waited >= max_wait:
-            return HumanAssistedOutcome(
-                status="timeout", polls=polls, blocked_vendor=last_vendor
-            )
+            return HumanAssistedOutcome(status="timeout", polls=polls, blocked_vendor=last_vendor)
         await sleep(poll_interval)
         waited += poll_interval

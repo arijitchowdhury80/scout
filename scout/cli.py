@@ -485,7 +485,9 @@ class _CDPBridge:
 def unblock(
     url: str = typer.Argument(..., help="URL to open in a real, visible browser"),
     out: str = typer.Option("", "--out", help="Directory to write the captured markdown + summary"),
-    poll: float = typer.Option(2.0, "--poll", help="Seconds between checks while you solve the challenge"),
+    poll: float = typer.Option(
+        2.0, "--poll", help="Seconds between checks while you solve the challenge"
+    ),
     max_wait: float = typer.Option(
         180.0, "--max-wait", help="Max seconds to wait for you to clear the challenge"
     ),
@@ -495,7 +497,9 @@ def unblock(
         help="After the page clears, visit the top detail links in the same session and extract each",
     ),
     link_contains: str = typer.Option(
-        "", "--link-contains", help="Only follow detail links whose URL contains this (e.g. /homedetails/)"
+        "",
+        "--link-contains",
+        help="Only follow detail links whose URL contains this (e.g. /homedetails/)",
     ),
     limit: int = typer.Option(5, "--limit", help="Max detail pages to crawl from the cleared page"),
 ) -> None:
@@ -539,8 +543,12 @@ def unblock(
         )
         crawl_result = asyncio.run(
             _crawl_from_here(
-                outcome.html, outcome.final_url or url, bridge,
-                sleep=_sleep, contains=link_contains, limit=limit,
+                outcome.html,
+                outcome.final_url or url,
+                bridge,
+                sleep=_sleep,
+                contains=link_contains,
+                limit=limit,
             )
         )
         summary["crawl_from_here"] = crawl_result.model_dump(mode="json")

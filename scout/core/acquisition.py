@@ -83,9 +83,7 @@ async def acquire(target: str, rungs: list[AcquisitionRung]) -> AcquisitionOutco
         try:
             res = await rung.fetch(target)
         except Exception as exc:  # noqa: BLE001 — record and escalate, never crash the ladder
-            attempts.append(
-                AcquisitionAttempt(rung=rung.name, ok=False, note=f"error: {exc}")
-            )
+            attempts.append(AcquisitionAttempt(rung=rung.name, ok=False, note=f"error: {exc}"))
             continue
 
         signal = detect_block(
@@ -112,7 +110,5 @@ async def acquire(target: str, rungs: list[AcquisitionRung]) -> AcquisitionOutco
             result=res,
         )
 
-    status: AcquisitionStatus = (
-        "blocked_needs_human" if human_rung else "blocked_exhausted"
-    )
+    status: AcquisitionStatus = "blocked_needs_human" if human_rung else "blocked_exhausted"
     return AcquisitionOutcome(status=status, human_rung=human_rung, attempts=attempts)

@@ -62,15 +62,17 @@ def _req(use_case: str, query: str = "Acme Corp", url: str = "https://www.acme.c
 async def test_company_runner_extracts_company_record() -> None:
     from scout.core.use_cases.runners.company import run_company
 
-    crawler = _mock_crawler({
-        "acme.com": _scrape_ok(
-            "https://www.acme.com",
-            "# Acme Corp\n\nWe build great products for the web.\n"
-            "Follow us on https://www.linkedin.com/company/acme\n"
-            "and https://twitter.com/acme\n",
-            links=["https://www.linkedin.com/company/acme", "https://twitter.com/acme"],
-        ),
-    })
+    crawler = _mock_crawler(
+        {
+            "acme.com": _scrape_ok(
+                "https://www.acme.com",
+                "# Acme Corp\n\nWe build great products for the web.\n"
+                "Follow us on https://www.linkedin.com/company/acme\n"
+                "and https://twitter.com/acme\n",
+                links=["https://www.linkedin.com/company/acme", "https://twitter.com/acme"],
+            ),
+        }
+    )
 
     records = await run_company(_req("company"), crawler)
 
@@ -92,15 +94,17 @@ async def test_company_runner_extracts_company_record() -> None:
 async def test_company_runner_extracts_executives() -> None:
     from scout.core.use_cases.runners.company import run_company
 
-    crawler = _mock_crawler({
-        "acme.com": _scrape_ok(
-            "https://www.acme.com",
-            "# Acme Corp\n\n"
-            "## Leadership\n\n"
-            "**Jane Smith** — Chief Executive Officer\n\n"
-            "**John Doe**, VP of Engineering\n",
-        ),
-    })
+    crawler = _mock_crawler(
+        {
+            "acme.com": _scrape_ok(
+                "https://www.acme.com",
+                "# Acme Corp\n\n"
+                "## Leadership\n\n"
+                "**Jane Smith** — Chief Executive Officer\n\n"
+                "**John Doe**, VP of Engineering\n",
+            ),
+        }
+    )
 
     records = await run_company(_req("company"), crawler)
 
@@ -128,18 +132,20 @@ async def test_company_runner_returns_empty_on_total_failure() -> None:
 async def test_careers_runner_detects_ats_and_departments() -> None:
     from scout.core.use_cases.runners.careers import run_careers
 
-    crawler = _mock_crawler({
-        "/careers": _scrape_ok(
-            "https://www.acme.com/careers",
-            "# Join Acme\n\n"
-            "We use Greenhouse to manage applications.\n"
-            "Open positions in engineering, product, and design.\n"
-            "Apply at boards.greenhouse.io/acme\n"
-            "Senior Software Engineer - Backend\n"
-            "Product Designer - Mobile\n",
-            links=["https://boards.greenhouse.io/acme/jobs/123"],
-        ),
-    })
+    crawler = _mock_crawler(
+        {
+            "/careers": _scrape_ok(
+                "https://www.acme.com/careers",
+                "# Join Acme\n\n"
+                "We use Greenhouse to manage applications.\n"
+                "Open positions in engineering, product, and design.\n"
+                "Apply at boards.greenhouse.io/acme\n"
+                "Senior Software Engineer - Backend\n"
+                "Product Designer - Mobile\n",
+                links=["https://boards.greenhouse.io/acme/jobs/123"],
+            ),
+        }
+    )
 
     records = await run_careers(_req("careers"), crawler)
 
@@ -170,18 +176,20 @@ async def test_careers_runner_returns_empty_when_no_careers_page() -> None:
 async def test_investor_runner_detects_ticker_and_filings() -> None:
     from scout.core.use_cases.runners.investor import run_investor
 
-    crawler = _mock_crawler({
-        "/investor": _scrape_ok(
-            "https://www.acme.com/investors",
-            "# Investor Relations\n\n"
-            "NASDAQ: ACME\n\n"
-            "## Resources\n"
-            "- Annual Report 2025\n"
-            "- Quarterly Report Q4 2025\n"
-            "- Earnings Call Transcript\n"
-            "- SEC Filing DEF 14A\n",
-        ),
-    })
+    crawler = _mock_crawler(
+        {
+            "/investor": _scrape_ok(
+                "https://www.acme.com/investors",
+                "# Investor Relations\n\n"
+                "NASDAQ: ACME\n\n"
+                "## Resources\n"
+                "- Annual Report 2025\n"
+                "- Quarterly Report Q4 2025\n"
+                "- Earnings Call Transcript\n"
+                "- SEC Filing DEF 14A\n",
+            ),
+        }
+    )
 
     records = await run_investor(_req("investor"), crawler)
 
@@ -215,20 +223,22 @@ async def test_investor_runner_returns_empty_when_no_ir_page() -> None:
 async def test_news_runner_extracts_articles() -> None:
     from scout.core.use_cases.runners.news import run_news
 
-    crawler = _mock_crawler({
-        "/news": _scrape_ok(
-            "https://www.acme.com/news",
-            "# Acme Newsroom\n\n"
-            "## Acme Launches Revolutionary AI Platform\n"
-            "January 15, 2026\n\n"
-            "We are excited to announce our new platform.\n\n"
-            "## Acme Partners with Microsoft for Enterprise AI\n"
-            "February 1, 2026\n\n"
-            "Strategic partnership to bring AI to the enterprise.\n\n"
-            "## Acme Raises $100M Series D Funding Round\n"
-            "March 10, 2026\n\n",
-        ),
-    })
+    crawler = _mock_crawler(
+        {
+            "/news": _scrape_ok(
+                "https://www.acme.com/news",
+                "# Acme Newsroom\n\n"
+                "## Acme Launches Revolutionary AI Platform\n"
+                "January 15, 2026\n\n"
+                "We are excited to announce our new platform.\n\n"
+                "## Acme Partners with Microsoft for Enterprise AI\n"
+                "February 1, 2026\n\n"
+                "Strategic partnership to bring AI to the enterprise.\n\n"
+                "## Acme Raises $100M Series D Funding Round\n"
+                "March 10, 2026\n\n",
+            ),
+        }
+    )
 
     records = await run_news(_req("news"), crawler)
 
@@ -243,12 +253,14 @@ async def test_news_runner_extracts_articles() -> None:
 async def test_news_runner_returns_fallback_when_no_articles_parsed() -> None:
     from scout.core.use_cases.runners.news import run_news
 
-    crawler = _mock_crawler({
-        "/news": _scrape_ok(
-            "https://www.acme.com/news",
-            "Welcome to our newsroom. Check back soon for updates.",
-        ),
-    })
+    crawler = _mock_crawler(
+        {
+            "/news": _scrape_ok(
+                "https://www.acme.com/news",
+                "Welcome to our newsroom. Check back soon for updates.",
+            ),
+        }
+    )
 
     records = await run_news(_req("news"), crawler)
 
@@ -275,12 +287,14 @@ async def test_news_runner_returns_empty_when_no_news_page() -> None:
 async def test_dispatcher_uses_real_runner_for_company_in_auto_mode(tmp_path) -> None:
     from scout.core.platform.run import run_use_case
 
-    crawler = _mock_crawler({
-        "acme.com": _scrape_ok(
-            "https://www.acme.com",
-            "# Acme Corp\nBuilding the future.",
-        ),
-    })
+    crawler = _mock_crawler(
+        {
+            "acme.com": _scrape_ok(
+                "https://www.acme.com",
+                "# Acme Corp\nBuilding the future.",
+            ),
+        }
+    )
 
     resp = await run_use_case(
         RunRequest(

@@ -59,11 +59,14 @@ def test_clean_on_first_poll_is_cleared_immediately() -> None:
 
 
 def test_never_cleared_times_out_with_vendor() -> None:
-    blocked = FakeCapture(title="", html='<div>geo.captcha-delivery.com datadome</div>')
+    blocked = FakeCapture(title="", html="<div>geo.captcha-delivery.com datadome</div>")
     out = _run(
         human_assisted_acquire(
-            "https://x/", FakeBridge([blocked]), sleep=_noop_sleep,
-            poll_interval=1.0, max_wait=3.0,
+            "https://x/",
+            FakeBridge([blocked]),
+            sleep=_noop_sleep,
+            poll_interval=1.0,
+            max_wait=3.0,
         )
     )
     assert out.status == "timeout"
@@ -75,8 +78,11 @@ def test_blank_clear_page_is_not_treated_as_cleared() -> None:
     thin = FakeCapture(title="", html="<html></html>", text="")
     out = _run(
         human_assisted_acquire(
-            "https://x/", FakeBridge([thin]), sleep=_noop_sleep,
-            poll_interval=1.0, max_wait=2.0,
+            "https://x/",
+            FakeBridge([thin]),
+            sleep=_noop_sleep,
+            poll_interval=1.0,
+            max_wait=2.0,
         )
     )
     assert out.status == "timeout"

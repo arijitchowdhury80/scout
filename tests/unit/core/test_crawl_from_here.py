@@ -89,7 +89,8 @@ def test_crawl_from_here_visits_each_link_and_extracts() -> None:
     bridge = FakeNavBridge(
         {
             a: FakeCapture(
-                url=a, title="301 River Glen Dr",
+                url=a,
+                title="301 River Glen Dr",
                 html='<script type="application/ld+json">{"@type":"RealEstateListing","name":"301 River"}</script>',
                 text="x" * 300,
             ),
@@ -97,7 +98,9 @@ def test_crawl_from_here_visits_each_link_and_extracts() -> None:
         }
     )
     result = _run(
-        crawl_from_here(_LIST_HTML, _BASE, bridge, sleep=_noop_sleep, contains="/homedetails/", limit=2)
+        crawl_from_here(
+            _LIST_HTML, _BASE, bridge, sleep=_noop_sleep, contains="/homedetails/", limit=2
+        )
     )
     assert isinstance(result, CrawlFromHereResult)
     assert result.discovered == 2
@@ -121,8 +124,12 @@ def test_crawl_from_here_records_navigation_errors_without_crashing() -> None:
 
     result = _run(
         crawl_from_here(
-            '<a href="/homedetails/301-River/123_zpid/">A</a>', _BASE, BoomBridge(),
-            sleep=_noop_sleep, contains="/homedetails/", limit=1,
+            '<a href="/homedetails/301-River/123_zpid/">A</a>',
+            _BASE,
+            BoomBridge(),
+            sleep=_noop_sleep,
+            contains="/homedetails/",
+            limit=1,
         )
     )
     assert result.crawled == 1

@@ -756,9 +756,7 @@ def _read_json_file(path: str) -> Any:
     return json.loads(file_path.read_text(encoding="utf-8"))
 
 
-async def _execute_use_case(
-    run_id: str, req: AppRunRequest, crawler: ScoutCrawler
-) -> None:
+async def _execute_use_case(run_id: str, req: AppRunRequest, crawler: ScoutCrawler) -> None:
     run = _APP_RUNS[run_id]
     if run.status == "cancelled":
         return

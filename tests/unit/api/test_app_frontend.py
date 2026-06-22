@@ -233,9 +233,14 @@ def test_mode_help_copy_is_mode_specific_not_generic_crawler() -> None:
     resp = client.get("/app")
 
     assert resp.status_code == 200
-    assert "WebFetch selected. Scout will fetch pages over plain HTTP without a browser." in resp.text
+    assert (
+        "WebFetch selected. Scout will fetch pages over plain HTTP without a browser." in resp.text
+    )
     assert "WebSearch selected. Scout will gather evidence from web search results." in resp.text
-    assert "Saved selected. Scout will load evidence from a saved snapshot instead of the live web." in resp.text
+    assert (
+        "Saved selected. Scout will load evidence from a saved snapshot instead of the live web."
+        in resp.text
+    )
     assert "API selected. Scout will use structured API providers where available." in resp.text
     assert "Crawler selected. Scout will use a Crawl4AI crawler session." in resp.text
 

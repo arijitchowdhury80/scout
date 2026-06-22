@@ -32,7 +32,9 @@ def _run(coro):
 
 def test_input_message_dispatches_event() -> None:
     s = FakeSession()
-    resp = _run(handle_client_message(s, {"kind": "input", "event": {"type": "mousedown", "x": 1, "y": 2}}))
+    resp = _run(
+        handle_client_message(s, {"kind": "input", "event": {"type": "mousedown", "x": 1, "y": 2}})
+    )
     assert resp is None
     assert s.dispatched == [{"type": "mousedown", "x": 1, "y": 2}]
 

@@ -24,9 +24,7 @@ _LOCATOR_PATHS = [
     "/offices",
 ]
 
-_PHONE_PATTERN = re.compile(
-    r"(?:\+1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}"
-)
+_PHONE_PATTERN = re.compile(r"(?:\+1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}")
 
 _ADDRESS_PATTERN = re.compile(
     r"\d{1,5}\s+[\w\s.]+(?:Street|St|Avenue|Ave|Boulevard|Blvd|Road|Rd|Drive|Dr|"
@@ -35,9 +33,7 @@ _ADDRESS_PATTERN = re.compile(
     re.I,
 )
 
-_COORDS_PATTERN = re.compile(
-    r"(-?\d{1,3}\.\d{3,8})[,\s]+(-?\d{1,3}\.\d{3,8})"
-)
+_COORDS_PATTERN = re.compile(r"(-?\d{1,3}\.\d{3,8})[,\s]+(-?\d{1,3}\.\d{3,8})")
 
 
 class LocationRecord(BaseModel):
@@ -86,13 +82,15 @@ def _extract_locations(markdown: str, company: str, source_url: str) -> list[dic
         if lng is not None and (lng < -180 or lng > 180):
             lng = None
 
-        locations.append({
-            "objectID": f"location_{slug}_{i}",
-            "address": address.strip(),
-            "phone": phone.strip(),
-            "latitude": lat,
-            "longitude": lng,
-        })
+        locations.append(
+            {
+                "objectID": f"location_{slug}_{i}",
+                "address": address.strip(),
+                "phone": phone.strip(),
+                "latitude": lat,
+                "longitude": lng,
+            }
+        )
 
     return locations
 
@@ -127,7 +125,14 @@ async def run_locations(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
                 name=f"{company} locations page",
                 source_url=locator_url,
                 confidence=0.4,
-                citations=[make_citation(source, "url", locator_url, "Locations page found but no addresses extracted")],
+                citations=[
+                    make_citation(
+                        source,
+                        "url",
+                        locator_url,
+                        "Locations page found but no addresses extracted",
+                    )
+                ],
             ).model_dump(mode="json")
         ]
 
@@ -143,9 +148,7 @@ async def run_locations(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
                 longitude=loc["longitude"],
                 source_url=locator_url,
                 confidence=0.7 if loc["address"] else 0.4,
-                citations=[
-                    make_citation(source, "address", loc["address"], loc["address"][:200])
-                ],
+                citations=[make_citation(source, "address", loc["address"], loc["address"][:200])],
             ).model_dump(mode="json")
         )
 

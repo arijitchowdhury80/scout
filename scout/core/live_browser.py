@@ -113,9 +113,7 @@ class LiveBrowserSession:
         async def _handler(params: dict[str, Any]) -> None:
             await on_frame(params.get("data", ""))
             try:
-                await self._cdp.send(
-                    "Page.screencastFrameAck", {"sessionId": params["sessionId"]}
-                )
+                await self._cdp.send("Page.screencastFrameAck", {"sessionId": params["sessionId"]})
             except Exception:  # noqa: BLE001 — a dropped ack must not kill the stream
                 pass
 

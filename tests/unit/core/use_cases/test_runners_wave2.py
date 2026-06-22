@@ -19,7 +19,9 @@ def _meta(url: str = "https://example.com") -> ScoutMetadata:
     return ScoutMetadata(url=url, crawled_at="2026-06-22T00:00:00Z")
 
 
-def _scrape_ok(url: str, markdown: str, links: list[str] | None = None, raw_html: str = "") -> ScrapeResponse:
+def _scrape_ok(
+    url: str, markdown: str, links: list[str] | None = None, raw_html: str = ""
+) -> ScrapeResponse:
     return ScrapeResponse(
         success=True,
         url=url,
@@ -50,7 +52,9 @@ def _mock_crawler(responses: dict[str, ScrapeResponse]) -> MagicMock:
     return crawler
 
 
-def _req(use_case: str, query: str = "Acme Corp", url: str = "https://www.acme.com", **kw) -> RunRequest:
+def _req(
+    use_case: str, query: str = "Acme Corp", url: str = "https://www.acme.com", **kw
+) -> RunRequest:
     return RunRequest(use_case=use_case, query=query, url=url, mode="auto", **kw)
 
 
@@ -63,16 +67,20 @@ def _req(use_case: str, query: str = "Acme Corp", url: str = "https://www.acme.c
 async def test_research_runner_extracts_summary() -> None:
     from scout.core.use_cases.runners.research import run_research
 
-    crawler = _mock_crawler({
-        "acme.com": _scrape_ok(
-            "https://www.acme.com/whitepaper",
-            "# AI in Enterprise\n\nThis paper explores the impact of AI on enterprise workflows.\n"
-            "We found significant productivity gains across all departments.",
-        ),
-    })
+    crawler = _mock_crawler(
+        {
+            "acme.com": _scrape_ok(
+                "https://www.acme.com/whitepaper",
+                "# AI in Enterprise\n\nThis paper explores the impact of AI on enterprise workflows.\n"
+                "We found significant productivity gains across all departments.",
+            ),
+        }
+    )
 
     records = await run_research(
-        _req("research", query="AI enterprise", url="", targets=["https://www.acme.com/whitepaper"]),
+        _req(
+            "research", query="AI enterprise", url="", targets=["https://www.acme.com/whitepaper"]
+        ),
         crawler,
     )
 
@@ -145,24 +153,26 @@ async def test_docs_runner_crawls_and_extracts() -> None:
 async def test_social_runner_finds_profiles_from_homepage() -> None:
     from scout.core.use_cases.runners.social import run_social
 
-    crawler = _mock_crawler({
-        "acme.com": _scrape_ok(
-            "https://www.acme.com",
-            "Follow us:\n- https://www.linkedin.com/company/acme\n- https://twitter.com/acme\n",
-            links=[
+    crawler = _mock_crawler(
+        {
+            "acme.com": _scrape_ok(
+                "https://www.acme.com",
+                "Follow us:\n- https://www.linkedin.com/company/acme\n- https://twitter.com/acme\n",
+                links=[
+                    "https://www.linkedin.com/company/acme",
+                    "https://twitter.com/acme",
+                ],
+            ),
+            "linkedin.com": _scrape_ok(
                 "https://www.linkedin.com/company/acme",
+                "# Acme Corp\n\n@AcmeCorp\n12,500 Followers\n\nBio: Building the future of enterprise AI.",
+            ),
+            "twitter.com": _scrape_ok(
                 "https://twitter.com/acme",
-            ],
-        ),
-        "linkedin.com": _scrape_ok(
-            "https://www.linkedin.com/company/acme",
-            "# Acme Corp\n\n@AcmeCorp\n12,500 Followers\n\nBio: Building the future of enterprise AI.",
-        ),
-        "twitter.com": _scrape_ok(
-            "https://twitter.com/acme",
-            "# @acme\n\n5.2K Followers\n\nEnterprise AI platform.",
-        ),
-    })
+                "# @acme\n\n5.2K Followers\n\nEnterprise AI platform.",
+            ),
+        }
+    )
 
     records = await run_social(_req("social"), crawler)
 
@@ -181,14 +191,16 @@ async def test_social_runner_finds_profiles_from_homepage() -> None:
 async def test_locations_runner_extracts_addresses() -> None:
     from scout.core.use_cases.runners.locations import run_locations
 
-    crawler = _mock_crawler({
-        "/locations": _scrape_ok(
-            "https://www.acme.com/locations",
-            "# Our Offices\n\n"
-            "## San Francisco\n123 Market St, San Francisco, CA 94105\n(415) 555-1234\n\n"
-            "## New York\n456 Broadway Ave, New York, NY 10013\n(212) 555-5678\n",
-        ),
-    })
+    crawler = _mock_crawler(
+        {
+            "/locations": _scrape_ok(
+                "https://www.acme.com/locations",
+                "# Our Offices\n\n"
+                "## San Francisco\n123 Market St, San Francisco, CA 94105\n(415) 555-1234\n\n"
+                "## New York\n456 Broadway Ave, New York, NY 10013\n(212) 555-5678\n",
+            ),
+        }
+    )
 
     records = await run_locations(_req("locations"), crawler)
 
@@ -203,12 +215,14 @@ async def test_locations_runner_extracts_addresses() -> None:
 async def test_locations_runner_returns_fallback_when_no_addresses() -> None:
     from scout.core.use_cases.runners.locations import run_locations
 
-    crawler = _mock_crawler({
-        "/locations": _scrape_ok(
-            "https://www.acme.com/locations",
-            "# Our Locations\n\nWe have offices worldwide. Contact us for details.",
-        ),
-    })
+    crawler = _mock_crawler(
+        {
+            "/locations": _scrape_ok(
+                "https://www.acme.com/locations",
+                "# Our Locations\n\nWe have offices worldwide. Contact us for details.",
+            ),
+        }
+    )
 
     records = await run_locations(_req("locations"), crawler)
     assert len(records) == 1

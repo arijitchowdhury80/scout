@@ -112,7 +112,7 @@ def test_cleared_datadome_page_with_sdk_present_is_not_blocked() -> None:
     sig = detect_block(
         status_code=200,
         title="Roswell GA Rentals",
-        html='<script>window.DataDome={};</script><div>86 listings</div>' + "x" * 400,
+        html="<script>window.DataDome={};</script><div>86 listings</div>" + "x" * 400,
     )
     assert sig.blocked is False
 

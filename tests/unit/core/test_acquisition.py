@@ -41,7 +41,9 @@ def test_first_clean_rung_wins() -> None:
 
 
 def test_blocked_then_clean_escalates() -> None:
-    blocked = FakeRung("crawler", FetchResult(status_code=403, title="Just a moment", html="cf-challenge"))
+    blocked = FakeRung(
+        "crawler", FetchResult(status_code=403, title="Just a moment", html="cf-challenge")
+    )
     clean = FakeRung("undetected", FetchResult(status_code=200, title="ok", html="<h1>hi</h1>"))
     out = _run(acquire("http://x", [blocked, clean]))
     assert out.status == "ok"
@@ -53,7 +55,10 @@ def test_blocked_then_clean_escalates() -> None:
 
 
 def test_all_blocked_with_human_rung_requests_handoff_without_calling_it() -> None:
-    b1 = FakeRung("crawler", FetchResult(status_code=200, html='<script src="geo.captcha-delivery.com"></script>'))
+    b1 = FakeRung(
+        "crawler",
+        FetchResult(status_code=200, html='<script src="geo.captcha-delivery.com"></script>'),
+    )
     human = FakeRung("user-browser", requires_human=True)
     out = _run(acquire("http://x", [b1, human]))
     assert out.status == "blocked_needs_human"

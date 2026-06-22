@@ -36,9 +36,7 @@ class TestAlgoliaPush:
     def test_push_success(self, _mock_lifespan) -> None:
         mock_response = MagicMock()
         mock_response.object_ids = ["prod_1", "prod_2"]
-        with patch(
-            "scout.api.routers.algolia.SearchClientSync"
-        ) as mock_cls:
+        with patch("scout.api.routers.algolia.SearchClientSync") as mock_cls:
             mock_client = MagicMock()
             mock_cls.return_value = mock_client
             mock_client.save_objects.return_value = [mock_response]
@@ -64,9 +62,7 @@ class TestAlgoliaPush:
     def test_push_calls_save_objects_with_correct_args(self, _mock_lifespan) -> None:
         mock_response = MagicMock()
         mock_response.object_ids = ["prod_1"]
-        with patch(
-            "scout.api.routers.algolia.SearchClientSync"
-        ) as mock_cls:
+        with patch("scout.api.routers.algolia.SearchClientSync") as mock_cls:
             mock_client = MagicMock()
             mock_cls.return_value = mock_client
             mock_client.save_objects.return_value = [mock_response]
@@ -117,9 +113,7 @@ class TestAlgoliaPush:
         assert resp.status_code == 422
 
     def test_push_sdk_error_returns_error_response(self, _mock_lifespan) -> None:
-        with patch(
-            "scout.api.routers.algolia.SearchClientSync"
-        ) as mock_cls:
+        with patch("scout.api.routers.algolia.SearchClientSync") as mock_cls:
             mock_client = MagicMock()
             mock_cls.return_value = mock_client
             mock_client.save_objects.side_effect = Exception("API rate limit exceeded")
