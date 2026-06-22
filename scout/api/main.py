@@ -75,6 +75,12 @@ app.include_router(screenshot.router)
 app.include_router(workdir.router)
 
 
+@app.get("/api/config", include_in_schema=False)
+async def api_config() -> dict[str, str]:
+    """Return non-secret config the frontend needs (the API key is already known to the browser)."""
+    return {"api_key": settings.scout_api_key}
+
+
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def root() -> str:
     """Return a tiny human-friendly landing page for browser visits."""

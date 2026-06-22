@@ -730,7 +730,8 @@ def scout_app_html() -> str:
     <div id="toast" class="hidden"></div>
 
     <script>
-      const API_KEY = "dev-key";
+      let API_KEY = "dev-key";
+      fetch("/api/config").then(r => r.json()).then(c => { API_KEY = c.api_key; }).catch(() => {});
       const state = {
         mode: "auto",
         runId: null,
@@ -1063,7 +1064,7 @@ def scout_app_html() -> str:
           return "";
         }).filter(Boolean).join(" \\\\\\n");
         el("commandPreview").textContent = `scout run ${payload.use_case} \\\\\\n  --mode ${payload.mode} \\\\\\n  --url "${payload.url}" \\\\\\n  --output "${payload.output_dir}"${optionFlags ? " \\\\\\n" + optionFlags : ""}`;
-        el("httpPreview").textContent = `POST /app/runs\\nX-API-Key: dev-key\\nContent-Type: application/json\\n\\n${JSON.stringify(payload, null, 2)}`;
+        el("httpPreview").textContent = `POST /app/runs\\nX-API-Key: ${API_KEY}\\nContent-Type: application/json\\n\\n${JSON.stringify(payload, null, 2)}`;
         updateReadinessPanel();
       }
 

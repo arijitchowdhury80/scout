@@ -3,9 +3,23 @@
 from __future__ import annotations
 
 import hashlib
+import re
+from urllib.parse import urlparse, urlunparse, urlencode, parse_qs
 
 from scout.core.products.jsonld import ProductJsonLd
 from scout.core.types import AlgoliaProductRecord, ProductListingCard, ProductSource
+
+_JUNK_PATTERNS = re.compile(
+    r"(?i)^("
+    r"hang\s+tight|verify\s+your\s+age|access\s+denied|just\s+a\s+moment|"
+    r"please\s+wait|checking\s+your\s+browser|one\s+moment|"
+    r"are\s+you\s+a\s+human|captcha|robot\s+check|"
+    r"your\s+cart|checkout|shopping\s+bag|order\s+summary|"
+    r"page\s+not\s+found|404|error\s+\d{3}"
+    r")$"
+)
+
+_VARIANT_PARAMS = {"variant", "v", "color", "size", "option", "sku", "id"}
 
 
 def build_algolia_record(
@@ -25,7 +39,7 @@ def build_algolia_record(
         objectID=_object_id(url),
         name=name,
         url=url,
-        brand=product.brand if product else "",
+        brand=brand_fallback(product.brand if product else "", url),
         description=product.description if product else "",
         image=images[0] if images else "",
         images=images,
@@ -55,7 +69,7 @@ def build_listing_algolia_record(card: ProductListingCard) -> AlgoliaProductReco
         objectID=_object_id(card.url),
         name=card.name or card.url.rsplit("/", 1)[-1],
         url=card.url,
-        brand=card.brand,
+        brand=brand_fallback(card.brand, card.url),
         image=card.image,
         images=images,
         price=card.price,
@@ -73,8 +87,29 @@ def build_listing_algolia_record(card: ProductListingCard) -> AlgoliaProductReco
     return record
 
 
+def is_junk_record(name: str) -> bool:
+    return bool(_JUNK_PATTERNS.match(name.strip()))
+
+
+def canonical_url(url: str) -> str:
+    parsed = urlparse(url)
+    params = parse_qs(parsed.query, keep_blank_values=True)
+    filtered = {k: v for k, v in params.items() if k.lower() not in _VARIANT_PARAMS}
+    clean_query = urlencode(filtered, doseq=True) if filtered else ""
+    return urlunparse(parsed._replace(query=clean_query, fragment=""))
+
+
+def brand_fallback(brand: str, url: str) -> str:
+    if brand:
+        return brand
+    hostname = urlparse(url).hostname or ""
+    domain = hostname.removeprefix("www.")
+    parts = domain.split(".")
+    return parts[0].capitalize() if parts and parts[0] else ""
+
+
 def _object_id(url: str) -> str:
-    return hashlib.sha256(url.encode("utf-8")).hexdigest()[:24]
+    return hashlib.sha256(canonical_url(url).encode("utf-8")).hexdigest()[:24]
 
 
 def _completeness_score(record: AlgoliaProductRecord) -> float:
