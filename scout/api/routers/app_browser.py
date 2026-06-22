@@ -37,12 +37,10 @@ class NativeCaptureResult(BaseModel):
 
     url: str = ""
     title: str = ""
-    chars: int = 0
     blocked: bool = False
     vendor: str = ""
-    text: str = ""
-    markdown: str = ""  # clean structured markdown of the cleared page
-    records: list[dict] = []  # typed records when a css_schema was supplied
+    markdown: str = ""
+    records: list[dict] = []
     record_count: int = 0
     error: str = ""
 
@@ -68,10 +66,8 @@ async def capture_native(req: NativeCaptureRequest) -> NativeCaptureResult:
     result = NativeCaptureResult(
         url=cap.url,
         title=cap.title,
-        chars=len(cap.html),
         blocked=signal.blocked,
         vendor=signal.vendor,
-        text=cap.text[:2_000_000],  # full clean text of the cleared page
     )
 
     if not signal.blocked:

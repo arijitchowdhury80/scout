@@ -60,14 +60,15 @@ _PAGE = """<!doctype html>
     <button id="bannerGrab" class="secondary">Then grab the page</button>
   </div>
   <div id="capturedbar">
-    <span>✓ Captured <b id="capturedtitle"></b> (<span id="capturedchars">0</span> chars) from your real browser.</span>
-    <button id="downloadCapture">Download</button>
+    <span>✓ Captured <b id="capturedtitle"></b> — <span id="capturedrecords" style="display:none"><b id="recordcount">0</b> records, </span><span id="capturedchars">0</span> chars of markdown from your real browser.</span>
+    <button id="downloadCapture">Download .md</button>
+    <button id="downloadRecords" class="secondary" style="display:none">Download records .json</button>
     <button id="previewCapture" class="secondary">Preview</button>
   </div>
   <div class="stage">
     <canvas id="screen" width="1280" height="800" tabindex="0"></canvas>
     <div id="capturedOverlay">
-      <h2>✓ Captured from your real browser</h2>
+      <h2>✓ Captured &amp; structured via Crawl4AI</h2>
       <div id="capturedOverlayText"></div>
       <div style="font-size:12px;opacity:.8">(The canvas behind is the separate embedded session — ignore it.)</div>
     </div>
@@ -176,28 +177,51 @@ _PAGE = """<!doctype html>
       const res = await api("/app/browser/capture", { url });
       if (res.error) { setStatus("Native capture error: " + res.error); return; }
       if (res.blocked) { setStatus("Still blocked (" + res.vendor + ") — finish the press & hold, then grab again."); return; }
-      // Success — make it unmissable (the embedded canvas behind may still show
-      // its own challenge; that's a different, now-irrelevant browser).
       lastCapture = res;
       document.getElementById("blockbar").style.display = "none";
       document.getElementById("capturedtitle").textContent = res.title || url;
-      document.getElementById("capturedchars").textContent = res.chars;
+      const mdLen = (res.markdown || "").length;
+      document.getElementById("capturedchars").textContent = mdLen;
+      if (res.record_count > 0) {
+        document.getElementById("recordcount").textContent = res.record_count;
+        document.getElementById("capturedrecords").style.display = "inline";
+        document.getElementById("downloadRecords").style.display = "inline-block";
+      } else {
+        document.getElementById("capturedrecords").style.display = "none";
+        document.getElementById("downloadRecords").style.display = "none";
+      }
       document.getElementById("capturedbar").style.display = "flex";
-      document.getElementById("capturedOverlayText").textContent = (res.title || url) + " — " + res.chars + " chars";
+      const summary = res.record_count > 0
+        ? (res.title || url) + " — " + res.record_count + " records, " + mdLen + " chars"
+        : (res.title || url) + " — " + mdLen + " chars of markdown";
+      document.getElementById("capturedOverlayText").textContent = summary;
       document.getElementById("capturedOverlay").style.display = "flex";
-      setStatus("Captured: " + res.title + " (" + res.chars + " chars) from your real browser.");
+      setStatus("Captured: " + (res.title || url) + (res.record_count > 0 ? " (" + res.record_count + " records)" : " (" + mdLen + " chars)") + " from your real browser.");
+    }
+    function downloadBlob(content, filename, mime) {
+      const blob = new Blob([content], { type: mime });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
     }
     document.getElementById("downloadCapture").onclick = () => {
       if (!lastCapture) return;
-      const blob = new Blob([lastCapture.text || ""], { type: "text/plain" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "scout-capture.txt";
-      a.click();
-      URL.revokeObjectURL(a.href);
+      downloadBlob(lastCapture.markdown || "", "scout-capture.md", "text/markdown");
+    };
+    document.getElementById("downloadRecords").onclick = () => {
+      if (!lastCapture || !lastCapture.records || !lastCapture.records.length) return;
+      downloadBlob(JSON.stringify(lastCapture.records, null, 2), "scout-records.json", "application/json");
     };
     document.getElementById("previewCapture").onclick = () => {
-      if (lastCapture) log((lastCapture.text || "").slice(0, 4000));
+      if (!lastCapture) return;
+      const md = lastCapture.markdown || "";
+      log(md.slice(0, 8000));
+      if (lastCapture.records && lastCapture.records.length) {
+        log("--- Records (" + lastCapture.records.length + ") ---");
+        log(JSON.stringify(lastCapture.records.slice(0, 20), null, 2));
+      }
     };
     document.getElementById("nativeOpen").onclick = nativeOpen;
     document.getElementById("nativeGrab").onclick = nativeGrab;
