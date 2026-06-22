@@ -548,10 +548,10 @@ def scout_app_html() -> str:
 
           <label class="label" id="targetLabel" for="targetUrl">Target URL</label>
           <div class="input-row">
-            <input id="targetUrl" placeholder="https://www.esteelauder.com/products/681/product-catalog/skin-care" />
+            <input id="targetUrl" placeholder="https://www.example.com" />
             <button id="clearStartUrl" class="secondary" type="button">×</button>
           </div>
-          <p class="subtle" id="targetExample">Example: https://www.esteelauder.com/products/681/product-catalog/skin-care</p>
+          <p class="subtle" id="targetExample">Example: https://www.example.com</p>
 
           <label class="label">Execution Mode</label>
           <div class="mode-tabs" id="modeTabs">
@@ -757,8 +757,8 @@ def scout_app_html() -> str:
       const useCaseContracts = {
         products: {
           label: "Product/category URL",
-          placeholder: "https://www.esteelauder.com/products/681/product-catalog/skin-care",
-          example: "Example: https://www.esteelauder.com/products/681/product-catalog/skin-care",
+          placeholder: "https://www.example.com",
+          example: "Example: https://www.example.com",
           help: "Extract product/category data and prepare Algolia-ready product records.",
           outputs: "Outputs: product records, listing/detail sources, blocked detail pages, Algolia prep."
         },
@@ -844,11 +844,11 @@ def scout_app_html() -> str:
         ["Patagonia", "Private retail commerce", "https://www.patagonia.com/", "Products, company, sustainability/blog"],
         ["Adobe", "Public company", "https://www.adobe.com/", "Company, investor, careers, blogs/news"],
         ["Home Depot", "Public retail", "https://www.homedepot.com/", "Investor, careers, product catalog, news"],
-        ["Estée Lauder", "Hard-site retail", "https://www.esteelauder.com/products/681/product-catalog/skin-care", "Hard-site product/category fallback"],
+        ["Estée Lauder", "Hard-site retail", "https://www.esteelauder.com/", "Hard-site product/category fallback"],
         ["British Airways", "Travel", "https://www.britishairways.com/", "Travel company intel, careers, website quality"]
       ];
       const presets = [
-        ["Estée Lauder skincare products", "products", "https://www.esteelauder.com/products/681/product-catalog/skin-care"],
+        ["L.L.Bean outdoor products", "products", "https://www.llbean.com/"],
         ["Nike company intelligence", "company", "https://www.nike.com/"],
         ["Adobe investor intelligence", "investor", "https://www.adobe.com/investor-relations.html"],
         ["Algolia careers", "careers", "https://www.algolia.com/careers/"],
