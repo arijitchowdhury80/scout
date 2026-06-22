@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from scout.core.platform.types import RunRequest
 from scout.core.platform.run import run_use_case
 
@@ -8,10 +10,11 @@ def _records(output_dir) -> list[dict]:
     return json.loads((output_dir / "records.json").read_text())
 
 
-def test_company_run_writes_company_exec_and_social_records(tmp_path) -> None:
+@pytest.mark.asyncio
+async def test_company_run_writes_company_exec_and_social_records(tmp_path) -> None:
     output_dir = tmp_path / "company-run"
 
-    resp = run_use_case(
+    resp = await run_use_case(
         RunRequest(
             use_case="company",
             query="Adobe",
@@ -36,7 +39,8 @@ def test_company_run_writes_company_exec_and_social_records(tmp_path) -> None:
     assert records[0]["citations"][0]["field"] == "website"
 
 
-def test_careers_investor_news_and_research_runs_write_typed_records(tmp_path) -> None:
+@pytest.mark.asyncio
+async def test_careers_investor_news_and_research_runs_write_typed_records(tmp_path) -> None:
     cases = {
         "careers": "career_site",
         "investor": "investor_asset",
@@ -46,7 +50,7 @@ def test_careers_investor_news_and_research_runs_write_typed_records(tmp_path) -
 
     for use_case, record_type in cases.items():
         output_dir = tmp_path / use_case
-        resp = run_use_case(
+        resp = await run_use_case(
             RunRequest(use_case=use_case, query="Adobe", output_dir=str(output_dir), mode="saved")
         )
 
@@ -56,20 +60,22 @@ def test_careers_investor_news_and_research_runs_write_typed_records(tmp_path) -
         assert records[0]["citations"]
 
 
-def test_prism_run_composes_company_careers_investor_and_news_records(tmp_path) -> None:
+@pytest.mark.asyncio
+async def test_prism_run_composes_company_careers_investor_and_news_records(tmp_path) -> None:
     output_dir = tmp_path / "prism-run"
 
-    resp = run_use_case(RunRequest(use_case="prism", query="Adobe", output_dir=str(output_dir)))
+    resp = await run_use_case(RunRequest(use_case="prism", query="Adobe", output_dir=str(output_dir)))
 
     assert resp.success is True
     record_types = {record["record_type"] for record in _records(output_dir)}
     assert {"company", "career_site", "investor_asset", "news_signal"} <= record_types
 
 
-def test_products_run_emits_product_records(tmp_path) -> None:
+@pytest.mark.asyncio
+async def test_products_run_emits_product_records(tmp_path) -> None:
     output_dir = tmp_path / "products-run"
 
-    resp = run_use_case(
+    resp = await run_use_case(
         RunRequest(
             use_case="products",
             query="top skincare products",

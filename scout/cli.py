@@ -79,14 +79,18 @@ def _run_high_level_use_case(
         use_case=use_case,
         query=query,
     )
-    resp = run_use_case(
-        RunRequest(
-            use_case=use_case,
-            query=query,
-            mode=mode,
-            profile_path=profile_path,
-            job_urls=job_urls or [],
-            output_dir=chosen_output,
+    import asyncio
+
+    resp = asyncio.run(
+        run_use_case(
+            RunRequest(
+                use_case=use_case,
+                query=query,
+                mode=mode,
+                profile_path=profile_path,
+                job_urls=job_urls or [],
+                output_dir=chosen_output,
+            )
         )
     )
     _out(resp.model_dump(mode="json"))

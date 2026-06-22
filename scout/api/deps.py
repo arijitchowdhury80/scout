@@ -12,6 +12,11 @@ def get_crawler(request: Request) -> ScoutCrawler:
     return crawler
 
 
+def get_crawler_optional(request: Request) -> ScoutCrawler | None:
+    """Return the crawler if available, else None (for seed-data fallback)."""
+    return getattr(request.app.state, "crawler", None)
+
+
 def get_run_db(request: Request) -> RunDB:
     """Return the RunDB instance stored on app.state at startup."""
     run_db: RunDB = request.app.state.run_db

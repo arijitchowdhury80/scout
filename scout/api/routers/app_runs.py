@@ -756,7 +756,9 @@ def _read_json_file(path: str) -> Any:
     return json.loads(file_path.read_text(encoding="utf-8"))
 
 
-async def _execute_use_case(run_id: str, req: AppRunRequest) -> None:
+async def _execute_use_case(
+    run_id: str, req: AppRunRequest, crawler: ScoutCrawler
+) -> None:
     run = _APP_RUNS[run_id]
     if run.status == "cancelled":
         return
@@ -776,7 +778,7 @@ async def _execute_use_case(run_id: str, req: AppRunRequest) -> None:
         ),
     )
     _append(run_id, "extracting", f"Running {req.use_case} processor")
-    resp = await asyncio.to_thread(run_use_case, data)
+    resp = await run_use_case(data, crawler)
     if run.status == "cancelled":
         _append(run_id, "cancelled", "Run cancelled before results were committed", "warning")
         return
@@ -832,7 +834,7 @@ async def _execute_run(run_id: str, req: AppRunRequest, crawler: ScoutCrawler) -
         if req.use_case == "products":
             await _execute_products(run_id, req, crawler)
         else:
-            await _execute_use_case(run_id, req)
+            await _execute_use_case(run_id, req, crawler)
     except asyncio.CancelledError:
         run = _APP_RUNS.get(run_id)
         if run is not None and run.status != "cancelled":

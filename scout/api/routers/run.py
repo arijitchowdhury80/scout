@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from scout.api.config import settings
+from scout.api.deps import get_crawler_optional
 from scout.api.run_store import remember_run
+from scout.core.crawler import ScoutCrawler
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest, RunResponse
 from scout.core.platform.workspace import resolve_run_output_dir
@@ -14,7 +16,11 @@ router = APIRouter(tags=["run"])
 
 
 @router.post("/run/{use_case}", response_model=RunResponse)
-async def run_high_level_use_case(use_case: str, req: RunRequest) -> RunResponse:
+async def run_high_level_use_case(
+    use_case: str,
+    req: RunRequest,
+    crawler: ScoutCrawler | None = Depends(get_crawler_optional),
+) -> RunResponse:
     data = req.model_copy(
         update={
             "use_case": use_case,
@@ -26,7 +32,7 @@ async def run_high_level_use_case(use_case: str, req: RunRequest) -> RunResponse
             ),
         }
     )
-    resp = run_use_case(data)
+    resp = await run_use_case(data, crawler)
     if resp.manifest is not None:
         await remember_run(resp.manifest)
     return resp
