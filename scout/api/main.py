@@ -37,8 +37,20 @@ __all__ = ["app", "get_crawler"]
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialise shared resources on startup; release them on shutdown."""
+    from pathlib import Path
+
+    from scout.api.db import RunDB
+    from scout.api.run_store import bind_db
+
     app.state.crawler = ScoutCrawler(llm_api_key=settings.llm_api_key)
+    db_path = settings.resolve_db_path()
+    Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+    run_db = RunDB(db_path)
+    await run_db.init_db()
+    app.state.run_db = run_db
+    bind_db(run_db)
     yield
+    await run_db.close()
 
 
 app = FastAPI(title="Scout", lifespan=lifespan)

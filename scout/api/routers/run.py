@@ -28,5 +28,5 @@ async def run_high_level_use_case(use_case: str, req: RunRequest) -> RunResponse
     )
     resp = run_use_case(data)
     if resp.manifest is not None:
-        remember_run(resp.manifest)
+        await remember_run(resp.manifest)
     return resp

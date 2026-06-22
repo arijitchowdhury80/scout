@@ -1,82 +1,98 @@
-# SESSION — 2026-06-21
+# SESSION — 2026-06-22
 
 ## Status
 
-Scout = **standalone universal acquisition engine** (`scout.core` library + HTTP/MCP service), consumed by PRISM and others. The unblock ladder is built and PROVEN against a real behavioral wall. Branch `codex/scout-platform-foundation`, clean, **269 unit tests green**, through commit `27f296d`.
-
-> NOTE: This file was stale (frozen at Jun 12, said "Phase B next"). That was wrong — Phase B and most of Phase C's hardest slice already shipped. The authoritative arc lives in memory `scout-phased-rebuild-plan.md`. This refresh (Jun 21) reflects true state.
+**Phase 1 (SQLite Run Persistence) DONE** — from the approved 9-phase code-complete plan. 305 unit tests green, pyright + ruff clean. Changes uncommitted on branch `codex/scout-platform-foundation`.
 
 ---
 
 ## Resume Action (next session, in order)
 
-1. Read this file fully, then memory `scout-phased-rebuild-plan.md` for the full arc + all locked decisions.
-2. **Surface the structuring engine in the UI:** the `/app/live-browser` console "Native grab" still renders the raw blob — wire its results panel to show `markdown` + `records` from `/app/browser/capture` (the endpoint already returns them).
-3. **Per-listing detail from the cleared native session** (browse-and-harvest: human navigates, Scout structures each cleared page; note the Jun 17 finding that crawl-from-here AUTO-nav re-challenges on PerimeterX).
-4. Expose `unblock`/`harvest`/structure as **API endpoints for PRISM**; wire the embedded pane into the main `/app`.
+1. Read this file fully, then read the approved plan at `~/.claude/plans/hidden-jumping-crayon.md`.
+2. **Commit Phase 1 work** — all changes listed below are uncommitted. Conventional commit: `feat(api): add SQLite run persistence (Phase 1)`.
+3. **Phase 2: SSE Streaming** — next phase from the plan. New `EventBus` class, `GET /app/runs/{run_id}/events/stream` endpoint, replay historical + stream live events.
+4. Continue through plan phases in order (3→Algolia, 4→Verticals W1, etc.)
 
-## DONE 2026-06-21 — structured-record extraction (commit `7ce395b`)
+## Where We Stopped (exact)
 
-**Problem:** the native-grab fallback returned a ~1.2M-char raw-text blob, not structured records.
+Phase 1 implementation and verification complete. All 10 new RunDB tests pass. All 305 existing unit tests pass (no regressions). Pyright 0 errors on all changed files. Ruff clean.
 
-**Root cause (verified in code):** the native-grab path bypassed Crawl4AI — `capture_active_tab` ([user_browser.py:181](scout/api/user_browser.py:181)) did `page.content()` + `body.inner_text()` via Playwright and returned raw text, never routing it through Scout's own engine. It was a *bypassed-engine* problem, not a missing extractor. See memory `blob-means-bypassed-engine.md`.
+The last action was killing leftover Scout Chrome browser processes (`pkill -f "chrome-user-browser-profile"`) that were spawning Estée Lauder pages from a prior session — unrelated to current work.
 
-**Fix (shipped):** `scout/core/capture_extract.py::structure_capture()` feeds the held HTML back through `AsyncWebCrawler` via the **`raw://` scheme** (crawl4ai 0.7.7 async_crawler_strategy.py:485 — strips prefix, processes bytes, status 200, **no network fetch** → no wall re-trigger). Returns `CaptureExtraction` = clean markdown (default/free) + typed `records` when a CSS or LLM schema is supplied. `/app/browser/capture` now returns `markdown`/`records`/`record_count` for a cleared page and **skips structuring while still blocked**. Tests: 6 unit + 2 integration (real Crawl4AI, `.invalid` host proves no fetch) + 2 API contract.
+## Decisions Locked This Session
 
-## DONE 2026-06-21 — Crawl4AI-over-CDP: the core law enforced (commit `62f4896`)
+1. **RunDB schema** — `runs` table (run_id PK, use_case, query, status, mode, output_dir, artifacts_json, created_at, updated_at, finished_at) + `run_events` table (id AUTOINCREMENT, run_id FK, stage, message, level, timestamp). WAL journal mode. Foreign keys ON.
+2. **Write-through pattern** — `run_store.py` keeps in-memory dict for fast reads during active runs; SQLite for persistence. `_db_ready()` guard handles closed connections gracefully (falls back to in-memory only).
+3. **db_path config** — `Settings.db_path` defaults empty; `resolve_db_path()` returns `{SCOUT_WORKDIR}/scout.db`. Override via `SCOUT_DB_PATH` env var.
+4. **Async remember_run/get_run** — both functions in run_store.py are now async. All callers updated.
+5. **All 9 intelligence verticals real** — user chose "All 9 real" when asked. Plan reflects this (~13 sessions total).
 
-**Law (Arijit, stated twice):** Crawl4AI is THE engine — for **fetch AND extract**, not just extract. No content path may bypass it. (The screencast *viewport* is exempt — viewing ≠ acquisition.)
+## Remaining Work (from approved plan)
 
-**Audit:** 3 raw-Playwright paths existed (`user_browser.py` capture, `app_runs.py` capture, `live_browser.py` screencast). The content ones now route through Crawl4AI.
+| Phase | Sessions | Status |
+|-------|----------|--------|
+| 1. SQLite Run Persistence | 1.5 | **DONE** |
+| 2. SSE Streaming | 1 | Not started |
+| 3. Algolia Push | 1 | Not started |
+| 4. Verticals Wave 1 (company, careers, investor, news) | 3 | Not started |
+| 5. Verticals Wave 2 (research, docs, social, locations, website-quality, prism, products) | 2 | Not started |
+| 6. Quality Bugs | 1 | Not started |
+| 7. Docker + VPS Deployment | 1 | Not started |
+| 8. CI/CD | 0.5 | Not started |
+| 9. Browse-and-Harvest + UI | 2 | Not started |
 
-**Fix (shipped):** `scout/core/cdp_acquire.py::acquire_open_page(cdp_url, url)` attaches Crawl4AI to the human-cleared Chrome over CDP (`browser_mode="cdp"`+`cdp_url`) and drives the **exact cleared tab without navigating** (`js_only=True` → no `goto` → no wall re-trigger; managed `get_page` adopts the tab by url-match, browser_manager.py:1078; `scan_full_page` flushes lazy-load). `/app/browser/capture`: **CDP-attach is PRIMARY** for a cleared tab, `raw://` snapshot is the **fallback**. **Decisive proof:** integration test launches real Chromium, injects a unique marker into the LIVE DOM, runs `acquire_open_page(js_only)` — the marker survives into output, proving Crawl4AI read the tab in place (a `goto` would wipe it). See memory `crawl4ai-owns-cleared-session-via-cdp.md`. **284 unit green, pyright 0, ruff clean** (cumulative across both slices). Open: hardest-site (real PerimeterX-cleared session via CDP) still needs Arijit's Mac + a live solve.
+## What Has NOT Been Done
 
-## Locked architecture (do not relitigate)
+- Phase 1 changes NOT committed to git yet
+- Phase 2 SSE not started
+- Phase 3 Algolia push not started
+- 9 intelligence verticals still return fake seed data
+- Quality bugs unfixed (interstitial junk, duplicate variants, empty brand, embedded API key)
+- Docker/VPS deployment not done
+- CI/CD not set up
+- Browse-and-harvest flow not built
+- `app_runs.py` still uses in-memory-only state (plan says wire to DB — deferred to when SSE is built)
+- No PR created
 
-- **Scope boundary** (ADR 2026-06-12): Scout = acquire + extract (verbatim/structured/cited, target-agnostic). PRISM/skills = interpret. Scout never has an opinion.
-- **Universal acquisition engine** (ADR 2026-06-14): consumers import Scout; `scout.core` never imports a consumer. Intelligence verticals are CONSUMER specs, not Scout features.
-- **Human-assisted rung is the priority** for behavioral walls; unattended crawling of Zillow/LinkedIn-class sites is not achievable by anyone. Confirmed acceptable.
-- **Embedded canvas cannot clear behavioral walls** (Jun 18, live): forwarded press-and-hold on the CDP canvas gets the tick but PerimeterX rejects it (CDP input lacks real-OS fidelity). So: embedded pane = viewing + normal/easy sites; **native-window solve REQUIRED for PerimeterX/DataDome press-and-hold**. Native fallback is shipped + reachable.
-- **Block detector matches the CHALLENGE, not the vendor SDK** (fix c7c8fbb) — cleared PerimeterX pages still carry `_px`; matching the SDK looped detection forever.
+## Files Written/Modified This Session
 
-## Proven end-to-end (evidence)
+| File | Action |
+|---|---|
+| `scout/api/db.py` | **NEW** — RunDB class, async SQLite, runs + run_events tables |
+| `tests/unit/api/test_db.py` | **NEW** — 10 tests for RunDB CRUD + restart recovery |
+| `scout/api/config.py` | Modified — added `db_path` setting + `resolve_db_path()` |
+| `scout/api/main.py` | Modified — lifespan creates RunDB, binds to run_store, closes on shutdown |
+| `scout/api/deps.py` | Modified — added `get_run_db()` DI helper |
+| `scout/api/run_store.py` | Modified — async remember_run/get_run, write-through SQLite + in-memory cache, `_db_ready()` guard |
+| `scout/api/routers/run.py` | Modified — `await remember_run()` |
+| `scout/api/routers/runs.py` | Modified — `_require_run` now async, `await get_run()` |
+| `pyproject.toml` | Modified — added `aiosqlite>=0.20.0` |
 
-- **Zillow / PerimeterX, Arijit's Mac, 2026-06-17:** `scout unblock` opened real Chrome → Arijit solved press-and-hold → Scout detected cleared + captured **615 real Roswell rentals** (names+prices+beds). First live proof the human-assisted rung beats a real anti-bot wall.
-- **Embedded browser, 2026-06-18:** example.com streamed onto the canvas inside the Scout page; Zillow → auto block-banner (vendor=perimeterx); Native solve + Native grab reachable. (`docs/audit/2026-06-14-unblock/embedded-browser-live.png`.)
-- **Crawl-from-here live finding (Zillow):** mechanism works, but all 5 detail pages RE-CHALLENGED — PerimeterX scores behavior per-page, so an automated `page.goto` fails even with the cleared cookie. Implication: for PX/DataDome detail pages the HUMAN must navigate (per-page human-assist or browse-and-harvest), not just solve one gate.
-
-## What's built
-
-- `scout/core/blocking.py` (block detection, P1) · `scout/core/acquisition.py` (escalation spine) · T1 stealth wired into `scrape()` (proxy/UA/override_navigator/delay) · `scout/core/human_assisted.py` + `scout unblock` CLI · `scout/core/crawl_from_here.py` · `scout/core/live_browser.py` (CDP screencast engine) · `scout/api/routers/live_browser.py` (WS bridge `/app/live`) · `scout/api/live_browser_page.py` (console `/app/live-browser`) · `scout/api/routers/app_browser.py` (native open/capture).
-
-## What has NOT been done (do not claim otherwise)
-
-- Native grab now returns structured markdown + records from the API, but the `/app/live-browser` console UI still renders the old raw blob — NOT yet wired to show records.
-- Embedded pane not yet wired into the main `/app` (lives at `/app/live-browser`).
-- NO `unblock`/`harvest` API endpoints for PRISM yet.
-- Harvest / crawl-from-cleared-native-session not built.
-- Branch NOT pushed; nothing merged to main.
-- Known quality bugs deferred: checkout-interstitial junk product records ("Hang Tight!"), duplicate variants, empty brand; API key embedded in `/app` HTML (single-user acceptable); default workdir = repo `tests/`.
-
-## Genuine blockers (need Arijit)
-
-Residential proxy budget · his machine + logged-in sessions for hardest-rung (LinkedIn/Zillow-logged-in) validation · legal/ToS sign-off on LinkedIn capture + job auto-apply.
-
-## How to run
-
-```bash
-python3 -m scout.cli serve --port 8421      # app at http://localhost:8421/app ; live browser at /app/live-browser
-python3 -m pytest tests/unit -q             # 269 tests
-python3 -m pytest tests/e2e -q              # Playwright (starts own server)
-python3 -m pyright scout/ && ruff check scout/ tests/
-```
-
-## Reference
+## Reference Files
 
 | Path | Purpose |
 |---|---|
-| memory `scout-phased-rebuild-plan.md` | Full arc + every locked decision |
-| `scout/core/modes/extract.py` | The Crawl4AI extraction machinery the native-grab path should reuse |
-| `scout/api/routers/app_browser.py` | Native open/capture endpoints (where the blob is returned) |
-| `scout/api/user_browser.py` | `capture_active_tab` — raw HTML/text capture (the bypass) |
-| `docs/decisions/` | Scope-boundary, ICP, universal-engine ADRs |
+| `~/.claude/plans/hidden-jumping-crayon.md` | **THE PLAN** — 9 phases, all details |
+| `scout/api/db.py` | RunDB implementation |
+| `scout/api/run_store.py` | Write-through cache layer |
+| `scout/core/platform/types.py` | Pydantic contracts (RunManifest, ArtifactFiles) |
+| `scout/api/deps.py` | DI helpers (get_crawler, get_run_db) |
+| memory `session_pointer.md` | Cross-session state summary |
+| memory `code-complete-plan-approved.md` | Plan context + user decisions |
+
+## How to Run
+
+```bash
+python3 -m pytest tests/unit/ -q             # 305 tests
+python3 -m pytest tests/integration/ -v      # 14 tests (needs network)
+python3 -m pyright scout/                    # 0 errors required
+ruff check scout/ tests/ && ruff format --check scout/ tests/
+python3 -m scout.cli serve --port 8421       # app at localhost:8421/app
+```
+
+## Genuine Blockers (need Arijit)
+
+- Residential proxy budget
+- His machine + logged-in sessions for hardest-rung validation
+- Legal/ToS sign-off on LinkedIn capture + job auto-apply
+- VPS access details for Phase 7 deployment
