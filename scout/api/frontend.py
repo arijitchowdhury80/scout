@@ -517,6 +517,7 @@ def scout_app_html() -> str:
       <aside class="rail">
         <button class="active" data-rail-section="run"><span>□</span>Run</button>
         <button data-rail-section="history"><span>↻</span>History</button>
+        <button data-rail-section="browser"><span>⊞</span>Browser</button>
         <button data-rail-section="presets"><span>▤</span>Presets</button>
         <button data-rail-section="targets"><span>⌖</span>Targets</button>
         <button data-rail-section="data"><span>▥</span>Data</button>
@@ -833,7 +834,8 @@ def scout_app_html() -> str:
         integrations: { title: "Integrations", description: "Prepare records for Algolia and future downstream ingestion." },
         settings: { title: "Settings", description: "Inspect local workdir, API key status, live-test flag, and runtime information." },
         help: { title: "How to Use Scout", description: "Learn Scout workflows, execution modes, artifacts, and citation evidence." },
-        projects: { title: "Projects", description: "Organize run outputs by project and open artifact locations." }
+        projects: { title: "Projects", description: "Organize run outputs by project and open artifact locations." },
+        browser: { title: "Live Browser", description: "Browse sites in a managed browser, capture and harvest structured records from any page." }
       };
       const targetCatalog = [
         ["Algolia", "Private B2B SaaS", "https://www.algolia.com/", "PRISM, company, careers, blogs, docs"],
@@ -987,6 +989,18 @@ def scout_app_html() -> str:
         }
         if (screen === "settings") {
           content.innerHTML = `<div class="utility-grid"><div class="utility-card"><h3>Working Directory</h3><p>${escapeHtml(el("workdir").value)}</p></div><div class="utility-card"><h3>API Key</h3><p>Configured for local app requests.</p></div><div class="utility-card"><h3>Live Tests</h3><p>${escapeHtml(String(Boolean(window.SCOUT_LIVE_TESTS)))}</p></div></div>`;
+          return;
+        }
+        if (screen === "browser") {
+          const port = window.location.port ? ":" + window.location.port : "";
+          const liveBrowserUrl = window.location.protocol + "//" + window.location.hostname + port + "/app/live-browser";
+          content.innerHTML = `<div style="display:flex;flex-direction:column;gap:12px;height:calc(100vh - 200px);">` +
+            `<div style="display:flex;gap:8px;align-items:center;">` +
+            `<a href="${liveBrowserUrl}" target="_blank" class="secondary" style="text-decoration:none;padding:6px 14px;border:1px solid var(--line);border-radius:5px;font-size:12px;">Open in New Tab ↗</a>` +
+            `<span class="subtle" style="font-size:11px;">Browse sites, solve CAPTCHAs, then capture structured records.</span>` +
+            `</div>` +
+            `<iframe src="${liveBrowserUrl}" style="flex:1;border:1px solid var(--line);border-radius:6px;width:100%;min-height:400px;" allow="clipboard-write"></iframe>` +
+            `</div>`;
           return;
         }
         if (screen === "help") {

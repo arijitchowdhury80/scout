@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
+from scout.api.db import RunDB, RunRow, RunEventRow
 from scout.api.user_browser import (
     UserBrowserCaptureRequest,
     UserBrowserOpenRequest,
@@ -45,8 +47,15 @@ class NativeCaptureResult(BaseModel):
     error: str = ""
 
 
+def _get_run_db_optional(request: Request) -> RunDB | None:
+    return getattr(request.app.state, "run_db", None)
+
+
 @router.post("/capture", response_model=NativeCaptureResult)
-async def capture_native(req: NativeCaptureRequest) -> NativeCaptureResult:
+async def capture_native(
+    req: NativeCaptureRequest,
+    run_db: RunDB | None = Depends(_get_run_db_optional),
+) -> NativeCaptureResult:
     """Capture the native browser's current page; report if it's still blocked.
 
     The native-window fallback for behavioral walls the embedded canvas can't
@@ -98,6 +107,26 @@ async def capture_native(req: NativeCaptureRequest) -> NativeCaptureResult:
                     "record_count": structured.record_count,
                 }
             )
+
+    if req.run_id and run_db and result.records:
+        existing = await run_db.get_run(req.run_id)
+        if existing is None:
+            await run_db.save_run(
+                RunRow(
+                    run_id=req.run_id,
+                    use_case="browse-harvest",
+                    query=result.url,
+                    status="running",
+                    mode="user-browser",
+                )
+            )
+        await run_db.append_event(
+            RunEventRow(
+                run_id=req.run_id,
+                stage="capture",
+                message=f"Captured {result.record_count} records from {result.url}",
+            )
+        )
 
     return result
 
