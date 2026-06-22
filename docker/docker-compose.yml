@@ -7,7 +7,13 @@ services:
       - "8421:8421"
     env_file:
       - ../.env
-    # Playwright/Chromium requires sufficient shared memory to avoid browser crashes
+    environment:
+      - SCOUT_API_KEY=${SCOUT_API_KEY:-dev-key}
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - SCOUT_WORKDIR=/data/runs
+      - SCOUT_DB_PATH=/data/scout.db
+    volumes:
+      - scout-data:/data
     shm_size: '1gb'
     restart: unless-stopped
     healthcheck:
@@ -16,3 +22,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
+
+volumes:
+  scout-data:

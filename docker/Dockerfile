@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# System deps for Playwright's Chromium browser
+# System deps for Playwright/Crawl4AI's Chromium browser
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
@@ -31,18 +31,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Install Python dependencies first (layer cache)
+# Install Python dependencies (no dev deps in prod)
 COPY pyproject.toml .
-RUN pip install --no-cache-dir -e ".[dev]"
+RUN pip install --no-cache-dir .
 
-# Install Playwright and Chromium browser
-RUN playwright install chromium
+# Install Playwright and Chromium browser, then Crawl4AI browser setup
+RUN playwright install chromium \
+    && python -c "from crawl4ai import AsyncWebCrawler; print('Crawl4AI ready')"
 
 # Copy application source
 COPY scout/ scout/
 
+# Persistent data volume
+VOLUME /data
+
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    SCOUT_WORKDIR=/data/runs \
+    SCOUT_DB_PATH=/data/scout.db
 
 EXPOSE 8421
 

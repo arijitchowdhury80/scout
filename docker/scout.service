@@ -1,0 +1,23 @@
+[Unit]
+Description=Scout Web Intelligence Platform
+After=network.target
+
+[Service]
+Type=simple
+User=scout
+Group=scout
+WorkingDirectory=/opt/scout
+EnvironmentFile=/opt/scout/.env
+ExecStart=/opt/scout/.venv/bin/uvicorn scout.api.main:app --host 0.0.0.0 --port 8421
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/scout/data
+
+[Install]
+WantedBy=multi-user.target
