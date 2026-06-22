@@ -11,7 +11,10 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+
+from scout.api.event_bus import EventBus
 
 from scout.api.config import settings
 from scout.api.deps import get_crawler
@@ -72,6 +75,7 @@ class AppRunState(BaseModel):
 _APP_RUNS: dict[str, AppRunState] = {}
 _APP_TASKS: dict[str, asyncio.Task[None]] = {}
 _APP_WATCHDOGS: dict[str, asyncio.Task[None]] = {}
+_event_bus = EventBus()
 
 
 def _now() -> str:
@@ -82,10 +86,18 @@ def _run_id() -> str:
     return f"app_run_{secrets.token_hex(6)}"
 
 
+_TERMINAL_STATUSES = frozenset({"complete", "failed", "cancelled"})
+
+
 def _append(run_id: str, stage: str, message: str, level: str = "info") -> None:
     run = _APP_RUNS[run_id]
-    run.events.append(AppRunEvent(stage=stage, message=message, level=level))
+    event = AppRunEvent(stage=stage, message=message, level=level)
+    run.events.append(event)
     run.updated_at = _now()
+    event_dict = event.model_dump(mode="json")
+    asyncio.ensure_future(_event_bus.publish(run_id, event_dict))
+    if stage in _TERMINAL_STATUSES:
+        asyncio.ensure_future(_event_bus.close(run_id))
 
 
 def _mark_run_timeout(run_id: str) -> None:
@@ -876,6 +888,39 @@ async def get_app_run_events(run_id: str) -> dict[str, Any]:
     if run is None:
         raise HTTPException(status_code=404, detail="Run not found")
     return {"run_id": run_id, "events": [event.model_dump(mode="json") for event in run.events]}
+
+
+@router.get("/{run_id}/events/stream")
+async def stream_run_events(run_id: str) -> StreamingResponse:
+    run = _APP_RUNS.get(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    async def _generate():
+        for event in run.events:
+            yield f"data: {event.model_dump_json()}\n\n"
+
+        if run.status in _TERMINAL_STATUSES:
+            yield f"data: {json.dumps({'stage': 'close', 'message': 'Stream ended'})}\n\n"
+            return
+
+        queue = _event_bus.subscribe(run_id)
+        try:
+            while True:
+                item = await queue.get()
+                if item is None:
+                    break
+                yield f"data: {json.dumps(item)}\n\n"
+                if item.get("stage") in _TERMINAL_STATUSES:
+                    break
+        finally:
+            _event_bus.unsubscribe(run_id, queue)
+
+    return StreamingResponse(
+        _generate(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 def _apply_user_browser_capture(
