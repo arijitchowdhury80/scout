@@ -16,11 +16,13 @@ from scout.api.routers import (
     app_runs,
     crawl,
     extract,
+    harvest,
     health,
     live_browser,
     products,
     run,
     runs,
+    structure,
     workdir,
 )
 from scout.api.routers import map as map_router
@@ -47,6 +49,8 @@ app.include_router(health.router)
 app.include_router(scrape.router)
 app.include_router(crawl.router)
 app.include_router(extract.router)
+app.include_router(structure.router)
+app.include_router(harvest.router)
 app.include_router(products.router)
 app.include_router(run.router)
 app.include_router(runs.router)
