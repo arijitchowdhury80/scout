@@ -37,9 +37,16 @@ ruff check scout/ && ruff format --check scout/
 - Products mode: **REAL end-to-end** (incl. browser fallback + User Browser CDP capture)
 - Acquisition engine (structure + harvest + CDP-attach + raw://): **COMPLETE** — integration tested
 - PRISM endpoints (`POST /structure`, `POST /harvest`): **SHIPPED** — branch pushed
-- **SQLite Run Persistence (Plan Phase 1): DONE** — RunDB + write-through cache
-- 9 intelligence use cases: **STUBS** (fake seed records) — Plan Phases 4-5
-- **Next:** commit Phase 1, then Phase 2 SSE Streaming per the plan
+- **Plan Phase 1 — SQLite Run Persistence: DONE** — RunDB + write-through cache
+- **Plan Phase 2 — SSE Streaming: DONE** — EventBus + SSE endpoint
+- **Plan Phase 3 — Algolia Push: DONE** — save_objects integration
+- **Plan Phase 4 — Verticals Wave 1: DONE** — company, careers, investor, news runners
+- **Plan Phase 5 — Verticals Wave 2: DONE** — research, docs, social, locations, website-quality, products wiring, PRISM aggregate
+- **Plan Phase 6 — Quality Bugs: DONE** — junk filter, variant dedup, brand fallback, API key endpoint
+- **Plan Phase 7 — Docker: DONE** — Dockerfile, compose, nginx, systemd
+- **Plan Phase 8 — CI/CD: DONE** — GitHub Actions workflow
+- **Plan Phase 9 — Browse-Harvest UI: DONE** — run_id persistence, Browser tab
+- **ALL 9 PLAN PHASES COMPLETE** — 367 tests, pyright 0 errors, ruff clean
 
 ## Reference Artifacts
 
