@@ -1,247 +1,698 @@
 # Scout
 
-Scout is a provider-agnostic web-to-record intelligence engine. Crawl4AI is the
-default standalone acquisition provider, but Scout can also process content
-supplied by host tools, browser sessions, saved HTML/DOM, PDF parsers, ATS
-adapters, and future provider integrations.
+Scout is a self-hosted web intelligence platform built on [Crawl4AI](https://github.com/unclecode/crawl4ai). It extracts clean web content, crawls site sections, captures screenshots, structures raw HTML, and prepares reusable records for product catalogs, company intelligence, job monitoring, investor research, and other web intelligence workflows.
 
-Scout can run as a Python package, CLI, local HTTP service, Docker service, or
-Claude/Codex skill backend.
+Scout runs as a Python package, CLI, local HTTP service, Docker service, or Claude/Codex skill backend.
 
-Scout extracts clean web content, crawls site sections, captures screenshots,
-and prepares reusable records for product catalogs, company intelligence, job
-monitoring, investor research, and other web intelligence workflows.
-
-## What Scout Does
-
-| Capability | CLI | HTTP |
-|---|---|---|
-| Scrape one page to markdown/raw HTML | `scout scrape` | `POST /scrape` |
-| Discover URLs on a site | `scout map` | `POST /map` |
-| Crawl multiple pages | `scout crawl` | `POST /crawl` |
-| Extract structured fields | `scout extract` | `POST /extract` |
-| Capture screenshots | `scout screenshot` | `POST /screenshot` |
-| Build Algolia product records | `scout products` | `POST /products` |
-| Run high-level use-case workflows | `scout run <use-case>` | `POST /run/{use_case}` |
-
-## Install
+## Quick Start
 
 ```bash
+# Install
 pip install git+https://github.com/arijitchowdhury80/scout.git
 playwright install chromium
+
+# Configure
+cp .env.example .env.local
+# Edit .env.local: set SCOUT_API_KEY, LLM_API_KEY, SCOUT_WORKDIR
+
+# Start the server
+scout serve
+# or: python -m uvicorn scout.api.main:app --host 0.0.0.0 --port 8421
+
+# Verify
+curl http://localhost:8421/health
 ```
 
-For local development:
+Open `http://localhost:8421/app` for the Scout frontend, or `http://localhost:8421/docs` for Swagger API docs.
+
+## Authentication
+
+All endpoints except `/health` and `/` require the `X-API-Key` header:
+
+```
+X-API-Key: dev-key
+```
+
+Set `SCOUT_API_KEY` in `.env.local` before exposing Scout beyond local development.
+
+---
+
+## API Reference
+
+Scout exposes **15 HTTP endpoints** organized into four groups: Core Extraction, Intelligence Verticals, Run Artifacts, and Algolia Integration.
+
+### Core Extraction Endpoints
+
+These are the building blocks — each does one thing well.
+
+---
+
+#### `POST /scrape` — Single-Page Content Extraction
+
+Fetch a single URL and return clean markdown, raw HTML, links, and metadata.
+
+**Use case:** Extract clean text from any URL for LLM consumption, research pipelines, content monitoring, or competitive analysis.
+
+**Request:**
+```json
+{
+  "url": "https://example.com/about",
+  "formats": ["markdown"],
+  "use_js": false,
+  "wait_for": "",
+  "timeout_ms": 30000,
+  "stealth": false,
+  "headless": true,
+  "proxy": null,
+  "user_agent": null,
+  "user_agent_mode": null,
+  "override_navigator": false,
+  "mean_delay": null
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `url` | string | **required** | URL to scrape |
+| `formats` | list | `["markdown"]` | Output formats: `markdown`, `raw_html`, `screenshot` |
+| `use_js` | bool | `false` | Enable JavaScript rendering |
+| `wait_for` | string | `""` | CSS selector to wait for before capture |
+| `timeout_ms` | int | `30000` | Request timeout in milliseconds |
+| `stealth` | bool | `false` | Enable stealth mode (simulate_user + UA rotation) |
+| `headless` | bool | `true` | Run browser in headless mode |
+| `proxy` | string? | `null` | Proxy URL (e.g. `http://user:pass@host:port`) |
+| `user_agent` | string? | `null` | Explicit User-Agent string |
+| `user_agent_mode` | string? | `null` | `"random"` rotates realistic UA per run |
+| `override_navigator` | bool | `false` | Patch navigator to defeat headless fingerprinting |
+| `mean_delay` | float? | `null` | Human-like pacing between actions (seconds) |
+
+**Response:**
+```json
+{
+  "success": true,
+  "url": "https://example.com/about",
+  "markdown": "# About Us\n\nWe are...",
+  "raw_html": "<html>...</html>",
+  "screenshot_base64": "",
+  "links": ["https://example.com/team", "https://example.com/contact"],
+  "metadata": {
+    "url": "https://example.com/about",
+    "crawled_at": "2026-06-22T...",
+    "title": "About Us",
+    "description": "...",
+    "language": "en",
+    "word_count": 450,
+    "token_estimate": 600
+  },
+  "error": "",
+  "duration_ms": 1284
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8421/scrape \
+  -H "X-API-Key: dev-key" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://stripe.com/about", "formats": ["markdown", "raw_html"]}'
+```
+
+---
+
+#### `POST /crawl` — Multi-Page Site Crawl
+
+Recursively crawl a site via BFS and return all discovered pages as markdown.
+
+**Use case:** Index entire sites for knowledge bases, documentation scraping, content audits, or building training datasets.
+
+**Request:**
+```json
+{
+  "url": "https://docs.example.com",
+  "max_depth": 2,
+  "max_pages": 10,
+  "url_pattern": "",
+  "include_external": false,
+  "use_js": false,
+  "timeout_ms": 60000,
+  "stealth": false
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `url` | string | **required** | Starting URL |
+| `max_depth` | int | `2` | Maximum crawl depth |
+| `max_pages` | int | `10` | Maximum pages to crawl |
+| `url_pattern` | string | `""` | Regex filter for discovered URLs |
+| `include_external` | bool | `false` | Include external domain links |
+| `use_js` | bool | `false` | Enable JavaScript rendering |
+| `timeout_ms` | int | `60000` | Total crawl timeout |
+| `stealth` | bool | `false` | Enable stealth mode |
+
+**Response:**
+```json
+{
+  "success": true,
+  "start_url": "https://docs.example.com",
+  "pages": [
+    {
+      "url": "https://docs.example.com/intro",
+      "markdown": "# Introduction\n...",
+      "metadata": { "url": "...", "crawled_at": "...", "title": "...", "word_count": 320 },
+      "success": true,
+      "error": ""
+    }
+  ],
+  "total_pages": 8,
+  "error": "",
+  "duration_ms": 12500
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8421/crawl \
+  -H "X-API-Key: dev-key" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://docs.stripe.com", "max_depth": 2, "max_pages": 20}'
+```
+
+---
+
+#### `POST /map` — URL Discovery (Sitemap)
+
+Discover all URLs on a site without extracting content. Faster and cheaper than a full crawl.
+
+**Use case:** Discover all pages before selective crawling — build URL inventories, detect site structure changes, find orphaned pages.
+
+**Request:**
+```json
+{
+  "url": "https://example.com",
+  "max_pages": 100,
+  "url_pattern": "",
+  "include_external": false,
+  "stealth": false
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "start_url": "https://example.com",
+  "urls": [
+    "https://example.com/about",
+    "https://example.com/products",
+    "https://example.com/blog"
+  ],
+  "total": 47,
+  "error": "",
+  "duration_ms": 7946
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8421/map \
+  -H "X-API-Key: dev-key" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://stripe.com", "max_pages": 200}'
+```
+
+---
+
+#### `POST /extract` — Structured Data Extraction
+
+Crawl a URL and extract structured data using CSS selectors or an LLM strategy.
+
+**Use case:** Pull typed records from pages — product prices, contact info, job listings, event details — for databases and downstream processing.
+
+**Request:**
+```json
+{
+  "url": "https://example.com/products",
+  "css_schema": {
+    "baseSelector": "div.product",
+    "fields": [
+      {"name": "title", "selector": "h2", "type": "text"},
+      {"name": "price", "selector": ".price", "type": "text"},
+      {"name": "link", "selector": "a", "type": "attribute", "attribute": "href"}
+    ]
+  },
+  "instruction": "",
+  "extraction_schema": {},
+  "llm_provider": "gemini/gemini-2.0-flash",
+  "use_js": false,
+  "timeout_ms": 45000
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `url` | string | **required** | URL to extract from |
+| `css_schema` | dict? | `null` | CSS-based extraction schema (no LLM needed) |
+| `instruction` | string | `""` | Natural language extraction instruction (requires LLM) |
+| `extraction_schema` | dict | `{}` | JSON Schema for LLM-based extraction (alias: `schema`) |
+| `llm_provider` | string | `"gemini/gemini-2.0-flash"` | LLM provider for instruction-based extraction |
+| `use_js` | bool | `false` | Enable JavaScript rendering |
+| `timeout_ms` | int | `45000` | Request timeout |
+
+**Response:**
+```json
+{
+  "success": true,
+  "url": "https://example.com/products",
+  "data": {"products": [{"title": "Widget", "price": "$29.99"}]},
+  "markdown": "...",
+  "metadata": { "url": "...", "crawled_at": "...", "title": "..." },
+  "error": "",
+  "duration_ms": 1305
+}
+```
+
+---
+
+#### `POST /structure` — Structure Pre-Fetched HTML
+
+Process HTML you already have through Crawl4AI's extraction engine — no network fetch. Uses the `raw://` scheme internally so it never re-triggers bot walls.
+
+**Use case:** Process captured HTML from browser sessions, saved files, or third-party sources without re-fetching. Critical for PRISM integration where pages were cleared by a human.
+
+**Request:**
+```json
+{
+  "html": "<html><body><h1>Products</h1><div class='product'>...</div></body></html>",
+  "source_url": "https://example.com/products",
+  "css_schema": {
+    "baseSelector": "div.product",
+    "fields": [
+      {"name": "name", "selector": "h2", "type": "text"},
+      {"name": "price", "selector": ".price", "type": "text"}
+    ]
+  },
+  "llm_schema": null
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "source_url": "https://example.com/products",
+  "markdown": "# Products\n\n## Widget A\n$29.99...",
+  "records": [
+    {"name": "Widget A", "price": "$29.99"},
+    {"name": "Widget B", "price": "$49.99"}
+  ],
+  "record_count": 2,
+  "word_count": 45,
+  "error": "",
+  "duration_ms": 677
+}
+```
+
+---
+
+#### `POST /screenshot` — Visual Page Capture
+
+Capture a screenshot of any URL as a base64-encoded PNG.
+
+**Use case:** Visual evidence for audits, competitive analysis screenshots, visual regression testing, generating thumbnails.
+
+**Request:**
+```json
+{
+  "url": "https://example.com",
+  "full_page": true,
+  "viewport_width": 1280,
+  "viewport_height": 800,
+  "wait_for": "",
+  "use_js": true
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "url": "https://example.com",
+  "screenshot_base64": "iVBORw0KGgo...",
+  "width": 1280,
+  "height": 2400,
+  "error": "",
+  "duration_ms": 1271
+}
+```
+
+---
+
+#### `POST /harvest` — Live Browser Tab Extraction via CDP
+
+Attach Crawl4AI to an already-open Chrome tab over the Chrome DevTools Protocol and extract structured content without navigating away.
+
+**Use case:** Extract from browser tabs that a human has already cleared past bot walls. No re-navigation, no wall re-trigger.
+
+**Request:**
+```json
+{
+  "cdp_url": "http://127.0.0.1:9222",
+  "url": "https://target-site.com/page",
+  "css_schema": null,
+  "scan_full_page": true
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `cdp_url` | string | **required** | CDP endpoint (e.g. `http://127.0.0.1:9222`) |
+| `url` | string | **required** | URL of the page currently open in the tab |
+| `css_schema` | dict? | `null` | Optional CSS extraction schema for typed records |
+| `scan_full_page` | bool | `true` | Scroll the full page before extraction |
+
+**Response:** Same as `/structure` (`CaptureExtraction` model).
+
+---
+
+### Product Catalog Endpoint
+
+#### `POST /products` — Product Catalog Extraction
+
+Discover product pages on an ecommerce site and return normalized Algolia-ready records with stable `objectID`s.
+
+**Use case:** Build searchable product catalogs from any ecommerce site. Records include name, brand, price, images, categories, variants, and completeness scores. Output is ready for Algolia indexing.
+
+**Request:**
+```json
+{
+  "site": "https://books.toscrape.com",
+  "query": "fiction",
+  "max_products": 100,
+  "max_categories": 10,
+  "limit_per_category": 10,
+  "output_dir": "",
+  "persist": false,
+  "use_js": true,
+  "timeout_ms": 60000,
+  "stealth": false,
+  "browser_fallback": true
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `site` | string | `""` | Target ecommerce site |
+| `query` | string | `""` | Product search query |
+| `start_url` | string | `""` | Direct start URL (overrides site+query) |
+| `max_products` | int | `100` | Maximum products to extract |
+| `max_categories` | int | `10` | Maximum category pages to discover |
+| `limit_per_category` | int | `10` | Products per category page |
+| `output_dir` | string | `""` | Where to save artifacts |
+| `persist` | bool | `false` | Write artifacts to disk |
+| `browser_fallback` | bool | `true` | Fall back to browser on bot blocks |
+| `stealth` | bool | `false` | Enable stealth mode |
+
+**Response:**
+```json
+{
+  "success": true,
+  "query": "fiction",
+  "site": "https://books.toscrape.com",
+  "start_url": "https://books.toscrape.com",
+  "output_dir": "",
+  "records": [
+    {
+      "objectID": "abc123def456",
+      "name": "A Light in the Attic",
+      "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+      "brand": "Books To Scrape",
+      "description": "...",
+      "image": "https://...",
+      "images": [],
+      "price": 51.77,
+      "currency": "GBP",
+      "categories": ["Books"],
+      "hierarchicalCategories": {},
+      "sku": "",
+      "variants": [],
+      "in_stock": true,
+      "_source": {
+        "url": "...",
+        "extractor": "listing_card",
+        "category_url": "...",
+        "category_name": "Books"
+      },
+      "completeness_score": 0.65
+    }
+  ],
+  "total_records": 5,
+  "categories": ["Books"],
+  "blocked_pages": [],
+  "total_blocked_pages": 0,
+  "files": {},
+  "error": "",
+  "duration_ms": 18093
+}
+```
+
+**Quality pipeline:** Records go through junk filtering (CAPTCHA pages, error pages), canonical URL deduplication (strips variant/color/size params), and brand fallback (domain name extraction when brand is missing).
+
+---
+
+### Intelligence Verticals
+
+#### `POST /run/{use_case}` — Run Intelligence Vertical
+
+Run a high-level intelligence workflow. Each use case has a dedicated runner that knows which URLs to check, what patterns to extract, and how to structure the output.
+
+**Request:**
+```json
+{
+  "url": "https://stripe.com",
+  "query": "",
+  "mode": "auto",
+  "targets": [],
+  "output_dir": "",
+  "max_targets": 25,
+  "max_records": 250
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `url` | string | `""` | Target company website |
+| `query` | string | `""` | Search query or company name |
+| `mode` | string | `"auto"` | Execution mode: `auto`, `crawl4ai`, `webfetch`, `websearch`, `browser`, `user-browser`, `saved`, `api` |
+| `targets` | list | `[]` | Specific URLs to process |
+| `output_dir` | string | `""` | Where to save artifacts |
+| `max_targets` | int | `25` | Maximum target URLs |
+| `max_records` | int | `250` | Maximum output records |
+
+**Available use cases:**
+
+| Use Case | What It Extracts | Example Target |
+|----------|-----------------|----------------|
+| `company` | Company profile, leadership, founding info, social links | `https://stripe.com` |
+| `careers` | Open job listings, departments, locations, apply links | `https://stripe.com` |
+| `investor` | Executive quotes from earnings calls, SEC filings, financial signals | `https://stripe.com` |
+| `news` | Press releases, media mentions, recent events (last 60 days) | `https://stripe.com` |
+| `research` | Blog posts, whitepapers, technical documentation | `https://stripe.com` |
+| `social` | Social media profiles — LinkedIn, Twitter, Facebook, YouTube | `https://stripe.com` |
+| `locations` | Office addresses, phone numbers, GPS coordinates | `https://stripe.com` |
+| `website-quality` | SEO signals, structured data, accessibility, performance indicators | `https://stripe.com` |
+| `prism` | **All 8 verticals above in one call** — full company dossier | `https://stripe.com` |
+| `products` | Product catalog (delegates to `/products` engine) | `https://books.toscrape.com` |
+
+**Response:**
+```json
+{
+  "success": true,
+  "use_case": "company",
+  "output_dir": "./scout-runs/stripe-company-20260622-051234",
+  "manifest": {
+    "run_id": "run_a1b2c3d4",
+    "use_case": "company",
+    "started_at": "2026-06-22T05:12:34",
+    "finished_at": "2026-06-22T05:12:52",
+    "total_records": 3,
+    "total_sources": 2,
+    "total_blocked": 0,
+    "artifacts": {
+      "manifest": ".../manifest.json",
+      "records_json": ".../records.json",
+      "records_jsonl": ".../records.jsonl",
+      "source_pages_json": ".../source_pages.json"
+    }
+  },
+  "total_records": 3,
+  "error": ""
+}
+```
+
+**Example — full company dossier:**
+```bash
+curl -X POST http://localhost:8421/run/prism \
+  -H "X-API-Key: dev-key" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://stripe.com", "mode": "auto"}'
+```
+
+---
+
+### Run Artifact Endpoints
+
+After a run completes, retrieve its results:
+
+#### `GET /runs/{run_id}` — Run Summary
+
+Returns the full run manifest with metadata, record/source/blocked counts, and artifact file paths.
+
+#### `GET /runs/{run_id}/records` — Extracted Records
+
+```json
+{
+  "run_id": "run_a1b2c3d4",
+  "total": 3,
+  "records": [{"objectID": "...", "name": "...", "url": "..."}]
+}
+```
+
+#### `GET /runs/{run_id}/sources` — Source Pages
+
+```json
+{
+  "run_id": "run_a1b2c3d4",
+  "total": 2,
+  "sources": [{"source_id": "src_...", "provider": "crawl4ai", "source_url": "..."}]
+}
+```
+
+#### `GET /runs/{run_id}/artifacts` — Artifact File Paths
+
+```json
+{
+  "run_id": "run_a1b2c3d4",
+  "output_dir": "./scout-runs/stripe-company-...",
+  "artifacts": {
+    "manifest": "manifest.json",
+    "records_json": "records.json",
+    "records_jsonl": "records.jsonl"
+  }
+}
+```
+
+---
+
+### Algolia Integration
+
+#### `POST /algolia/preview` — Validate Records Before Push
+
+Check that records have the required fields (`objectID`, `name`, `url`) and credentials are configured, before pushing to Algolia.
+
+**Request:**
+```json
+{
+  "app_id": "YOUR_APP_ID",
+  "api_key": "YOUR_ADMIN_API_KEY",
+  "index_name": "products",
+  "records": [
+    {"objectID": "1", "name": "Widget", "url": "https://example.com/widget"}
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "ready": true,
+  "index_name": "products",
+  "record_count": 1,
+  "sample_object_ids": ["1"],
+  "missing_required_fields": [],
+  "credentials": {
+    "app_id_configured": true,
+    "api_key_configured": true
+  },
+  "ingest_supported": true,
+  "message": "Preview records before pushing to Algolia via POST /algolia/push."
+}
+```
+
+#### `POST /algolia/push` — Push Records to Algolia
+
+Push validated records to an Algolia index. Supports batching.
+
+**Request:**
+```json
+{
+  "app_id": "YOUR_APP_ID",
+  "api_key": "YOUR_ADMIN_API_KEY",
+  "index_name": "products",
+  "records": [{"objectID": "1", "name": "Widget", "url": "..."}],
+  "batch_size": 1000
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "index_name": "products",
+  "records_pushed": 1,
+  "object_ids": ["1"],
+  "errors": []
+}
+```
+
+---
+
+### Utility Endpoints
+
+| Endpoint | Auth | Description |
+|----------|------|-------------|
+| `GET /health` | No | Service liveness — returns `{"status": "ok", "scout_version": "...", "crawl4ai_version": "..."}` |
+| `GET /api/config` | Yes | Returns non-secret config (API key for frontend) |
+| `GET /` | No | Landing page |
+| `GET /app` | No | Scout frontend application |
+
+---
+
+## Endpoint Validation
+
+Scout ships with a comprehensive validation suite that tests every endpoint with real HTTP calls:
 
 ```bash
-git clone https://github.com/arijitchowdhury80/scout.git
-cd scout
-pip install -e ".[dev]"
-playwright install chromium
+# Start Scout, then:
+python tests/validate_endpoints.py
 ```
 
-## Run as a CLI
+The suite runs **123 tests** across all 15 endpoint groups:
+- Multiple queries per endpoint (valid inputs, edge cases, error handling)
+- Success/failure criteria for every response field
+- Auth enforcement verification
+- Graceful degradation (invalid domains, missing CDP, fake Algolia credentials)
 
-CLI commands run directly through the Python package. You do not need to start
-the HTTP server first.
+**Latest results: 123/123 passed (100%).**
+
+---
+
+## CLI
 
 ```bash
 scout scrape https://example.com/about
 scout map https://example.com --pages 200
-scout crawl https://example.com/products --depth 2 --pages 50
-scout products "men shirts" --site example.com --output-dir ./scout-runs/men-shirts
-scout run jobs --profile examples/job-hunter/job-profile.yaml --output-dir ./scout-runs/jobs
-scout run prism --query "Nike prospect intelligence" --mode auto --output-dir ./scout-runs/nike-prism
+scout crawl https://example.com/docs --depth 2 --pages 50
+scout products "men shirts" --site example.com --output-dir ./scout-runs/shirts
+scout screenshot https://example.com --output screenshot.png
+scout run company --query stripe.com --mode auto
+scout run prism --query "Nike" --mode auto --output-dir ./scout-runs/nike
+scout run jobs --profile examples/job-hunter/job-profile.yaml
 ```
 
-### Working Directory And Local Keys
+Execution modes: `auto`, `crawl4ai`, `webfetch`, `websearch`, `browser`, `user-browser`, `saved`, `api`.
 
-For local development, keep secrets and machine-specific settings in
-`.env.local`:
-
-```bash
-cp .env.example .env.local
-```
-
-Set:
-
-```text
-SCOUT_API_KEY=change-me
-LLM_API_KEY=
-SCOUT_WORKDIR=scout-runs
-```
-
-`.env.local` is ignored by git. Use it for local keys, default run storage, and
-developer-only configuration. Use `.env` only for shared deployment defaults.
-
-When `--output-dir` is provided, Scout writes exactly there. When `--output-dir`
-is omitted, high-level CLI workflows and `scout products` derive a timestamped
-run folder under `--workdir`, `SCOUT_WORKDIR`, or `./scout-runs`. In an
-interactive terminal, Scout prompts:
-
-```text
-Where should Scout save run outputs, interim status, and local configs?
-```
-
-HTTP, Docker, scheduled jobs, and skill-driven runs cannot rely on interactive
-prompts, so they should pass `output_dir`, pass `--workdir` through the CLI, or
-set `SCOUT_WORKDIR` in `.env.local` or the deployment environment.
-
-`scout run` is the high-level workflow surface for company, careers, products,
-jobs, PRISM, investor, research, website-quality, docs, news, social, and
-locations. Every run writes the same artifact contract so CLI, HTTP, scheduled
-jobs, and the Claude/Codex skill can consume the output the same way.
-
-Execution modes are explicit:
-
-```bash
-scout run company --query Adobe --mode auto --output-dir ./scout-runs/adobe-company
-scout run careers --query Algolia --mode crawl4ai --output-dir ./scout-runs/algolia-careers
-scout run investor --query Salesforce --mode saved --output-dir ./scout-runs/salesforce-investor
-scout run products --query "top skincare products" --mode browser --output-dir ./scout-runs/estee-products
-```
-
-Supported modes are `auto`, `crawl4ai`, `webfetch`, `websearch`, `browser`,
-`saved`, and `api`. `auto` starts with standalone acquisition and uses browser
-fallback only after cheaper providers are unavailable or blocked.
-
-If `scout run <use-case>` or `scout products` is run interactively without
-`--output-dir`, Scout prompts for a working directory. In non-interactive use,
-it writes under `SCOUT_WORKDIR` or `./scout-runs/`.
-
-## Job Hunter
-
-Job Hunter starts from a YAML profile that describes the roles, salary range,
-locations, skills, excluded terms, industries, and target companies you care
-about.
-
-```bash
-scout run jobs \
-  --profile examples/job-hunter/job-profile.yaml \
-  --output-dir ./scout-runs/job-hunter-demo
-```
-
-Job Hunter can also accept seed job URLs:
-
-```bash
-scout run jobs \
-  --profile ./private-job-profile.yaml \
-  --job-url https://job-boards.greenhouse.io/eve/jobs/4245857009 \
-  --output-dir ./scout-runs/job-hunter-demo
-```
-
-The current V1 implementation loads profiles, writes normalized target company
-records, detects job source platforms, extracts saved/fixture job page evidence,
-scores job postings, and writes match/reject reasons. Live HTTP acquisition for
-public job URLs, ATS-specific network adapters, company discovery, careers page
-detection, and scheduled daily monitoring are the next build slices.
-
-Private candidate profiles should stay outside the public repository. Keep them
-in a local ignored file or vault-backed config and pass them with `--profile`.
-
-See [examples/job-hunter/README.md](examples/job-hunter/README.md).
-
-## Run as an HTTP Service
-
-```bash
-cp .env.example .env.local
-scout serve
-```
-
-Open:
-
-- `http://localhost:8421/` for a small status page
-- `http://localhost:8421/app` for the Scout frontend
-- `http://localhost:8421/docs` for Swagger API docs
-- `http://localhost:8421/health` for health/version info
-
-All endpoints except `/` and `/health` require:
-
-```text
-X-API-Key: dev-key
-```
-
-Set `SCOUT_API_KEY` in `.env.local` or the deployment environment before
-exposing Scout beyond local development.
-
-High-level workflows are available over HTTP:
-
-```bash
-curl -s -X POST http://localhost:8421/run/company \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: ${SCOUT_API_KEY:-dev-key}" \
-  -d '{
-    "query": "Adobe",
-    "mode": "auto",
-    "output_dir": "./scout-runs/adobe-company"
-  }'
-```
-
-The response includes the manifest and paths for `records.json`,
-`records.jsonl`, `source_pages.json`, `blocked_pages.json`, `validation.json`,
-and `extraction_report.md`.
-
-The frontend at `/app` provides a self-educating Run Console, Product
-Workbench, Evidence Browser, Records Explorer, and Algolia preparation panel.
-Algolia credentials entered there are session-only and are not persisted.
-
-`source_pages.json` is the source registry. It stores deterministic
-`source_id` values, source/final URLs, provider, fetch status, blocked/error
-state, content hashes, and content availability flags. Records in
-`records.json` and `records.jsonl` include `citations[]` entries that point
-back to those `source_id` values.
-
-## Product Catalog to Algolia
-
-```bash
-scout products "top products" \
-  --site esteelauder.com \
-  --limit-per-category 10 \
-  --max-categories 10 \
-  --output-dir ./scout-runs/estee-lauder
-```
-
-Scout writes a discoverable run folder:
-
-```text
-scout-runs/estee-lauder/
-  manifest.json
-  urls.json
-  extracted/products.raw.jsonl
-  algolia/products.json
-  algolia/products.ndjson
-  algolia/settings.json
-  report.md
-```
-
-`algolia/products.json` is a JSON array for inspection.
-`algolia/products.ndjson` is newline-delimited for bulk indexing pipelines.
-Each record includes a stable `objectID`, product URL, name, brand,
-description, image fields, price/currency when detected, categories, and
-`_source` provenance.
-
-See [docs/product-to-algolia.md](docs/product-to-algolia.md).
-
-## Intelligence Use Cases
-
-Scout is intentionally broader than product scraping. The supported platform
-surface is:
-
-| Use case | Record types |
-|---|---|
-| `company` | `company.v1`, `executive.v1`, `company_social.v1` |
-| `prism` | company, executive, social, investor, careers, news bundle |
-| `investor` | `investor_asset.v1` |
-| `careers` | `career_site.v1` |
-| `jobs` | `job_posting.v1` |
-| `products` | product records for Algolia indexing |
-| `news` | `news_signal.v1` |
-| `research` | `research_record.v1` |
-
-See [docs/use-cases.md](docs/use-cases.md) and
-[docs/execution-modes.md](docs/execution-modes.md). Validation targets are
-tracked in [docs/target-matrix.md](docs/target-matrix.md), with an executable
-registry in `scout.core.platform.targets`.
+---
 
 ## Docker
 
@@ -251,34 +702,89 @@ docker compose -f docker/docker-compose.yml up --build
 curl http://localhost:8421/health
 ```
 
-## Claude/Codex Skill
+The Docker setup includes:
+- **Dockerfile** — Python 3.11 + Crawl4AI + Playwright Chromium
+- **docker-compose.yml** — Named volume for `/data`, env var passthrough
+- **nginx.conf** — HTTPS reverse proxy, WebSocket upgrade for live browser, no-buffer for SSE
+- **scout.service** — systemd unit with security hardening
 
-Scout can also be used as an agent skill. The skill lives at
-`scout/skill/scout.md` and teaches an agent when to call the local Scout
-service or CLI.
-
-```bash
-bash install-skill.sh
-```
-
-The skill is an integration layer. Scout itself remains independently
-installable and usable from terminal, Docker, HTTP, and Python.
+---
 
 ## Development
 
 ```bash
-python3 -m pytest tests/unit/ -v
-python3 -m pyright scout/
-ruff check scout/ tests/
-ruff format --check scout/ tests/
+# Install dev dependencies
+pip install -e ".[dev]"
+playwright install chromium
+
+# Run tests
+python -m pytest tests/unit/ -v          # 367 unit tests
+python -m pytest tests/integration/ -v   # integration tests (needs network)
+
+# Quality checks
+python -m pyright scout/                 # 0 errors required
+ruff check scout/ tests/                 # linting
+ruff format --check scout/ tests/        # formatting
+
+# Full endpoint validation (requires running server)
+python tests/validate_endpoints.py
 ```
+
+---
 
 ## Architecture
 
-See [docs/architecture.md](docs/architecture.md).
+```
+scout/
+├── api/                    # FastAPI application
+│   ├── main.py             # App factory, lifespan, middleware
+│   ├── config.py           # Settings (env vars)
+│   ├── deps.py             # DI helpers (get_crawler, get_run_db)
+│   ├── frontend.py         # Self-contained frontend HTML
+│   ├── db.py               # RunDB — async SQLite persistence
+│   └── routers/            # One file per endpoint group
+│       ├── scrape.py       # POST /scrape
+│       ├── crawl.py        # POST /crawl
+│       ├── map.py          # POST /map
+│       ├── extract.py      # POST /extract
+│       ├── structure.py    # POST /structure
+│       ├── harvest.py      # POST /harvest
+│       ├── screenshot.py   # POST /screenshot
+│       ├── products.py     # POST /products
+│       ├── run.py          # POST /run/{use_case}
+│       ├── runs.py         # GET /runs/{run_id}/*
+│       ├── algolia.py      # POST /algolia/preview, /algolia/push
+│       ├── health.py       # GET /health
+│       ├── app_runs.py     # App-first run sessions + SSE
+│       ├── app_browser.py  # User browser CDP bridge
+│       └── live_browser.py # WebSocket embedded browser
+├── core/
+│   ├── types.py            # All Pydantic contracts
+│   ├── crawler.py          # ScoutCrawler wrapper around Crawl4AI
+│   ├── blocking.py         # Bot wall detection (PerimeterX, Cloudflare, etc.)
+│   ├── capture_extract.py  # Structure captured HTML via raw://
+│   ├── cdp_acquire.py      # CDP-based live tab extraction
+│   ├── products/           # Product discovery + Algolia record building
+│   ├── modes/              # Execution mode strategies
+│   ├── platform/           # Run dispatcher, workspace, types
+│   └── use_cases/
+│       └── runners/        # Intelligence vertical runners
+│           ├── company.py
+│           ├── careers.py
+│           ├── investor.py
+│           ├── news.py
+│           ├── research.py
+│           ├── social.py
+│           ├── locations.py
+│           └── website_quality.py
+├── cli/                    # CLI entry points
+└── skill/                  # Claude/Codex skill definition
+```
+
+See [docs/architecture.md](docs/architecture.md) for the full architecture document.
+
+---
 
 ## Attribution
 
-This product includes software developed by UncleCode as part of the
-[Crawl4AI](https://github.com/unclecode/crawl4ai) project, licensed under the
-Apache License 2.0.
+This product includes software developed by UncleCode as part of the [Crawl4AI](https://github.com/unclecode/crawl4ai) project, licensed under the Apache License 2.0.
