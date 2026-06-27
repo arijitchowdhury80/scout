@@ -1,17 +1,31 @@
-"""Crawl4AI version pin and upgrade notes.
+"""Scout and Crawl4AI version reporting.
 
-To upgrade Crawl4AI: bump CRAWL4AI_VERSION, run tests, update UPGRADE_NOTES.
-Nothing outside this file should import crawl4ai version directly.
+Crawl4AI is read from installed package metadata so /health reflects the
+actual runtime dependency loaded in the container. Pin Crawl4AI in
+pyproject.toml and upgrade deliberately with regression tests.
 """
 
-CRAWL4AI_VERSION = "0.7.7"
-SCOUT_VERSION = "0.1.0"
+from importlib.metadata import PackageNotFoundError, version
+
+
+def _installed_version(package_name: str) -> str:
+    try:
+        return version(package_name)
+    except PackageNotFoundError:
+        return "unknown"
+
+
+CRAWL4AI_VERSION = _installed_version("Crawl4AI")
+SCOUT_VERSION = "0.1.1"
 
 UPGRADE_NOTES = """
-v0.7.7 → next:
-- Check BrowserConfig API for breaking changes
-- Check CrawlerRunConfig parameter renames (wait_for, stream flag)
-- Verify fit_markdown attribute path on CrawlResult (currently result.markdown.fit_markdown)
-- Re-run: pytest tests/ -v && pytest tests/integration/ -v
-- Update CRAWL4AI_VERSION above
+Crawl4AI upgrade checklist:
+- Pin the target Crawl4AI version in pyproject.toml.
+- Rebuild the Scout container from docker/docker-compose.yml.
+- Verify /health reports the installed package version.
+- Check BrowserConfig API for breaking changes.
+- Check CrawlerRunConfig parameter renames and new defaults.
+- Verify fit_markdown attribute path on CrawlResult.
+- Run: pytest tests/ -v && pytest tests/integration/ -v where available.
+- Run live smoke tests for /scrape, /crawl, /map, and /screenshot.
 """
