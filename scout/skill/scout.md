@@ -7,7 +7,7 @@ server_port: 8421
 health_check: "curl -s http://localhost:8421/health"
 start_command: "scout serve"
 requires_install: true
-version: 3.0
+version: 3.1
 ---
 
 # Scout
@@ -116,6 +116,28 @@ scout products "top products" \
   --max-categories 10 \
   --output-dir ./scout-runs/lacoste-products
 ```
+
+## Shared Scrape Acquisition Profile
+
+Scout `0.1.1` keeps `POST /scrape` as the single scrape primitive. Do not create consumer-specific scrape endpoints such as `/ci/scrape`. CI and other consumers opt into acquisition metadata through request fields.
+
+Use these fields when a caller needs source quality, marker validation, cleaned evidence, or collector recommendation:
+
+```json
+{
+  "url": "https://example.com",
+  "formats": ["markdown"],
+  "quality_analysis": true,
+  "cleanup": true,
+  "expected_markers": ["Example Domain"],
+  "recommend_collector": true,
+  "source_id": "source-id"
+}
+```
+
+Default `/scrape` behavior remains backward-compatible. When the profile is used, inspect `acquisition.schema`, `content_hash`, `quality_score`, `quality_reasons`, `markers_found`, `markers_missing`, `recommended_collector`, and `recommended_collector_reason`.
+
+Use `scout benchmark URL --output-dir DIR` before deciding whether a source should use direct HTTP, RSS/feed parsing, or Scout browser acquisition.
 
 ## High-Level HTTP
 

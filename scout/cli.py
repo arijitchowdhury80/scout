@@ -13,6 +13,7 @@ import typer
 if TYPE_CHECKING:
     from scout.core.human_assisted import CaptureLike
 
+from scout.core.benchmark import benchmark_sync
 from scout.core.modes.crawl import crawl as _crawl
 from scout.core.modes.extract import extract as _extract
 from scout.core.modes.map import map_urls as _map
@@ -254,6 +255,31 @@ def run_locations(
     _run_high_level_use_case(
         "locations", query=query, output_dir=output_dir, mode=mode, workdir=workdir
     )
+
+
+@app.command("benchmark")
+def benchmark(
+    url: str = typer.Argument(..., help="URL to compare via direct HTTP and Scout scrape"),
+    output_dir: str = typer.Option(..., "--output-dir", help="Directory for benchmark artifacts"),
+    js: bool = typer.Option(True, "--js/--no-js", help="Enable JS rendering for Scout scrape"),
+    expected_marker: list[str] | None = typer.Option(
+        None, "--expected-marker", help="Expected content marker. Repeat for multiple markers."
+    ),
+) -> None:
+    """Benchmark direct HTTP against Scout /scrape and write artifacts."""
+    result = benchmark_sync(
+        url,
+        Path(output_dir).expanduser(),
+        use_js=js,
+        expected_markers=expected_marker or [],
+    )
+    _out({
+        "success": True,
+        "url": result.url,
+        "recommendation": result.recommendation,
+        "reason": result.reason,
+        "output_dir": str(Path(output_dir).expanduser()),
+    })
 
 
 @app.command()

@@ -23,6 +23,57 @@ monitoring, investor research, and other web intelligence workflows.
 | Capture screenshots | `scout screenshot` | `POST /screenshot` |
 | Build Algolia product records | `scout products` | `POST /products` |
 | Run high-level use-case workflows | `scout run <use-case>` | `POST /run/{use_case}` |
+| Benchmark acquisition methods | `scout benchmark URL --output-dir DIR` | n/a |
+
+## Release 0.1.1: Shared Acquisition Metadata
+
+Scout `0.1.1` adds a backward-compatible acquisition metadata profile to the existing `POST /scrape` primitive. It does not add a consumer-specific endpoint. There is intentionally no `/ci/scrape`. CI, PRISM, products, jobs, and future consumers should all use Scout through the shared scrape contract.
+
+Opt-in request fields:
+
+```json
+{
+  "quality_analysis": true,
+  "cleanup": true,
+  "expected_markers": ["AI Search", "Product updates"],
+  "recommend_collector": true,
+  "source_id": "optional-source-id"
+}
+```
+
+When any profile field is used, Scout may return:
+
+```json
+{
+  "markdown": "default markdown",
+  "raw_markdown": "raw evidence markdown",
+  "clean_markdown": "cleaned markdown",
+  "acquisition": {
+    "schema": "acquisition_metadata.v1",
+    "source_id": "optional-source-id",
+    "content_hash": "...",
+    "quality_score": 0.82,
+    "quality_reasons": [],
+    "markers_found": [],
+    "markers_missing": [],
+    "recommended_collector": "scout_scrape",
+    "recommended_collector_reason": "browser_rendered_page"
+  }
+}
+```
+
+Default `/scrape` behavior is preserved: if the caller does not opt in, acquisition metadata remains empty and existing callers keep the old shape.
+
+Use the benchmark harness before promoting Scout as the primary collector for a source:
+
+```bash
+scout benchmark https://example.com \
+  --output-dir ./scout-runs/benchmarks/example \
+  --no-js \
+  --expected-marker "Example Domain"
+```
+
+The benchmark writes `benchmark.json`, `comparison.md`, `direct_http.txt`, `scout_raw.md`, `scout_clean.md`, and `samples/`. Scout should recommend `direct_http` for simple static pages, `rss_feed` for feed-like URLs, and `scout_scrape` for pages that benefit from browser-grade acquisition.
 
 ## Install
 

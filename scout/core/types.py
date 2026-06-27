@@ -43,21 +43,52 @@ class ScrapeRequest(BaseModel):
     stealth: bool = False  # enable_stealth + simulate_user + magic in Crawl4AI
     headless: bool = True
     # --- acquisition-ladder stealth knobs (T1 rung); all opt-in, defaults inert ---
-    proxy: str | None = None  # e.g. "http://user:pass@host:port" → Crawl4AI BrowserConfig.proxy
+    proxy: str | None = None  # e.g. "http://user:pass@host:port" -> Crawl4AI BrowserConfig.proxy
     user_agent: str | None = None  # explicit UA; overrides default
     user_agent_mode: str | None = None  # "random" rotates a realistic UA per run
     override_navigator: bool = False  # patch navigator.* to defeat headless fingerprinting
     mean_delay: float | None = None  # human-like pacing between actions (seconds)
+    # --- optional acquisition metadata profile; defaults preserve /scrape compatibility ---
+    quality_analysis: bool = False
+    cleanup: bool = False
+    expected_markers: list[str] = Field(default_factory=list)
+    recommend_collector: bool = False
+    source_id: str = ""
+
+
+class AcquisitionMetadata(BaseModel):
+    model_config = {"populate_by_name": True}
+
+    schema_version: str = Field("acquisition_metadata.v1", alias="schema")
+    source_id: str = ""
+    final_url: str = ""
+    status_code: int | None = None
+    fetched_at: str = ""
+    provider: str = "crawl4ai"
+    content_hash: str = ""
+    boilerplate_removed: int = 0
+    cleanup_rules_applied: list[str] = Field(default_factory=list)
+    blocked: bool = False
+    markers_found: list[str] = Field(default_factory=list)
+    markers_missing: list[str] = Field(default_factory=list)
+    marker_score: float = 1.0
+    quality_score: float = 0.0
+    quality_reasons: list[str] = Field(default_factory=list)
+    recommended_collector: str = ""
+    recommended_collector_reason: str = ""
 
 
 class ScrapeResponse(BaseModel):
     success: bool
     url: str
     markdown: str = ""
+    raw_markdown: str = ""
+    clean_markdown: str = ""
     raw_html: str = ""
     screenshot_base64: str = ""
     links: list[str] = Field(default_factory=list)
     metadata: ScoutMetadata
+    acquisition: AcquisitionMetadata | None = None
     error: str = ""
     duration_ms: int
 
