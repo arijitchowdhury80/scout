@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scout — Web Acquisition Workbench</title>
+    <meta
+      name="description"
+      content="Scout turns messy web pages into citable, downstream-ready records for agents, demos, and intelligence workflows."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Scout home">
+        <span class="brand-mark">S</span>
+        <span>
+          <strong>Scout</strong>
+          <small>Acquisition Workbench</small>
+        </span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#features">Features</a>
+        <a href="#why">Why Scout</a>
+        <a href="#quickstart">Quickstart</a>
+        <a href="#status">Status</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <img
+          src="../docs/design/scout-redesign/screens/04-results.png"
+          alt="Scout results workspace showing records, evidence, and run artifacts"
+        />
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Private Beta</p>
+          <h1 id="hero-title">Turn messy web pages into citable, downstream-ready records.</h1>
+          <p class="hero-copy">
+            Scout is a self-hosted acquisition workbench for AI agents, search demos,
+            and intelligence workflows. Scrape, crawl, capture browser evidence,
+            structure records, and keep the artifacts.
+          </p>
+          <div class="hero-actions" aria-label="Primary actions">
+            <a class="button primary" href="#quickstart">Try locally</a>
+            <a class="button secondary" href="#features">See capabilities</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section split" id="why">
+        <div>
+          <p class="eyebrow">Not another crawler API</p>
+          <h2>Scout owns the path from acquisition to records.</h2>
+        </div>
+        <div class="copy">
+          <p>
+            Generic crawlers fetch pages. Scout is built for the workflow around the
+            fetch: evidence, blocked-page truth, browser handoff, typed records,
+            artifact folders, and downstream integrations.
+          </p>
+          <p>
+            Use hosted crawlers when you need managed scale. Use Scout when you need
+            local control over the acquisition process and records your tools can trust.
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="section-heading">
+          <p class="eyebrow">Capabilities</p>
+          <h2>From URL to evidence-backed output.</h2>
+        </div>
+        <div class="feature-grid">
+          <article>
+            <h3>Core acquisition</h3>
+            <p>Scrape, crawl, map, extract, and screenshot pages with Crawl4AI-backed rendering.</p>
+          </article>
+          <article>
+            <h3>Browser capture</h3>
+            <p>Capture live pages, screenshots, DOM, text, and links through browser/CDP workflows.</p>
+          </article>
+          <article>
+            <h3>Structured records</h3>
+            <p>Turn captured pages into product, company, careers, investor, news, and research records.</p>
+          </article>
+          <article>
+            <h3>Product catalogs</h3>
+            <p>Extract listing and product data, then prepare Algolia-ready JSON and NDJSON records.</p>
+          </article>
+          <article>
+            <h3>Evidence artifacts</h3>
+            <p>Preserve manifests, source pages, blocked pages, validation findings, and reports.</p>
+          </article>
+          <article>
+            <h3>Local and agent-ready</h3>
+            <p>Run through CLI, HTTP, Docker, local app, Claude/Codex skill, and future MCP tools.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section comparison">
+        <div class="section-heading">
+          <p class="eyebrow">Positioning</p>
+          <h2>Where Scout fits.</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Need</th>
+                <th>Hosted crawler</th>
+                <th>Scout</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Managed scale</td>
+                <td>Best fit</td>
+                <td>Not the first wedge</td>
+              </tr>
+              <tr>
+                <td>Evidence and artifacts</td>
+                <td>Varies</td>
+                <td>Core output</td>
+              </tr>
+              <tr>
+                <td>User/browser-session capture</td>
+                <td>Varies by platform</td>
+                <td>Core design direction</td>
+              </tr>
+              <tr>
+                <td>Product-to-search records</td>
+                <td>Requires custom normalization</td>
+                <td>Built-in workflow</td>
+              </tr>
+              <tr>
+                <td>Local/operator control</td>
+                <td>Secondary</td>
+                <td>Primary</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section workflow">
+        <div class="section-heading">
+          <p class="eyebrow">How it works</p>
+          <h2>Acquisition to record, with proof.</h2>
+        </div>
+        <ol class="steps">
+          <li><strong>Acquire</strong><span>URL, crawl, browser session, or captured HTML.</span></li>
+          <li><strong>Normalize</strong><span>Clean markdown, raw evidence, screenshots, links.</span></li>
+          <li><strong>Structure</strong><span>Typed records for products, intelligence, docs, or research.</span></li>
+          <li><strong>Deliver</strong><span>Artifacts, reports, JSON/JSONL, Algolia, or agent tools.</span></li>
+        </ol>
+      </section>
+
+      <section class="section quickstart" id="quickstart">
+        <div>
+          <p class="eyebrow">Quickstart</p>
+          <h2>Run Scout locally.</h2>
+          <p>
+            Scout is currently best tested as a local or Docker service. The hosted
+            product decision comes later.
+          </p>
+        </div>
+        <pre><code>pip install git+https://github.com/arijitchowdhury80/scout.git
+playwright install chromium
+scout serve
+
+curl http://localhost:8421/health</code></pre>
+      </section>
+
+      <section class="section status" id="status">
+        <div>
+          <p class="eyebrow">Beta status</p>
+          <h2>Built enough to test. Honest enough to improve.</h2>
+        </div>
+        <div class="status-grid">
+          <article>
+            <h3>Strong today</h3>
+            <p>Scrape, crawl, map, screenshot, structure, product records on friendly sites, artifacts, Algolia preview/push.</p>
+          </article>
+          <article>
+            <h3>Beta</h3>
+            <p>App workflow, vertical intelligence runners, browser capture, real-website variability.</p>
+          </article>
+          <article>
+            <h3>Experimental</h3>
+            <p>Hard-site extraction, user-session capture reliability, broad commercial packaging, MCP server.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Scout includes software developed by UncleCode for Crawl4AI.</p>
+      <p>Private beta. Do not use Scout to access websites unlawfully or bypass access controls.</p>
+    </footer>
+  </body>
+</html>

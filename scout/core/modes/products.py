@@ -58,7 +58,7 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
                 max_categories=req.max_categories,
                 limit_per_category=req.limit_per_category,
             )
-            if not groups:
+            if not groups or not any(g.product_urls or g.listing_cards for g in groups):
                 groups = await _discover_from_categories(req, [start_url, *mapped.urls])
         records_by_url: dict[str, AlgoliaProductRecord] = {}
         blocked_pages: list[BlockedPage] = []
@@ -297,7 +297,7 @@ def _keep_best_record(
     record: AlgoliaProductRecord,
 ) -> None:
     existing = records_by_url.get(record.url)
-    if not existing or record.completeness_score >= existing.completeness_score:
+    if not existing or record.completeness_score > existing.completeness_score:
         records_by_url[record.url] = record
 
 

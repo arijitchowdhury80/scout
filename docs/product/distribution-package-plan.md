@@ -1,0 +1,118 @@
+# Scout Distribution Package Plan
+
+Date: 2026-06-27
+Status: Draft
+
+## Distribution Goals
+
+Scout should be usable in four ways:
+
+1. local Python package,
+2. CLI,
+3. HTTP/Docker service,
+4. agent/tool backend through skill or future MCP server.
+
+## Local Install
+
+Target command:
+
+```bash
+pip install git+https://github.com/arijitchowdhury80/scout.git
+playwright install chromium
+scout serve
+```
+
+Required docs:
+
+- [ ] Python version requirements.
+- [ ] Playwright browser install.
+- [ ] `.env.local` setup.
+- [ ] `SCOUT_API_KEY`.
+- [ ] `SCOUT_WORKDIR`.
+- [ ] quick health check.
+- [ ] quick scrape example.
+- [ ] where artifacts are written.
+
+## Docker Install
+
+Target command:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+curl http://localhost:8421/health
+```
+
+Required docs:
+
+- [ ] environment variables,
+- [ ] volume mounts for `scout-runs`,
+- [ ] exposed ports,
+- [ ] API key configuration,
+- [ ] Playwright/browser dependencies,
+- [ ] production reverse proxy notes.
+
+## Package Readiness
+
+Current package state:
+
+- `pyproject.toml` defines package name `scout`.
+- CLI entrypoint exists: `scout = scout.cli:app`.
+- Version is currently `0.1.0`.
+- Crawl4AI, Playwright, FastAPI, Algolia, SQLite, Typer dependencies are present.
+
+Before public package release:
+
+- [ ] Decide Scout's own license.
+- [ ] Add `LICENSE` if open/source-available.
+- [ ] Add `THIRD_PARTY_NOTICES.md`.
+- [ ] Add classifiers to `pyproject.toml`.
+- [ ] Add package metadata: authors, URLs, readme, license expression.
+- [ ] Verify package includes `scout/skill` if intended.
+- [ ] Build wheel/sdist.
+- [ ] Install from built wheel in a clean venv.
+- [ ] Run quick smoke after install.
+
+## GitHub Readiness
+
+- [ ] Clean generated local residue.
+- [ ] Remove accidental run artifacts from tracked status.
+- [ ] Keep `.env` and `.env.local` ignored.
+- [ ] Add website/docs paths intentionally.
+- [ ] Add release checklist.
+- [ ] Add issue templates for beta feedback.
+- [ ] Add security policy before public launch.
+
+## Hosted Scout
+
+If Scout is hosted as a service, usage changes:
+
+- users do not install locally,
+- browser/user-session capture becomes harder,
+- data residency and customer isolation become product requirements,
+- infrastructure costs and abuse prevention become central,
+- terms of service become mandatory.
+
+Hosted Scout should probably be a later phase. The first public path should be
+local/Docker/private beta.
+
+## MCP Server
+
+MCP is a strong next distribution surface because agents can call Scout as a
+tool. Candidate MCP tools:
+
+- `scrape_page`
+- `crawl_site`
+- `map_site`
+- `screenshot_page`
+- `structure_html`
+- `harvest_browser_page`
+- `extract_products`
+- `preview_algolia_records`
+- `push_algolia_records`
+- `run_company_intel`
+- `run_careers_intel`
+- `run_news_intel`
+- `run_investor_intel`
+- `get_run_artifacts`
+
+MCP should come after the local API contract is stable and documented.

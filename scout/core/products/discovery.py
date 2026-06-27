@@ -147,8 +147,12 @@ def _is_product_url(url: str) -> bool:
     path = urlparse(url).path.lower()
     if "/products/" in path and "/product-catalog/" in path:
         return False
+    if any(marker in path for marker in _PRODUCT_MARKERS):
+        return True
+    if any(marker in f"{path}/" for marker in _CATEGORY_MARKERS):
+        return False
     filename = path.rsplit("/", 1)[-1]
-    return any(marker in path for marker in _PRODUCT_MARKERS) or filename.endswith(".html")
+    return filename.endswith(".html")
 
 
 def _is_category_url(url: str) -> bool:

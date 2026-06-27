@@ -204,7 +204,7 @@ def _absolute_url(base_url: str, value: str) -> str:
 
 
 def _extract_price(value: str) -> float | None:
-    match = re.search(r"\$\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)", value)
+    match = re.search(r"[$£€¥₹]\s*([0-9][0-9,]*(?:\.[0-9]{1,2})?)", value)
     if not match:
         return None
     try:
@@ -214,7 +214,7 @@ def _extract_price(value: str) -> float | None:
 
 
 def _clean_name(value: str) -> str:
-    text = re.sub(r"\$\s*[0-9][0-9,]*(?:\.[0-9]{1,2})?", " ", value)
+    text = re.sub(r"[$£€¥₹]\s*[0-9][0-9,]*(?:\.[0-9]{1,2})?", " ", value)
     text = re.sub(r"\s+", " ", text).strip(" -|")
     return text
 

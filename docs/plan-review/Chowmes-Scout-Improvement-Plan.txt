@@ -1,0 +1,201 @@
+# Scout Enhancement Plan For CI Acquisition
+
+Date: 2026-06-27
+
+Status: Started. Initial `/ci/scrape` endpoint implemented on Chowmes Scout and smoke-tested on 2026-06-27.
+
+## Summary
+
+Scout should become Chowmes' primary owned acquisition engine for CI pages where browser-grade extraction, clean markdown, JavaScript rendering, screenshots, crawling, or page mapping matter.
+
+The goal is not to force Scout onto every source. The goal is to make Scout measurable, reliable, and better than generic fetch for the sources where it should win.
+
+## Evidence From Smoke Test
+
+Scout performed better than direct HTTP on Google AI blog and Constructor product pages, and provided richer extraction for Coveo/Bloomreach, but it showed three improvement needs:
+
+- API clients must send `X-API-Key`.
+- Consent/cookie boilerplate can pollute markdown.
+- RSS feeds should not be processed through generic page scraping.
+- Simple static pages may not need Scout because direct HTTP is faster.
+
+## Enhancements To Add
+
+### 1. CI acquisition mode
+
+Implementation status: initial version implemented.
+
+Add a CI-oriented mode or endpoint that wraps `/scrape` with defaults optimized for competitive monitoring:
+
+- clean markdown
+- link extraction
+- word count and token estimate
+- content hash
+- boilerplate/consent cleanup
+- source quality metadata
+- extraction method metadata
+- duration and error metadata
+
+Proposed endpoint:
+
+```text
+POST /ci/scrape
+```
+
+Proposed response fields:
+
+- `success`
+- `url`
+- `canonical_url`
+- `title`
+- `markdown`
+- `links`
+- `content_hash`
+- `word_count`
+- `token_estimate`
+- `duration_ms`
+- `boilerplate_removed`
+- `blocked`
+- `markers_found`
+- `markers_missing`
+- `marker_score`
+- `quality_score`
+- `recommended_collector`
+- `error`
+
+### 2. Consent and boilerplate cleanup
+
+Implementation status: initial pattern-based cleanup implemented inside `/ci/scrape`; needs broader benchmark against real competitor pages.
+
+Add reusable text filters for:
+
+- cookie banners
+- privacy preference text
+- "accept all cookies"
+- login/signup nav duplication
+- repeated footer/nav blocks
+- newsletter boilerplate
+
+The cleanup must be opt-in or mode-specific at first so it does not damage product extraction use cases.
+
+### 3. Feed detection and handoff
+
+Implementation status: feed-like URLs are detected and handed off with `recommended_collector: rss_feed`; true feed parsing remains to be built in the CI collector layer.
+
+Scout should detect RSS/Atom/XML feeds and either:
+
+- parse them cleanly, or
+- return `recommended_collector: rss_feed`
+
+This prevents massive markdown blobs like the OpenAI RSS result.
+
+### 4. Extraction quality score
+
+Implementation status: initial quality score implemented using text length, marker presence, title presence, blocked-page detection, and link extraction.
+
+Add a quality score to each scrape:
+
+- enough text extracted
+- expected markers present
+- page title present
+- blocked-page patterns absent
+- consent ratio below threshold
+- links extracted
+
+This lets CI decide whether Scout output is reportable or needs fallback.
+
+### 5. Expected marker validation
+
+Implementation status: initial marker validation implemented.
+
+Allow callers to pass expected markers:
+
+```json
+{
+  "url": "https://example.com",
+  "expected_markers": ["Product updates", "AI Search"]
+}
+```
+
+Scout returns:
+
+- `markers_found`
+- `markers_missing`
+- `marker_score`
+
+### 6. Collector benchmark harness
+
+Implementation status: not implemented. Current benchmark was manual smoke testing; this should become a repeatable command.
+
+Add a command or endpoint to compare acquisition methods:
+
+```text
+scout benchmark --url URL --against direct_http
+```
+
+Minimum comparison dimensions:
+
+- success
+- duration
+- character count
+- word count
+- marker score
+- link count
+- blocked status
+- boilerplate ratio
+- output sample
+
+### 7. CI source strategy export
+
+Implementation status: not implemented. CI source strategy metadata has started in the CI runner, but Scout does not yet export source strategy patches.
+
+Add a small utility that can recommend collector strategy:
+
+- `rss_feed` for feeds
+- `direct_http` for simple static sources
+- `scout_scrape` for product/positioning/blog pages
+- `manual_only` for gated sources
+
+This can later update `sources.yaml` or output a proposed patch.
+
+## Rollout Order
+
+1. Add CI collector client in the Competitive Intelligence skill. Started.
+2. Add benchmark harness outside Scout if faster to prove strategy. Pending.
+3. Add Scout `/ci/scrape` endpoint after the benchmark proves needed response fields. Done.
+4. Add boilerplate cleanup. Started.
+5. Add feed detection. Started.
+6. Add extraction quality scoring. Started.
+7. Add source strategy recommendation. Pending.
+
+## Verification Log
+
+Smoke-tested after rebuilding the live `scout` container on Chowmes:
+
+- `/health` returned `status: ok`, Scout `0.1.0`, Crawl4AI `0.7.7`.
+- `POST /ci/scrape` on `https://example.com` returned normalized markdown, content hash, marker score, quality score, duration, and `recommended_collector: scout_scrape`.
+- `POST /ci/scrape` on `https://openai.com/news/rss.xml` returned `recommended_collector: rss_feed` instead of attempting generic browser scraping.
+- Legacy `POST /scrape` still returned a successful scrape for `https://example.com`.
+
+Host-side Python compile passed for:
+
+- `scout/core/types.py`
+- `scout/api/routers/ci.py`
+- `scout/api/main.py`
+- `tests/unit/api/test_ci_scrape.py`
+
+Limitation: Scout unit tests could not be run on the VPS host because `pytest` is not installed outside the container. The endpoint was verified through live API smoke tests instead.
+
+## Acceptance Criteria
+
+- Scout can be called securely from the CI runner.
+- Scout output includes enough metadata to compare against direct HTTP.
+- Consent boilerplate is reduced on Constructor-like pages.
+- RSS feeds are not treated as normal scrape pages.
+- CI can choose collector strategy by source type.
+- Source health records which collector was used.
+- Scout failures are visible as Scout improvement tasks, not hidden by fallback.
+
+## Strategic Principle
+
+Scout is Chowmes-owned infrastructure. Competitive Intelligence should use it aggressively where it creates advantage and should expose its weaknesses so Scout improves.

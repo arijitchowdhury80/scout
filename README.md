@@ -2,7 +2,36 @@
 
 Scout is a self-hosted web intelligence platform built on [Crawl4AI](https://github.com/unclecode/crawl4ai). It extracts clean web content, crawls site sections, captures screenshots, structures raw HTML, and prepares reusable records for product catalogs, company intelligence, job monitoring, investor research, and other web intelligence workflows.
 
+Scout's strongest promise is not "another crawler." Scout is an owned acquisition workbench: it helps teams acquire web evidence, preserve what happened, escalate to browser/user-session capture when needed, turn messy pages into typed records, and write artifacts that downstream tools can trust.
+
 Scout runs as a Python package, CLI, local HTTP service, Docker service, or Claude/Codex skill backend.
+
+## Why Scout
+
+Hosted crawlers are excellent when you want managed scale and a simple scrape API. Scout is different: it is for users who need to own the acquisition workflow around the scrape.
+
+Scout focuses on:
+
+- evidence-first acquisition: source pages, blocked evidence, screenshots, reports, and artifacts;
+- browser/session handoff: structure pages visible in a browser without pretending every block can be magically bypassed;
+- records, not blobs: product, company, careers, investor, news, docs, research, and website-quality records;
+- downstream readiness: Algolia preview/push, JSON/JSONL records, run folders, and agent/tool integration;
+- local and self-hosted operation for workflows where control matters.
+
+See:
+
+- [Feature list](docs/product/feature-list.md)
+- [Differentiation](docs/product/differentiation.md)
+- [Private beta launch plan](docs/product/private-beta-launch-plan.md)
+- [Distribution package plan](docs/product/distribution-package-plan.md)
+- [Legal readiness checklist](docs/legal/legal-readiness-checklist.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
+
+## Current Status
+
+Scout is ready for private beta testing with technical users. Core scrape/crawl/map/screenshot, captured-HTML structuring, product extraction on friendly sites, run artifacts, and Algolia preview/push are the strongest paths today.
+
+Still beta/experimental: hard-site extraction reliability, user-browser capture workflows, broad vertical intelligence depth, MCP server, and public/commercial packaging.
 
 ## Quick Start
 
@@ -25,6 +54,12 @@ curl http://localhost:8421/health
 
 Open `http://localhost:8421/app` for the Scout frontend, or `http://localhost:8421/docs` for Swagger API docs.
 
+For the initial static product website, open:
+
+```bash
+open website/index.html
+```
+
 ## Authentication
 
 All endpoints except `/health` and `/` require the `X-API-Key` header:
@@ -34,6 +69,15 @@ X-API-Key: dev-key
 ```
 
 Set `SCOUT_API_KEY` in `.env.local` before exposing Scout beyond local development.
+
+## Attribution
+
+Scout includes software developed by UncleCode for Crawl4AI:
+
+> This product includes software developed by UncleCode for Crawl4AI
+> (https://github.com/unclecode/crawl4ai).
+
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) before distributing Scout.
 
 ---
 

@@ -1,0 +1,134 @@
+# Scout Feature List
+
+Date: 2026-06-27
+Status: Product documentation baseline
+
+## Product Definition
+
+Scout is a self-hosted web acquisition and intelligence engine. It turns public
+web pages, browser sessions, and captured HTML into clean markdown, screenshots,
+links, typed records, source evidence, artifacts, and downstream-ready data.
+
+Scout is not positioned as "one more crawler." Its strongest value is owned
+acquisition: the workflow, browser handoff, evidence model, artifacts, and
+record production stay under the user's control.
+
+## Core Acquisition
+
+- Single-page scrape to clean markdown.
+- Optional raw HTML capture.
+- Link extraction.
+- Metadata extraction: title, description, language, word count, token estimate.
+- JavaScript rendering with Crawl4AI.
+- Stealth options: user agent, proxy config, navigator override, human-like
+  delay, headed/headless mode.
+- Screenshot capture.
+- URL mapping.
+- Multi-page crawling.
+
+## Captured HTML And Browser Workflows
+
+- Structure already-held HTML without refetching.
+- Attach to a Chrome/CDP browser session.
+- Harvest a live, already-open page.
+- Capture native/user browser page state.
+- Preserve blocked-page evidence instead of silent failure.
+- Embedded browser streaming path for app-based interaction.
+
+## Product Catalog Workflows
+
+- Product/category URL discovery.
+- Listing-card extraction.
+- JSON-LD product extraction.
+- Algolia-ready product records.
+- Product artifact folder:
+  - discovered URLs,
+  - raw products,
+  - records JSON,
+  - records NDJSON,
+  - Algolia settings,
+  - blocked pages,
+  - extraction report.
+- Product cleanup improvements:
+  - multi-currency price detection,
+  - category/product URL classification,
+  - fallback from empty discovered groups,
+  - listing records preserved against equal-score detail overwrites.
+
+## Intelligence Workflows
+
+Scout includes V1 vertical runners for:
+
+- company intelligence,
+- careers and hiring,
+- investor relations,
+- news and blogs,
+- research pages,
+- documentation sites,
+- social profile discovery,
+- locations/store locator signals,
+- website quality signals,
+- PRISM-style bundle runs.
+
+These runners are useful but should be described as V1 heuristic workflows. They
+scrape likely pages and extract structured signals; they are not yet guaranteed
+deep research agents.
+
+## Evidence And Artifacts
+
+- Run manifests.
+- Records JSON and JSONL.
+- Source pages.
+- Blocked pages.
+- Validation findings.
+- Extraction reports.
+- Screenshot/DOM/text/link artifacts where browser evidence is captured.
+- Citations/source evidence on generated records where available.
+
+## App And Operations
+
+- Local `/app` UI.
+- Run setup, live execution, records, sources, blocked pages, artifacts.
+- SQLite run persistence.
+- SSE/event streaming.
+- Workdir selection.
+- Run history.
+- Docker deployment files.
+- API key authentication.
+
+## Algolia Integration
+
+- Algolia record readiness preview.
+- Required-field validation.
+- Sample objectID preview.
+- Push records to Algolia.
+- Product records shaped for search/demo indexing.
+
+## Interfaces
+
+- Python package.
+- CLI.
+- FastAPI HTTP service.
+- Docker service.
+- Claude/Codex skill backend.
+- Future MCP server target.
+
+## Beta Status
+
+Stronger today:
+
+- scrape, crawl, map, screenshot,
+- captured HTML structuring,
+- product extraction on friendly ecommerce sites,
+- Algolia preview/push,
+- artifact generation,
+- local API/UI operation.
+
+Still beta/experimental:
+
+- hard-site extraction,
+- user-browser capture reliability,
+- vertical intelligence depth,
+- public packaging/publishing,
+- MCP server,
+- commercial legal/compliance posture.
