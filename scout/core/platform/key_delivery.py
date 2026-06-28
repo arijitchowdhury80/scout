@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+import smtplib
+from collections.abc import Callable
+from email.message import EmailMessage
+from types import TracebackType
+from typing import Any, Protocol
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from scout.core.platform.hosted import HostedPlan
 
@@ -50,3 +54,139 @@ class DisabledHostedApiKeyDeliveryService:
             delivery_status="disabled",
             reason="Hosted API key delivery is not configured.",
         )
+
+
+class SmtpHostedApiKeyDeliveryConfig(BaseModel):
+    """Configuration for SMTP-based hosted API-key delivery."""
+
+    host: str = ""
+    port: int = 587
+    from_email: str = ""
+    username: str = ""
+    password: str = Field(default="", exclude=True)
+    use_tls: bool = True
+    timeout_seconds: float = 10.0
+
+    @property
+    def enabled(self) -> bool:
+        """Return whether enough SMTP config exists to deliver keys."""
+        return self.host != "" and self.from_email != ""
+
+
+class SmtpClient(Protocol):
+    """Minimal SMTP client protocol used by the delivery service."""
+
+    def __enter__(self) -> SmtpClient:
+        """Enter SMTP context manager."""
+        ...
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        """Exit SMTP context manager."""
+        ...
+
+    def starttls(self) -> Any:
+        """Start TLS for SMTP."""
+        ...
+
+    def login(self, user: str, password: str) -> Any:
+        """Authenticate to SMTP."""
+        ...
+
+    def sendmail(self, from_addr: str, to_addrs: list[str], msg: str) -> Any:
+        """Send an SMTP message."""
+        ...
+
+
+SmtpFactory = Callable[[str, int, float], SmtpClient]
+
+
+def _default_smtp_factory(host: str, port: int, timeout: float) -> SmtpClient:
+    """Create a standard-library SMTP client."""
+    return smtplib.SMTP(host, port, timeout=timeout)
+
+
+class SmtpHostedApiKeyDeliveryService:
+    """SMTP implementation for one-time hosted API-key delivery."""
+
+    def __init__(
+        self,
+        config: SmtpHostedApiKeyDeliveryConfig,
+        smtp_factory: SmtpFactory | None = None,
+    ) -> None:
+        self.config = config
+        self.smtp_factory = smtp_factory or _default_smtp_factory
+
+    @property
+    def enabled(self) -> bool:
+        """Return whether SMTP delivery is configured."""
+        return self.config.enabled
+
+    def deliver(self, request: HostedApiKeyDeliveryRequest) -> HostedApiKeyDeliveryResult:
+        """Send a one-time hosted API key email."""
+        if not self.enabled:
+            return HostedApiKeyDeliveryResult(
+                delivered=False,
+                delivery_status="disabled",
+                reason="Hosted API key delivery is not configured.",
+            )
+        try:
+            self._send_message(request)
+        except Exception as exc:
+            return HostedApiKeyDeliveryResult(
+                delivered=False,
+                delivery_status="failed",
+                reason=f"SMTP delivery failed: {exc}",
+            )
+        return HostedApiKeyDeliveryResult(delivered=True, delivery_status="delivered")
+
+    def _send_message(self, request: HostedApiKeyDeliveryRequest) -> None:
+        """Send the SMTP message through the configured client."""
+        message = _delivery_message(self.config.from_email, request)
+        with self.smtp_factory(
+            self.config.host,
+            self.config.port,
+            self.config.timeout_seconds,
+        ) as smtp:
+            if self.config.use_tls:
+                smtp.starttls()
+            if self.config.username:
+                smtp.login(self.config.username, self.config.password)
+            smtp.sendmail(
+                self.config.from_email,
+                [str(request.email)],
+                message.as_string(),
+            )
+
+
+def _delivery_message(sender: str, request: HostedApiKeyDeliveryRequest) -> EmailMessage:
+    """Build the one-time API-key delivery email."""
+    message = EmailMessage()
+    message["From"] = sender
+    message["To"] = str(request.email)
+    message["Subject"] = "Your Scout hosted API key"
+    message.set_content(_delivery_body(request))
+    return message
+
+
+def _delivery_body(request: HostedApiKeyDeliveryRequest) -> str:
+    """Build the plaintext body for one-time API-key delivery."""
+    return "\n".join(
+        [
+            "Your Scout hosted API key is ready.",
+            "",
+            "Store this key now. Scout does not store the raw key and cannot show it again.",
+            "",
+            f"API key: {request.raw_api_key}",
+            f"Plan: {request.plan.value}",
+            f"Tenant ID: {request.tenant_id}",
+            f"Key ID: {request.key_id}",
+            f"Checkout session: {request.checkout_session_id}",
+            "",
+            "Use it as a Bearer token when calling hosted Scout endpoints.",
+        ]
+    )

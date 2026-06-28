@@ -45,7 +45,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from scout.api.run_store import bind_db
     from scout.core.platform.account_service import HostedAccountService
     from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
-    from scout.core.platform.key_delivery import DisabledHostedApiKeyDeliveryService
+    from scout.core.platform.key_delivery import (
+        SmtpHostedApiKeyDeliveryConfig,
+        SmtpHostedApiKeyDeliveryService,
+    )
     from scout.core.platform.payment_provisioning import (
         HostedPaymentProvisioningService,
         SQLiteHostedPaymentStore,
@@ -65,7 +68,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         hosted_account_service,
         SQLiteHostedPaymentStore(hosted_db_path),
     )
-    app.state.hosted_key_delivery_service = DisabledHostedApiKeyDeliveryService()
+    app.state.hosted_key_delivery_service = SmtpHostedApiKeyDeliveryService(
+        SmtpHostedApiKeyDeliveryConfig(
+            host=settings.hosted_key_delivery_smtp_host,
+            port=settings.hosted_key_delivery_smtp_port,
+            from_email=settings.hosted_key_delivery_smtp_from_email,
+            username=settings.hosted_key_delivery_smtp_username,
+            password=settings.hosted_key_delivery_smtp_password,
+            use_tls=settings.hosted_key_delivery_smtp_use_tls,
+        )
+    )
     bind_db(run_db)
     yield
     await run_db.close()

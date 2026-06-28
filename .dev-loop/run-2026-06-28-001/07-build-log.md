@@ -376,3 +376,45 @@ Still pending:
 
 - real email/portal/one-time handoff delivery provider,
 - live Stripe CLI/sandbox smoke test.
+
+# Hosted SMTP Key Delivery Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `SmtpHostedApiKeyDeliveryConfig`
+- `SmtpHostedApiKeyDeliveryService`
+- SMTP startup config under `HOSTED_KEY_DELIVERY_SMTP_*`
+
+Behavior:
+
+- SMTP delivery is enabled only when SMTP host and from-email are configured,
+- sends the one-time raw hosted API key to the checkout customer,
+- includes tenant/key metadata in the email body,
+- returns structured failure status when SMTP send fails,
+- API startup defaults to SMTP delivery service with empty config, which means
+  delivery remains disabled until launch credentials are configured.
+
+Verification:
+
+- RED: `python3 -m pytest tests/unit/core/platform/test_key_delivery.py -q`
+  failed because SMTP delivery classes did not exist.
+- GREEN: `python3 -m pytest tests/unit/core/platform/test_key_delivery.py tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_auth.py -q`
+  passed: 17 tests.
+- Focused pyright on SMTP delivery, config, main, billing, and tests passed with
+  0 errors.
+- Focused Ruff check and format passed.
+
+Full verification:
+
+- `python3 -m pytest tests/unit/api -q` -> `117 passed`.
+- `python3 -m pytest tests/unit/ -q` -> `466 passed`.
+- `python3 -m pyright scout/` -> `0 errors`.
+- `ruff check scout/ tests/ && ruff format --check scout/ tests/` -> passed,
+  `194 files already formatted`.
+
+Still pending:
+
+- real SMTP smoke test with test credentials,
+- Stripe sandbox webhook smoke with SMTP configured.

@@ -107,6 +107,10 @@ Implementation seed:
   `scout.core.platform.key_delivery`; the Stripe webhook refuses to create a new
   key while delivery is disabled, preventing raw keys from being generated and
   then lost.
+- SMTP key delivery now exists and is selected at API startup when
+  `HOSTED_KEY_DELIVERY_SMTP_HOST` and
+  `HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL` are configured; otherwise delivery stays
+  disabled and hosted checkout provisioning remains safely blocked.
 - the current HTTP middleware has not yet been migrated to the hosted key model.
 - URL safety primitives for the SSRF guard now exist in
   `scout.core.platform.url_safety`.

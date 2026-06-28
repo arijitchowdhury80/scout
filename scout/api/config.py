@@ -12,6 +12,12 @@ class Settings(BaseSettings):
     db_path: str = ""
     hosted_account_db_path: str = ""
     stripe_webhook_secret: str = ""
+    hosted_key_delivery_smtp_host: str = ""
+    hosted_key_delivery_smtp_port: int = 587
+    hosted_key_delivery_smtp_from_email: str = ""
+    hosted_key_delivery_smtp_username: str = ""
+    hosted_key_delivery_smtp_password: str = ""
+    hosted_key_delivery_smtp_use_tls: bool = True
     host: str = "0.0.0.0"
     port: int = 8421
 

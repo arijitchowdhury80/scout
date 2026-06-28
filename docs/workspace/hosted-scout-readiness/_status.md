@@ -41,6 +41,9 @@ Status: In progress
 - [x] Hosted key delivery contract tests written.
 - [x] Hosted key delivery gate implemented.
 - [x] Hosted key delivery verification passed.
+- [x] Hosted SMTP key delivery tests written.
+- [x] Hosted SMTP key delivery implemented.
+- [x] Hosted SMTP key delivery verification passed.
 
 ## Scope
 
@@ -57,8 +60,8 @@ Define and start the production-readiness foundation for hosted Scout:
 This stream now includes SQLite account persistence, a Stripe-compatible payment
 provisioning domain layer, and a signed Stripe webhook route for
 `checkout.session.completed`. It still does not implement user login, secure
-customer key delivery, Customer Portal, production Postgres, or a public
-dashboard.
+Customer Portal, production Postgres, a public dashboard, or a live SMTP/Stripe
+sandbox smoke.
 
 ## Verification
 
@@ -144,5 +147,17 @@ dashboard.
   `python3 -m pytest tests/unit/api -q` and `python3 -m pytest tests/unit/ -q`
   - Result: API unit 117 passed; full unit 462 passed.
 - Hosted key delivery static/lint checkpoint:
+  `python3 -m pyright scout/` and `ruff check scout/ tests/ && ruff format --check scout/ tests/`
+  - Result: pyright 0 errors; Ruff passed.
+- Hosted SMTP key delivery RED:
+  `python3 -m pytest tests/unit/core/platform/test_key_delivery.py -q`
+  - Result: failed because `SmtpHostedApiKeyDeliveryConfig` did not exist.
+- Hosted SMTP key delivery GREEN:
+  `python3 -m pytest tests/unit/core/platform/test_key_delivery.py tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_auth.py -q`
+  - Result: 17 passed.
+- Hosted SMTP key delivery full checkpoint:
+  `python3 -m pytest tests/unit/api -q` and `python3 -m pytest tests/unit/ -q`
+  - Result: API unit 117 passed; full unit 466 passed.
+- Hosted SMTP key delivery static/lint checkpoint:
   `python3 -m pyright scout/` and `ruff check scout/ tests/ && ruff format --check scout/ tests/`
   - Result: pyright 0 errors; Ruff passed.
