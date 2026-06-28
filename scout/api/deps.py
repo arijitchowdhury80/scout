@@ -2,9 +2,11 @@
 
 from fastapi import Request
 
+from scout.api.config import settings
 from scout.api.db import RunDB
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
+from scout.core.platform.payment_provisioning import HostedPaymentProvisioningService
 
 
 def get_crawler(request: Request) -> ScoutCrawler:
@@ -28,3 +30,16 @@ def get_hosted_account_service(request: Request) -> HostedAccountService:
     """Return the hosted account service stored on app.state at startup."""
     service: HostedAccountService = request.app.state.hosted_account_service
     return service
+
+
+def get_hosted_payment_provisioning_service(
+    request: Request,
+) -> HostedPaymentProvisioningService:
+    """Return the hosted payment provisioning service stored on app.state."""
+    service: HostedPaymentProvisioningService = request.app.state.hosted_payment_service
+    return service
+
+
+def get_stripe_webhook_secret() -> str:
+    """Return the configured Stripe webhook signing secret."""
+    return settings.stripe_webhook_secret

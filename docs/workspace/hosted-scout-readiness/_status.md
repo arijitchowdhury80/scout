@@ -35,6 +35,9 @@ Status: In progress
 - [x] Hosted payment provisioning tests written.
 - [x] Hosted payment provisioning service implemented.
 - [x] Hosted payment provisioning verification passed.
+- [x] Hosted Stripe webhook tests written.
+- [x] Hosted Stripe webhook route implemented.
+- [x] Hosted Stripe webhook verification passed.
 
 ## Scope
 
@@ -48,10 +51,11 @@ Define and start the production-readiness foundation for hosted Scout:
 - security risks,
 - local-first vs hosted product decision.
 
-This stream now includes SQLite account persistence and a Stripe-compatible
-payment provisioning domain layer. It still does not implement Stripe Checkout
-webhook routing, user login, email delivery, Customer Portal, production
-Postgres, or a public dashboard.
+This stream now includes SQLite account persistence, a Stripe-compatible payment
+provisioning domain layer, and a signed Stripe webhook route for
+`checkout.session.completed`. It still does not implement user login, secure
+customer key delivery, Customer Portal, production Postgres, or a public
+dashboard.
 
 ## Verification
 
@@ -112,3 +116,18 @@ Postgres, or a public dashboard.
 - Hosted payment provisioning checkpoint:
   `python3 -m pytest tests/unit/core/platform -q`
   - Result: 74 passed.
+- Hosted Stripe webhook RED:
+  `python3 -m pytest tests/unit/api/test_billing_stripe_webhook.py -q`
+  - Result: failed because `get_hosted_payment_provisioning_service` did not exist.
+- Hosted Stripe webhook GREEN:
+  `python3 -m pytest tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_auth.py -q`
+  - Result: 12 passed.
+- Hosted Stripe webhook API checkpoint:
+  `python3 -m pytest tests/unit/api -q`
+  - Result: 116 passed.
+- Hosted Stripe webhook full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q`
+  - Result: 461 passed.
+- Hosted Stripe webhook static/lint checkpoint:
+  `python3 -m pyright scout/` and `ruff check scout/ tests/ && ruff format --check scout/ tests/`
+  - Result: pyright 0 errors; Ruff passed.

@@ -14,6 +14,7 @@ from scout.api.routers import (
     algolia,
     app_browser,
     app_runs,
+    billing,
     crawl,
     extract,
     harvest,
@@ -44,6 +45,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from scout.api.run_store import bind_db
     from scout.core.platform.account_service import HostedAccountService
     from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
+    from scout.core.platform.payment_provisioning import (
+        HostedPaymentProvisioningService,
+        SQLiteHostedPaymentStore,
+    )
 
     app.state.crawler = ScoutCrawler(llm_api_key=settings.llm_api_key)
     db_path = settings.resolve_db_path()
@@ -53,8 +58,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.run_db = run_db
     hosted_db_path = settings.resolve_hosted_account_db_path()
     Path(hosted_db_path).parent.mkdir(parents=True, exist_ok=True)
-    app.state.hosted_account_service = HostedAccountService(
-        SQLiteHostedAccountStore(hosted_db_path)
+    hosted_account_service = HostedAccountService(SQLiteHostedAccountStore(hosted_db_path))
+    app.state.hosted_account_service = hosted_account_service
+    app.state.hosted_payment_service = HostedPaymentProvisioningService(
+        hosted_account_service,
+        SQLiteHostedPaymentStore(hosted_db_path),
     )
     bind_db(run_db)
     yield
@@ -82,6 +90,7 @@ app.include_router(map_router.router)
 app.include_router(screenshot.router)
 app.include_router(workdir.router)
 app.include_router(hosted.router)
+app.include_router(billing.router)
 
 
 @app.get("/api/config", include_in_schema=False)

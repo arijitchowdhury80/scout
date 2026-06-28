@@ -4,7 +4,7 @@
   "project": "Scout",
   "feature": "Scout product launch planning and website foundation",
   "created_at": "2026-06-28T00:00:00-04:00",
-  "updated_at": "2026-06-28T13:15:00-04:00",
+  "updated_at": "2026-06-28T14:05:00-04:00",
   "status": "IN_PROGRESS",
   "current_stage": "BUILD",
   "builder": "frontend-builder",
@@ -32,6 +32,7 @@
     "hosted_http_boundary": "PASS",
     "hosted_beta_provisioning_cli": "PASS",
     "hosted_payment_provisioning": "PASS",
+    "hosted_stripe_webhook": "PASS",
     "launch_goal": "INCOMPLETE"
   }
 }

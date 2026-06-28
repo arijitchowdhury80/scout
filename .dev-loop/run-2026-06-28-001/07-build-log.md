@@ -283,8 +283,54 @@ Verification:
 
 Still pending:
 
-- real Stripe webhook route,
-- Stripe signature verification,
 - email or portal key delivery,
+- production transactional Postgres store,
+- Customer Portal/subscription handling.
+
+# Hosted Stripe Webhook Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `scout.api.routers.billing`
+- `POST /v1/billing/stripe/webhook`
+- `SCOUT_STRIPE_WEBHOOK_SECRET` / `stripe_webhook_secret` setting
+- `get_hosted_payment_provisioning_service`
+- `get_stripe_webhook_secret`
+
+Behavior:
+
+- verifies Stripe `Stripe-Signature` HMAC without adding a Stripe SDK
+  dependency,
+- rejects missing or invalid signatures before provisioning,
+- ignores irrelevant Stripe event types,
+- provisions hosted beta access for valid paid
+  `checkout.session.completed` events,
+- handles duplicate checkout sessions through existing idempotent payment
+  provisioning,
+- never returns raw `scout_live_...` API keys in webhook responses.
+
+Verification:
+
+- RED: `python3 -m pytest tests/unit/api/test_billing_stripe_webhook.py -q`
+  failed because payment provisioning dependency did not exist.
+- GREEN: `python3 -m pytest tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_auth.py -q`
+  passed: 12 tests.
+- Focused pyright on billing/deps/main/test files passed with 0 errors.
+- Focused Ruff check and format passed.
+
+Full verification:
+
+- `python3 -m pytest tests/unit/api -q` -> `116 passed`.
+- `python3 -m pytest tests/unit/ -q` -> `461 passed`.
+- `python3 -m pyright scout/` -> `0 errors`.
+- `ruff check scout/ tests/ && ruff format --check scout/ tests/` -> passed,
+  `192 files already formatted`.
+
+Still pending:
+
+- secure customer key delivery after webhook provisioning,
+- live Stripe CLI/sandbox smoke test,
 - production transactional Postgres store,
 - Customer Portal/subscription handling.

@@ -51,6 +51,11 @@ def _make_app(api_key: str = "test-key") -> FastAPI:
         """Hosted routes perform their own Bearer auth."""
         return {"hosted": True}
 
+    @test_app.post("/v1/billing/stripe/webhook")
+    async def stripe_webhook() -> dict:
+        """Stripe webhook routes perform Stripe signature auth."""
+        return {"billing": True}
+
     return test_app
 
 
@@ -110,3 +115,13 @@ def test_hosted_routes_bypass_static_local_key_middleware() -> None:
 
     assert resp.status_code == 200
     assert resp.json()["hosted"] is True
+
+
+def test_stripe_webhook_bypasses_static_local_key_middleware() -> None:
+    """Stripe webhook routes must reach route-level signature auth without X-API-Key."""
+    client = TestClient(_make_app(api_key="test-key"))
+
+    resp = client.post("/v1/billing/stripe/webhook")
+
+    assert resp.status_code == 200
+    assert resp.json()["billing"] is True

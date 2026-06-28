@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     scout_workdir: str = "scout-runs"
     db_path: str = ""
     hosted_account_db_path: str = ""
+    stripe_webhook_secret: str = ""
     host: str = "0.0.0.0"
     port: int = 8421
 
