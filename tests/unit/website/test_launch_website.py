@@ -35,6 +35,21 @@ def test_launch_website_exposes_hosted_beta_checkout_form_without_secrets() -> N
     assert "sk_test_" not in html
 
 
+def test_launch_website_states_current_launch_readiness_boundaries() -> None:
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+    normalized_html = " ".join(html.split())
+
+    assert "Launch status" in normalized_html
+    assert "Public launch is blocked" in normalized_html
+    assert "Crawl4AI currently resolves lxml 5.4.0" in normalized_html
+    assert "Private beta is limited" in normalized_html
+    assert "No clean security claim" in normalized_html
+    assert "Local install remains the primary path" in normalized_html
+    assert "dependency audit is clean" in normalized_html
+    assert "Production-ready multi-tenant SaaS" not in html
+    assert "Unlimited hosted scraping" not in html
+
+
 def test_api_root_serves_launch_website_from_same_origin() -> None:
     client = TestClient(app)
 
@@ -45,6 +60,8 @@ def test_api_root_serves_launch_website_from_same_origin() -> None:
     assert "Turn messy web pages into citable, downstream-ready records." in response.text
     assert "Run ledger" in response.text
     assert "Hosted crawlers return content. Scout returns an evidence trail." in response.text
+    assert "Public launch is blocked" in response.text
+    assert "Private beta is limited" in response.text
     assert 'id="hostedBetaCheckout"' in response.text
     assert "/v1/billing/stripe/checkout-session" in response.text
     assert "Scout app" not in response.text

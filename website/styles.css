@@ -302,6 +302,7 @@ li {
 .ladder-grid,
 .proof-grid,
 .compare-grid,
+.status-grid,
 .use-case-grid,
 .pricing-grid,
 .export-grid {
@@ -318,6 +319,7 @@ li {
 .use-case-grid,
 .pricing-grid,
 .proof-grid,
+.status-grid,
 .export-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -348,6 +350,53 @@ article,
   font-family: var(--wi-font-mono);
   font-size: 12px;
   font-weight: 900;
+}
+
+.launch-status {
+  max-width: none;
+  background: rgba(24, 24, 27, 0.045);
+}
+
+.launch-status .section-heading,
+.launch-status .status-grid {
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.status-grid article {
+  background: rgba(235, 235, 232, 0.84);
+}
+
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin-bottom: 42px;
+  border: 1px solid var(--wi-border);
+  padding: 0 10px;
+  font-family: var(--wi-font-mono);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.status-tag--blocker {
+  border-color: #991b1b;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-tag--limited {
+  border-color: #92400e;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-tag--primary {
+  border-color: #166534;
+  background: #dcfce7;
+  color: #166534;
 }
 
 ul {
@@ -530,6 +579,7 @@ ul {
   .ladder-grid,
   .pricing-grid,
   .proof-grid,
+  .status-grid,
   .export-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -584,6 +634,7 @@ ul {
   .use-case-grid,
   .ladder-grid,
   .proof-grid,
+  .status-grid,
   .export-grid,
   .pricing-grid,
   .site-footer {

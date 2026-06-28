@@ -8,6 +8,10 @@
       name="description"
       content="Scout turns messy web pages into citable, downstream-ready records with local-first acquisition, browser evidence, and artifact folders."
     />
+    <link
+      rel="icon"
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%2318181b"/><text x="32" y="42" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" font-weight="900" fill="%23ebebe8">S</text></svg>'
+    />
     <link rel="stylesheet" href="./assets/warm-industrial-design-system/warm-industrial.css" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -260,6 +264,43 @@
                 <li>Rate limits, retention limits, and tenant isolation</li>
                 <li>Beta pass before full subscription plans</li>
               </ul>
+            </article>
+          </div>
+        </section>
+
+        <section class="section launch-status" aria-labelledby="launch-status-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Launch status</p>
+            <h2 id="launch-status-title">Private beta can move. Public launch still has a security gate.</h2>
+          </div>
+          <div class="status-grid">
+            <article>
+              <span class="status-tag status-tag--blocker">Blocked</span>
+              <h3>Public launch is blocked</h3>
+              <p>
+                Crawl4AI currently resolves lxml 5.4.0, and the dependency audit
+                reports a known vulnerability fixed in lxml 6.1.0. Scout will not
+                claim public production readiness until the dependency audit is
+                clean, or a formal exception is approved.
+              </p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--limited">Limited</span>
+              <h3>Private beta is limited</h3>
+              <p>
+                Hosted beta access is capped, approved-tester only, and metered.
+                The $22 pass is finite hosted credit, not unlimited hosted
+                scraping or lifetime API usage.
+              </p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--primary">Primary path</span>
+              <h3>Local install remains the primary path</h3>
+              <p>
+                Scout is safest to test locally: your machine, your workdir, your
+                artifacts, your optional keys. No clean security claim is made for
+                hosted production until the remaining launch gates close.
+              </p>
             </article>
           </div>
         </section>

@@ -146,3 +146,33 @@ Additional checkout smoke:
   - screenshots:
     - `validation-output/website-scout-launch/desktop-refresh-scout-serve.png`
     - `validation-output/website-scout-launch/mobile-refresh-scout-serve.png`
+
+## 2026-06-28 Launch-Truth Checkpoint
+
+The launch homepage now includes a visible `Launch status` section. This is
+deliberate: Scout should not look more production-ready than the current
+security evidence supports.
+
+The new page copy states:
+
+- Public launch is blocked by the unresolved Crawl4AI/lxml dependency audit
+  finding.
+- Private beta is limited, approved-tester only, capped, and metered.
+- Local install remains the primary path for beta use.
+- Hosted beta is finite credit, not unlimited hosted scraping.
+- Scout makes no clean hosted-production security claim until the launch gates
+  close.
+
+Verification:
+
+- `python3 -m pytest tests/unit/website/test_launch_website.py -q`
+  - Result: `4 passed, 2 warnings`.
+- Live `scout serve` browser smoke:
+  `python3 -m scout.cli serve --host 127.0.0.1 --port 8783`
+  - desktop `1440x1000`: root website loaded, launch-status section visible,
+    checkout readiness endpoint returned 200, console errors/warnings: 0
+  - mobile `390x844`: root website loaded, launch-status section visible,
+    checkout readiness endpoint returned 200, console errors/warnings: 0
+  - screenshots:
+    - `validation-output/website-scout-launch/desktop-launch-status-scout-serve.png`
+    - `validation-output/website-scout-launch/mobile-launch-status-scout-serve.png`
