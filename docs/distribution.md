@@ -81,6 +81,18 @@ It returns only booleans for checkout, webhook, key delivery, and end-to-end
 paid key delivery readiness. It never returns Stripe, SMTP, or Scout API
 secrets.
 
+After a hosted beta user receives a `scout_live_...` API key, they can inspect
+their plan limits and remaining credits:
+
+```bash
+curl http://localhost:8421/v1/hosted/me \
+  -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}"
+```
+
+The response includes tenant/key IDs, plan, account status, remaining standard
+and browser credits, max pages per run, max concurrent runs, and retention days.
+It does not return the raw API key.
+
 ## Docker
 
 ```bash

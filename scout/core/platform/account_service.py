@@ -224,6 +224,10 @@ class HostedAccountService:
         """Return tenant credit balance."""
         return self.store.get_balance(tenant_id)
 
+    def get_tenant(self, tenant_id: str) -> HostedTenantRecord | None:
+        """Return hosted tenant metadata."""
+        return self.store.get_tenant(tenant_id)
+
     def set_balance(
         self,
         tenant_id: str,

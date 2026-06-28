@@ -47,6 +47,42 @@ def test_hosted_scrape_requires_bearer_token() -> None:
     assert resp.json()["detail"] == "Missing Bearer token"
 
 
+def test_hosted_me_requires_bearer_token() -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        resp = client.get("/v1/hosted/me")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 401
+    assert resp.json()["detail"] == "Missing Bearer token"
+
+
+def test_hosted_me_returns_plan_limits_and_balance_without_raw_key() -> None:
+    account_service, raw_key, tenant_id = _account_service_with_key()
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        resp = client.get("/v1/hosted/me", headers={"Authorization": f"Bearer {raw_key}"})
+    finally:
+        app.dependency_overrides.clear()
+
+    limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["tenant_id"] == tenant_id
+    assert data["plan"] == "hosted_beta_pass"
+    assert data["account_status"] == "active"
+    assert data["balance"]["standard_credits_remaining"] == limits.standard_credits
+    assert data["balance"]["browser_credits_remaining"] == limits.browser_credits
+    assert data["limits"]["standard_credits"] == limits.standard_credits
+    assert data["limits"]["browser_credits"] == limits.browser_credits
+    assert data["limits"]["max_pages_per_run"] == limits.max_pages_per_run
+    assert raw_key not in resp.text
+
+
 def test_hosted_scrape_rejects_unsafe_url_without_calling_crawler() -> None:
     account_service, raw_key, tenant_id = _account_service_with_key()
     mock_crawler = MagicMock()

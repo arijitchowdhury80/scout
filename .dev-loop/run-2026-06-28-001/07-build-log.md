@@ -688,3 +688,46 @@ Still pending:
 - live Stripe test-mode values,
 - SMTP smoke values,
 - deploy environment/secrets manager decision.
+
+# Hosted Account Balance Endpoint Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `GET /v1/hosted/me`
+- `HostedAccountSummaryResponse`
+- `HostedAccountService.get_tenant`
+
+Behavior:
+
+- hosted beta users can inspect their plan, account status, plan limits, and
+  remaining standard/browser credits with their Bearer key,
+- the endpoint requires hosted Bearer auth,
+- response includes tenant/key IDs for support diagnostics but never returns the
+  raw `scout_live_...` API key,
+- `/v1/hosted/scrape` remains the only hosted work endpoint in this slice and
+  continues to debit standard credits.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_hosted_scrape.py -q` failed because
+  `/v1/hosted/me` returned 404.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_hosted_scrape.py tests/unit/core/platform/test_account_service.py tests/unit/core/platform/test_hosted_policy.py -q`
+  passed: 17 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 124 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 478 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 200 files already
+  formatted.
+
+Still pending:
+
+- global request rate-limit middleware,
+- hosted crawl/products/run endpoints,
+- hosted usage dashboard.

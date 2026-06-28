@@ -240,10 +240,12 @@ Before paid hosted beta:
 - [x] tenant model,
 - [x] initial API key lifecycle primitives,
 - [x] persisted API key lifecycle,
-- [ ] quota/rate-limit middleware,
+- [x] finite plan credits and hosted scrape debit for `/v1/hosted/scrape`,
+- [x] hosted account/plan/balance inspection endpoint at `/v1/hosted/me`,
+- [ ] global request rate-limit middleware,
 - [x] initial plan and credit policy model,
 - [x] persisted usage metering for standard/browser credits,
-- [ ] Stripe checkout/webhook integration,
+- [x] Stripe checkout creation, readiness status, signed webhook, and SMTP-gated key delivery,
 - [ ] async job queue,
 - [ ] object storage,
 - [x] initial SSRF URL safety primitives,
@@ -257,6 +259,7 @@ Current implementation checkpoint:
 
 - `scout hosted-provision` creates private-beta hosted keys for operators.
 - `/v1/hosted/scrape` accepts hosted Bearer keys and charges standard credits.
+- `/v1/hosted/me` returns non-secret plan limits and remaining hosted credits.
 - SQLite hosted account persistence is available for local/dev hosted beta
   testing.
 - Public signup, Stripe, dashboard key management, production Postgres

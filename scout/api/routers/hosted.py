@@ -8,7 +8,12 @@ from pydantic import BaseModel
 from scout.api.deps import get_crawler, get_hosted_account_service
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
-from scout.core.platform.hosted import HostedAction
+from scout.core.platform.hosted import (
+    HostedAction,
+    HostedPlanLimits,
+    HostedUsageBalance,
+    plan_limits,
+)
 from scout.core.platform.hosted_admission import HostedAdmissionService
 from scout.core.types import ScrapeRequest, ScrapeResponse
 
@@ -30,6 +35,40 @@ class HostedScrapeResponse(BaseModel):
     success: bool
     hosted: HostedUsageSummary
     scrape: ScrapeResponse
+
+
+class HostedAccountSummaryResponse(BaseModel):
+    """Non-secret hosted account, plan, and usage balance summary."""
+
+    tenant_id: str
+    key_id: str
+    plan: str
+    account_status: str
+    balance: HostedUsageBalance
+    limits: HostedPlanLimits
+
+
+@router.get("/me", response_model=HostedAccountSummaryResponse)
+async def hosted_me(
+    authorization: str = Header(default=""),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+) -> HostedAccountSummaryResponse:
+    """Return hosted account limits and remaining credits for a Bearer key."""
+    raw_key = _bearer_token(authorization)
+    auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
+    if not auth.allowed:
+        raise HTTPException(status_code=403, detail=auth.reason)
+    tenant = account_service.get_tenant(auth.tenant_id)
+    if tenant is None:
+        raise HTTPException(status_code=403, detail="Hosted account is not active.")
+    return HostedAccountSummaryResponse(
+        tenant_id=auth.tenant_id,
+        key_id=auth.key_id,
+        plan=tenant.plan.value,
+        account_status=tenant.status.value,
+        balance=account_service.get_balance(auth.tenant_id),
+        limits=plan_limits(tenant.plan),
+    )
 
 
 @router.post("/scrape", response_model=HostedScrapeResponse)
