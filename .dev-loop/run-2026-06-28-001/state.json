@@ -4,7 +4,7 @@
   "project": "Scout",
   "feature": "Scout product launch planning and website foundation",
   "created_at": "2026-06-28T00:00:00-04:00",
-  "updated_at": "2026-06-28T10:55:00-04:00",
+  "updated_at": "2026-06-28T11:20:00-04:00",
   "status": "IN_PROGRESS",
   "current_stage": "BUILD",
   "builder": "frontend-builder",
@@ -26,6 +26,7 @@
     "unit_tests": "PASS",
     "static_analysis": "PASS",
     "website_smoke": "PASS",
+    "hosted_account_service": "PASS",
     "launch_goal": "INCOMPLETE"
   }
 }

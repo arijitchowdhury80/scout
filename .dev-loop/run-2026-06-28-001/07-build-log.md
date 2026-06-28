@@ -76,3 +76,41 @@ This checkpoint does not finish the full launch objective. Remaining work:
 - Current competitor/pricing research refresh before public launch.
 - Legal/license review for Crawl4AI attribution and distribution posture.
 - Broader live feature certification before making public product claims.
+
+## Follow-Up Checkpoint - Hosted Account Service
+
+Date: 2026-06-28
+
+Built:
+
+- `scout.core.platform.account_service`
+- `HostedTenantRecord`
+- `HostedAccountStatus`
+- `HostedProvisioningResult`
+- `HostedAccountDecision`
+- `InMemoryHostedAccountStore`
+- `HostedAccountService`
+
+Behavior:
+
+- provisions hosted tenants for hosted-enabled plans only,
+- generates one-time raw API keys while storing only hashes,
+- seeds standard and browser credits from the selected hosted plan,
+- authenticates keys by hash and required scope,
+- rejects revoked keys,
+- debits standard and browser credit buckets separately,
+- denies insufficient-credit actions without mutating balances.
+
+TDD:
+
+- RED: `python3 -m pytest tests/unit/core/platform/test_account_service.py -q`
+  failed with missing `scout.core.platform.account_service`.
+- GREEN: same command passed with `6 passed`.
+
+Verification:
+
+- `python3 -m pytest tests/unit/core/platform -q` -> `59 passed`.
+- `python3 -m pytest tests/unit/ -q` -> `434 passed`.
+- `python3 -m pyright scout/` -> `0 errors`.
+- `ruff check scout/ tests/` -> `All checks passed!`.
+- `ruff format --check scout/ tests/` -> `182 files already formatted`.

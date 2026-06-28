@@ -17,6 +17,9 @@ Status: In progress
 - [x] URL safety/SSRF tests written.
 - [x] URL safety/SSRF module implemented.
 - [x] URL safety focused verification passed.
+- [x] Hosted account service tests written.
+- [x] Hosted account service implemented.
+- [x] Hosted account service verification passed.
 
 ## Scope
 
@@ -47,3 +50,9 @@ dashboard.
   - Result: failed with `ModuleNotFoundError: No module named 'scout.core.platform.url_safety'`.
 - URL safety GREEN: `python3 -m pytest tests/unit/core/platform/test_url_safety.py -q`
   - Result: 9 passed.
+- Hosted account service RED: `python3 -m pytest tests/unit/core/platform/test_account_service.py -q`
+  - Result: failed with `ModuleNotFoundError: No module named 'scout.core.platform.account_service'`.
+- Hosted account service GREEN: `python3 -m pytest tests/unit/core/platform/test_account_service.py -q`
+  - Result: 6 passed.
+- Hosted account checkpoint: `python3 -m pytest tests/unit/core/platform -q`
+  - Result: 59 passed.

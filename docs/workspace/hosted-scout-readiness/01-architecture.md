@@ -79,12 +79,20 @@ Implementation seed:
 
 - raw key generation, hashing, masking, verification, status metadata, and
   scope checks now exist in `scout.core.platform.api_keys`.
+- tenant provisioning, scoped API-key authentication, hosted plan credit
+  seeding, and standard/browser credit debit now exist in
+  `scout.core.platform.account_service` with an in-memory store for local domain
+  testing.
 - the current HTTP middleware has not yet been migrated to the hosted key model.
 - URL safety primitives for the SSRF guard now exist in
   `scout.core.platform.url_safety`.
 
 The current local `SCOUT_API_KEY=dev-key` middleware is not hosted-safe. It is
 acceptable for local development only.
+
+The account service is not production persistence. Hosted launch still needs a
+database-backed repository, login/user identity, Stripe provisioning, quota
+middleware, and object storage isolation.
 
 ## Run Model
 
