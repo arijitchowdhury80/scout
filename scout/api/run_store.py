@@ -21,6 +21,8 @@ class StoredRun(BaseModel):
     use_case: str
     query: str = ""
     status: str = "complete"
+    tenant_id: str = ""
+    key_id: str = ""
     output_dir: str
     artifacts: ArtifactFiles
 
@@ -39,7 +41,7 @@ def _db_ready() -> bool:
     return _DB is not None and _DB._conn is not None
 
 
-async def remember_run(manifest: RunManifest) -> None:
+async def remember_run(manifest: RunManifest, tenant_id: str = "", key_id: str = "") -> None:
     """Persist a completed run to both cache and DB."""
     if not manifest.run_id:
         return
@@ -47,6 +49,8 @@ async def remember_run(manifest: RunManifest) -> None:
         run_id=manifest.run_id,
         use_case=manifest.use_case,
         query=manifest.query,
+        tenant_id=tenant_id,
+        key_id=key_id,
         output_dir=manifest.output_dir,
         artifacts=manifest.artifacts,
     )
@@ -59,6 +63,8 @@ async def remember_run(manifest: RunManifest) -> None:
                 use_case=manifest.use_case,
                 query=manifest.query,
                 status="complete",
+                tenant_id=tenant_id,
+                key_id=key_id,
                 output_dir=manifest.output_dir,
                 artifacts_json=manifest.artifacts.model_dump_json(),
             )
@@ -81,6 +87,8 @@ async def get_run(run_id: str) -> StoredRun | None:
         use_case=row.use_case,
         query=row.query,
         status=row.status,
+        tenant_id=row.tenant_id,
+        key_id=row.key_id,
         output_dir=row.output_dir,
         artifacts=ArtifactFiles(**json.loads(row.artifacts_json)),
     )

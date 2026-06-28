@@ -18,6 +18,8 @@ class RunRow(BaseModel):
     query: str = ""
     status: str = "queued"
     mode: str = ""
+    tenant_id: str = ""
+    key_id: str = ""
     output_dir: str = ""
     artifacts_json: str = "{}"
     created_at: str = Field(default_factory=_now_iso)
@@ -40,6 +42,8 @@ CREATE TABLE IF NOT EXISTS runs (
     query       TEXT NOT NULL DEFAULT '',
     status      TEXT NOT NULL DEFAULT 'queued',
     mode        TEXT NOT NULL DEFAULT '',
+    tenant_id   TEXT NOT NULL DEFAULT '',
+    key_id      TEXT NOT NULL DEFAULT '',
     output_dir  TEXT NOT NULL DEFAULT '',
     artifacts_json TEXT NOT NULL DEFAULT '{}',
     created_at  TEXT NOT NULL,
@@ -77,6 +81,8 @@ class RunDB:
         await self._conn.execute("PRAGMA journal_mode=WAL")
         await self._conn.execute("PRAGMA foreign_keys=ON")
         await self._conn.execute(_CREATE_RUNS)
+        await self._ensure_column("runs", "tenant_id", "TEXT NOT NULL DEFAULT ''")
+        await self._ensure_column("runs", "key_id", "TEXT NOT NULL DEFAULT ''")
         await self._conn.execute(_CREATE_EVENTS)
         await self._conn.execute(_CREATE_EVENTS_IDX)
         await self._conn.commit()
@@ -96,13 +102,16 @@ class RunDB:
         await self._db.execute(
             """
             INSERT INTO runs (run_id, use_case, query, status, mode,
-                              output_dir, artifacts_json, created_at, updated_at, finished_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                              tenant_id, key_id, output_dir, artifacts_json,
+                              created_at, updated_at, finished_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(run_id) DO UPDATE SET
                 use_case=excluded.use_case,
                 query=excluded.query,
                 status=excluded.status,
                 mode=excluded.mode,
+                tenant_id=excluded.tenant_id,
+                key_id=excluded.key_id,
                 output_dir=excluded.output_dir,
                 artifacts_json=excluded.artifacts_json,
                 updated_at=excluded.updated_at,
@@ -114,6 +123,8 @@ class RunDB:
                 row.query,
                 row.status,
                 row.mode,
+                row.tenant_id,
+                row.key_id,
                 row.output_dir,
                 row.artifacts_json,
                 row.created_at,
@@ -175,3 +186,12 @@ class RunDB:
         cursor = await self._db.execute("SELECT name FROM sqlite_master WHERE type='table'")
         rows = await cursor.fetchall()
         return [r[0] for r in rows]
+
+    async def _ensure_column(self, table: str, column: str, definition: str) -> None:
+        cursor = await self._db.execute(f"PRAGMA table_info({table})")
+        rows = await cursor.fetchall()
+        columns = {row[1] for row in rows}
+        if column in columns:
+            return
+        await self._db.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+        await self._db.commit()

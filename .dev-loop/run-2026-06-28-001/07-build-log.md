@@ -1003,6 +1003,58 @@ Verification:
 
 Still pending:
 
-- explicit `tenant_id`/`key_id` columns on persisted run records,
 - hosted artifact dashboard UI,
 - object storage and signed artifact URLs for multi-instance hosting.
+
+## Hosted Run Ownership Persistence Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `RunRow.tenant_id`
+- `RunRow.key_id`
+- SQLite `runs.tenant_id`
+- SQLite `runs.key_id`
+- SQLite migration helper for missing run columns on `init_db`
+- `remember_run(..., tenant_id, key_id)`
+- hosted run retrieval guard based on persisted tenant ownership
+
+Behavior:
+
+- hosted runs persist non-secret tenant and key IDs with the run,
+- hosted retrieval uses the persisted `tenant_id`, not output-directory path
+  parsing,
+- local/non-hosted runs keep empty tenant/key IDs,
+- existing SQLite databases add missing ownership columns during `init_db`,
+- raw hosted API keys are not returned by retrieval endpoints.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_db.py tests/unit/api/test_hosted_run_retrieval.py -q`
+  failed because the `runs` table, `RunRow`, and hosted summary response lacked
+  persisted ownership fields.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_db.py tests/unit/api/test_hosted_run_retrieval.py -q`
+  passed: 14 tests.
+
+Verification:
+
+- Focused checkpoint:
+  `python3 -m pytest tests/unit/api/test_db.py tests/unit/api/test_hosted_run_retrieval.py tests/unit/api/test_hosted_run.py -q`
+  passed: 19 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 144 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 501 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 206 files already
+  formatted.
+
+Still pending:
+
+- hosted artifact dashboard UI,
+- object storage and signed artifact URLs for multi-instance hosting,
+- production user/account model beyond hosted API keys.

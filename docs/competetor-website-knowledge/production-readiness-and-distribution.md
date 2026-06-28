@@ -275,14 +275,17 @@ Current implementation checkpoint:
   `max_records`, and charges one standard credit per returned record.
 - `/v1/hosted/runs/{run_id}` plus `/records` and `/artifacts` let the creating
   hosted tenant retrieve run metadata and outputs.
+- Hosted run persistence stores non-secret `tenant_id` and `key_id` ownership
+  metadata, and retrieval authorizes from that persisted ownership instead of
+  deriving ownership from output directory names.
 - `/v1/hosted/me` returns non-secret plan limits and remaining hosted credits.
 - `/v1/hosted/*` applies a configurable in-memory per-key rate limit and returns
   `429` with `Retry-After` before spending credits when the limit is exceeded.
 - SQLite hosted account persistence is available for local/dev hosted beta
   testing.
 - Public signup, Stripe, dashboard key management, production Postgres
-  persistence, explicit tenant columns on run records, distributed throttling,
-  async hosted runs, dashboard key management, and object storage remain pending.
+  persistence, distributed throttling, async hosted runs, dashboard key
+  management, and object storage remain pending.
 
 Before local public beta:
 

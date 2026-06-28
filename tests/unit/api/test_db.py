@@ -23,6 +23,13 @@ async def test_init_creates_tables(db: RunDB) -> None:
     assert "run_events" in tables
 
 
+async def test_init_creates_hosted_ownership_columns(db: RunDB) -> None:
+    cursor = await db._db.execute("PRAGMA table_info(runs)")
+    rows = await cursor.fetchall()
+    columns = {row[1] for row in rows}
+    assert {"tenant_id", "key_id"}.issubset(columns)
+
+
 async def test_save_and_get_run(db: RunDB) -> None:
     row = RunRow(
         run_id="run_abc123",
@@ -31,6 +38,8 @@ async def test_save_and_get_run(db: RunDB) -> None:
         status="complete",
         output_dir="/tmp/runs/abc",
         artifacts_json="{}",
+        tenant_id="tenant_123",
+        key_id="key_123",
     )
     await db.save_run(row)
     got = await db.get_run("run_abc123")
@@ -39,6 +48,8 @@ async def test_save_and_get_run(db: RunDB) -> None:
     assert got.use_case == "company"
     assert got.query == "Stripe"
     assert got.status == "complete"
+    assert got.tenant_id == "tenant_123"
+    assert got.key_id == "key_123"
 
 
 async def test_get_run_returns_none_for_missing(db: RunDB) -> None:

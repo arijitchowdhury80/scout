@@ -31,7 +31,7 @@ from scout.core.platform.hosted_rate_limit import HostedRateLimiter
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest, RunResponse
 from scout.core.platform.url_safety import validate_hosted_url
-from scout.core.platform.workspace import resolve_run_output_dir, slugify
+from scout.core.platform.workspace import resolve_run_output_dir
 from scout.core.types import (
     CrawlRequest,
     CrawlResponse,
@@ -276,7 +276,7 @@ async def hosted_run(
     )
     run_response = await run_use_case(hosted_req, crawler)
     if run_response.manifest is not None:
-        await remember_run(run_response.manifest)
+        await remember_run(run_response.manifest, tenant_id=auth.tenant_id, key_id=auth.key_id)
     records_charged = _hosted_run_records_charged(run_response, req.max_records)
     _debit_standard_credits(account_service, auth.tenant_id, records_charged)
     return HostedRunResponse(
@@ -369,8 +369,8 @@ async def _require_hosted_run(run_id: str, tenant_id: str) -> StoredRun:
 
 
 def _run_belongs_to_tenant(run: StoredRun, tenant_id: str) -> bool:
-    """Check private-beta hosted run ownership via tenant-labeled output dir."""
-    return Path(run.output_dir).name.startswith(f"hosted-{slugify(tenant_id)}-")
+    """Check hosted run ownership using persisted tenant metadata."""
+    return run.tenant_id == tenant_id
 
 
 def _read_json_list(path: Path) -> list[dict[str, Any]]:

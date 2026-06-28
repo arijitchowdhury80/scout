@@ -73,6 +73,8 @@ def test_hosted_run_summary_records_and_artifacts_are_retrievable_for_owner(
 
     assert summary.status_code == 200
     assert summary.json()["run_id"] == run_id
+    assert summary.json()["tenant_id"].startswith("tenant_")
+    assert summary.json()["key_id"].startswith("key_")
     assert summary.json()["output_dir"].startswith(str(tmp_path / "hosted-runs"))
     assert records.status_code == 200
     assert records.json()["total"] > 0
