@@ -115,6 +115,20 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Scout license is not final",
             "Public launch remains blocked",
         ],
+        "terms.html": [
+            "Scout Beta Terms Placeholder",
+            "This is not a final Terms of Service.",
+            "Use Scout only for websites and data you are allowed to access.",
+            "No guaranteed hard-site bypass.",
+            "Hosted beta is capped and metered.",
+        ],
+        "privacy.html": [
+            "Scout Beta Privacy Placeholder",
+            "This is not a final Privacy Policy.",
+            "Local Scout keeps run artifacts on your machine.",
+            "Hosted beta stores run metadata and artifacts for limited retention.",
+            "Do not submit secrets or regulated personal data.",
+        ],
     }
 
     for page_name, expected_strings in pages.items():
@@ -134,10 +148,14 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/pricing": "Scout Pricing",
         "/beta": "Scout Private Beta",
         "/legal": "Scout Legal And Third-Party Notices",
+        "/terms": "Scout Beta Terms Placeholder",
+        "/privacy": "Scout Beta Privacy Placeholder",
         "/quickstart.html": "Scout Quickstart",
         "/pricing.html": "Scout Pricing",
         "/beta.html": "Scout Private Beta",
         "/legal.html": "Scout Legal And Third-Party Notices",
+        "/terms.html": "Scout Beta Terms Placeholder",
+        "/privacy.html": "Scout Beta Privacy Placeholder",
     }
 
     for path, text in expected.items():

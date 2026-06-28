@@ -75,6 +75,20 @@ async def launch_site_legal() -> FileResponse:
     return _launch_site_page("legal.html")
 
 
+@router.get("/terms")
+@router.get("/terms.html")
+async def launch_site_terms() -> FileResponse:
+    """Serve the Scout beta terms placeholder page."""
+    return _launch_site_page("terms.html")
+
+
+@router.get("/privacy")
+@router.get("/privacy.html")
+async def launch_site_privacy() -> FileResponse:
+    """Serve the Scout beta privacy placeholder page."""
+    return _launch_site_page("privacy.html")
+
+
 @router.get("/third-party-notices")
 @router.get("/THIRD_PARTY_NOTICES.md")
 async def launch_site_third_party_notices() -> FileResponse:

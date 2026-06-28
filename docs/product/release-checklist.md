@@ -86,7 +86,11 @@ No public registry publish should happen until these decisions are closed.
       Evidence: `.github/workflows/ci.yml` `secret-scan` job.
 - [ ] Hosted SSRF checks reviewed.
 - [ ] Hosted artifact authorization and path confinement reviewed.
-- [ ] Terms/privacy placeholders created before public hosted beta.
+- [x] Terms/privacy placeholders created before public hosted beta.
+      Evidence: `docs/legal/beta-terms-placeholder.md`,
+      `docs/legal/beta-privacy-placeholder.md`, `/terms`, and `/privacy`.
+      These are beta placeholders only; final lawyer-reviewed terms and privacy
+      policy remain required before broad commercial launch.
 
 ## Beta Operations Gates
 

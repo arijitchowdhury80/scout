@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scout Beta Privacy Placeholder</title>
+    <meta
+      name="description"
+      content="Placeholder beta privacy notice for Scout local and hosted beta testers."
+    />
+    <link
+      rel="icon"
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%2318181b"/><text x="32" y="42" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" font-weight="900" fill="%23ebebe8">S</text></svg>'
+    />
+    <link rel="stylesheet" href="./assets/warm-industrial-design-system/warm-industrial.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="wi">
+    <div class="wi-grid-bg" aria-hidden="true"><div class="wi-grid-bg__inner"></div></div>
+    <div class="wi-noise" aria-hidden="true"></div>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Scout home">
+          <span class="brand-mark">S</span>
+          <span><strong>Scout</strong><small>Evidence-grade acquisition</small></span>
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="/quickstart">Quickstart</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/beta">Private beta</a>
+          <a href="/legal">Legal</a>
+          <a href="/docs">API docs</a>
+        </nav>
+        <a class="wi-pill nav-cta" href="/quickstart">Install locally</a>
+      </header>
+
+      <main>
+        <section class="page-hero">
+          <p class="wi-label wi-label--accent">Scout Beta Privacy Placeholder</p>
+          <h1>Know where Scout stores evidence before you run it.</h1>
+          <p>
+            This is not a final Privacy Policy. It is a temporary beta notice
+            that documents local and hosted data handling until lawyer-reviewed
+            privacy terms are published.
+          </p>
+        </section>
+
+        <section class="section launch-status" aria-labelledby="privacy-data-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Data handling</p>
+            <h2 id="privacy-data-title">Local Scout and hosted Scout have different data footprints.</h2>
+          </div>
+          <div class="status-grid">
+            <article>
+              <span class="status-tag status-tag--primary">Local</span>
+              <h3>Local Scout keeps run artifacts on your machine.</h3>
+              <p>
+                Local runs write artifacts to the configured working directory:
+                records, source pages, blocked pages, screenshots or DOM
+                evidence when captured, validation files, logs, and reports.
+              </p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--limited">Hosted</span>
+              <h3>Hosted beta stores run metadata and artifacts for limited retention.</h3>
+              <p>
+                Hosted beta may store account email, payment references, API
+                key status, run metadata, source URLs, extracted records,
+                blocked evidence, logs, and artifacts long enough to operate,
+                debug, meter, and support the beta.
+              </p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--blocker">Sensitive data</span>
+              <h3>Do not submit secrets or regulated personal data.</h3>
+              <p>
+                Do not place passwords, private keys, regulated personal data,
+                private account pages, credentialed social content, or customer
+                confidential information into Scout beta runs.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section two-col" aria-labelledby="browser-privacy-title">
+          <div>
+            <p class="wi-label wi-label--accent">Browser evidence</p>
+            <h2 id="browser-privacy-title">Screenshots and DOM captures can contain visible page data.</h2>
+          </div>
+          <div class="body-copy">
+            <p>
+              Browser-assisted acquisition may capture screenshots, rendered
+              DOM, markdown, links, network diagnostics, console errors, and
+              source hashes. Review pages before capture and avoid private
+              sessions unless you have explicit permission.
+            </p>
+            <p>
+              Retention and deletion are beta operations for now: delete local
+              run folders when no longer needed, and request hosted artifact
+              deletion through the beta support channel once that channel is
+              confirmed.
+            </p>
+          </div>
+        </section>
+
+        <section class="section launch-status" aria-labelledby="privacy-keys-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Credentials</p>
+            <h2 id="privacy-keys-title">Keep keys out of artifacts.</h2>
+          </div>
+          <div class="status-grid">
+            <article>
+              <span class="status-tag status-tag--primary">Environment</span>
+              <h3>Use `.env.local` for local keys</h3>
+              <p>
+                API keys and service tokens should stay in local environment
+                files or deployment secret managers. Do not commit them, paste
+                them into public prompts, or store them in run artifacts.
+              </p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--limited">Hosted beta</span>
+              <h3>Secret handling is still a launch gate</h3>
+              <p>
+                Hosted API key generation and delivery still need final
+                verification before hosted access expands beyond controlled
+                private beta testing.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="wi-dark site-footer">
+        <div>
+          <p class="wi-label">Scout</p>
+          <h2>Privacy starts with visible artifact boundaries.</h2>
+        </div>
+        <div class="footer-links">
+          <a href="/terms">Terms placeholder</a>
+          <a href="/legal">Legal</a>
+          <a href="/third-party-notices">Third-party notices</a>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

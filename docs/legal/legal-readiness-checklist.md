@@ -21,7 +21,8 @@ Status: Draft for private beta planning
 
 ## Scraping And Acquisition Risk
 
-- [ ] Add customer-facing terms that users are responsible for lawful use.
+- [x] Add customer-facing terms that users are responsible for lawful use.
+  Evidence: `docs/legal/beta-terms-placeholder.md` and `/terms`.
 - [ ] Avoid marketing language like "bypass bot protection."
 - [ ] Prefer "browser-assisted acquisition", "blocked evidence", and
   "human-approved capture" language.
@@ -33,11 +34,15 @@ Status: Draft for private beta planning
 
 ## Data Handling
 
-- [ ] Document where Scout writes artifacts.
-- [ ] Add retention/deletion guidance for run folders.
-- [ ] Make API-key handling explicit: `.env.local`, never committed.
+- [x] Document where Scout writes artifacts.
+  Evidence: `docs/legal/beta-privacy-placeholder.md` and `/privacy`.
+- [x] Add retention/deletion guidance for run folders.
+  Evidence: `docs/legal/beta-privacy-placeholder.md` and `/privacy`.
+- [x] Make API-key handling explicit: `.env.local`, never committed.
+  Evidence: `docs/legal/beta-privacy-placeholder.md` and `/privacy`.
 - [ ] Confirm Algolia credentials are not written to artifacts or logs.
-- [ ] Add privacy note for captured screenshots/DOM from user browser sessions.
+- [x] Add privacy note for captured screenshots/DOM from user browser sessions.
+  Evidence: `docs/legal/beta-privacy-placeholder.md` and `/privacy`.
 
 ## Public Beta Readiness
 
