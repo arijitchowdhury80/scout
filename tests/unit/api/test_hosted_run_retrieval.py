@@ -68,6 +68,10 @@ def test_hosted_run_summary_records_and_artifacts_are_retrievable_for_owner(
             f"/v1/hosted/runs/{run_id}/artifacts",
             headers={"Authorization": f"Bearer {raw_key}"},
         )
+        artifact_download = client.get(
+            f"/v1/hosted/runs/{run_id}/artifacts/records_json/download",
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
     finally:
         app.dependency_overrides.clear()
 
@@ -81,9 +85,15 @@ def test_hosted_run_summary_records_and_artifacts_are_retrievable_for_owner(
     assert records.json()["records"][0]["citations"]
     assert artifacts.status_code == 200
     assert artifacts.json()["artifacts"]["records_json"].endswith("records.json")
+    assert artifacts.json()["download_urls"]["records_json"].endswith(
+        f"/v1/hosted/runs/{run_id}/artifacts/records_json/download"
+    )
+    assert artifact_download.status_code == 200
+    assert artifact_download.json()[0]["citations"]
     assert raw_key not in summary.text
     assert raw_key not in records.text
     assert raw_key not in artifacts.text
+    assert raw_key not in artifact_download.text
 
 
 def test_hosted_run_retrieval_requires_bearer_token() -> None:
@@ -114,3 +124,37 @@ def test_hosted_run_retrieval_hides_runs_from_other_tenants(tmp_path, monkeypatc
 
     assert resp.status_code == 404
     assert resp.json()["detail"] == f"Run not found: {run_id}"
+
+
+def test_hosted_artifact_download_hides_runs_from_other_tenants(tmp_path, monkeypatch) -> None:
+    account_service, owner_key, other_key = _account_service_with_two_keys()
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        run_id = _create_hosted_company_run(client, owner_key, tmp_path, monkeypatch)
+        resp = client.get(
+            f"/v1/hosted/runs/{run_id}/artifacts/records_json/download",
+            headers={"Authorization": f"Bearer {other_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == f"Run not found: {run_id}"
+
+
+def test_hosted_artifact_download_rejects_unknown_artifact(tmp_path, monkeypatch) -> None:
+    account_service, raw_key, _other_key = _account_service_with_two_keys()
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        run_id = _create_hosted_company_run(client, raw_key, tmp_path, monkeypatch)
+        resp = client.get(
+            f"/v1/hosted/runs/{run_id}/artifacts/secrets/download",
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 404
+    assert resp.json()["detail"] == "Artifact not found: secrets"

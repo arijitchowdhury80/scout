@@ -251,7 +251,8 @@ Before paid hosted beta:
 - [x] finite plan credits and hosted page debit for `/v1/hosted/crawl`,
 - [x] finite plan credits and hosted product-record debit for `/v1/hosted/products`,
 - [x] finite plan credits and hosted high-level record debit for `/v1/hosted/run/{use_case}`,
-- [x] hosted run summary, records, and artifact retrieval for owner keys,
+- [x] hosted run summary, records, artifact metadata, and private-beta artifact
+  downloads for owner keys,
 - [x] hosted account/plan/balance inspection endpoint at `/v1/hosted/me`,
 - [x] process-local per-key hosted rate limit for `/v1/hosted/*`,
 - [ ] distributed/global request rate-limit middleware,
@@ -284,8 +285,11 @@ Current implementation checkpoint:
 - `/v1/hosted/run/{use_case}` accepts hosted Bearer keys, ignores caller
   `output_dir`, writes under server `SCOUT_WORKDIR`, preflights
   `max_records`, and charges one standard credit per returned record.
-- `/v1/hosted/runs/{run_id}` plus `/records` and `/artifacts` let the creating
-  hosted tenant retrieve run metadata and outputs.
+- `/v1/hosted/runs/{run_id}` plus `/records`, `/artifacts`, and
+  `/artifacts/{artifact_name}/download` let the creating hosted tenant retrieve
+  run metadata, records, artifact metadata, and artifact files.
+- Hosted artifact downloads are restricted to known artifact names under the
+  persisted run output directory.
 - Hosted run persistence stores non-secret `tenant_id` and `key_id` ownership
   metadata, and retrieval authorizes from that persisted ownership instead of
   deriving ownership from output directory names.
@@ -296,7 +300,7 @@ Current implementation checkpoint:
   testing.
 - Public signup, Stripe, dashboard key management, production Postgres
   persistence, distributed throttling, async hosted runs, dashboard key
-  management, and object storage remain pending.
+  management, object storage, and signed artifact URLs remain pending.
 
 Before local public beta:
 

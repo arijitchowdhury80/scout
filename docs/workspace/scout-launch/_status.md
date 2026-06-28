@@ -22,6 +22,8 @@ readiness work needed to turn Scout from a working tool into a testable product.
 - Competitor website/pricing research refreshed.
 - Static Scout launch website refreshed around evidence-grade records.
 - Hosted run ownership persistence implemented.
+- Hosted owner-scoped artifact download URLs implemented for private-beta
+  filesystem-backed runs.
 - Product export adapters generalized beyond Algolia:
   - JSON,
   - JSONL,
@@ -35,7 +37,7 @@ readiness work needed to turn Scout from a working tool into a testable product.
 - Decide Scout license.
 - Add package metadata and release checklist.
 - Build MCP server plan.
-- Add hosted artifact dashboard or signed artifact URL plan.
+- Add hosted artifact dashboard and object-storage/signed-URL production plan.
 - Decide whether direct Google Sheets API push belongs in Scout core or a
   separate credentialed adapter.
 - Run full private-beta launch verification.

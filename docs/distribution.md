@@ -139,6 +139,10 @@ curl http://localhost:8421/v1/hosted/runs/${RUN_ID}/records \
 
 curl http://localhost:8421/v1/hosted/runs/${RUN_ID}/artifacts \
   -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}"
+
+curl http://localhost:8421/v1/hosted/runs/${RUN_ID}/artifacts/records_json/download \
+  -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}" \
+  -o records.json
 ```
 
 Hosted crawls are metered at one standard credit per returned page. Scout
@@ -163,10 +167,12 @@ at one standard credit per returned record, with preflight based on
 async hosted run jobs, artifact object storage, and dashboard browsing remain
 production work.
 
-Hosted run retrieval endpoints return summaries, records, and artifact paths for
-the hosted tenant that created the run. Ownership is stored in run persistence
-with non-secret `tenant_id` and `key_id` fields; retrieval checks the persisted
-tenant owner rather than trusting caller-provided paths. A production deployment
+Hosted run retrieval endpoints return summaries, records, artifact paths, and
+authenticated private-beta artifact download URLs for the hosted tenant that
+created the run. Ownership is stored in run persistence with non-secret
+`tenant_id` and `key_id` fields; retrieval checks the persisted tenant owner
+rather than trusting caller-provided paths. Artifact downloads are restricted to
+known artifact names under the run output directory. A production deployment
 still needs async hosted jobs, object storage, signed artifact URLs, and a
 dashboard for browsing hosted run outputs.
 

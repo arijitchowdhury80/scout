@@ -514,3 +514,41 @@ Still pending:
 - hosted artifact dashboard UI,
 - object storage and signed artifact URLs for multi-instance hosting,
 - production user/account model beyond hosted API keys.
+
+## Hosted Artifact Download Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `GET /v1/hosted/runs/{run_id}/artifacts/{artifact_name}/download`
+- `download_urls` in `GET /v1/hosted/runs/{run_id}/artifacts`
+- known-artifact allowlist for hosted downloads
+- run-output-directory confinement before serving artifact files
+
+Behavior:
+
+- hosted artifact downloads require the same Bearer key ownership check as run
+  summary, records, and artifact metadata,
+- another tenant receives `404` for an owned run's artifact download route,
+- unknown artifact names return `404`,
+- artifact files are only served when the resolved file lives under the
+  persisted run output directory,
+- the private-beta route is local filesystem backed; production object storage
+  and signed URLs remain future work.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_hosted_run_retrieval.py -q` failed
+  because `/artifacts` had no `download_urls` and artifact download routes
+  returned the framework `404`.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_hosted_run_retrieval.py -q` passed:
+  5 tests.
+
+Still pending:
+
+- hosted artifact dashboard UI,
+- object storage and signed artifact URLs for multi-instance hosting,
+- async hosted jobs for long-running artifact-producing workflows.

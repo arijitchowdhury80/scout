@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from scout.api.config import settings
@@ -42,6 +43,16 @@ from scout.core.types import (
 )
 
 router = APIRouter(prefix="/v1/hosted", tags=["hosted"])
+
+_HOSTED_ARTIFACT_FIELDS = {
+    "manifest",
+    "records_json",
+    "records_jsonl",
+    "source_pages_json",
+    "blocked_pages_json",
+    "validation_json",
+    "report_md",
+}
 
 
 class HostedUsageSummary(BaseModel):
@@ -325,14 +336,30 @@ async def hosted_run_artifacts(
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
 ) -> dict[str, Any]:
-    """Return artifact paths for a hosted run if the Bearer key owns it."""
+    """Return artifact paths and private download URLs for an owned hosted run."""
     auth = _hosted_auth_for_read(authorization, account_service, rate_limiter)
     run = await _require_hosted_run(run_id, auth.tenant_id)
     return {
         "run_id": run_id,
         "output_dir": run.output_dir,
         "artifacts": run.artifacts.model_dump(mode="json"),
+        "download_urls": _hosted_artifact_download_urls(run),
     }
+
+
+@router.get("/runs/{run_id}/artifacts/{artifact_name}/download")
+async def hosted_run_artifact_download(
+    run_id: str,
+    artifact_name: str,
+    authorization: str = Header(default=""),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+) -> FileResponse:
+    """Download a single artifact for a hosted run owned by the Bearer key."""
+    auth = _hosted_auth_for_read(authorization, account_service, rate_limiter)
+    run = await _require_hosted_run(run_id, auth.tenant_id)
+    path = _hosted_artifact_path(run, artifact_name)
+    return FileResponse(path, media_type=_artifact_media_type(path), filename=path.name)
 
 
 def _bearer_token(authorization: str) -> str:
@@ -378,6 +405,48 @@ def _read_json_list(path: Path) -> list[dict[str, Any]]:
         raise HTTPException(status_code=404, detail=f"Artifact not found: {path}")
     data = json.loads(path.read_text())
     return data if isinstance(data, list) else []
+
+
+def _hosted_artifact_download_urls(run: StoredRun) -> dict[str, str]:
+    """Return relative authenticated download URLs for artifacts that exist."""
+    urls: dict[str, str] = {}
+    for artifact_name in _HOSTED_ARTIFACT_FIELDS:
+        value = getattr(run.artifacts, artifact_name)
+        if not value:
+            continue
+        urls[artifact_name] = f"/v1/hosted/runs/{run.run_id}/artifacts/{artifact_name}/download"
+    return urls
+
+
+def _hosted_artifact_path(run: StoredRun, artifact_name: str) -> Path:
+    """Resolve an artifact path only when it is a known file inside the run output dir."""
+    if artifact_name not in _HOSTED_ARTIFACT_FIELDS:
+        raise HTTPException(status_code=404, detail=f"Artifact not found: {artifact_name}")
+    value = getattr(run.artifacts, artifact_name)
+    if not value:
+        raise HTTPException(status_code=404, detail=f"Artifact not found: {artifact_name}")
+    path = Path(value).resolve()
+    output_dir = Path(run.output_dir).resolve()
+    try:
+        path.relative_to(output_dir)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Artifact not found: {artifact_name}",
+        ) from exc
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail=f"Artifact not found: {artifact_name}")
+    return path
+
+
+def _artifact_media_type(path: Path) -> str:
+    if path.suffix == ".json":
+        return "application/json"
+    if path.suffix == ".jsonl":
+        return "application/x-ndjson"
+    if path.suffix == ".md":
+        return "text/markdown"
+    return "application/octet-stream"
 
 
 def _enforce_rate_limit(rate_limiter: HostedRateLimiter, key_id: str) -> None:
