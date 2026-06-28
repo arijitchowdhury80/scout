@@ -4,6 +4,7 @@ from fastapi import Request
 
 from scout.api.db import RunDB
 from scout.core.crawler import ScoutCrawler
+from scout.core.platform.account_service import HostedAccountService
 
 
 def get_crawler(request: Request) -> ScoutCrawler:
@@ -21,3 +22,9 @@ def get_run_db(request: Request) -> RunDB:
     """Return the RunDB instance stored on app.state at startup."""
     run_db: RunDB = request.app.state.run_db
     return run_db
+
+
+def get_hosted_account_service(request: Request) -> HostedAccountService:
+    """Return the hosted account service stored on app.state at startup."""
+    service: HostedAccountService = request.app.state.hosted_account_service
+    return service

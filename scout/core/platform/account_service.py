@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import Enum
+from typing import Protocol
 from uuid import uuid4
 
 from pydantic import BaseModel, EmailStr, Field
@@ -61,6 +62,27 @@ class HostedAccountDecision(BaseModel):
     usage: HostedUsageDecision | None = None
 
 
+class HostedAccountStore(Protocol):
+    """Persistence contract used by hosted account services."""
+
+    def save_account(
+        self,
+        tenant: HostedTenantRecord,
+        api_key: ApiKeyRecord,
+        balance: HostedUsageBalance,
+    ) -> None: ...
+
+    def find_key_by_hash(self, key_hash: str) -> ApiKeyRecord | None: ...
+
+    def get_tenant(self, tenant_id: str) -> HostedTenantRecord | None: ...
+
+    def get_balance(self, tenant_id: str) -> HostedUsageBalance: ...
+
+    def set_balance(self, tenant_id: str, balance: HostedUsageBalance) -> None: ...
+
+    def update_key_status(self, key_id: str, status: ApiKeyStatus) -> None: ...
+
+
 class InMemoryHostedAccountStore:
     """In-memory hosted account store for tests and local development."""
 
@@ -108,7 +130,7 @@ class InMemoryHostedAccountStore:
 class HostedAccountService:
     """Hosted account orchestration for provisioning, auth, and usage debit."""
 
-    def __init__(self, store: InMemoryHostedAccountStore) -> None:
+    def __init__(self, store: HostedAccountStore) -> None:
         self.store = store
 
     def provision_account(

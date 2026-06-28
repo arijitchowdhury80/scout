@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     llm_api_key: str = ""
     scout_workdir: str = "scout-runs"
     db_path: str = ""
+    hosted_account_db_path: str = ""
     host: str = "0.0.0.0"
     port: int = 8421
 
@@ -17,6 +18,11 @@ class Settings(BaseSettings):
         if self.db_path:
             return self.db_path
         return str(__import__("pathlib").Path(self.scout_workdir) / "scout.db")
+
+    def resolve_hosted_account_db_path(self) -> str:
+        if self.hosted_account_db_path:
+            return self.hosted_account_db_path
+        return str(__import__("pathlib").Path(self.scout_workdir) / "hosted_accounts.sqlite")
 
     model_config = {"env_file": (".env", ".env.local"), "env_file_encoding": "utf-8"}
 

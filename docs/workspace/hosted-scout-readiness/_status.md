@@ -26,6 +26,9 @@ Status: In progress
 - [x] SQLite hosted account persistence tests written.
 - [x] SQLite hosted account store implemented.
 - [x] SQLite hosted account persistence verification passed.
+- [x] Hosted HTTP scrape boundary tests written.
+- [x] Hosted HTTP scrape boundary implemented.
+- [x] Hosted HTTP scrape boundary verification passed.
 
 ## Scope
 
@@ -76,3 +79,11 @@ dashboard.
   - Result: 3 passed.
 - SQLite hosted account persistence checkpoint: `python3 -m pytest tests/unit/ -q`
   - Result: 443 passed.
+- Hosted HTTP boundary RED:
+  `python3 -m pytest tests/unit/api/test_hosted_scrape.py tests/unit/api/test_auth.py -q`
+  - Result: failed because `get_hosted_account_service` did not exist.
+- Hosted HTTP boundary GREEN:
+  `python3 -m pytest tests/unit/api/test_hosted_scrape.py tests/unit/api/test_auth.py -q`
+  - Result: 9 passed.
+- Hosted HTTP boundary checkpoint: `python3 -m pytest tests/unit/ -q`
+  - Result: 447 passed.

@@ -24,6 +24,7 @@ from scout.api.routers import (
     runs,
     structure,
     workdir,
+    hosted,
 )
 from scout.api.routers import map as map_router
 from scout.api.routers import scrape, screenshot
@@ -41,6 +42,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     from scout.api.db import RunDB
     from scout.api.run_store import bind_db
+    from scout.core.platform.account_service import HostedAccountService
+    from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
 
     app.state.crawler = ScoutCrawler(llm_api_key=settings.llm_api_key)
     db_path = settings.resolve_db_path()
@@ -48,6 +51,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     run_db = RunDB(db_path)
     await run_db.init_db()
     app.state.run_db = run_db
+    hosted_db_path = settings.resolve_hosted_account_db_path()
+    Path(hosted_db_path).parent.mkdir(parents=True, exist_ok=True)
+    app.state.hosted_account_service = HostedAccountService(
+        SQLiteHostedAccountStore(hosted_db_path)
+    )
     bind_db(run_db)
     yield
     await run_db.close()
@@ -73,6 +81,7 @@ app.include_router(live_browser.router)
 app.include_router(map_router.router)
 app.include_router(screenshot.router)
 app.include_router(workdir.router)
+app.include_router(hosted.router)
 
 
 @app.get("/api/config", include_in_schema=False)

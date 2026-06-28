@@ -33,6 +33,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         }
         if request.url.path in public_paths:
             return await call_next(request)  # type: ignore[misc]
+        if request.url.path.startswith("/v1/hosted/"):
+            return await call_next(request)  # type: ignore[misc]
 
         incoming_key = request.headers.get("X-API-Key")
         if not incoming_key or incoming_key != self._api_key:

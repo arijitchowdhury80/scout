@@ -46,6 +46,11 @@ def _make_app(api_key: str = "test-key") -> FastAPI:
         """Scrape endpoint — requires auth."""
         return {"ok": True}
 
+    @test_app.post("/v1/hosted/scrape")
+    async def hosted_scrape() -> dict:
+        """Hosted routes perform their own Bearer auth."""
+        return {"hosted": True}
+
     return test_app
 
 
@@ -95,3 +100,13 @@ def test_scrape_with_correct_key_passes_through() -> None:
     resp = client.post("/scrape", headers={"X-API-Key": "test-key"})
     # May be 200 or 422 (missing body) — anything but 403
     assert resp.status_code != 403
+
+
+def test_hosted_routes_bypass_static_local_key_middleware() -> None:
+    """Hosted routes must reach route-level Bearer auth without X-API-Key."""
+    client = TestClient(_make_app(api_key="test-key"))
+
+    resp = client.post("/v1/hosted/scrape")
+
+    assert resp.status_code == 200
+    assert resp.json()["hosted"] is True

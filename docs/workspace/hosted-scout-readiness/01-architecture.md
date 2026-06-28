@@ -88,6 +88,9 @@ Implementation seed:
 - durable local hosted account persistence now exists in
   `scout.core.platform.account_sqlite_store`; it stores tenants, hashed API-key
   metadata, and credit balances in SQLite without storing raw API keys.
+- the first hosted HTTP proof endpoint now exists at `/v1/hosted/scrape`; it
+  accepts `Authorization: Bearer scout_live_...`, uses hosted admission, and
+  returns non-secret usage metadata with the scrape response.
 - the current HTTP middleware has not yet been migrated to the hosted key model.
 - URL safety primitives for the SSRF guard now exist in
   `scout.core.platform.url_safety`.
@@ -99,6 +102,10 @@ The SQLite account store is a local/dev durable repository, not the final
 production persistence layer. Hosted launch still needs Postgres or equivalent,
 login/user identity, Stripe provisioning, quota middleware, and object storage
 isolation.
+
+The hosted scrape endpoint is a proof boundary, not the full hosted API. Hosted
+crawl, products, run orchestration, key provisioning endpoints, payment
+webhooks, and async worker execution remain pending.
 
 ## Run Model
 

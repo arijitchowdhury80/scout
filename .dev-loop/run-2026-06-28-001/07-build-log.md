@@ -178,3 +178,41 @@ Verification:
 - `python3 -m pyright scout/` -> `0 errors`.
 - `ruff check scout/ tests/` -> `All checks passed!`.
 - `ruff format --check scout/ tests/` -> `186 files already formatted`.
+
+## Follow-Up Checkpoint - Hosted HTTP Boundary
+
+Date: 2026-06-28
+
+Built:
+
+- `/v1/hosted/scrape`
+- hosted Bearer auth extraction,
+- hosted account service dependency,
+- hosted account SQLite service binding on FastAPI startup,
+- static local auth middleware pass-through for `/v1/hosted/*`,
+- `HostedAccountStore` protocol so account services can use in-memory or
+  SQLite stores cleanly.
+
+Behavior:
+
+- hosted endpoint does not require local `X-API-Key`,
+- missing Bearer token returns 401,
+- unsafe URL returns 403 and does not call crawler,
+- valid hosted key with `runs:create` scope calls crawler once,
+- admitted request debits one standard credit,
+- response includes tenant/key IDs and credit charge but never echoes the raw
+  API key.
+
+TDD:
+
+- RED: `python3 -m pytest tests/unit/api/test_hosted_scrape.py tests/unit/api/test_auth.py -q`
+  failed because `get_hosted_account_service` did not exist.
+- GREEN: same command passed with `9 passed`.
+
+Verification:
+
+- `python3 -m pytest tests/unit/api -q` -> `110 passed`.
+- `python3 -m pytest tests/unit/ -q` -> `447 passed`.
+- `python3 -m pyright scout/` -> `0 errors`.
+- `ruff check scout/ tests/` -> `All checks passed!`.
+- `ruff format --check scout/ tests/` -> `188 files already formatted`.
