@@ -14,8 +14,10 @@ def test_security_audit_report_records_dependency_and_secret_scans() -> None:
     assert "Scout Security Audit" in report
     assert "Dependency CVE Scan" in report
     assert "Secret Scan" in report
+    assert "Entropy-Aware Secret Scan" in report
     assert "python3 -m pip_audit" in report
     assert "git grep" in report
+    assert "detect-secrets scan" in report
     assert "Result:" in report
     assert "Remaining Risks" in report
     assert "No secret values are reproduced in this report" in report
@@ -26,4 +28,5 @@ def test_release_checklist_marks_recorded_security_scans() -> None:
 
     assert "- [x] Dependency CVE scan run and recorded." in checklist
     assert "- [x] Secret scan run and recorded." in checklist
+    assert "- [x] Entropy-aware secret scan run and recorded." in checklist
     assert "docs/security/security-audit-2026-06-28.md" in checklist

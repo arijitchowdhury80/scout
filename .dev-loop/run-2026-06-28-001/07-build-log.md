@@ -1457,3 +1457,54 @@ Verification:
 - Lint/format:
   `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
   all checks passed, 212 files already formatted.
+
+## Entropy-Aware Secret Scan Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- security audit report section for entropy-aware `detect-secrets` evidence,
+- release checklist gate for recorded entropy-aware secret scan,
+- unit contract coverage for that evidence.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/test_security_audit_docs.py -q` failed
+  because the audit report did not include `Entropy-Aware Secret Scan` evidence
+  and the release checklist did not mark it as recorded.
+
+Scan command:
+
+- `/tmp/scout-detect-secrets-venv/bin/detect-secrets scan --no-verify --exclude-files '(^dist/|^validation-output/|^scout-runs/|^\\.pytest_cache/|^\\.ruff_cache/)' > /tmp/scout-detect-secrets.json`
+
+Scan result:
+
+- files with findings: 18,
+- total candidate findings: 26,
+- no candidate secret values were printed into docs,
+- masked review indicates likely placeholders/examples/test fixtures, but each
+  candidate still needs explicit audit or allowlisting before public launch.
+
+Boundary:
+
+- This improves security evidence but does not make the repo secret-scan clean.
+- Public launch remains blocked until candidate findings are audited and either
+  removed or explicitly allowlisted.
+
+Verification:
+
+- Focused security audit doc gate:
+  `python3 -m pytest tests/unit/test_security_audit_docs.py -q` passed:
+  2 tests.
+- Focused governance/security gate:
+  `python3 -m pytest tests/unit/test_security_audit_docs.py tests/unit/test_launch_governance_docs.py -q`
+  passed: 5 tests.
+- Full unit suite:
+  `python3 -m pytest tests/unit/ -q` passed: 524 tests, 8 warnings.
+- Type check:
+  `python3 -m pyright scout/` passed: 0 errors, 0 warnings, 0 informations.
+- Lint/format:
+  `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
+  all checks passed, 212 files already formatted.

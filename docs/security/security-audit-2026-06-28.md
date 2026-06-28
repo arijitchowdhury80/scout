@@ -63,6 +63,8 @@ Next action:
 
 ## Secret Scan
 
+### Targeted Pattern Scan
+
 Command:
 
 ```bash
@@ -83,6 +85,45 @@ Limitations:
   history, GitHub Actions secrets, Stripe dashboard settings, or hosted
   infrastructure variables.
 
+### Entropy-Aware Secret Scan
+
+Command:
+
+```bash
+rm -rf /tmp/scout-detect-secrets-venv
+python3 -m venv /tmp/scout-detect-secrets-venv
+/tmp/scout-detect-secrets-venv/bin/python -m pip install --upgrade pip
+/tmp/scout-detect-secrets-venv/bin/python -m pip install detect-secrets
+/tmp/scout-detect-secrets-venv/bin/detect-secrets scan --no-verify \
+  --exclude-files '(^dist/|^validation-output/|^scout-runs/|^\.pytest_cache/|^\.ruff_cache/)' \
+  > /tmp/scout-detect-secrets.json
+```
+
+Equivalent command form: `detect-secrets scan --no-verify` over git-tracked
+files.
+
+Result:
+
+- Files with findings: `18`
+- Total candidate findings: `26`
+- Candidate types:
+  - `Secret Keyword`
+  - `Basic Auth Credentials`
+  - `Base64 High Entropy String`
+  - `Hex High Entropy String`
+- Review posture:
+  - candidate values were not reproduced in this report,
+  - masked review suggests many findings are test placeholders, config examples,
+    proxy examples, or intentionally named key fields,
+  - the scan is not clean until every candidate is audited and either removed
+    or explicitly allowlisted.
+
+Launch impact:
+
+- This is a public-launch review gate, not a private-beta blocker by itself.
+- Public launch should not proceed until candidate findings are audited and a
+  committed baseline or zero-finding scan is in place.
+
 ## Remaining Risks
 
 - Dependency CVE remains unresolved because of Crawl4AI's current `lxml~=5.3`
@@ -95,7 +136,7 @@ Limitations:
   - rate limits and abuse limits,
   - Stripe webhook secret handling.
 - A full secret scan using an entropy-aware tool should run before public
-  release.
+- release. It has now been run, but candidate findings still require review.
 - Terms, privacy, and acceptable-use language are still required before a
   public hosted beta.
 

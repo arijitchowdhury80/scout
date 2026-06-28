@@ -61,6 +61,10 @@ No public registry publish should happen until these decisions are closed.
 - [x] Secret scan run and recorded.
       Evidence: `docs/security/security-audit-2026-06-28.md`.
       Result: targeted tracked-file pattern scan found zero matches.
+- [x] Entropy-aware secret scan run and recorded.
+      Evidence: `docs/security/security-audit-2026-06-28.md`.
+      Result: `detect-secrets` found 26 candidates across 18 tracked files;
+      candidate review/allowlisting remains required before public launch.
 - [ ] Hosted SSRF checks reviewed.
 - [ ] Hosted artifact authorization and path confinement reviewed.
 - [ ] Terms/privacy placeholders created before public hosted beta.

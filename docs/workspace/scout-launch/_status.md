@@ -63,6 +63,8 @@ readiness work needed to turn Scout from a working tool into a testable product.
   - dependency audit found `lxml 5.4.0` / `PYSEC-2026-87` through Crawl4AI's
     current `lxml~=5.3` constraint,
   - targeted tracked-file secret pattern scan found zero matches,
+  - entropy-aware `detect-secrets` scan found 26 candidates across 18 tracked
+    files that still need audit/allowlisting before public launch,
   - public launch remains blocked until the dependency CVE is resolved or an
     explicit risk decision is made.
 
@@ -73,7 +75,8 @@ readiness work needed to turn Scout from a working tool into a testable product.
 - Decide if/when to publish to PyPI, GHCR, Docker Hub, or another registry.
 - Resolve or explicitly risk-accept the Crawl4AI/lxml dependency CVE before
   public launch.
-- Run entropy-aware secret scan before public launch.
+- Audit or remove/allowlist `detect-secrets` candidate findings before public
+  launch.
 - Verify Stripe test-mode checkout/webhook before hosted beta.
 - Verify hosted key delivery with a non-production test recipient.
 - Build MCP server plan.
