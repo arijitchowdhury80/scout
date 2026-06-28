@@ -108,6 +108,26 @@ The response includes tenant/key IDs, plan, account status, remaining standard
 and browser credits, max pages per run, max concurrent runs, and retention days.
 It does not return the raw API key.
 
+Hosted beta work endpoints currently include:
+
+```bash
+curl http://localhost:8421/v1/hosted/scrape \
+  -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com"}'
+
+curl http://localhost:8421/v1/hosted/crawl \
+  -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","max_pages":5}'
+```
+
+Hosted crawls are metered at one standard credit per returned page. Scout
+preflights the requested `max_pages` against the plan limit and remaining
+standard credits before starting the crawler, then debits the actual returned
+page count after the run completes. This avoids accepting hosted crawls that
+the account cannot afford.
+
 ## Docker
 
 ```bash

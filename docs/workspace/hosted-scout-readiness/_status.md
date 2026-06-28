@@ -52,6 +52,9 @@ Status: In progress
 - [x] Hosted per-key rate-limit tests written.
 - [x] Hosted per-key rate limiter implemented.
 - [x] Hosted per-key rate-limit focused verification passed.
+- [x] Hosted crawl endpoint tests written.
+- [x] Hosted crawl endpoint implemented.
+- [x] Hosted crawl endpoint focused verification passed.
 
 ## Scope
 
@@ -68,10 +71,10 @@ Define and start the production-readiness foundation for hosted Scout:
 This stream now includes SQLite account persistence, a Stripe-compatible payment
 provisioning domain layer, a public Stripe Checkout Session creation route, and
 a signed Stripe webhook route for `checkout.session.completed`. It also includes
-a configurable process-local per-key hosted rate limiter for `/v1/hosted/*`.
-It still does not implement user login, secure Customer Portal, distributed
-throttling, production Postgres, a public dashboard, or a live SMTP/Stripe
-sandbox smoke.
+a configurable process-local per-key hosted rate limiter for `/v1/hosted/*` and
+hosted crawl admission at `/v1/hosted/crawl`. It still does not implement user
+login, secure Customer Portal, distributed throttling, production Postgres, a
+public dashboard, async hosted workers, or a live SMTP/Stripe sandbox smoke.
 
 Hosted beta configuration is now documented in `.env.example`. Local users only
 need `SCOUT_API_KEY`, `SCOUT_WORKDIR`, and optional `LLM_API_KEY`; paid hosted
@@ -236,5 +239,56 @@ Still pending:
 
 - distributed/shared hosted throttling for multi-instance production,
 - global abuse/WAF policy,
-- hosted crawl/products/run endpoints,
+- hosted products/run endpoints,
 - hosted usage dashboard.
+
+# Hosted Crawl Endpoint Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `POST /v1/hosted/crawl`
+- `HostedCrawlResponse`
+- hosted crawl plan-page limit enforcement
+- hosted crawl standard-credit preflight
+- hosted crawl returned-page debit
+
+Behavior:
+
+- hosted crawl requires a Bearer `scout_live_...` key with `runs:create`,
+- unsafe URLs are rejected before crawler execution,
+- requested `max_pages` must be at least 1 and no greater than the hosted plan
+  `max_pages_per_run`,
+- the account must have enough standard credits for requested `max_pages` before
+  the crawl starts,
+- returned crawls charge one standard credit per returned page, capped by the
+  requested `max_pages`,
+- hosted crawl shares the per-key rate limiter and returns `429` without a
+  second debit or crawler call when the key is over limit.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_hosted_crawl.py -q` failed because
+  `/v1/hosted/crawl` returned 404.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_hosted_crawl.py -q` passed: 5 tests.
+- Focused checkpoint:
+  `python3 -m pytest tests/unit/api/test_hosted_crawl.py tests/unit/api/test_hosted_scrape.py -q`
+  passed: 11 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 130 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 487 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 203 files already
+  formatted.
+
+Still pending:
+
+- async hosted crawl jobs,
+- persisted crawl artifact storage for hosted users,
+- hosted products and high-level `run` endpoints,
+- distributed/shared throttling for multi-instance production.

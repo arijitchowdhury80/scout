@@ -729,7 +729,7 @@ Verification:
 Still pending:
 
 - global request rate-limit middleware,
-- hosted crawl/products/run endpoints,
+- hosted products/run endpoints,
 - hosted usage dashboard.
 
 # Hosted Per-Key Rate-Limit Checkpoint
@@ -785,5 +785,59 @@ Still pending:
 
 - distributed/shared throttling for multi-instance hosted production,
 - gateway/WAF abuse policy,
-- hosted crawl/products/run endpoints,
+- hosted products/run endpoints,
 - hosted usage dashboard.
+
+# Hosted Crawl Endpoint Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `POST /v1/hosted/crawl`
+- `HostedCrawlResponse`
+- hosted crawl plan-page limit enforcement
+- hosted crawl standard-credit preflight
+- hosted crawl returned-page debit
+
+Behavior:
+
+- hosted crawl requires a Bearer `scout_live_...` key with `runs:create`,
+- unsafe URLs are rejected before crawler execution,
+- requested `max_pages` must be at least 1 and no greater than the hosted plan
+  `max_pages_per_run`,
+- the account must have enough standard credits for requested `max_pages` before
+  the crawl starts,
+- returned crawls charge one standard credit per returned page, capped by the
+  requested `max_pages`,
+- hosted crawl shares the per-key rate limiter and returns `429` without a
+  second debit or crawler call when the key is over limit.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_hosted_crawl.py -q` failed because
+  `/v1/hosted/crawl` returned 404.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_hosted_crawl.py -q` passed: 5 tests.
+
+Verification:
+
+- Focused checkpoint:
+  `python3 -m pytest tests/unit/api/test_hosted_crawl.py tests/unit/api/test_hosted_scrape.py -q`
+  passed: 11 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 130 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 487 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 203 files already
+  formatted.
+
+Still pending:
+
+- async hosted crawl jobs,
+- persisted crawl artifact storage for hosted users,
+- hosted products and high-level `run` endpoints,
+- distributed/shared throttling for multi-instance production.
