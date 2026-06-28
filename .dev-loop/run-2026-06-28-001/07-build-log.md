@@ -839,5 +839,61 @@ Still pending:
 
 - async hosted crawl jobs,
 - persisted crawl artifact storage for hosted users,
-- hosted products and high-level `run` endpoints,
+- high-level hosted `run` endpoints,
+- distributed/shared throttling for multi-instance production.
+
+# Hosted Products Endpoint Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `POST /v1/hosted/products`
+- `HostedProductsResponse`
+- hosted product target URL safety check
+- hosted product plan limit enforcement
+- hosted product standard-credit preflight
+- hosted product returned-record debit
+
+Behavior:
+
+- hosted products requires a Bearer `scout_live_...` key with `runs:create`,
+- requests must provide `site` or `start_url`,
+- unsafe target URLs are rejected before product extraction,
+- requested `max_products` must be at least 1 and no greater than the hosted
+  plan `max_pages_per_run`,
+- the account must have enough standard credits for requested `max_products`
+  before product extraction starts,
+- returned product runs charge one standard credit per returned product record,
+  capped by requested `max_products`,
+- hosted products shares the per-key rate limiter and returns `429` without a
+  second debit or product crawler call when the key is over limit.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_hosted_products.py -q` failed because
+  `/v1/hosted/products` returned 404.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_hosted_products.py -q` passed: 5 tests.
+
+Verification:
+
+- Focused checkpoint:
+  `python3 -m pytest tests/unit/api/test_hosted_products.py tests/unit/api/test_hosted_crawl.py tests/unit/api/test_hosted_scrape.py -q`
+  passed: 16 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 135 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 492 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 204 files already
+  formatted.
+
+Still pending:
+
+- async hosted product jobs,
+- persisted product artifacts for hosted users,
+- high-level hosted `run` endpoints,
 - distributed/shared throttling for multi-instance production.

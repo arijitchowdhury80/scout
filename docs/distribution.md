@@ -120,6 +120,11 @@ curl http://localhost:8421/v1/hosted/crawl \
   -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","max_pages":5}'
+
+curl http://localhost:8421/v1/hosted/products \
+  -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"start_url":"https://shop.example.com/products","max_products":10}'
 ```
 
 Hosted crawls are metered at one standard credit per returned page. Scout
@@ -127,6 +132,13 @@ preflights the requested `max_pages` against the plan limit and remaining
 standard credits before starting the crawler, then debits the actual returned
 page count after the run completes. This avoids accepting hosted crawls that
 the account cannot afford.
+
+Hosted product extraction is metered at one standard credit per returned product
+record. Scout preflights the requested `max_products` against the plan limit and
+remaining standard credits before starting product discovery, then debits the
+actual returned product count after completion. The hosted products endpoint is
+currently synchronous; async hosted product jobs and artifact object storage are
+future production work.
 
 ## Docker
 

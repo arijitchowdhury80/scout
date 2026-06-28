@@ -16,7 +16,14 @@ from scout.core.platform.hosted import (
 )
 from scout.core.platform.hosted_rate_limit import HostedRateLimiter
 from scout.core.platform.url_safety import validate_hosted_url
-from scout.core.types import CrawlRequest, CrawlResponse, ScrapeRequest, ScrapeResponse
+from scout.core.types import (
+    CrawlRequest,
+    CrawlResponse,
+    ProductCrawlRequest,
+    ProductCrawlResponse,
+    ScrapeRequest,
+    ScrapeResponse,
+)
 
 router = APIRouter(prefix="/v1/hosted", tags=["hosted"])
 
@@ -44,6 +51,14 @@ class HostedCrawlResponse(BaseModel):
     success: bool
     hosted: HostedUsageSummary
     crawl: CrawlResponse
+
+
+class HostedProductsResponse(BaseModel):
+    """Hosted product crawl response with hosted usage metadata."""
+
+    success: bool
+    hosted: HostedUsageSummary
+    products: ProductCrawlResponse
 
 
 class HostedAccountSummaryResponse(BaseModel):
@@ -140,7 +155,7 @@ async def hosted_crawl(
         raise HTTPException(status_code=403, detail="Hosted account is not active.")
     limits = plan_limits(tenant.plan)
     _enforce_crawl_page_limit(req.max_pages, limits)
-    _enforce_crawl_credit_preflight(account_service, auth.tenant_id, req.max_pages)
+    _enforce_standard_credit_preflight(account_service, auth.tenant_id, req.max_pages)
     _enforce_rate_limit(rate_limiter, auth.key_id)
 
     crawl_response = await crawler.crawl(req)
@@ -155,6 +170,46 @@ async def hosted_crawl(
             credit_type=HostedAction.CRAWL_PAGE.credit_type,
         ),
         crawl=crawl_response,
+    )
+
+
+@router.post("/products", response_model=HostedProductsResponse)
+async def hosted_products(
+    req: ProductCrawlRequest,
+    authorization: str = Header(default=""),
+    crawler: ScoutCrawler = Depends(get_crawler),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+) -> HostedProductsResponse:
+    """Run hosted product extraction after auth, URL safety, rate, and credit checks."""
+    raw_key = _bearer_token(authorization)
+    auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
+    if not auth.allowed:
+        raise HTTPException(status_code=403, detail=auth.reason)
+    target_url = _hosted_product_target_url(req)
+    url_safety = validate_hosted_url(target_url)
+    if not url_safety.allowed:
+        raise HTTPException(status_code=403, detail=url_safety.reason)
+    tenant = account_service.get_tenant(auth.tenant_id)
+    if tenant is None:
+        raise HTTPException(status_code=403, detail="Hosted account is not active.")
+    limits = plan_limits(tenant.plan)
+    _enforce_product_limit(req.max_products, limits)
+    _enforce_standard_credit_preflight(account_service, auth.tenant_id, req.max_products)
+    _enforce_rate_limit(rate_limiter, auth.key_id)
+
+    products_response = await crawler.products(req)
+    records_charged = _hosted_product_records_charged(products_response, req.max_products)
+    _debit_standard_credits(account_service, auth.tenant_id, records_charged)
+    return HostedProductsResponse(
+        success=products_response.success,
+        hosted=HostedUsageSummary(
+            tenant_id=auth.tenant_id,
+            key_id=auth.key_id,
+            credits_charged=records_charged,
+            credit_type=HostedAction.CRAWL_PAGE.credit_type,
+        ),
+        products=products_response,
     )
 
 
@@ -192,18 +247,18 @@ def _enforce_crawl_page_limit(max_pages: int, limits: HostedPlanLimits) -> None:
         )
 
 
-def _enforce_crawl_credit_preflight(
+def _enforce_standard_credit_preflight(
     account_service: HostedAccountService,
     tenant_id: str,
-    max_pages: int,
+    needed_credits: int,
 ) -> None:
-    """Require enough standard credits for the requested hosted crawl size."""
+    """Require enough standard credits before accepting hosted work."""
     balance = account_service.get_balance(tenant_id)
     remaining = balance.standard_credits_remaining
-    if remaining < max_pages:
+    if remaining < needed_credits:
         raise HTTPException(
             status_code=403,
-            detail=f"Insufficient standard credits: need {max_pages}, have {remaining}.",
+            detail=f"Insufficient standard credits: need {needed_credits}, have {remaining}.",
         )
 
 
@@ -211,6 +266,39 @@ def _hosted_crawl_pages_charged(response: CrawlResponse, requested_max_pages: in
     """Return page-credit charge for a crawl response, capped by requested max_pages."""
     observed_pages = max(response.total_pages, len(response.pages))
     return min(observed_pages, requested_max_pages)
+
+
+def _hosted_product_target_url(req: ProductCrawlRequest) -> str:
+    """Return the URL used for hosted product URL safety checks."""
+    target = req.start_url or req.site
+    if not target:
+        raise HTTPException(status_code=403, detail="Hosted products require site or start_url.")
+    if target.startswith(("http://", "https://")):
+        return target
+    return f"https://{target}"
+
+
+def _enforce_product_limit(max_products: int, limits: HostedPlanLimits) -> None:
+    """Reject hosted product crawls that exceed plan limits."""
+    if max_products < 1:
+        raise HTTPException(
+            status_code=403,
+            detail="Hosted product requests require at least 1 product.",
+        )
+    if max_products > limits.max_pages_per_run:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Plan allows at most {limits.max_pages_per_run} products per request.",
+        )
+
+
+def _hosted_product_records_charged(
+    response: ProductCrawlResponse,
+    requested_max_products: int,
+) -> int:
+    """Return product-credit charge, capped by requested max_products."""
+    observed_records = max(response.total_records, len(response.records))
+    return min(observed_records, requested_max_products)
 
 
 def _debit_standard_credits(

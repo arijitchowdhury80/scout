@@ -242,6 +242,7 @@ Before paid hosted beta:
 - [x] persisted API key lifecycle,
 - [x] finite plan credits and hosted scrape debit for `/v1/hosted/scrape`,
 - [x] finite plan credits and hosted page debit for `/v1/hosted/crawl`,
+- [x] finite plan credits and hosted product-record debit for `/v1/hosted/products`,
 - [x] hosted account/plan/balance inspection endpoint at `/v1/hosted/me`,
 - [x] process-local per-key hosted rate limit for `/v1/hosted/*`,
 - [ ] distributed/global request rate-limit middleware,
@@ -264,14 +265,17 @@ Current implementation checkpoint:
 - `/v1/hosted/crawl` accepts hosted Bearer keys, enforces plan `max_pages`,
   preflights available standard credits, and charges one standard credit per
   returned page.
+- `/v1/hosted/products` accepts hosted Bearer keys, enforces plan
+  `max_products`, preflights available standard credits, and charges one
+  standard credit per returned product record.
 - `/v1/hosted/me` returns non-secret plan limits and remaining hosted credits.
 - `/v1/hosted/*` applies a configurable in-memory per-key rate limit and returns
   `429` with `Retry-After` before spending credits when the limit is exceeded.
 - SQLite hosted account persistence is available for local/dev hosted beta
   testing.
 - Public signup, Stripe, dashboard key management, production Postgres
-  persistence, distributed throttling, async hosted runs, hosted product/run
-  endpoints, and object storage remain pending.
+  persistence, distributed throttling, async hosted runs, high-level hosted
+  `run` endpoints, and object storage remain pending.
 
 Before local public beta:
 
