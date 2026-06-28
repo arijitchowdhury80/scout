@@ -1,4 +1,4 @@
-"""Product catalog crawl mode — prepares Algolia-ready product records."""
+"""Product catalog crawl mode — prepares downstream-ready product records."""
 
 from __future__ import annotations
 

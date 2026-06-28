@@ -1058,3 +1058,51 @@ Still pending:
 - hosted artifact dashboard UI,
 - object storage and signed artifact URLs for multi-instance hosting,
 - production user/account model beyond hosted API keys.
+
+## Product Export Generalization Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `ProductExportFormat.GOOGLE_SHEETS`
+- Google Sheets import bundle writer:
+  - `products.google-sheets.csv`
+  - `products.google-sheets-import.md`
+- SQLite table-name validation before SQL interpolation
+- CLI help/docs for `scout product-export --format google_sheets`
+- launch docs clarifying Algolia is one adapter, not the core product model
+
+Behavior:
+
+- product records can export to JSON, JSONL, CSV, SQLite, and Google Sheets
+  import bundles,
+- direct Google Sheets API push remains intentionally out of scope until there
+  is an explicit credential and security model,
+- unsafe SQLite table names fail before reaching SQLite.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/core/products/test_exports.py -q` failed
+  because `ProductExportFormat.GOOGLE_SHEETS` did not exist and unsafe SQLite
+  table names reached SQLite.
+- GREEN:
+  `python3 -m pytest tests/unit/core/products/test_exports.py -q` passed:
+  8 tests.
+
+Verification:
+
+- Focused checkpoint:
+  `python3 -m pytest tests/unit/core/products/test_exports.py tests/unit/cli/test_run_commands.py -q -k "product_export or export_product_records"`
+  passed: 12 tests.
+- Product exporter checkpoint:
+  `python3 -m pytest tests/unit/core/products -q` passed: 52 tests.
+- CLI checkpoint:
+  `python3 -m pytest tests/unit/cli/test_run_commands.py -q` passed: 16 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 504 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 206 files already
+  formatted.

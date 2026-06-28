@@ -437,12 +437,12 @@ def product_export(
     format: list[ProductExportFormat] | None = typer.Option(  # noqa: A002
         None,
         "--format",
-        help="Export format. Repeat for multiple: json, jsonl, csv, sqlite",
+        help="Export format. Repeat for multiple: json, jsonl, csv, sqlite, google_sheets",
     ),
     basename: str = typer.Option("products", "--basename", help="Export file basename"),
     sqlite_table: str = typer.Option("products", "--sqlite-table", help="SQLite table name"),
 ) -> None:
-    """Export product records to local JSON, JSONL, CSV, or SQLite artifacts."""
+    """Export product records to JSON, JSONL, CSV, SQLite, or Google Sheets import files."""
     path = Path(records_file).expanduser()
     if not path.exists():
         typer.echo(f"Product records file does not exist: {path}", err=True)

@@ -195,7 +195,7 @@ Product extraction
        - JSON/JSONL
        - CSV
        - SQLite
-       - Google Sheets
+       - Google Sheets import bundle
        - webhook
 ```
 
@@ -207,10 +207,17 @@ Implementation status:
 - Local JSONL export: implemented.
 - Local CSV export: implemented.
 - Local SQLite export: implemented.
+- Google Sheets import bundle: implemented as an import-ready CSV plus import
+  guide.
 - CLI export command: implemented as `scout product-export`.
+- SQLite export table names are validated before SQL interpolation.
 - Algolia adapter: existing preview/push path.
-- Google Sheets adapter: deferred; requires credential and OAuth/service-account
-  design.
+
+Still pending:
+
+- Direct Google Sheets API push, which requires user OAuth/service-account
+  credentials and a separate security review.
+- Webhook export adapter.
 - Hosted export jobs: deferred; requires tenant, storage, and quota model.
 
 Recommended generic product schema fields:
@@ -270,6 +277,10 @@ Current implementation checkpoint:
 - `/v1/hosted/products` accepts hosted Bearer keys, enforces plan
   `max_products`, preflights available standard credits, and charges one
   standard credit per returned product record.
+- Product records now have generalized local export adapters for JSON, JSONL,
+  CSV, SQLite, and Google Sheets import bundles. Direct Google Sheets API push
+  remains future work because it requires explicit user credentials and a
+  separate security review.
 - `/v1/hosted/run/{use_case}` accepts hosted Bearer keys, ignores caller
   `output_dir`, writes under server `SCOUT_WORKDIR`, preflights
   `max_records`, and charges one standard credit per returned record.

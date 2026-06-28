@@ -761,8 +761,8 @@ def scout_app_html() -> str:
           label: "Product/category URL",
           placeholder: "https://www.example.com",
           example: "Example: https://www.example.com",
-          help: "Extract product/category data and prepare Algolia-ready product records.",
-          outputs: "Outputs: product records, listing/detail sources, blocked detail pages, Algolia prep."
+          help: "Extract product/category data and prepare downstream-ready product records.",
+          outputs: "Outputs: product records, listing/detail sources, blocked detail pages, exports, Algolia prep."
         },
         prism: {
           label: "Company name, domain, or PRISM target URL",

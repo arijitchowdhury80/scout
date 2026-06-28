@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import json
 import logging
+import re
 import sqlite3
 from enum import Enum
 from pathlib import Path
@@ -37,6 +38,7 @@ class ProductExportFormat(str, Enum):
     JSONL = "jsonl"
     CSV = "csv"
     SQLITE = "sqlite"
+    GOOGLE_SHEETS = "google_sheets"
 
 
 class ProductExportRequest(BaseModel):
@@ -62,6 +64,9 @@ def export_product_records(request: ProductExportRequest) -> ProductExportResult
         request.output_dir.mkdir(parents=True, exist_ok=True)
         files: dict[str, Path] = {}
         for export_format in request.formats:
+            if export_format is ProductExportFormat.GOOGLE_SHEETS:
+                files.update(_write_google_sheets(request))
+                continue
             files[export_format.value] = _write_format(request, export_format)
         logger.info(
             "export_product_records | complete | records=%d | formats=%s",
@@ -117,10 +122,36 @@ def _write_csv(request: ProductExportRequest) -> Path:
 def _write_sqlite(request: ProductExportRequest) -> Path:
     """Write records into a SQLite table."""
     path = request.output_dir / f"{request.basename}.sqlite"
+    table_name = _safe_sqlite_identifier(request.sqlite_table)
     with sqlite3.connect(path) as conn:
-        conn.execute(_sqlite_schema(request.sqlite_table))
-        conn.executemany(_sqlite_insert(request.sqlite_table), _csv_rows(request))
+        conn.execute(_sqlite_schema(table_name))
+        conn.executemany(_sqlite_insert(table_name), _csv_rows(request))
     return path
+
+
+def _write_google_sheets(request: ProductExportRequest) -> dict[str, Path]:
+    """Write a Google Sheets import-ready CSV plus a short import guide."""
+    csv_path = request.output_dir / f"{request.basename}.google-sheets.csv"
+    guide_path = request.output_dir / f"{request.basename}.google-sheets-import.md"
+    with csv_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=_CSV_FIELDS)
+        writer.writeheader()
+        writer.writerows(_csv_rows(request))
+    guide_path.write_text(
+        "\n".join(
+            [
+                "# Google Sheets Import",
+                "",
+                f"Import `{csv_path.name}` into Google Sheets using File > Import > Upload.",
+                "",
+                "Scout writes JSON-like fields such as `categories` and `citations` as text",
+                "so source provenance survives spreadsheet review.",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    return {"google_sheets_csv": csv_path, "google_sheets_instructions": guide_path}
 
 
 def _record_dicts(request: ProductExportRequest) -> list[dict[str, object]]:
@@ -177,3 +208,13 @@ def _sqlite_insert(table_name: str) -> str:
     fields = ", ".join(_CSV_FIELDS)
     placeholders = ", ".join(f":{field}" for field in _CSV_FIELDS)
     return f"insert or replace into {table_name} ({fields}) values ({placeholders})"
+
+
+def _safe_sqlite_identifier(value: str) -> str:
+    """Validate a SQLite identifier before string interpolation."""
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", value):
+        raise ValueError(
+            "SQLite table name must start with a letter or underscore and contain only "
+            "letters, numbers, and underscores."
+        )
+    return value

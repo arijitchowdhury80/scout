@@ -14,7 +14,7 @@ def product_records_from_captured_html(
     links: list[str] | None = None,
     limit: int = 25,
 ) -> list[dict]:
-    """Return Algolia-ready product records from held listing-page HTML."""
+    """Return downstream-ready product records from held listing-page HTML."""
     cards = extract_listing_cards(
         category_url=source_url,
         category_name=category_name,

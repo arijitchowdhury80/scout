@@ -80,6 +80,34 @@ def test_product_export_command_writes_requested_formats() -> None:
         assert Path("exports/products.sqlite").exists()
 
 
+def test_product_export_command_writes_google_sheets_import_bundle() -> None:
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        records_path = Path("records.json")
+        records_path.write_text(json.dumps([_product_record_payload()]), encoding="utf-8")
+
+        result = runner.invoke(
+            app,
+            [
+                "product-export",
+                str(records_path),
+                "--output-dir",
+                "exports",
+                "--format",
+                "google_sheets",
+            ],
+        )
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["files"]["google_sheets_csv"] == "exports/products.google-sheets.csv"
+        assert data["files"]["google_sheets_instructions"] == (
+            "exports/products.google-sheets-import.md"
+        )
+        assert Path("exports/products.google-sheets.csv").exists()
+        assert Path("exports/products.google-sheets-import.md").exists()
+
+
 def test_product_export_command_accepts_records_envelope() -> None:
     runner = CliRunner()
     with runner.isolated_filesystem():

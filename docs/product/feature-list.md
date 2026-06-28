@@ -9,9 +9,10 @@ Scout is a self-hosted web acquisition and intelligence engine. It turns public
 web pages, browser sessions, and captured HTML into clean markdown, screenshots,
 links, typed records, source evidence, artifacts, and downstream-ready data.
 
-Scout is not positioned as "one more crawler." Its strongest value is owned
-acquisition: the workflow, browser handoff, evidence model, artifacts, and
-record production stay under the user's control.
+Scout is not positioned as "one more crawler." Its strongest value is
+evidence-grade acquisition: the workflow, browser handoff, evidence model,
+artifacts, typed records, citations, validation, and export paths stay under the
+user's control.
 
 ## Core Acquisition
 
@@ -40,7 +41,15 @@ record production stay under the user's control.
 - Product/category URL discovery.
 - Listing-card extraction.
 - JSON-LD product extraction.
-- Algolia-ready product records.
+- downstream-ready product records.
+- Local product exports:
+  - JSON,
+  - JSONL,
+  - CSV,
+  - SQLite,
+  - Google Sheets import bundle.
+- Algolia preparation/push remains one supported destination, not the only
+  product data path.
 - Product artifact folder:
   - discovered URLs,
   - raw products,
@@ -96,8 +105,9 @@ deep research agents.
 - Docker deployment files.
 - API key authentication.
 
-## Algolia Integration
+## Product Export And Algolia Integration
 
+- Product export to JSON, JSONL, CSV, SQLite, and Google Sheets import files.
 - Algolia record readiness preview.
 - Required-field validation.
 - Sample objectID preview.
@@ -120,6 +130,7 @@ Stronger today:
 - scrape, crawl, map, screenshot,
 - captured HTML structuring,
 - product extraction on friendly ecommerce sites,
+- local product exports,
 - Algolia preview/push,
 - artifact generation,
 - local API/UI operation.

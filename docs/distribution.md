@@ -227,6 +227,24 @@ scout run company --query Adobe --workdir ./scout-runs
 scout products "top products" --site lacoste.com --workdir ./scout-runs
 ```
 
+Product records are not Algolia-only. After a product run writes
+`records.json`, export the same records to local and spreadsheet-friendly
+formats:
+
+```bash
+scout product-export ./scout-runs/products/records.json \
+  --output-dir ./scout-runs/products/exports \
+  --format jsonl \
+  --format csv \
+  --format sqlite \
+  --format google_sheets
+```
+
+`google_sheets` writes `products.google-sheets.csv` plus a short import guide
+for Google Sheets. Direct Google Sheets API push is intentionally not enabled
+by default because it requires user OAuth/service-account credentials and a
+separate security review.
+
 HTTP, Docker, scheduled jobs, and skill calls do not prompt. Configure
 `SCOUT_WORKDIR` or send `output_dir` in the request body.
 

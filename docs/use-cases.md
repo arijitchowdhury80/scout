@@ -94,7 +94,8 @@ Ashby, and Workday.
 ## Product Catalogs
 
 Goal: crawl product/category pages, extract product attributes, and prepare
-records that can power Algolia indexing, search, and PDP experiences.
+records that can power search indexes, local databases, spreadsheets, and PDP
+experiences.
 
 ```bash
 scout products "top products" \
@@ -114,6 +115,17 @@ Records:
 
 - product records with stable `objectID`, URL, name, brand, image, price,
   categories, variants, rating/review fields, and provenance when available.
+- exports can be generated for JSON, JSONL, CSV, SQLite, Google Sheets import,
+  and Algolia preparation:
+
+```bash
+scout product-export ./scout-runs/lacoste-products/records.json \
+  --output-dir ./scout-runs/lacoste-products/exports \
+  --format jsonl \
+  --format csv \
+  --format sqlite \
+  --format google_sheets
+```
 
 Test targets: L.L.Bean, Patagonia, Home Depot, Estée Lauder, and Nike.
 

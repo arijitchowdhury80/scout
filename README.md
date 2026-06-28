@@ -424,9 +424,12 @@ Attach Crawl4AI to an already-open Chrome tab over the Chrome DevTools Protocol 
 
 #### `POST /products` — Product Catalog Extraction
 
-Discover product pages on an ecommerce site and return normalized Algolia-ready records with stable `objectID`s.
+Discover product pages on an ecommerce site and return normalized product records with stable `objectID`s.
 
-**Use case:** Build searchable product catalogs from any ecommerce site. Records include name, brand, price, images, categories, variants, and completeness scores. Output is ready for Algolia indexing.
+**Use case:** Build searchable and reusable product catalogs from ecommerce
+sites. Records include name, brand, price, images, categories, variants,
+citations, and completeness scores. Output can be exported to JSONL, CSV,
+SQLite, Google Sheets import files, and Algolia preparation/push workflows.
 
 **Request:**
 ```json
@@ -736,6 +739,7 @@ scout scrape https://example.com/about
 scout map https://example.com --pages 200
 scout crawl https://example.com/docs --depth 2 --pages 50
 scout products "men shirts" --site example.com --output-dir ./scout-runs/shirts
+scout product-export ./scout-runs/shirts/records.json --output-dir ./scout-runs/shirts/exports --format jsonl --format csv --format sqlite --format google_sheets
 scout screenshot https://example.com --output screenshot.png
 scout run company --query stripe.com --mode auto
 scout run prism --query "Nike" --mode auto --output-dir ./scout-runs/nike

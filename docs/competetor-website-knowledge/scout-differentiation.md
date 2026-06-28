@@ -121,8 +121,10 @@ markdown crawler.
 
 Before broad public launch, Scout must prove:
 
-- product records are useful without Algolia-specific assumptions;
+- product records are useful without Algolia-specific assumptions; local export
+  adapters now cover JSON, JSONL, CSV, SQLite, and Google Sheets import bundles;
 - intelligence modules produce meaningful records, not only non-empty responses;
 - live/hard-site failures are inspectable;
 - CLI and hosted API contracts match docs;
-- exports are generalized beyond Algolia.
+- direct Google Sheets API push, if added, has an explicit credential and
+  security model.

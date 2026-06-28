@@ -6,6 +6,8 @@
 # - CSV export flattens common product fields and preserves citations/source as JSON
 # - SQLite export creates a table and inserts product rows
 # - empty record lists still create valid artifacts
+# - Google Sheets export writes an import-ready CSV plus instructions
+# - SQLite export rejects unsafe table names before building SQL
 # - Pydantic contract rejects unsupported export formats
 """
 
@@ -121,6 +123,36 @@ def test_export_product_records_sqlite_creates_table_and_rows(tmp_path) -> None:
     )
 
 
+def test_export_product_records_google_sheets_writes_import_ready_files(tmp_path) -> None:
+    request = ProductExportRequest(
+        records=[_record()],
+        output_dir=tmp_path,
+        formats=[ProductExportFormat.GOOGLE_SHEETS],
+    )
+
+    result = export_product_records(request)
+
+    csv_path = result.files["google_sheets_csv"]
+    guide_path = result.files["google_sheets_instructions"]
+    rows = list(csv.DictReader(csv_path.open(encoding="utf-8")))
+    assert csv_path.name == "products.google-sheets.csv"
+    assert rows[0]["name"] == "Advanced Night Repair Serum"
+    assert rows[0]["source_url"] == "https://shop.example.com/skin-care"
+    assert "Google Sheets" in guide_path.read_text(encoding="utf-8")
+
+
+def test_export_product_records_sqlite_rejects_unsafe_table_name(tmp_path) -> None:
+    request = ProductExportRequest(
+        records=[_record()],
+        output_dir=tmp_path,
+        formats=[ProductExportFormat.SQLITE],
+        sqlite_table="products; drop table products",
+    )
+
+    with pytest.raises(ValueError, match="SQLite table name"):
+        export_product_records(request)
+
+
 def test_export_product_records_empty_records_writes_empty_artifacts(tmp_path) -> None:
     request = ProductExportRequest(
         records=[],
@@ -140,5 +172,5 @@ def test_product_export_request_rejects_unsupported_format(tmp_path) -> None:
         ProductExportRequest(
             records=[],
             output_dir=tmp_path,
-            formats=["google_sheets"],
+            formats=["xlsx"],
         )

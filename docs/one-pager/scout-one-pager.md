@@ -10,7 +10,7 @@ It runs entirely on your machine (one Python service + a browser engine). No Api
 
 ## What it does
 
-- **Product catalog extraction** — point Scout at a retailer's category page and get back **Algolia-ready product records** (objectID, name, brand, price, images, category hierarchy) as JSON, ready to index for a demo. *Live today.*
+- **Product catalog extraction** — point Scout at a retailer's category page and get back **downstream-ready product records** (objectID, name, brand, price, images, category hierarchy, citations) as JSON/JSONL, CSV, SQLite, Google Sheets import files, or Algolia-ready records for demos. *Live today.*
 - **Company intelligence** — company profile, leadership, social presence, careers and ATS signals, investor relations assets, recent news. *Rolling out — UI and contracts are in place; live extraction is being built use case by use case.*
 - **Hard-site handling** — when a WAF blocks the crawler (Estée Lauder, Nike-class sites), Scout says so honestly, preserves the blocked-page evidence, and offers a one-click escalation: it drives **your real Chrome browser**, captures what you see, and extracts records from that.
 - **Evidence on everything** — every record carries source URLs, timestamps, and confidence scores. No naked numbers in front of a prospect.
