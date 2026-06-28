@@ -68,6 +68,13 @@ async def launch_site_beta() -> FileResponse:
     return _launch_site_page("beta.html")
 
 
+@router.get("/legal")
+@router.get("/legal.html")
+async def launch_site_legal() -> FileResponse:
+    """Serve the Scout legal and third-party notices page."""
+    return _launch_site_page("legal.html")
+
+
 def _launch_site_page(page_file: str) -> FileResponse:
     """Return a known launch-site HTML file."""
     return FileResponse(_WEBSITE_DIR / page_file, media_type="text/html")

@@ -30,6 +30,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/docs/oauth2-redirect",
             "/favicon.ico",
             "/health",
+            "/legal",
+            "/legal.html",
             "/openapi.json",
             "/pricing",
             "/pricing.html",

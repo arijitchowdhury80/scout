@@ -75,10 +75,11 @@ Set `SCOUT_API_KEY` in `.env.local` before exposing Scout beyond local developme
 
 ## Attribution
 
-Scout includes software developed by UncleCode for Crawl4AI:
+Scout includes software developed by UncleCode as part of the Crawl4AI project:
 
-> This product includes software developed by UncleCode for Crawl4AI
-> (https://github.com/unclecode/crawl4ai).
+> This product includes software developed by UncleCode (https://x.com/unclecode) as part of the Crawl4AI project.
+
+Project URL: https://github.com/unclecode/crawl4ai
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) before distributing Scout.
 
@@ -845,4 +846,6 @@ See [docs/architecture.md](docs/architecture.md) for the full architecture docum
 
 ## Attribution
 
-This product includes software developed by UncleCode as part of the [Crawl4AI](https://github.com/unclecode/crawl4ai) project, licensed under the Apache License 2.0.
+This product includes software developed by UncleCode
+(https://x.com/unclecode) as part of the Crawl4AI project.
+Crawl4AI is licensed under the Apache License 2.0.

@@ -25,6 +25,8 @@ Public website paths served by `scout serve`:
 - `/quickstart` - local install, Docker, workdir, and first-run guidance.
 - `/pricing` - local-free and hosted-metered pricing posture.
 - `/beta` - local-vs-hosted beta path and hosted checkout form.
+- `/legal` - third-party notices, attribution, legal-readiness boundaries, and
+  beta use cautions.
 - `/docs` - FastAPI/Swagger API docs, intentionally preserved for developers.
 
 Hosted beta checkout:
@@ -39,7 +41,7 @@ Next website tasks:
 
 - [x] Replace static hosted-beta CTA with checkout-session form.
 - [x] Add quickstart, pricing, and private beta onboarding pages.
+- [x] Add legal/third-party notices website page.
 - [ ] Add a short product demo GIF/video.
 - [ ] Add a separate docs-site if/when Swagger `/docs` is not enough.
-- [ ] Add legal/third-party notices link.
 - [x] Validate responsive layout in browser.

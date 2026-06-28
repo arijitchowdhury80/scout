@@ -5,9 +5,12 @@ Status: Draft for private beta planning
 
 ## Crawl4AI And Open-Source Compliance
 
-- [ ] Keep Crawl4AI attribution in README, website, app Settings/About, and
-  packaged distributions.
-- [ ] Include `THIRD_PARTY_NOTICES.md` in source and package artifacts.
+- [x] Keep Crawl4AI attribution in README and website.
+- [ ] Keep Crawl4AI attribution in app Settings/About if the app UI becomes a
+  launch surface.
+- [x] Include `THIRD_PARTY_NOTICES.md` in source.
+- [ ] Confirm `THIRD_PARTY_NOTICES.md` is included in all final package
+  artifacts before public publishing.
 - [ ] Generate a dependency license inventory before public launch.
 - [ ] Pin and audit dependency versions before release.
 - [ ] Review whether Scout will be released as open source, source-available,
@@ -38,4 +41,5 @@ Status: Draft for private beta planning
 - [ ] Add "Beta" status language to website and README.
 - [ ] Add known limitations for hard sites and bot walls.
 - [ ] Add supported/unsupported use cases.
-- [ ] Add "not legal advice" note where acquisition workflows are discussed.
+- [x] Add "not legal advice" note where acquisition workflows are discussed on
+  the website legal page.

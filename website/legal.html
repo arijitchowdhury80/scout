@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scout Legal And Third-Party Notices</title>
+    <meta
+      name="description"
+      content="Scout legal readiness, third-party notices, Crawl4AI attribution, and beta use boundaries."
+    />
+    <link
+      rel="icon"
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%2318181b"/><text x="32" y="42" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" font-weight="900" fill="%23ebebe8">S</text></svg>'
+    />
+    <link rel="stylesheet" href="./assets/warm-industrial-design-system/warm-industrial.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="wi">
+    <div class="wi-grid-bg" aria-hidden="true"><div class="wi-grid-bg__inner"></div></div>
+    <div class="wi-noise" aria-hidden="true"></div>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Scout home">
+          <span class="brand-mark">S</span>
+          <span><strong>Scout</strong><small>Evidence-grade acquisition</small></span>
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="/quickstart">Quickstart</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/beta">Private beta</a>
+          <a href="/legal">Legal</a>
+          <a href="/docs">API docs</a>
+        </nav>
+        <a class="wi-pill nav-cta" href="/beta">Join beta</a>
+      </header>
+
+      <main>
+        <section class="page-hero">
+          <p class="wi-label wi-label--accent">Scout Legal And Third-Party Notices</p>
+          <h1>Use Scout with attribution, consent, and clear limits.</h1>
+          <p>
+            This is not legal advice. It is the current beta-readiness posture
+            for Scout users, testers, and distributors.
+          </p>
+        </section>
+
+        <section class="section launch-status" aria-labelledby="notices-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Third-party notices</p>
+            <h2 id="notices-title">Scout uses open-source acquisition software.</h2>
+          </div>
+          <div class="status-grid">
+            <article>
+              <span class="status-tag status-tag--primary">Attribution</span>
+              <h3>Crawl4AI</h3>
+              <p>
+                This product includes software developed by UncleCode
+                (https://x.com/unclecode) as part of the Crawl4AI project.
+                Crawl4AI is distributed under the Apache License, Version 2.0.
+              </p>
+              <p>
+                Scout should not imply endorsement by Crawl4AI, UncleCode, or
+                any third-party dependency maintainer.
+              </p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--limited">Dependency notices</span>
+              <h3>More notices before public packaging</h3>
+              <p>
+                The source repository includes `THIRD_PARTY_NOTICES.md`.
+                Public/commercial packaging still needs a generated dependency
+                license inventory for shipped versions.
+              </p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--blocker">License decision</span>
+              <h3>Scout license is not final</h3>
+              <p>
+                Scout's own release license and package visibility must be
+                decided before public registry publishing or broad commercial
+                distribution.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section two-col" aria-labelledby="usage-title">
+          <div>
+            <p class="wi-label wi-label--accent">Responsible acquisition</p>
+            <h2 id="usage-title">Scout does not grant permission to access websites.</h2>
+          </div>
+          <div class="body-copy">
+            <p>
+              Users are responsible for lawful use, site terms, robots and rate
+              limits, permissions, account boundaries, copyright, personal data,
+              and any regulated information they collect or process.
+            </p>
+            <p>
+              Avoid using Scout for restricted account pages, login-walled data,
+              personal-data enrichment, credentialed third-party content, or
+              sites where you do not have permission to capture and store
+              evidence.
+            </p>
+          </div>
+        </section>
+
+        <section class="section launch-status" aria-labelledby="launch-legal-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Launch boundary</p>
+            <h2 id="launch-legal-title">Public launch remains blocked until the security gate closes.</h2>
+          </div>
+          <div class="status-grid">
+            <article>
+              <span class="status-tag status-tag--blocker">Security gate</span>
+              <h3>Dependency audit blocker</h3>
+              <p>
+                Crawl4AI currently resolves lxml 5.4.0 in Scout's tested
+                dependency tree. Public launch remains blocked until that audit
+                is clean or a formal exception is approved.
+              </p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--limited">Hosted beta</span>
+              <h3>Limited access only</h3>
+              <p>
+                Hosted beta access is capped, metered, and for approved testers.
+                It is not a public production SaaS promise.
+              </p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--primary">Local first</span>
+              <h3>Safer beta path</h3>
+              <p>
+                Local Scout keeps artifacts on your machine and makes it easier
+                to reason about workdir, credentials, screenshots, and browser
+                evidence.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="wi-dark site-footer">
+        <div>
+          <p class="wi-label">Scout</p>
+          <h2>Evidence before extraction claims.</h2>
+        </div>
+        <div class="footer-links">
+          <a href="/quickstart">Quickstart</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/beta">Private beta</a>
+          <a href="https://github.com/arijitchowdhury80/scout/blob/codex/scout-platform-foundation/THIRD_PARTY_NOTICES.md">Third-party notices</a>
+          <a href="https://github.com/unclecode/crawl4ai">Crawl4AI</a>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -223,3 +223,33 @@ Verification:
     - `validation-output/website-scout-launch/pricing-beta-onboarding-routes.png`
     - `validation-output/website-scout-launch/beta-beta-onboarding-routes.png`
     - `validation-output/website-scout-launch/api-docs-preserved-routes.png`
+
+## 2026-06-28 Legal And Third-Party Notices Checkpoint
+
+The website now has a public `/legal` and `/legal.html` page for beta users and
+distributors. It covers:
+
+- Crawl4AI attribution.
+- Apache License, Version 2.0 notice for Crawl4AI.
+- Not-legal-advice warning.
+- Responsible acquisition and user permission boundaries.
+- Scout license not final.
+- Public launch still blocked by the unresolved dependency audit gate.
+
+Decision: this is a readiness/notice page, not final legal terms or a privacy
+policy. Terms/privacy placeholders remain open in the release checklist until
+the hosted beta policy is approved.
+
+Verification:
+
+- `python3 -m pytest tests/unit/website/test_launch_website.py -q`
+  - Result: `8 passed, 2 warnings`.
+- Live `scout serve` browser smoke:
+  `python3 -m scout.cli serve --host 127.0.0.1 --port 8786`
+  - route checked: `/legal`
+  - viewports checked: desktop `1440x1000`, mobile `390x844`
+  - legal page rendered required notices and attribution
+  - console errors/warnings: 0
+  - screenshots:
+    - `validation-output/website-scout-launch/legal-notices-desktop.png`
+    - `validation-output/website-scout-launch/legal-notices-mobile.png`

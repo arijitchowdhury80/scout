@@ -11,6 +11,7 @@ from scout.api.main import app
 
 _WEBSITE_INDEX = Path(__file__).resolve().parents[3] / "website" / "index.html"
 _WEBSITE_DIR = _WEBSITE_INDEX.parent
+_REPO_ROOT = _WEBSITE_DIR.parent
 
 
 def test_launch_website_exposes_hosted_beta_checkout_form_without_secrets() -> None:
@@ -105,6 +106,15 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "/v1/billing/stripe/checkout-session",
             "Private beta is limited",
         ],
+        "legal.html": [
+            "Scout Legal And Third-Party Notices",
+            "This is not legal advice.",
+            "Crawl4AI",
+            "https://x.com/unclecode",
+            "Apache License, Version 2.0",
+            "Scout license is not final",
+            "Public launch remains blocked",
+        ],
     }
 
     for page_name, expected_strings in pages.items():
@@ -123,9 +133,11 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/quickstart": "Scout Quickstart",
         "/pricing": "Scout Pricing",
         "/beta": "Scout Private Beta",
+        "/legal": "Scout Legal And Third-Party Notices",
         "/quickstart.html": "Scout Quickstart",
         "/pricing.html": "Scout Pricing",
         "/beta.html": "Scout Private Beta",
+        "/legal.html": "Scout Legal And Third-Party Notices",
     }
 
     for path, text in expected.items():
@@ -143,3 +155,19 @@ def test_fastapi_docs_remain_api_docs_not_marketing_docs() -> None:
     assert response.status_code == 200
     assert "Swagger UI" in response.text
     assert "Scout Quickstart" not in response.text
+
+
+def test_crawl4ai_attribution_is_consistent_across_public_docs() -> None:
+    attribution = (
+        "This product includes software developed by UncleCode "
+        "(https://x.com/unclecode) as part of the Crawl4AI project"
+    )
+
+    notice = (_REPO_ROOT / "THIRD_PARTY_NOTICES.md").read_text(encoding="utf-8")
+    readme = (_REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    legal = (_WEBSITE_DIR / "legal.html").read_text(encoding="utf-8")
+    normalized_legal = " ".join(legal.split())
+
+    assert attribution in " ".join(notice.split())
+    assert attribution in " ".join(readme.split())
+    assert attribution in normalized_legal

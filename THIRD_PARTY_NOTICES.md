@@ -9,8 +9,9 @@ Scout is built on Crawl4AI.
 
 Attribution:
 
-> This product includes software developed by UncleCode for Crawl4AI
-> (https://github.com/unclecode/crawl4ai).
+> This product includes software developed by UncleCode (https://x.com/unclecode) as part of the Crawl4AI project.
+
+Project URL: https://github.com/unclecode/crawl4ai
 
 License:
 
