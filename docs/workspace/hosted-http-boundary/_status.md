@@ -19,9 +19,19 @@ Bearer key -> hosted admission -> URL safety -> credit debit -> Scout scrape.
 
 ## Boundary
 
-This slice implements one hosted proof endpoint, `/v1/hosted/scrape`. It does
-not yet implement hosted crawl/products/run endpoints, user signup, API key
-dashboard, Stripe, or production worker queues.
+This checkpoint began with `/v1/hosted/scrape` and now includes hosted
+`/v1/hosted/crawl`, `/v1/hosted/products`, `/v1/hosted/run/{use_case}`, and
+owned-run artifact retrieval. It does not yet implement user signup dashboard,
+production key delivery, production Stripe operations, object storage, or
+production worker queues.
+
+## SSRF Update
+
+Hosted admission now validates URL safety with DNS resolution before crawler
+work starts. Unsafe schemes, credentials, localhost, unsafe IP literals,
+DNS-resolved unsafe IPs, and URL-like values in high-level run fields are
+blocked before crawler invocation and before credit debit. Evidence:
+`docs/security/hosted-ssrf-review-2026-06-28.md`.
 
 ## TDD Evidence
 

@@ -84,7 +84,13 @@ No public registry publish should happen until these decisions are closed.
       `docs/security/detect-secrets-audit-2026-06-28.md`.
 - [x] Secret scan enforced in GitHub CI.
       Evidence: `.github/workflows/ci.yml` `secret-scan` job.
-- [ ] Hosted SSRF checks reviewed.
+- [x] Hosted SSRF checks reviewed.
+      Evidence: `docs/security/hosted-ssrf-review-2026-06-28.md`.
+      Result: hosted admission now blocks unsafe schemes, credentials,
+      localhost, unsafe IP literals, DNS-resolved unsafe IPs, and URL-like
+      fields in high-level runs before crawler invocation or credit debit.
+      Remaining public-launch work: deployment egress policy and crawler
+      redirect/retry validation.
 - [ ] Hosted artifact authorization and path confinement reviewed.
 - [x] Terms/privacy placeholders created before public hosted beta.
       Evidence: `docs/legal/beta-terms-placeholder.md`,

@@ -108,6 +108,36 @@ def test_hosted_scrape_rejects_unsafe_url_without_calling_crawler() -> None:
     assert balance.standard_credits_remaining == limits.standard_credits
 
 
+def test_hosted_scrape_rejects_hostname_resolving_to_private_ip_without_calling_crawler(
+    monkeypatch,
+) -> None:
+    def fake_getaddrinfo(*_args):
+        return [(None, None, None, "", ("10.0.0.7", 443))]
+
+    monkeypatch.setattr("socket.getaddrinfo", fake_getaddrinfo)
+    account_service, raw_key, tenant_id = _account_service_with_key()
+    mock_crawler = MagicMock()
+    mock_crawler.scrape = AsyncMock()
+    app.dependency_overrides[get_crawler] = lambda: mock_crawler
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/scrape",
+            json={"url": "https://public-name.example/products"},
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    balance = account_service.get_balance(tenant_id)
+    limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
+    assert resp.status_code == 403
+    assert resp.json()["detail"] == "URL resolved to unsafe IP address: 10.0.0.7."
+    assert mock_crawler.scrape.await_count == 0
+    assert balance.standard_credits_remaining == limits.standard_credits
+
+
 def test_hosted_scrape_allows_valid_key_and_debits_credits() -> None:
     account_service, raw_key, tenant_id = _account_service_with_key()
     mock_crawler = MagicMock()

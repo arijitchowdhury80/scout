@@ -31,7 +31,8 @@ from scout.core.platform.hosted import (
 from scout.core.platform.hosted_rate_limit import HostedRateLimiter
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest, RunResponse
-from scout.core.platform.url_safety import validate_hosted_url
+from scout.core.platform.url_safety import validate_hosted_url_fields
+from scout.core.platform.url_safety import validate_hosted_url_with_dns
 from scout.core.platform.workspace import resolve_run_output_dir
 from scout.core.types import (
     CrawlRequest,
@@ -145,9 +146,7 @@ async def hosted_scrape(
     auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
     if not auth.allowed:
         raise HTTPException(status_code=403, detail=auth.reason)
-    url_safety = validate_hosted_url(req.url)
-    if not url_safety.allowed:
-        raise HTTPException(status_code=403, detail=url_safety.reason)
+    _enforce_hosted_url_safety(req.url)
     _enforce_rate_limit(rate_limiter, auth.key_id)
     usage = account_service.consume_action(
         raw_key,
@@ -182,9 +181,7 @@ async def hosted_crawl(
     auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
     if not auth.allowed:
         raise HTTPException(status_code=403, detail=auth.reason)
-    url_safety = validate_hosted_url(req.url)
-    if not url_safety.allowed:
-        raise HTTPException(status_code=403, detail=url_safety.reason)
+    _enforce_hosted_url_safety(req.url)
     tenant = account_service.get_tenant(auth.tenant_id)
     if tenant is None:
         raise HTTPException(status_code=403, detail="Hosted account is not active.")
@@ -222,9 +219,7 @@ async def hosted_products(
     if not auth.allowed:
         raise HTTPException(status_code=403, detail=auth.reason)
     target_url = _hosted_product_target_url(req)
-    url_safety = validate_hosted_url(target_url)
-    if not url_safety.allowed:
-        raise HTTPException(status_code=403, detail=url_safety.reason)
+    _enforce_hosted_url_safety(target_url)
     tenant = account_service.get_tenant(auth.tenant_id)
     if tenant is None:
         raise HTTPException(status_code=403, detail="Hosted account is not active.")
@@ -262,10 +257,7 @@ async def hosted_run(
     auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
     if not auth.allowed:
         raise HTTPException(status_code=403, detail=auth.reason)
-    if req.url:
-        url_safety = validate_hosted_url(req.url)
-        if not url_safety.allowed:
-            raise HTTPException(status_code=403, detail=url_safety.reason)
+    _enforce_hosted_run_url_safety(req)
     tenant = account_service.get_tenant(auth.tenant_id)
     if tenant is None:
         raise HTTPException(status_code=403, detail="Hosted account is not active.")
@@ -385,6 +377,25 @@ def _bearer_token(authorization: str) -> str:
     if not token:
         raise HTTPException(status_code=401, detail="Missing Bearer token")
     return token
+
+
+def _enforce_hosted_url_safety(url: str) -> None:
+    """Reject unsafe hosted fetch URLs before crawler work starts."""
+    url_safety = validate_hosted_url_with_dns(url)
+    if not url_safety.allowed:
+        raise HTTPException(status_code=403, detail=url_safety.reason)
+
+
+def _enforce_hosted_run_url_safety(req: RunRequest) -> None:
+    """Reject unsafe URL-bearing fields from high-level hosted run requests."""
+    values: list[str] = []
+    if req.url:
+        values.append(req.url)
+    values.extend(req.targets)
+    values.extend(req.job_urls)
+    url_safety = validate_hosted_url_fields(values)
+    if not url_safety.allowed:
+        raise HTTPException(status_code=403, detail=url_safety.reason)
 
 
 def _hosted_auth_for_read(

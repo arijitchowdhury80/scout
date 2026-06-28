@@ -138,12 +138,15 @@ Launch impact:
 - Dependency CVE remains unresolved because of Crawl4AI's current `lxml~=5.3`
   constraint.
 - Hosted Scout still needs a production security review for:
-  - SSRF controls,
+  - crawler redirect/retry SSRF enforcement and deployment egress policy,
   - tenant isolation,
   - API key handling,
   - artifact authorization,
   - rate limits and abuse limits,
   - Stripe webhook secret handling.
+- Hosted SSRF admission controls have now been reviewed and implemented for
+  hosted scrape, crawl, products, and run endpoints. Evidence:
+  `docs/security/hosted-ssrf-review-2026-06-28.md`.
 - A full secret scan using an entropy-aware tool has been run and current
   candidates have been audited as false positives. New candidates must be
   reviewed before release.

@@ -27,7 +27,11 @@ Implementation seed:
 - deterministic URL safety checks now exist in `scout.core.platform.url_safety`;
 - the guard rejects unsafe schemes, missing hostnames, URL credentials,
   localhost, unsafe IP literals, unsafe resolved IPs, and unsafe redirect hops;
-- the guard is not yet wired into hosted route admission.
+- hosted scrape, crawl, products, and high-level run endpoints now enforce
+  admission-layer URL safety before crawler invocation or credit debit;
+- high-level runs validate URL-like values in `url`, `targets`, and `job_urls`;
+- public hosted launch still needs deployment egress policy and proof that every
+  crawler redirect/retry path is revalidated.
 
 ### Secret Exposure
 
@@ -106,7 +110,8 @@ Current Scout has:
 - no quota model,
 - no hosted API-key lifecycle,
 - no Stripe integration,
-- SSRF guard primitives exist but are not yet enforced by hosted middleware,
+- SSRF admission controls exist for hosted HTTP endpoints, but deployment-level
+  egress policy and crawler redirect/retry enforcement remain open,
 - no hosted object storage abstraction.
 
 This is fine for local beta. It is not yet production-hosted SaaS.

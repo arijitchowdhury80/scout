@@ -98,6 +98,56 @@ def test_hosted_run_rejects_max_records_above_plan_limit_without_debit() -> None
     assert balance.standard_credits_remaining == limits.standard_credits
 
 
+def test_hosted_run_rejects_unsafe_url_targets_without_running(monkeypatch) -> None:
+    account_service, raw_key, tenant_id = _account_service_with_key()
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/run/company",
+            json={
+                "query": "Adobe",
+                "mode": "saved",
+                "targets": ["http://169.254.169.254/latest/meta-data/"],
+                "max_records": 2,
+            },
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    balance = account_service.get_balance(tenant_id)
+    limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
+    assert resp.status_code == 403
+    assert resp.json()["detail"] == "URL targets unsafe IP address: 169.254.169.254."
+    assert balance.standard_credits_remaining == limits.standard_credits
+
+
+def test_hosted_run_rejects_unsafe_job_urls_without_running() -> None:
+    account_service, raw_key, tenant_id = _account_service_with_key()
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/run/jobs",
+            json={
+                "query": "partnerships",
+                "mode": "saved",
+                "job_urls": ["file:///etc/passwd"],
+                "max_records": 2,
+            },
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    balance = account_service.get_balance(tenant_id)
+    limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
+    assert resp.status_code == 403
+    assert resp.json()["detail"] == "Unsupported URL scheme: file."
+    assert balance.standard_credits_remaining == limits.standard_credits
+
+
 def test_hosted_run_rejects_insufficient_preflight_credits_without_running() -> None:
     account_service, raw_key, tenant_id = _account_service_with_key()
     account_service.set_balance(tenant_id, standard_credits=1, browser_credits=100)
