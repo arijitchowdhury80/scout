@@ -83,6 +83,8 @@ Implementation seed:
   seeding, and standard/browser credit debit now exist in
   `scout.core.platform.account_service` with an in-memory store for local domain
   testing.
+- hosted request admission now exists in `scout.core.platform.hosted_admission`;
+  it authenticates first, validates URL safety second, and debits credits last.
 - the current HTTP middleware has not yet been migrated to the hosted key model.
 - URL safety primitives for the SSRF guard now exist in
   `scout.core.platform.url_safety`.

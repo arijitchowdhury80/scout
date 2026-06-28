@@ -114,3 +114,35 @@ Verification:
 - `python3 -m pyright scout/` -> `0 errors`.
 - `ruff check scout/ tests/` -> `All checks passed!`.
 - `ruff format --check scout/ tests/` -> `182 files already formatted`.
+
+## Follow-Up Checkpoint - Hosted Admission Service
+
+Date: 2026-06-28
+
+Built:
+
+- `scout.core.platform.hosted_admission`
+- `HostedAdmissionDecision`
+- `HostedAdmissionService`
+
+Behavior:
+
+- authenticates API key and scope before URL safety checks,
+- rejects unknown/wrong-scope keys without leaking URL safety details,
+- validates hosted URLs and resolved IPs before any credit debit,
+- denies unsafe URLs without mutating balances,
+- debits credits only after auth and URL safety pass,
+- preserves URL safety and usage decisions for future API error responses.
+
+TDD:
+
+- RED: `python3 -m pytest tests/unit/core/platform/test_hosted_admission.py -q`
+  failed with missing `scout.core.platform.hosted_admission`.
+- GREEN: same command passed with `6 passed`.
+
+Verification:
+
+- `python3 -m pytest tests/unit/ -q` -> `440 passed`.
+- `python3 -m pyright scout/` -> `0 errors`.
+- `ruff check scout/ tests/` -> `All checks passed!`.
+- `ruff format --check scout/ tests/` -> `184 files already formatted`.

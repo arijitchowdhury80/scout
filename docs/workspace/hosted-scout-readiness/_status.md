@@ -20,6 +20,9 @@ Status: In progress
 - [x] Hosted account service tests written.
 - [x] Hosted account service implemented.
 - [x] Hosted account service verification passed.
+- [x] Hosted admission service tests written.
+- [x] Hosted admission service implemented.
+- [x] Hosted admission service verification passed.
 
 ## Scope
 
@@ -56,3 +59,9 @@ dashboard.
   - Result: 6 passed.
 - Hosted account checkpoint: `python3 -m pytest tests/unit/core/platform -q`
   - Result: 59 passed.
+- Hosted admission RED: `python3 -m pytest tests/unit/core/platform/test_hosted_admission.py -q`
+  - Result: failed with `ModuleNotFoundError: No module named 'scout.core.platform.hosted_admission'`.
+- Hosted admission GREEN: `python3 -m pytest tests/unit/core/platform/test_hosted_admission.py -q`
+  - Result: 6 passed.
+- Hosted admission checkpoint: `python3 -m pytest tests/unit/ -q`
+  - Result: 440 passed.
