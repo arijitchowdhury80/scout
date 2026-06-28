@@ -61,6 +61,9 @@ Status: In progress
 - [x] Hosted high-level run endpoint tests written.
 - [x] Hosted high-level run endpoint implemented.
 - [x] Hosted high-level run endpoint focused verification passed.
+- [x] Hosted run retrieval endpoint tests written.
+- [x] Hosted run retrieval endpoints implemented.
+- [x] Hosted run retrieval focused verification passed.
 
 ## Scope
 
@@ -78,11 +81,12 @@ This stream now includes SQLite account persistence, a Stripe-compatible payment
 provisioning domain layer, a public Stripe Checkout Session creation route, and
 a signed Stripe webhook route for `checkout.session.completed`. It also includes
 a configurable process-local per-key hosted rate limiter for `/v1/hosted/*` and
-hosted crawl admission at `/v1/hosted/crawl`, and hosted product extraction at
-`/v1/hosted/products`, and hosted high-level runs at
-`/v1/hosted/run/{use_case}`. It still does not implement user login, secure
-Customer Portal, distributed throttling, production Postgres, a public
-dashboard, async hosted workers, or a live SMTP/Stripe sandbox smoke.
+hosted crawl admission at `/v1/hosted/crawl`, hosted product extraction at
+`/v1/hosted/products`, hosted high-level runs at `/v1/hosted/run/{use_case}`,
+and owner-key retrieval for hosted run summaries, records, and artifact paths.
+It still does not implement user login, secure Customer Portal, distributed
+throttling, production Postgres, a public dashboard, async hosted workers,
+explicit tenant columns on run records, or a live SMTP/Stripe sandbox smoke.
 
 Hosted beta configuration is now documented in `.env.example`. Local users only
 need `SCOUT_API_KEY`, `SCOUT_WORKDIR`, and optional `LLM_API_KEY`; paid hosted
@@ -406,5 +410,53 @@ Verification:
 Still pending:
 
 - async hosted run jobs,
-- hosted run artifact browsing/dashboard,
+- hosted run artifact dashboard UI,
 - distributed/shared throttling for multi-instance production.
+
+# Hosted Run Retrieval Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `GET /v1/hosted/runs/{run_id}`
+- `GET /v1/hosted/runs/{run_id}/records`
+- `GET /v1/hosted/runs/{run_id}/artifacts`
+- hosted owner-key retrieval guard
+
+Behavior:
+
+- hosted retrieval requires a Bearer `scout_live_...` key with `runs:create`,
+- owner keys can retrieve run summary metadata,
+- owner keys can retrieve `records.json` content,
+- owner keys can retrieve artifact path metadata,
+- another hosted tenant receives `404` for a run it does not own,
+- raw hosted API keys are not returned in retrieval responses,
+- private-beta ownership is enforced through tenant-labeled run output
+  directories until run persistence has explicit tenant columns.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_hosted_run_retrieval.py -q` failed
+  because `/v1/hosted/runs/{run_id}` returned 404.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_hosted_run_retrieval.py -q` passed:
+  3 tests.
+- Focused checkpoint:
+  `python3 -m pytest tests/unit/api/test_hosted_run_retrieval.py tests/unit/api/test_hosted_run.py -q`
+  passed: 8 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 143 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 500 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 206 files already
+  formatted.
+
+Still pending:
+
+- explicit `tenant_id`/`key_id` columns on persisted run records,
+- hosted artifact dashboard UI,
+- object storage and signed artifact URLs for multi-instance hosting.

@@ -953,5 +953,56 @@ Verification:
 Still pending:
 
 - async hosted run jobs,
-- hosted run artifact browsing/dashboard,
+- hosted run artifact dashboard UI,
 - distributed/shared throttling for multi-instance production.
+
+# Hosted Run Retrieval Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `GET /v1/hosted/runs/{run_id}`
+- `GET /v1/hosted/runs/{run_id}/records`
+- `GET /v1/hosted/runs/{run_id}/artifacts`
+- hosted owner-key retrieval guard
+
+Behavior:
+
+- hosted retrieval requires a Bearer `scout_live_...` key with `runs:create`,
+- owner keys can retrieve run summary metadata,
+- owner keys can retrieve `records.json` content,
+- owner keys can retrieve artifact path metadata,
+- another hosted tenant receives `404` for a run it does not own,
+- raw hosted API keys are not returned in retrieval responses,
+- private-beta ownership is enforced through tenant-labeled run output
+  directories until run persistence has explicit tenant columns.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_hosted_run_retrieval.py -q` failed
+  because `/v1/hosted/runs/{run_id}` returned 404.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_hosted_run_retrieval.py -q` passed:
+  3 tests.
+
+Verification:
+
+- Focused checkpoint:
+  `python3 -m pytest tests/unit/api/test_hosted_run_retrieval.py tests/unit/api/test_hosted_run.py -q`
+  passed: 8 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 143 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 500 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 206 files already
+  formatted.
+
+Still pending:
+
+- explicit `tenant_id`/`key_id` columns on persisted run records,
+- hosted artifact dashboard UI,
+- object storage and signed artifact URLs for multi-instance hosting.

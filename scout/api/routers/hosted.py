@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+from typing import Any
+
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
@@ -13,6 +17,8 @@ from scout.api.deps import (
     get_hosted_rate_limiter,
 )
 from scout.api.run_store import remember_run
+from scout.api.run_store import artifact_path, get_run
+from scout.api.run_store import StoredRun
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
 from scout.core.platform.hosted import (
@@ -25,7 +31,7 @@ from scout.core.platform.hosted_rate_limit import HostedRateLimiter
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest, RunResponse
 from scout.core.platform.url_safety import validate_hosted_url
-from scout.core.platform.workspace import resolve_run_output_dir
+from scout.core.platform.workspace import resolve_run_output_dir, slugify
 from scout.core.types import (
     CrawlRequest,
     CrawlResponse,
@@ -285,6 +291,50 @@ async def hosted_run(
     )
 
 
+@router.get("/runs/{run_id}")
+async def hosted_run_summary(
+    run_id: str,
+    authorization: str = Header(default=""),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+) -> dict[str, Any]:
+    """Return a hosted run summary if the Bearer key owns the hosted run."""
+    auth = _hosted_auth_for_read(authorization, account_service, rate_limiter)
+    run = await _require_hosted_run(run_id, auth.tenant_id)
+    return run.model_dump(mode="json")
+
+
+@router.get("/runs/{run_id}/records")
+async def hosted_run_records(
+    run_id: str,
+    authorization: str = Header(default=""),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+) -> dict[str, Any]:
+    """Return records for a hosted run if the Bearer key owns it."""
+    auth = _hosted_auth_for_read(authorization, account_service, rate_limiter)
+    run = await _require_hosted_run(run_id, auth.tenant_id)
+    records = _read_json_list(artifact_path(run, "records_json"))
+    return {"run_id": run_id, "total": len(records), "records": records}
+
+
+@router.get("/runs/{run_id}/artifacts")
+async def hosted_run_artifacts(
+    run_id: str,
+    authorization: str = Header(default=""),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+) -> dict[str, Any]:
+    """Return artifact paths for a hosted run if the Bearer key owns it."""
+    auth = _hosted_auth_for_read(authorization, account_service, rate_limiter)
+    run = await _require_hosted_run(run_id, auth.tenant_id)
+    return {
+        "run_id": run_id,
+        "output_dir": run.output_dir,
+        "artifacts": run.artifacts.model_dump(mode="json"),
+    }
+
+
 def _bearer_token(authorization: str) -> str:
     """Extract a Bearer token or reject the hosted request."""
     prefix = "Bearer "
@@ -294,6 +344,40 @@ def _bearer_token(authorization: str) -> str:
     if not token:
         raise HTTPException(status_code=401, detail="Missing Bearer token")
     return token
+
+
+def _hosted_auth_for_read(
+    authorization: str,
+    account_service: HostedAccountService,
+    rate_limiter: HostedRateLimiter,
+):
+    """Authenticate hosted read requests and apply per-key throttling."""
+    raw_key = _bearer_token(authorization)
+    auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
+    if not auth.allowed:
+        raise HTTPException(status_code=403, detail=auth.reason)
+    _enforce_rate_limit(rate_limiter, auth.key_id)
+    return auth
+
+
+async def _require_hosted_run(run_id: str, tenant_id: str) -> StoredRun:
+    """Return a run only if it belongs to the hosted tenant."""
+    run = await get_run(run_id)
+    if run is None or not _run_belongs_to_tenant(run, tenant_id):
+        raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
+    return run
+
+
+def _run_belongs_to_tenant(run: StoredRun, tenant_id: str) -> bool:
+    """Check private-beta hosted run ownership via tenant-labeled output dir."""
+    return Path(run.output_dir).name.startswith(f"hosted-{slugify(tenant_id)}-")
+
+
+def _read_json_list(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        raise HTTPException(status_code=404, detail=f"Artifact not found: {path}")
+    data = json.loads(path.read_text())
+    return data if isinstance(data, list) else []
 
 
 def _enforce_rate_limit(rate_limiter: HostedRateLimiter, key_id: str) -> None:
