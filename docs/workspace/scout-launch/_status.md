@@ -47,12 +47,20 @@ readiness work needed to turn Scout from a working tool into a testable product.
   - clean wheel install/import/CLI smoke,
   - Docker build,
   - Docker `/health`, `/`, and `/styles.css` route smoke.
+- Tag-driven GitHub release workflow added:
+  - builds wheel and sdist,
+  - installs the built wheel in a clean virtualenv,
+  - smokes `import scout` and `scout --help`,
+  - builds and smokes Docker,
+  - uploads `dist/*` as workflow artifacts,
+  - attaches `dist/*` to a GitHub Release.
 
 ## Next
 
 - Decide Scout license.
 - Add release checklist.
-- Run fresh publish verification against the actual release artifact/tag.
+- Run the tag workflow against a real `v*` release tag.
+- Decide if/when to publish to PyPI, GHCR, Docker Hub, or another registry.
 - Build MCP server plan.
 - Add hosted artifact dashboard and object-storage/signed-URL production plan.
 - Decide whether direct Google Sheets API push belongs in Scout core or a

@@ -92,6 +92,12 @@ Before public package release:
 - [x] Run quick smoke after install.
 - [x] Verify launch website is served from a clean wheel install.
 - [x] Add GitHub CI package build and installed CLI smoke gate.
+- [x] Add tag-driven GitHub release artifact workflow.
+- [x] Add release workflow smoke for built wheel and Docker image.
+- [ ] Decide whether release tags create GitHub releases only or publish to a
+      package/container registry.
+- [ ] Add registry publishing only after license and distribution policy are
+      final.
 
 ## GitHub Readiness
 
@@ -102,8 +108,26 @@ Before public package release:
 - [ ] Add release checklist.
 - [x] Add package build smoke to GitHub CI.
 - [x] Add Docker build and route smoke to GitHub CI.
+- [x] Add tag-triggered release artifact build and upload workflow.
 - [ ] Add issue templates for beta feedback.
 - [ ] Add security policy before public launch.
+
+## Release Workflow
+
+Current release automation is intentionally artifact-first:
+
+- pushing a `v*` tag runs `.github/workflows/release.yml`,
+- the workflow builds wheel and sdist artifacts,
+- installs the built wheel into a clean virtual environment,
+- smokes `import scout` and `scout --help`,
+- builds the Docker image,
+- runs a container smoke for `/health`, `/`, and `/styles.css`,
+- uploads `dist/*` as workflow artifacts,
+- creates a GitHub Release and attaches `dist/*`.
+
+This does not publish to PyPI, GHCR, Docker Hub, or any other registry yet.
+That is deliberate until Scout's license, package visibility, and hosted/local
+distribution policy are final.
 
 ## Hosted Scout
 

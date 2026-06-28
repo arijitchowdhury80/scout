@@ -1308,3 +1308,51 @@ Verification:
   `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
   and `ruff format --check scout/ tests/` passed with 206 files already
   formatted.
+
+## Release Artifact Workflow Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `.github/workflows/release.yml`,
+- `v*` tag trigger,
+- release wheel/sdist build,
+- release clean virtualenv wheel install smoke,
+- release installed package `import scout` smoke,
+- release installed `scout --help` smoke,
+- release Docker image build and runtime smoke:
+  - `/health`,
+  - `/`,
+  - `/styles.css`,
+- workflow artifact upload for `dist/*`,
+- GitHub Release attachment for `dist/*`.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/test_release_workflow.py -q` failed because
+  `.github/workflows/release.yml` did not exist.
+- GREEN:
+  `python3 -m pytest tests/unit/test_release_workflow.py -q` passed after
+  adding the tag-driven release artifact workflow.
+
+Boundary:
+
+- This workflow does not publish to PyPI, GHCR, Docker Hub, or another package
+  registry yet.
+- Registry publishing remains blocked on license and distribution-policy
+  decisions.
+
+Verification:
+
+- Focused release/package/Docker gate:
+  `python3 -m pytest tests/unit/test_release_workflow.py tests/unit/test_ci_workflow.py tests/unit/test_docker_distribution.py tests/unit/test_package_metadata.py -q`
+  passed: 11 tests.
+- Full unit suite:
+  `python3 -m pytest tests/unit/ -q` passed: 519 tests, 8 warnings.
+- Type check:
+  `python3 -m pyright scout/` passed: 0 errors, 0 warnings, 0 informations.
+- Lint/format:
+  `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
+  all checks passed, 210 files already formatted.

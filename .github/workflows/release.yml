@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: python -m pip install --upgrade pip build
+
+      - run: python -m build
+
+      - run: python -m venv /tmp/scout-release-smoke
+
+      - run: /tmp/scout-release-smoke/bin/python -m pip install dist/scout_web-*.whl
+
+      - run: /tmp/scout-release-smoke/bin/python -c "import scout; print('import-ok')"
+
+      - run: /tmp/scout-release-smoke/bin/scout --help
+
+      - run: docker build -f docker/Dockerfile -t scout:${{ github.ref_name }} .
+
+      - run: |
+          container_id=$(docker run -d --rm -p 18422:8421 \
+            -e SCOUT_API_KEY=dev-key \
+            -e SCOUT_WORKDIR=/data/runs \
+            -e DB_PATH=/data/scout.db \
+            scout:${{ github.ref_name }})
+          cleanup() { docker rm -f "$container_id" >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18422/health >/tmp/scout-release-health.json; then
+              break
+            fi
+            sleep 1
+            if [ "$i" = "30" ]; then
+              docker logs "$container_id" >&2
+              exit 1
+            fi
+          done
+          curl -fsS http://127.0.0.1:18422/
+          curl -fsS http://127.0.0.1:18422/styles.css
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scout-web-dist-${{ github.ref_name }}
+          path: dist/*
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
