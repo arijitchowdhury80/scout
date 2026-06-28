@@ -17,6 +17,8 @@ Scout should be usable in four ways:
 Target command:
 
 ```bash
+pip install scout-web
+# or until the first package release:
 pip install git+https://github.com/arijitchowdhury80/scout.git
 playwright install chromium
 scout serve
@@ -55,22 +57,28 @@ Required docs:
 
 Current package state:
 
-- `pyproject.toml` defines package name `scout`.
+- `pyproject.toml` defines package name `scout-web`; the installed CLI command
+  remains `scout`.
 - CLI entrypoint exists: `scout = scout.cli:app`.
 - Version is currently `0.1.0`.
 - Crawl4AI, Playwright, FastAPI, Algolia, SQLite, Typer dependencies are present.
+- Runtime dependency metadata includes `email-validator` for Pydantic email
+  models used by hosted account, payment, and key-delivery flows.
+- Hatch wheel packaging explicitly ships the `scout` module even though the
+  distribution package name is `scout-web`.
 
 Before public package release:
 
 - [ ] Decide Scout's own license.
 - [ ] Add `LICENSE` if open/source-available.
 - [ ] Add `THIRD_PARTY_NOTICES.md`.
-- [ ] Add classifiers to `pyproject.toml`.
-- [ ] Add package metadata: authors, URLs, readme, license expression.
+- [x] Add classifiers to `pyproject.toml`.
+- [x] Add package metadata: authors, URLs, readme.
+- [ ] Decide and add final license expression.
 - [ ] Verify package includes `scout/skill` if intended.
-- [ ] Build wheel/sdist.
-- [ ] Install from built wheel in a clean venv.
-- [ ] Run quick smoke after install.
+- [x] Build wheel/sdist.
+- [x] Install from built wheel in a clean venv.
+- [x] Run quick smoke after install.
 
 ## GitHub Readiness
 

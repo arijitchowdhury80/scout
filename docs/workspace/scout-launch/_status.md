@@ -32,11 +32,16 @@ readiness work needed to turn Scout from a working tool into a testable product.
   - SQLite,
   - Google Sheets import bundle.
 - SQLite product export table names are validated before SQL interpolation.
+- Local package metadata aligned for launch distribution:
+  - distribution name: `scout-web`,
+  - installed CLI command: `scout`,
+  - wheel explicitly ships the `scout` module,
+  - clean virtualenv wheel smoke passed.
 
 ## Next
 
 - Decide Scout license.
-- Add package metadata and release checklist.
+- Add release checklist.
 - Build MCP server plan.
 - Add hosted artifact dashboard and object-storage/signed-URL production plan.
 - Decide whether direct Google Sheets API push belongs in Scout core or a

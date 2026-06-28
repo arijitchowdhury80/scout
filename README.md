@@ -38,6 +38,8 @@ Still beta/experimental: hard-site extraction reliability, user-browser capture 
 
 ```bash
 # Install
+pip install scout-web
+# or until the first package release:
 pip install git+https://github.com/arijitchowdhury80/scout.git
 playwright install chromium
 

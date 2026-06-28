@@ -1142,6 +1142,49 @@ Still pending:
 - object storage and signed artifact URLs for multi-instance hosting,
 - async hosted jobs for long-running workflows.
 
+## Local Package Metadata And Wheel Smoke Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- distribution package name changed to `scout-web`,
+- installed CLI command remains `scout`,
+- `pyproject.toml` now includes README, authors, keywords, URLs, and package
+  classifiers,
+- runtime dependency metadata includes `email-validator` for Pydantic
+  `EmailStr` models,
+- Hatch wheel build explicitly ships the `scout` module even though the
+  distribution name is `scout-web`,
+- README and distribution docs now show `pip install scout-web` as the primary
+  local install path.
+
+TDD and packaging evidence:
+
+- RED:
+  `python3 -m pytest tests/unit/test_package_metadata.py -q` failed because
+  package name was still `scout` and classifiers were missing.
+- GREEN:
+  metadata tests passed after updating `pyproject.toml`.
+- BUILD RED:
+  `python3 -m build` failed because Hatch could not infer package files for
+  distribution name `scout-web`.
+- GREEN:
+  explicit Hatch wheel package config made `python3 -m build` produce
+  `scout_web-0.1.0.tar.gz` and `scout_web-0.1.0-py3-none-any.whl`.
+- SMOKE RED:
+  clean wheel install exposed missing `email-validator` runtime dependency.
+- SMOKE GREEN:
+  clean virtualenv install from `dist/scout_web-0.1.0-py3-none-any.whl` passed
+  `import scout` and `scout --help`.
+
+Still pending:
+
+- final Scout license decision and license expression,
+- public package publish workflow,
+- fresh Mac/Linux install verification,
+- Docker publish verification.
+
 ## Product Export Generalization Checkpoint
 
 Date: 2026-06-28

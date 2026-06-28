@@ -6,6 +6,8 @@ as a Claude/Codex skill integration.
 ## Standalone Package
 
 ```bash
+pip install scout-web
+# or until the first package release:
 pip install git+https://github.com/arijitchowdhury80/scout.git
 playwright install chromium
 ```

@@ -3,14 +3,35 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "scout"
+name = "scout-web"
 version = "0.1.0"
-description = "Self-hosted web intelligence platform built on Crawl4AI"
+description = "Evidence-grade web acquisition and extraction toolkit built on Crawl4AI"
+readme = "README.md"
 requires-python = ">=3.11"
+authors = [{ name = "Arijit Chowdhury" }]
+keywords = [
+    "Web acquisition",
+    "web scraping",
+    "crawl4ai",
+    "product extraction",
+    "competitive intelligence",
+    "search indexing",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "aiosqlite>=0.20.0",
     "algoliasearch>=4.0.0",
     "crawl4ai>=0.7.7",
+    "email-validator>=2.0.0",
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
     "pydantic>=2.0.0",
@@ -20,6 +41,11 @@ dependencies = [
     "typer>=0.9.0",
     "pyyaml>=6.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/arijitchowdhury80/scout"
+Documentation = "https://github.com/arijitchowdhury80/scout#readme"
+Issues = "https://github.com/arijitchowdhury80/scout/issues"
 
 [project.scripts]
 scout = "scout.cli:app"
@@ -45,6 +71,9 @@ markers = [
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scout"]
 
 [tool.mypy]
 python_version = "3.11"
