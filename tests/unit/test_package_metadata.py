@@ -43,3 +43,10 @@ def test_hatch_build_ships_scout_module_when_distribution_name_differs() -> None
     data = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
 
     assert data["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == ["scout"]
+
+
+def test_hatch_build_includes_launch_site_assets() -> None:
+    data = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+
+    force_include = data["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
+    assert force_include["website"] == "website"

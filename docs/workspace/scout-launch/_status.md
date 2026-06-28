@@ -36,12 +36,18 @@ readiness work needed to turn Scout from a working tool into a testable product.
   - distribution name: `scout-web`,
   - installed CLI command: `scout`,
   - wheel explicitly ships the `scout` module,
+  - wheel includes launch website assets,
   - clean virtualenv wheel smoke passed.
+- Docker distribution smoke passed for built image:
+  - `/health`,
+  - `/`,
+  - `/styles.css`.
 
 ## Next
 
 - Decide Scout license.
 - Add release checklist.
+- Run fresh Linux/CI Docker publish verification.
 - Build MCP server plan.
 - Add hosted artifact dashboard and object-storage/signed-URL production plan.
 - Decide whether direct Google Sheets API push belongs in Scout core or a

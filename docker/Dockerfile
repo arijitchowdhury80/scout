@@ -32,8 +32,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Python dependencies (no dev deps in prod)
-COPY pyproject.toml .
+COPY pyproject.toml README.md ./
 COPY scout/ scout/
+COPY website/ website/
 RUN pip install --no-cache-dir .
 
 # Install Playwright and Chromium browser, then Crawl4AI browser setup
@@ -46,7 +47,7 @@ VOLUME /data
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     SCOUT_WORKDIR=/data/runs \
-    SCOUT_DB_PATH=/data/scout.db
+    DB_PATH=/data/scout.db
 
 EXPOSE 8421
 

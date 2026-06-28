@@ -1185,6 +1185,50 @@ Still pending:
 - fresh Mac/Linux install verification,
 - Docker publish verification.
 
+## Docker Distribution Smoke Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- Dockerfile now copies `README.md` and `website/` before `pip install .`,
+- `.dockerignore` keeps `README.md` available while still excluding other
+  Markdown docs from the Docker context,
+- wheel packaging force-includes `website/` so `scout serve` can serve `/`
+  after clean wheel install,
+- Docker runtime now uses `DB_PATH=/data/scout.db`, matching Scout settings,
+- Docker compose now uses `DB_PATH=/data/scout.db`.
+
+TDD and distribution evidence:
+
+- RED:
+  `python3 -m pytest tests/unit/test_docker_distribution.py -q` failed because
+  Docker did not copy `README.md` and used `SCOUT_DB_PATH`.
+- GREEN:
+  Docker config tests passed after copying package metadata and using `DB_PATH`.
+- BUILD RED:
+  `docker build -f docker/Dockerfile -t scout:launch-smoke .` failed because
+  `.dockerignore` excluded `README.md`.
+- ROOT RED:
+  first container smoke returned `/health` 200 but `/` 500 because
+  `/app/website/index.html` was missing.
+- GREEN:
+  `python3 -m build` produced `scout_web-0.1.0` artifacts with launch website
+  files inside the wheel.
+- GREEN:
+  clean wheel install started `scout serve`; `/health` and `/` passed.
+- GREEN:
+  `docker build -f docker/Dockerfile -t scout:launch-smoke .` passed.
+- GREEN:
+  built container smoke passed `/health`, `/`, and `/styles.css` on port
+  `18421`.
+
+Still pending:
+
+- Docker publish workflow and registry decision,
+- Linux CI Docker smoke with the exact release image,
+- final public release checklist.
+
 ## Product Export Generalization Checkpoint
 
 Date: 2026-06-28

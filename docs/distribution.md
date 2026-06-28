@@ -186,7 +186,27 @@ hosted dashboard for browsing run outputs.
 
 ```bash
 docker compose -f docker/docker-compose.yml up --build
+curl http://localhost:8421/health
 ```
+
+The container listens on `8421`, stores run artifacts under `/data/runs`, and
+uses `DB_PATH=/data/scout.db` for run persistence. The compose file mounts a
+named `scout-data` volume and passes `SCOUT_API_KEY`, `LLM_API_KEY`,
+`SCOUT_WORKDIR`, and `DB_PATH` into the service.
+
+Latest local Docker verification:
+
+```bash
+docker build -f docker/Dockerfile -t scout:launch-smoke .
+docker run --rm -p 18421:8421 \
+  -e SCOUT_API_KEY=dev-key \
+  -e SCOUT_WORKDIR=/data/runs \
+  -e DB_PATH=/data/scout.db \
+  scout:launch-smoke
+```
+
+`/health`, `/`, and `/styles.css` were smoke-tested from the built image. The
+image includes Playwright Chromium and the bundled launch website assets.
 
 ## Skill Install
 

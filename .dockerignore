@@ -15,6 +15,7 @@ scout-runs
 tests
 docs
 *.md
+!README.md
 !pyproject.toml
 docker/
 .vscode

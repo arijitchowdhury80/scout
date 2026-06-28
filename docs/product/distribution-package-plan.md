@@ -46,12 +46,17 @@ curl http://localhost:8421/health
 
 Required docs:
 
-- [ ] environment variables,
-- [ ] volume mounts for `scout-runs`,
-- [ ] exposed ports,
-- [ ] API key configuration,
-- [ ] Playwright/browser dependencies,
-- [ ] production reverse proxy notes.
+- [x] environment variables,
+- [x] volume mounts for `scout-runs`,
+- [x] exposed ports,
+- [x] API key configuration,
+- [x] Playwright/browser dependencies,
+- [x] production reverse proxy notes.
+
+Latest Docker smoke:
+
+- `docker build -f docker/Dockerfile -t scout:launch-smoke .` passed.
+- Container smoke passed for `/health`, `/`, and `/styles.css` on port `18421`.
 
 ## Package Readiness
 
@@ -66,6 +71,10 @@ Current package state:
   models used by hosted account, payment, and key-delivery flows.
 - Hatch wheel packaging explicitly ships the `scout` module even though the
   distribution package name is `scout-web`.
+- Hatch wheel packaging includes the launch website assets required by `/`.
+- Docker packaging copies `README.md`, `scout/`, and `website/` before
+  `pip install .`.
+- Docker runtime uses `DB_PATH=/data/scout.db`, matching Scout settings.
 
 Before public package release:
 
@@ -79,6 +88,7 @@ Before public package release:
 - [x] Build wheel/sdist.
 - [x] Install from built wheel in a clean venv.
 - [x] Run quick smoke after install.
+- [x] Verify launch website is served from a clean wheel install.
 
 ## GitHub Readiness
 
