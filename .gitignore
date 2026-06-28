@@ -6,6 +6,7 @@
 __pycache__/
 *.py[cod]
 scout-runs/
+validation-output/
 
 # Run artifacts written when an app run's workdir points at tests/
 tests/algolia/

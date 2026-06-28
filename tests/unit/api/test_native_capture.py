@@ -88,6 +88,65 @@ def test_capture_structures_cleared_page_into_records(monkeypatch) -> None:
     assert "Oak St" in body["markdown"]
 
 
+def test_capture_product_dom_returns_algolia_records(monkeypatch) -> None:
+    """A cleared product category captured from the user browser should be
+    product-aware without asking the user to write CSS selectors."""
+    from scout.api.routers import app_browser
+    from scout.core.types import CaptureExtraction
+
+    browser_service._state = UserBrowserSessionState(connected=False, status="not_started")
+
+    async def fake_capture(_url: str):
+        return UserBrowserCaptureRequest(
+            url="https://www.esteelauder.com/products/681/product-catalog/skin-care",
+            title="Skincare",
+            html="""
+            <article class="product-grid__item">
+              <a class="product-tile__link"
+                 href="/product/681/141225/product-catalog/skincare/advanced-night-repair-serum">
+                <img alt="Advanced Night Repair Serum" src="/media/anr.jpg">
+                <span class="price">$85.00</span>
+              </a>
+            </article>
+            """,
+            text="Advanced Night Repair Serum $85.00",
+        )
+
+    async def fake_structure(html, **kwargs):
+        return CaptureExtraction(
+            success=True,
+            source_url=kwargs.get("source_url", ""),
+            markdown="# Skincare\nAdvanced Night Repair Serum $85.00",
+            word_count=6,
+        )
+
+    monkeypatch.setattr(app_browser.browser_service, "capture_active_tab", fake_capture)
+    monkeypatch.setattr(app_browser, "structure_capture", fake_structure)
+
+    client = TestClient(app)
+    resp = client.post(
+        "/app/browser/capture",
+        json={
+            "url": "https://www.esteelauder.com/products/681/product-catalog/skin-care",
+            "record_type": "products",
+            "category_name": "Skin Care",
+            "limit": 3,
+        },
+        headers=_HEADERS,
+    )
+
+    body = resp.json()
+    assert body["blocked"] is False
+    assert body["record_count"] == 1
+    record = body["records"][0]
+    assert record["objectID"]
+    assert record["name"] == "Advanced Night Repair Serum"
+    assert record["price"] == 85.0
+    assert record["citations"][0]["source_url"] == (
+        "https://www.esteelauder.com/products/681/product-catalog/skin-care"
+    )
+
+
 def test_capture_skips_structuring_when_still_blocked(monkeypatch) -> None:
     """A still-blocked capture is NOT structured — no records, the UI tells the
     human to solve the wall first."""

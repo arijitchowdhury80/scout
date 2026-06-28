@@ -74,6 +74,8 @@ _VENDOR_SIGNATURES: list[tuple[str, tuple[str, ...]]] = [
             "verify you are human",
             "verify you are a human",
             "unusual traffic",
+            "routing to checkout",
+            "error page",
             "access denied",
             "automated access",
         ),

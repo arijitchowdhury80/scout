@@ -541,6 +541,8 @@ def scout_app_html() -> str:
             <option value="news">News and Blogs</option>
             <option value="research">Research</option>
             <option value="docs">Documentation</option>
+            <option value="social">Social Profiles</option>
+            <option value="locations">Locations</option>
             <option value="website-quality">Website Quality</option>
           </select>
           <p id="useCaseHelp" class="subtle" style="margin-top:8px;"></p>
@@ -817,6 +819,20 @@ def scout_app_html() -> str:
           example: "Example: https://www.algolia.com/doc/",
           help: "Collect documentation pages, sections, markdown, and source URLs.",
           outputs: "Outputs: documentation records, source pages, markdown/DOM evidence."
+        },
+        social: {
+          label: "Company domain or social profile source URL",
+          placeholder: "https://www.algolia.com/",
+          example: "Example: https://www.algolia.com/",
+          help: "Find public company social profile links and preserve where they were found.",
+          outputs: "Outputs: company_social.v1 records with platform, URL, and citations."
+        },
+        locations: {
+          label: "Locations/store finder URL or company domain",
+          placeholder: "https://www.homedepot.com/l/",
+          example: "Example: https://www.homedepot.com/l/",
+          help: "Extract public location/store evidence when available, or blocked/unsupported evidence when not.",
+          outputs: "Outputs: location records or explicit blocked/unsupported evidence."
         },
         "website-quality": {
           label: "Website URL",

@@ -118,12 +118,14 @@ async def acquire_open_page(
 
         _md = result.markdown
         clean_md = getattr(_md, "fit_markdown", None) or str(_md or "") or ""
+        raw_html = str(getattr(result, "html", "") or getattr(result, "cleaned_html", "") or "")
         records = _coerce_records(result.extracted_content)
 
         return CaptureExtraction(
             success=True,
             source_url=result.url or url,
             markdown=clean_md,
+            raw_html=raw_html,
             records=records,
             record_count=len(records),
             word_count=len(clean_md.split()),

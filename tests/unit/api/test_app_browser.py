@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import sys
+import types
+
 from fastapi.testclient import TestClient
 
 from scout.api import user_browser
@@ -126,3 +129,78 @@ async def test_cdp_service_reuses_reachable_saved_profile_session(monkeypatch, t
     assert state.chrome_pid == 1234
     assert state.active_url == "https://new.example"
     assert opened_tabs == [(45555, "https://new.example")]
+
+
+async def test_cdp_capture_keeps_dom_when_screenshot_fails(monkeypatch) -> None:
+    """Nike live finding: full-page screenshot can fail while DOM is usable.
+
+    Capture must not abort in that case; DOM/text/links are the acquisition
+    evidence product extraction needs.
+    """
+
+    class FakePage:
+        url = "https://www.nike.com/w/mens-shirts-tops-9om13znik1"
+
+        async def wait_for_load_state(self, *_args, **_kwargs):
+            return None
+
+        async def title(self):
+            return "Nike Men's Shirts"
+
+        async def content(self):
+            return "<html><body><a href='/t/dri-fit-shirt-abc123'>Dri-FIT Shirt</a></body></html>"
+
+        def locator(self, _selector):
+            class FakeLocator:
+                async def inner_text(self, **_kwargs):
+                    return "Dri-FIT Shirt $45"
+
+            return FakeLocator()
+
+        async def screenshot(self, **_kwargs):
+            raise RuntimeError("Unable to capture screenshot")
+
+        async def eval_on_selector_all(self, *_args, **_kwargs):
+            return [
+                {"text": "Dri-FIT Shirt", "href": "https://www.nike.com/t/dri-fit-shirt-abc123"}
+            ]
+
+    class FakeBrowser:
+        contexts = [types.SimpleNamespace(pages=[FakePage()])]
+
+        async def close(self):
+            return None
+
+    class FakeChromium:
+        async def connect_over_cdp(self, _url):
+            return FakeBrowser()
+
+    class FakePlaywright:
+        chromium = FakeChromium()
+
+    class FakeAsyncPlaywright:
+        async def __aenter__(self):
+            return FakePlaywright()
+
+        async def __aexit__(self, *_args):
+            return None
+
+    fake_module = types.SimpleNamespace(async_playwright=lambda: FakeAsyncPlaywright())
+    monkeypatch.setitem(sys.modules, "playwright.async_api", fake_module)
+
+    service = ChromeCDPService()
+    service._state = app_browser.UserBrowserSessionState(
+        connected=True,
+        status="opened",
+        debugging_port=45555,
+        active_url="https://www.nike.com/w/mens-shirts-tops-9om13znik1",
+    )
+    monkeypatch.setattr(ChromeCDPService, "_cdp_reachable", lambda _self, _port: True)
+
+    capture = await service.capture_active_tab("https://www.nike.com/w/mens-shirts-tops-9om13znik1")
+
+    assert capture.title == "Nike Men's Shirts"
+    assert "Dri-FIT Shirt" in capture.html
+    assert capture.text == "Dri-FIT Shirt $45"
+    assert capture.screenshot_data_url == ""
+    assert capture.links[0]["href"].endswith("abc123")

@@ -31,6 +31,7 @@ def _result(*, success=True, markdown="", extracted=None):
     r.url = "https://zillow.com/roswell"
     r.markdown = markdown
     r.fit_markdown = markdown
+    r.html = "<html><body>Roswell Rentals</body></html>"
     r.extracted_content = extracted
     r.metadata = {"title": "Roswell Rentals", "description": "", "language": "en"}
     r.error_message = "" if success else "boom"
@@ -71,6 +72,7 @@ async def test_acquire_attaches_over_cdp_and_never_navigates():
     assert instance.arun.call_args.args[0] == "https://zillow.com/roswell"
     assert resp.success is True
     assert "Roswell" in resp.markdown
+    assert "Roswell Rentals" in resp.raw_html
 
 
 @pytest.mark.asyncio

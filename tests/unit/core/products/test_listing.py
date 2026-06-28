@@ -157,3 +157,188 @@ def test_extract_listing_cards_uses_enclosing_product_tile_details() -> None:
     assert cards[0].image == "https://www.esteelauder.com/media/anr.jpg"
     assert cards[1].name == "Nike Dri-FIT Men's Fitness T-Shirt"
     assert cards[1].price == 35.0
+
+
+def test_extract_listing_cards_handles_estee_lauder_liveview_product_markup() -> None:
+    html = """
+    <li class="block md:inline-block relative md:max-w-[232px]"
+        data-product_id="77491"
+        data-action="click->search#handleOverlayProductClick">
+      <div class="h-full">
+        <a class="group"
+           href="/product/689/77491/product-catalog/skincare/repair-serum/advanced-night-repair-serum/synchronized-multi-recovery-complex"
+           rel="prefetch">
+          <img src="https://www.esteelauder.com/media/export/cms/products/640x640/el_prod_77491_640x640_0.jpg"
+               alt="Advanced Night Repair Serum">
+          <h3 class="product-name">Advanced Night Repair Serum</h3>
+          <p>Synchronized Multi-Recovery Complex</p>
+          <div class="font-bold">$85.00</div>
+        </a>
+      </div>
+    </li>
+    """
+
+    cards = extract_listing_cards(
+        category_url="https://www.esteelauder.com/products/681/product-catalog/skin-care",
+        category_name="Skin Care",
+        html=html,
+        links=[],
+        limit=10,
+    )
+
+    assert len(cards) == 1
+    assert cards[0].name == "Advanced Night Repair Serum Synchronized Multi-Recovery Complex"
+    assert cards[0].price == 85.0
+    assert cards[0].image.endswith("el_prod_77491_640x640_0.jpg")
+
+
+def test_extract_listing_cards_handles_llbean_shop_product_urls() -> None:
+    html = """
+    <li class="ProductThumbnail_container">
+      <div class="ProductThumbnail_product" data-default-sku="1000316714">
+        <a href="/llb/shop/20010264?page=mens-ll-bean-baseball-cap-unisex&bc=12-26-596-502857-502859&feat=502859-GN3&csp=a&attrValue_0=58110&pos=1">
+          <img alt="Adults' L.L.Bean Motif Baseball Cap, New"
+               src="https://cdni.llbean.net/is/image/wim/527518_58110_41?wid=302">
+        </a>
+      </div>
+      <a class="ProductThumbnail_name"
+         href="/llb/shop/20010264?page=mens-ll-bean-baseball-cap-unisex&bc=12-26-596-502857-502859&feat=502859-GN3&csp=a&attrValue_0=58110&pos=1">
+        Adults' L.L.Bean Motif Baseball Cap
+      </a>
+      <div class="ProductThumbnail_price">
+        <span class="screenreader">Price: $29.95</span>
+        <span aria-hidden="true">$29.95</span>
+      </div>
+    </li>
+    """
+
+    cards = extract_listing_cards(
+        category_url="https://www.llbean.com/llb/shop/502859",
+        category_name="Baseball Caps & Visors",
+        html=html,
+        links=[],
+        limit=10,
+    )
+
+    assert len(cards) == 1
+    assert cards[0].url.startswith("https://www.llbean.com/llb/shop/20010264")
+    assert cards[0].name == "Adults' L.L.Bean Motif Baseball Cap"
+    assert cards[0].price == 29.95
+    assert cards[0].image.startswith("https://cdni.llbean.net/is/image/wim/527518_58110_41")
+
+
+def test_extract_listing_cards_cleans_llbean_live_product_noise() -> None:
+    html = """
+    <li class="ProductThumbnail_container">
+      <a href="/llb/shop/20010264?page=mens-ll-bean-baseball-cap-unisex&bc=12-26-596-502857-502859&feat=502859-GN3&csp=a&attrValue_0=58110&pos=1">
+        <img alt="Adults' L.L.Bean Motif Baseball Cap, New"
+             src="https://cdni.llbean.net/is/image/wim/527518_58110_41?wid=302">
+      </a>
+      <a class="ProductThumbnail_name"
+         href="/llb/shop/20010264?page=mens-ll-bean-baseball-cap-unisex&bc=12-26-596-502857-502859&feat=502859-GN3&csp=a&attrValue_0=58110&pos=1">
+        Adults' L.L.Bean Motif Baseball Cap
+      </a>
+      <div class="ProductThumbnail_price"><span>Price: $29.95</span></div>
+      <div class="ProductThumbnail_color-count">5 colors available</div>
+      <a class="Rating_count"
+         href="/llb/shop/20010264?page=mens-ll-bean-baseball-cap-unisex&bc=12-26-596-502857-502859&feat=502859-GN3&csp=a&attrValue_0=58110&pos=1&showReviews=true">
+        This product has 16 reviews
+      </a>
+    </li>
+    """
+
+    cards = extract_listing_cards(
+        category_url="https://www.llbean.com/llb/shop/502859",
+        category_name="Baseball Caps & Visors",
+        html=html,
+        links=[],
+        limit=10,
+    )
+
+    assert len(cards) == 1
+    assert cards[0].name == "Adults' L.L.Bean Motif Baseball Cap"
+    assert "showReviews" not in cards[0].url
+
+
+def test_extract_listing_cards_reads_json_ld_product_graph() -> None:
+    html = """
+    <html><body>
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [{
+          "@type": "ItemList",
+          "itemListElement": [
+            {
+              "@type": "Product",
+              "productID": "320326855",
+              "name": "Milwaukee M18 FUEL 18V Lithium-Ion Brushless Cordless Hammer Drill",
+              "brand": {"@type": "Thing", "name": "Milwaukee"},
+              "image": "https://images.thdstatic.com/productImages/drill.jpg",
+              "offers": {
+                "@type": "Offer",
+                "url": "https://www.homedepot.com/p/Milwaukee-M18-FUEL-Hammer-Drill-Driver-Tool-Only-2904-20/320326855",
+                "priceCurrency": "USD",
+                "price": 229
+              }
+            }
+          ]
+        }]
+      }
+      </script>
+    </body></html>
+    """
+
+    cards = extract_listing_cards(
+        category_url="https://www.homedepot.com/b/Tools-Power-Tools-Drills/Cordless/N-5yc1vZc27fZ1z140i3",
+        category_name="Cordless Drills",
+        html=html,
+        links=[],
+        limit=10,
+    )
+
+    assert len(cards) == 1
+    assert cards[0].url == (
+        "https://www.homedepot.com/p/"
+        "Milwaukee-M18-FUEL-Hammer-Drill-Driver-Tool-Only-2904-20/320326855"
+    )
+    assert cards[0].name == "Milwaukee M18 FUEL 18V Lithium-Ion Brushless Cordless Hammer Drill"
+    assert cards[0].brand == "Milwaukee"
+    assert cards[0].price == 229.0
+    assert cards[0].image == "https://images.thdstatic.com/productImages/drill.jpg"
+
+
+def test_extract_listing_cards_handles_patagonia_custom_product_tile_markup() -> None:
+    html = """
+    <product-tile class="product-tile badges-ready" data-pid="41915">
+      <a href="/product/mens-go-to-western-shirt/41915.html?dwvar_41915_color=LLNA"
+         itemprop="url"
+         title="M's Go-To Western Shirt - Lowlands: Natural (LLNA) (41915)">
+        <product-tile-image
+          alt="M's Go-To Western Shirt - Lowlands: Natural (LLNA) (41915)"
+          base="https://www.patagonia.com/dw/image/v2/BDJB_PRD/41915_LLNA.jpg?sw=256">
+        </product-tile-image>
+      </a>
+      <button class="product-tile__colors"
+              data-sale-price="95.0"
+              data-sale-price-formatted="$95"
+              data-gtm-swatch='[{"ecommerce":{"items":[{"item_name":"M&apos;s Go-To Western Shirt","item_brand":"Patagonia","price":95}]}}]'>
+      </button>
+      <p class="product-tile__name">M's Go-To Western Shirt</p>
+      <span class="product-tile__price">$95</span>
+    </product-tile>
+    """
+
+    cards = extract_listing_cards(
+        category_url="https://www.patagonia.com/shop/mens/tops",
+        category_name="Men's Tops",
+        html=html,
+        links=[],
+        limit=10,
+    )
+
+    assert len(cards) == 1
+    assert cards[0].name == "M's Go-To Western Shirt"
+    assert cards[0].brand == "Patagonia"
+    assert cards[0].price == 95.0
+    assert cards[0].image.startswith("https://www.patagonia.com/dw/image")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import UTC, datetime
 import json
 import sys
 from pathlib import Path
@@ -19,6 +20,7 @@ from scout.core.modes.map import map_urls as _map
 from scout.core.modes.products import products as _products
 from scout.core.modes.scrape import scrape as _scrape
 from scout.core.modes.screenshot import screenshot as _screenshot
+from scout.core.crawler import ScoutCrawler
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest
 from scout.core.platform.workspace import default_workdir, resolve_run_output_dir
@@ -30,6 +32,15 @@ from scout.core.types import (
     ScreenshotRequest,
     ScrapeRequest,
 )
+from scout.validation.certification import (
+    FEATURE_CERTIFICATION_MATRIX,
+    CertificationActual,
+    certification_results_from_evidence,
+    certify_actual,
+    load_certification_evidence,
+    write_certification_outputs,
+)
+from scout.validation.evidence_generator import generate_service_certification_evidence
 
 app = typer.Typer(
     name="scout",
@@ -81,6 +92,7 @@ def _run_high_level_use_case(
     )
     import asyncio
 
+    crawler = ScoutCrawler()
     resp = asyncio.run(
         run_use_case(
             RunRequest(
@@ -90,7 +102,8 @@ def _run_high_level_use_case(
                 profile_path=profile_path,
                 job_urls=job_urls or [],
                 output_dir=chosen_output,
-            )
+            ),
+            crawler,
         )
     )
     _out(resp.model_dump(mode="json"))
@@ -408,6 +421,109 @@ def products(
     _die(resp)
 
 
+@app.command()
+def certify_generate(
+    evidence_dir: str = typer.Option(
+        "validation-output/current-evidence",
+        "--evidence-dir",
+        help="Directory where deterministic certification evidence files should be written",
+    ),
+) -> None:
+    """Generate deterministic service/CLI/API evidence for Scout certification."""
+
+    result = generate_service_certification_evidence(Path(evidence_dir))
+    _out(
+        {
+            "success": True,
+            "evidence_dir": str(result.evidence_dir),
+            "scenario_count": len(result.scenario_files),
+            "scenario_files": [str(path) for path in result.scenario_files],
+        }
+    )
+
+
+@app.command()
+def certify(
+    output_root: str = typer.Option(
+        "validation-output",
+        "--output-root",
+        help="Root folder for generated machine-readable certification artifacts",
+    ),
+    report: str = typer.Option(
+        "",
+        "--report",
+        help="Markdown report path. Defaults to docs/validation/scout-feature-certification-<date>.md",
+    ),
+    timestamp: str = typer.Option(
+        "",
+        "--timestamp",
+        help="ISO timestamp to use in output paths and report headings",
+    ),
+    evidence: str = typer.Option(
+        "",
+        "--evidence",
+        help="JSON evidence file or directory with captured actuals. Omit to generate a scaffold.",
+    ),
+) -> None:
+    """Create Scout feature-certification expected-vs-actual artifacts."""
+
+    chosen_timestamp = timestamp or datetime.now(UTC).replace(microsecond=0).isoformat()
+    report_path = Path(report) if report else _default_certification_report_path(chosen_timestamp)
+    if evidence:
+        results = certification_results_from_evidence(
+            load_certification_evidence(Path(evidence)),
+            include_missing=True,
+        )
+    else:
+        results = [
+            certify_actual(
+                scenario,
+                CertificationActual(
+                    status="not_run",
+                    records=[],
+                    sources=[],
+                    citations=[],
+                    artifacts=[],
+                    blocked_pages=[],
+                    raw_response={
+                        "status": "not_run",
+                        "message": "Scenario has not been executed yet.",
+                        "scenario_id": scenario.scenario_id,
+                    },
+                ),
+                notes=["Generated from certification matrix; actual run evidence is pending."],
+            )
+            for scenario in FEATURE_CERTIFICATION_MATRIX
+        ]
+    outputs = write_certification_outputs(
+        results,
+        output_root=Path(output_root),
+        report_path=report_path,
+        timestamp=chosen_timestamp,
+    )
+    passed = sum(1 for result in results if result.status == "pass")
+    blocked_evidence_pass = sum(
+        1
+        for result in results
+        if result.status == "pass" and result.actual.status in {"blocked", "blocked_with_evidence"}
+    )
+    failed = sum(1 for result in results if result.status == "fail")
+    _out(
+        {
+            "success": True,
+            "scenario_count": len(results),
+            "passed": passed,
+            "blocked_evidence_pass": blocked_evidence_pass,
+            "failed": failed,
+            "mode": "evidence" if evidence else "scaffold",
+            "feature_results_json": str(outputs.feature_results_json),
+            "actual_responses_dir": str(outputs.actual_responses_dir),
+            "screenshots_dir": str(outputs.screenshots_dir),
+            "report": str(outputs.report_md),
+        }
+    )
+
+
 def _choose_output_dir(output_dir: str, workdir: str, use_case: str, query: str) -> str:
     if output_dir:
         return output_dir
@@ -433,6 +549,11 @@ def _prompt_output_dir(query: str, site: str) -> str:
         query=query,
         workdir=_prompt_workdir(),
     )
+
+
+def _default_certification_report_path(timestamp: str) -> Path:
+    day = timestamp.split("T", maxsplit=1)[0]
+    return Path("docs") / "validation" / f"scout-feature-certification-{day}.md"
 
 
 @app.command()
@@ -479,6 +600,43 @@ class _CDPBridge:
 
     async def navigate_capture(self, url: str) -> CaptureLike:
         return await self._svc.navigate_capture(url)  # type: ignore[attr-defined,no-any-return]
+
+
+def _write_unblock_artifacts(outcome: object, target: Path) -> dict:
+    """Persist human-assisted capture artifacts, including reusable raw HTML."""
+
+    from scout.core.products.captured import product_records_from_captured_html
+
+    target.mkdir(parents=True, exist_ok=True)
+    summary = outcome.model_dump(mode="json")  # type: ignore[attr-defined]
+    html = str(summary.pop("html", "") or "")
+    markdown = str(summary.get("markdown") or "")
+    final_url = str(summary.get("final_url") or "")
+    title = str(summary.get("title") or "")
+
+    (target / "capture.md").write_text(markdown, encoding="utf-8")
+    (target / "capture.html").write_text(html, encoding="utf-8")
+
+    records = []
+    if html and final_url:
+        records = product_records_from_captured_html(
+            html=html,
+            source_url=final_url,
+            category_name=title or final_url,
+            limit=50,
+        )
+        (target / "product_records.json").write_text(
+            json.dumps(records, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+
+    summary["html_artifact"] = str(target / "capture.html")
+    summary["markdown_artifact"] = str(target / "capture.md")
+    summary["product_records_artifact"] = str(target / "product_records.json") if records else ""
+    summary["product_record_count"] = len(records)
+    (target / "capture.json").write_text(
+        json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    return summary
 
 
 @app.command()
@@ -529,10 +687,12 @@ def unblock(
 
     target = Path(out).expanduser() if out else None
     if target and outcome.status == "cleared":
-        target.mkdir(parents=True, exist_ok=True)
-        (target / "capture.md").write_text(outcome.markdown, encoding="utf-8")
-        (target / "capture.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-        typer.echo(f"Captured cleared page -> {target}", err=True)
+        summary = _write_unblock_artifacts(outcome, target)
+        typer.echo(
+            f"Captured cleared page -> {target} "
+            f"({summary.get('product_record_count', 0)} product records)",
+            err=True,
+        )
 
     if crawl_from_here and outcome.status == "cleared":
         typer.echo(

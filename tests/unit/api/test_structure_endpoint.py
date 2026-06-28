@@ -66,6 +66,62 @@ def test_structure_with_css_schema_returns_records(monkeypatch) -> None:
     assert body["records"][0]["name"] == "A"
 
 
+def test_structure_with_product_record_type_returns_algolia_records(monkeypatch) -> None:
+    from scout.api.routers import structure
+    from scout.core.types import CaptureExtraction
+
+    async def fake_structure(html, **kwargs):
+        return CaptureExtraction(
+            success=True,
+            source_url=kwargs.get("source_url", ""),
+            markdown="# Skin Care\nAdvanced Night Repair Serum $85.00",
+            word_count=7,
+        )
+
+    monkeypatch.setattr(structure, "structure_capture", fake_structure)
+
+    html = """
+    <article class="product-grid__item">
+      <a class="product-tile__link"
+         href="/product/681/141225/product-catalog/skincare/advanced-night-repair-serum">
+        <img alt="Advanced Night Repair Serum" src="/media/anr.jpg">
+        <span class="price">$85.00</span>
+      </a>
+    </article>
+    """
+
+    client = TestClient(app)
+    resp = client.post(
+        "/structure",
+        json={
+            "html": html,
+            "source_url": "https://www.esteelauder.com/products/681/product-catalog/skin-care",
+            "record_type": "products",
+            "category_name": "Skin Care",
+            "limit": 5,
+        },
+        headers=_HEADERS,
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+    assert body["record_count"] == 1
+    record = body["records"][0]
+    assert record["objectID"]
+    assert record["name"] == "Advanced Night Repair Serum"
+    assert record["url"] == (
+        "https://www.esteelauder.com/product/681/141225/product-catalog/skincare/"
+        "advanced-night-repair-serum"
+    )
+    assert record["price"] == 85.0
+    assert record["image"] == "https://www.esteelauder.com/media/anr.jpg"
+    assert record["categories"] == ["Skin Care"]
+    assert record["citations"][0]["source_url"] == (
+        "https://www.esteelauder.com/products/681/product-catalog/skin-care"
+    )
+
+
 def test_structure_empty_html_returns_failure(monkeypatch) -> None:
     from scout.api.routers import structure
     from scout.core.types import CaptureExtraction

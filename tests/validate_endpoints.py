@@ -939,13 +939,16 @@ class ScoutValidator:
             self.reports.append(report)
 
     # -----------------------------------------------------------------------
-    # 10. POST /run/prism — aggregate all verticals
+    # 10. POST /run/prism — bounded PRISM V1 bundle
     # -----------------------------------------------------------------------
     def test_run_prism(self):
         report = EndpointReport(
             endpoint="POST /run/prism",
             use_case="PRISM aggregate intelligence",
-            business_value="Run ALL intelligence verticals in one call — full company dossier",
+            business_value=(
+                "Run the bounded PRISM V1 prospect-intelligence bundle — "
+                "company/social, careers, investor, and news"
+            ),
         )
         print(f"\n{'=' * 60}\n{report.endpoint} — {report.use_case}\n{'=' * 60}")
 

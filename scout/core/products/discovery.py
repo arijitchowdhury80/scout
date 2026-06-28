@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import parse_qs, urlparse, urlunparse
 
 from scout.core.types import ProductListingCard
 
@@ -144,15 +144,36 @@ def _normalise_url_preserve_query(url: str) -> str:
 
 
 def _is_product_url(url: str) -> bool:
-    path = urlparse(url).path.lower()
+    parsed = urlparse(url)
+    path = parsed.path.lower()
+    query = parse_qs(parsed.query)
     if "/products/" in path and "/product-catalog/" in path:
         return False
+    if _is_llbean_product_url(path, query):
+        return True
     if any(marker in path for marker in _PRODUCT_MARKERS):
         return True
     if any(marker in f"{path}/" for marker in _CATEGORY_MARKERS):
         return False
     filename = path.rsplit("/", 1)[-1]
     return filename.endswith(".html")
+
+
+def _is_llbean_product_url(path: str, query: dict[str, list[str]]) -> bool:
+    """L.L.Bean uses `/llb/shop/<id>` for both categories and products.
+
+    Product links on PLPs carry product-specific query markers such as `feat`,
+    `pos`, item/sku ids, or selected attributes. Category/filter links use the
+    same path shape but only carry navigation/query paging params.
+    """
+    parts = [part for part in path.strip("/").split("/") if part]
+    if len(parts) != 3 or parts[:2] != ["llb", "shop"] or not parts[2].isdigit():
+        return False
+    product_query_markers = ("feat", "pos", "itemid", "sku")
+    lower_keys = {key.lower() for key in query}
+    return any(key in lower_keys for key in product_query_markers) or any(
+        key.lower().startswith("attrvalue_") for key in query
+    )
 
 
 def _is_category_url(url: str) -> bool:

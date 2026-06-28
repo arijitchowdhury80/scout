@@ -20,6 +20,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         """Pass public routes through; reject other requests without a valid key."""
         public_paths = {
             "/",
+            "/api/config",
             "/app",
             "/app/",
             "/app/live-browser",

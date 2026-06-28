@@ -66,6 +66,59 @@ def test_harvest_passes_css_schema(monkeypatch) -> None:
     assert seen["css_schema"] == schema
 
 
+def test_harvest_product_record_type_returns_algolia_records(monkeypatch) -> None:
+    from scout.api.routers import harvest
+    from scout.core.types import CaptureExtraction
+
+    async def fake_acquire(cdp_url, url, **kwargs):
+        return CaptureExtraction(
+            success=True,
+            source_url=url,
+            markdown="# Skincare\nAdvanced Night Repair Serum $85.00",
+            raw_html="""
+            <article class="product-grid__item">
+              <a class="product-tile__link"
+                 href="/product/681/141225/product-catalog/skincare/advanced-night-repair-serum">
+                <img alt="Advanced Night Repair Serum" src="/media/anr.jpg">
+                <span class="price">$85.00</span>
+              </a>
+            </article>
+            """,
+            word_count=6,
+        )
+
+    monkeypatch.setattr(harvest, "acquire_open_page", fake_acquire)
+
+    client = TestClient(app)
+    resp = client.post(
+        "/harvest",
+        json={
+            "cdp_url": "http://127.0.0.1:9222",
+            "url": "https://www.esteelauder.com/products/681/product-catalog/skin-care",
+            "record_type": "products",
+            "category_name": "Skin Care",
+            "limit": 3,
+        },
+        headers=_HEADERS,
+    )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+    assert body["record_count"] == 1
+    record = body["records"][0]
+    assert record["objectID"]
+    assert record["name"] == "Advanced Night Repair Serum"
+    assert record["url"] == (
+        "https://www.esteelauder.com/product/681/141225/product-catalog/skincare/"
+        "advanced-night-repair-serum"
+    )
+    assert record["price"] == 85.0
+    assert record["citations"][0]["source_url"] == (
+        "https://www.esteelauder.com/products/681/product-catalog/skin-care"
+    )
+
+
 def test_harvest_empty_cdp_url_returns_failure(monkeypatch) -> None:
     from scout.api.routers import harvest
     from scout.core.types import CaptureExtraction

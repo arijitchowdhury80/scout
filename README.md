@@ -24,6 +24,7 @@ See:
 - [Differentiation](docs/product/differentiation.md)
 - [Private beta launch plan](docs/product/private-beta-launch-plan.md)
 - [Distribution package plan](docs/product/distribution-package-plan.md)
+- [Feature certification](docs/validation/feature-certification.md)
 - [Legal readiness checklist](docs/legal/legal-readiness-checklist.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
 
@@ -704,20 +705,27 @@ Push validated records to an Algolia index. Supports batching.
 
 ## Endpoint Validation
 
-Scout ships with a comprehensive validation suite that tests every endpoint with real HTTP calls:
+Scout ships with endpoint validation and a feature-certification gate. Endpoint
+validation proves HTTP route behavior; feature certification proves each Scout
+capability with expected-vs-actual records, sources, citations, artifacts, UI
+state, and blocked/fallback evidence.
 
 ```bash
 # Start Scout, then:
 python tests/validate_endpoints.py
+
+# Generate the full feature-certification matrix/report scaffold:
+scout certify --output-root validation-output
 ```
 
-The suite runs **123 tests** across all 15 endpoint groups:
+The endpoint suite covers:
 - Multiple queries per endpoint (valid inputs, edge cases, error handling)
 - Success/failure criteria for every response field
 - Auth enforcement verification
 - Graceful degradation (invalid domains, missing CDP, fake Algolia credentials)
 
-**Latest results: 123/123 passed (100%).**
+Before a private beta or launch claim, run the full certification gate described
+in [docs/validation/feature-certification.md](docs/validation/feature-certification.md).
 
 ---
 

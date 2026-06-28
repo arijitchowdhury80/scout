@@ -4,7 +4,7 @@ from __future__ import annotations
 
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from scout.api.db import RunDB, RunRow, RunEventRow
 from scout.api.user_browser import (
@@ -16,6 +16,7 @@ from scout.api.user_browser import (
 from scout.core.blocking import detect_block
 from scout.core.capture_extract import structure_capture
 from scout.core.cdp_acquire import acquire_open_page
+from scout.core.products.captured import product_records_from_captured_html
 
 router = APIRouter(prefix="/app/browser", tags=["app-browser"])
 
@@ -30,6 +31,10 @@ class NativeCaptureRequest(BaseModel):
     run_id: str = ""
     profile_dir: str = ""
     css_schema: dict | None = None
+    record_type: str = ""
+    category_name: str = ""
+    links: list[str] = Field(default_factory=list)
+    limit: int = 25
 
 
 class NativeCaptureResult(BaseModel):
@@ -100,11 +105,22 @@ async def capture_native(
             if snapshot.success:
                 structured = snapshot
         if structured is not None:
+            records = structured.records
+            record_count = structured.record_count
+            if req.record_type.lower() in {"product", "products"}:
+                records = product_records_from_captured_html(
+                    html=cap.html,
+                    source_url=cap.url,
+                    category_name=req.category_name,
+                    links=req.links,
+                    limit=req.limit,
+                )
+                record_count = len(records)
             result = result.model_copy(
                 update={
                     "markdown": structured.markdown,
-                    "records": structured.records,
-                    "record_count": structured.record_count,
+                    "records": records,
+                    "record_count": record_count,
                 }
             )
 

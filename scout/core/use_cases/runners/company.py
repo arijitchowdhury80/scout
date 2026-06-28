@@ -119,14 +119,21 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
         all_markdown += homepage.markdown + "\n"
         all_links.extend(homepage.links)
 
-    for path in _ABOUT_PATHS + _TEAM_PATHS:
-        url = urljoin(base + "/", path.lstrip("/"))
-        resp = await safe_scrape(crawler, url)
-        if resp:
+    async def scrape_first(paths: list[str]) -> None:
+        nonlocal all_markdown, all_links
+        for path in paths:
+            url = urljoin(base + "/", path.lstrip("/"))
+            resp = await safe_scrape(crawler, url)
+            if not resp:
+                continue
             src = evidence_from_scrape(url, resp)
             sources.append(src)
             all_markdown += resp.markdown + "\n"
             all_links.extend(resp.links)
+            return
+
+    await scrape_first(_ABOUT_PATHS)
+    await scrape_first(_TEAM_PATHS)
 
     if not sources:
         return []

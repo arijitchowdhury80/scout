@@ -285,6 +285,7 @@ async def test_website_quality_extracts_signals() -> None:
     assert len(records) == 1
     rec = records[0]
     assert rec["record_type"] == "website_quality"
+    assert rec["finding"]
     assert rec["has_viewport_meta"] is True
     assert rec["has_description_meta"] is True
     assert rec["has_og_tags"] is True
@@ -296,3 +297,43 @@ async def test_website_quality_extracts_signals() -> None:
     assert rec["images_with_alt"] == 1
     assert rec["link_count"] >= 2
     assert rec["confidence"] > 0.5
+
+
+@pytest.mark.asyncio
+async def test_website_quality_resolves_known_target_query_to_url() -> None:
+    from scout.core.use_cases.runners.website_quality import run_website_quality
+
+    html = """
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Flights and holidays">
+      </head>
+      <body>
+        <main><h1>British Airways</h1><a href="/travel/home/public/en_us/">Home</a></main>
+      </body>
+    </html>
+    """
+    crawler = MagicMock()
+    crawler.scrape = AsyncMock(
+        return_value=ScrapeResponse(
+            success=True,
+            url="https://www.britishairways.com/",
+            markdown="# British Airways\n\nFlights and holidays.",
+            raw_html=html,
+            metadata=_meta("https://www.britishairways.com/"),
+            duration_ms=100,
+        )
+    )
+
+    records = await run_website_quality(
+        _req("website-quality", query="British Airways", url="", targets=[]),
+        crawler,
+    )
+
+    assert len(records) == 1
+    crawler.scrape.assert_awaited_once()
+    scrape_req = crawler.scrape.await_args.args[0]
+    assert scrape_req.url == "https://www.britishairways.com/"
+    assert records[0]["url"] == "https://www.britishairways.com/"
+    assert records[0]["citations"]

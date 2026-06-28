@@ -33,14 +33,12 @@ WORKDIR /app
 
 # Install Python dependencies (no dev deps in prod)
 COPY pyproject.toml .
+COPY scout/ scout/
 RUN pip install --no-cache-dir .
 
 # Install Playwright and Chromium browser, then Crawl4AI browser setup
 RUN playwright install chromium \
     && python -c "from crawl4ai import AsyncWebCrawler; print('Crawl4AI ready')"
-
-# Copy application source
-COPY scout/ scout/
 
 # Persistent data volume
 VOLUME /data

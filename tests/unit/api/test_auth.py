@@ -36,6 +36,11 @@ def _make_app(api_key: str = "test-key") -> FastAPI:
         """OpenAPI schema endpoint — no auth."""
         return {"openapi": "ok"}
 
+    @test_app.get("/api/config")
+    async def api_config() -> dict:
+        """Frontend config endpoint — no auth."""
+        return {"api_key": "test-key"}
+
     @test_app.post("/scrape")
     async def scrape() -> dict:
         """Scrape endpoint — requires auth."""
@@ -59,11 +64,13 @@ def test_frontend_routes_require_no_auth() -> None:
     favicon_resp = client.get("/favicon.ico")
     docs_resp = client.get("/docs")
     openapi_resp = client.get("/openapi.json")
+    config_resp = client.get("/api/config")
 
     assert app_resp.status_code == 200
     assert favicon_resp.status_code == 200
     assert docs_resp.status_code == 200
     assert openapi_resp.status_code == 200
+    assert config_resp.status_code == 200
 
 
 def test_scrape_without_key_returns_403() -> None:

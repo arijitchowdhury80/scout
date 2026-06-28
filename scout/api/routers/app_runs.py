@@ -532,6 +532,7 @@ async def _execute_products(run_id: str, req: AppRunRequest, crawler: ScoutCrawl
                     "fallback_attempted": True,
                     "fallback_used": True,
                     "fallback_error": "Scout Browser captured a rendered blocked/access-denied page.",
+                    "provider_attempts": ["scout-browser"],
                 }
             ]
             run.status = "failed"
@@ -717,6 +718,107 @@ async def _execute_products(run_id: str, req: AppRunRequest, crawler: ScoutCrawl
         return
     if run.status in {"failed", "complete"}:
         return
+    if not resp.records and req.mode == "auto" and req.browser_fallback:
+        _append(
+            run_id,
+            "browser",
+            "Crawler returned zero product records; escalating to Scout Browser DOM capture",
+            "warning",
+        )
+        run.browser_evidence = await _capture_scout_browser_evidence(
+            run_id=run_id, url=req.url, output_dir=req.output_dir
+        )
+        captured = run.browser_evidence.get("status") == "captured"
+        status_code = run.browser_evidence.get("status_code")
+        text_preview = str(run.browser_evidence.get("text_preview", "")).lower()
+        blocked_capture = bool(
+            (isinstance(status_code, int) and status_code >= 400)
+            or "access denied" in text_preview
+            or "permission to access" in text_preview
+            or "blocked" in text_preview
+        )
+        browser_records = (
+            []
+            if blocked_capture or not captured
+            else _records_from_browser_dom(
+                evidence=run.browser_evidence,
+                target_url=req.url,
+                category_name=req.query or run.browser_evidence.get("title") or "Products",
+                provider="scout-browser",
+            )
+        )
+        if blocked_capture:
+            run.records = []
+            run.blocked_pages = [
+                {
+                    "url": req.url,
+                    "reason": "scout_browser_access_denied",
+                    "category_url": req.url,
+                    "category_name": req.query or req.url,
+                    "title": run.browser_evidence.get("title", "Access denied"),
+                    "fallback_attempted": True,
+                    "fallback_used": True,
+                    "fallback_error": "Scout Browser captured a rendered blocked/access-denied page.",
+                    "provider_attempts": ["crawl4ai", "scout-browser"],
+                }
+            ]
+            run.sources = [
+                {
+                    "source_url": run.browser_evidence.get("url") or req.url,
+                    "provider": "scout-browser",
+                    "status_code": status_code,
+                    "status": "blocked",
+                    "confidence": 0.2,
+                    "captured_at": run.browser_evidence.get("captured_at") or _now(),
+                    "type": "browser_snapshot",
+                    "session_type": "Scout browser session",
+                }
+            ]
+            run.status = "failed"
+            run.artifacts = _write_app_artifacts(run)
+            _append(
+                run_id,
+                "blocked",
+                "Scout Browser captured blocked/access-denied evidence",
+                "warning",
+            )
+            _append(run_id, "artifacts", "Browser blocked evidence artifacts written")
+            _append(run_id, "failed", "Run failed with Scout Browser blocked evidence", "error")
+            run.updated_at = _now()
+            return
+        if browser_records:
+            run.records = browser_records
+            run.blocked_pages = []
+            run.sources = [
+                {
+                    "source_url": run.browser_evidence.get("url") or req.url,
+                    "provider": "scout_browser_dom",
+                    "status_code": status_code,
+                    "status": "ok",
+                    "confidence": 0.7,
+                    "captured_at": run.browser_evidence.get("captured_at") or _now(),
+                    "type": "browser_dom_listing",
+                    "session_type": "Scout browser session",
+                }
+            ]
+            run.status = "complete"
+            run.artifacts = _write_app_artifacts(run)
+            _append(
+                run_id,
+                "extracting",
+                f"Extracted {len(run.records)} product records from Scout Browser DOM",
+                "success",
+            )
+            _append(run_id, "artifacts", "Browser fallback artifacts written")
+            _append(run_id, "complete", "Run completed with Scout Browser fallback", "success")
+            run.updated_at = _now()
+            return
+        _append(
+            run_id,
+            "browser",
+            "Scout Browser fallback did not produce product records; preserving crawler evidence",
+            "warning",
+        )
     _append(run_id, "extracting", f"Extracted {len(resp.records)} product records")
     run.records = [record.model_dump(mode="json", by_alias=True) for record in resp.records]
     run.blocked_pages = [item.model_dump(mode="json") for item in resp.blocked_pages]

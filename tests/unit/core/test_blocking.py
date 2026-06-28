@@ -95,6 +95,30 @@ def test_unusual_traffic_phrase_detected() -> None:
     assert sig.blocked is True
 
 
+def test_shopify_checkout_interstitial_detected() -> None:
+    """Patagonia live finding: a routing interstitial is not product content."""
+    sig = detect_block(
+        status_code=200,
+        title="Hang Tight! Routing to checkout...",
+        html="<main>Hang Tight! Routing to checkout...</main>",
+    )
+    assert sig.blocked is True
+    assert sig.vendor == "generic"
+    assert sig.matched == "routing to checkout"
+
+
+def test_generic_error_page_detected_as_acquisition_block() -> None:
+    """Home Depot live finding: generic error documents should not certify as content."""
+    sig = detect_block(
+        status_code=200,
+        title="Error Page",
+        html="<h1>Error Page</h1><p>We are sorry, an unexpected error occurred while loading this page.</p>",
+    )
+    assert sig.blocked is True
+    assert sig.vendor == "generic"
+    assert sig.matched == "error page"
+
+
 # --- Regression: live finding 2026-06-17 (Zillow). Anti-bot SDK scripts stay
 # loaded on the CLEARED page; their mere presence must NOT read as blocked. ---
 

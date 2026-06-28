@@ -179,15 +179,27 @@ class ChromeCDPService:
                 pass
             title = await page.title()
             html = await page.content()
-            text = await page.locator("body").inner_text(timeout=5_000)
-            screenshot = await page.screenshot(full_page=True)
-            links = await page.eval_on_selector_all(
-                "a[href]",
-                """anchors => anchors.slice(0, 200).map((a) => ({
-                    text: (a.innerText || '').trim().slice(0, 180),
-                    href: a.href
-                }))""",
-            )
+            try:
+                text = await page.locator("body").inner_text(timeout=5_000)
+            except Exception:
+                text = ""
+            try:
+                screenshot = await page.screenshot(full_page=True)
+            except Exception:
+                # Screenshot capture can fail on very tall or dynamic pages while
+                # the DOM is still present. Keep the DOM evidence instead of
+                # aborting the whole acquisition path.
+                screenshot = b""
+            try:
+                links = await page.eval_on_selector_all(
+                    "a[href]",
+                    """anchors => anchors.slice(0, 200).map((a) => ({
+                        text: (a.innerText || '').trim().slice(0, 180),
+                        href: a.href
+                    }))""",
+                )
+            except Exception:
+                links = []
             current_url = page.url
             await browser.close()
 
@@ -198,7 +210,11 @@ class ChromeCDPService:
             title=title,
             html=html,
             text=text,
-            screenshot_data_url=f"data:image/png;base64,{base64.b64encode(screenshot).decode('ascii')}",
+            screenshot_data_url=(
+                f"data:image/png;base64,{base64.b64encode(screenshot).decode('ascii')}"
+                if screenshot
+                else ""
+            ),
             links=links[:25],
         )
 

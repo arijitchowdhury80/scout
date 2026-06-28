@@ -110,9 +110,28 @@ class TestBuildRecordIntegration:
             url="https://www.shopify-store.com/product",
             name="Test Product",
             brand="",
+            category_url="https://www.shopify-store.com/category",
+            category_name="Category",
         )
         record = build_listing_algolia_record(card)
         assert record.brand == "Shopify-store"
+        assert record.citations
+        assert record.citations[0]["source_url"] == "https://www.shopify-store.com/category"
+        assert record.citations[0]["field"] == "name"
+
+    def test_product_page_record_includes_citation(self) -> None:
+        record = build_algolia_record(
+            url="https://www.acme.com/widget",
+            title="Widget",
+            category_name="Gadgets",
+            category_url="https://www.acme.com/gadgets",
+            product=None,
+        )
+
+        assert record.citations
+        assert record.citations[0]["source_id"]
+        assert record.citations[0]["source_url"] == "https://www.acme.com/gadgets"
+        assert record.citations[0]["claim"] == "Widget"
 
     def test_dedup_same_canonical_url(self) -> None:
         record1 = build_algolia_record(

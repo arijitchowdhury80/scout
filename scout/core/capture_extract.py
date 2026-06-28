@@ -134,6 +134,7 @@ async def structure_capture(
             success=True,
             source_url=source_url,
             markdown=clean_md,
+            raw_html=html,
             records=records,
             record_count=len(records),
             word_count=len(clean_md.split()),

@@ -65,6 +65,68 @@ def source_page_registry_entry(source: FetchResult) -> dict[str, Any]:
     }
 
 
+def _citation_source_entry(citation: dict[str, Any]) -> dict[str, Any]:
+    source_id = str(citation.get("source_id") or "")
+    source_url = str(citation.get("source_url") or "")
+    confidence = citation.get("confidence")
+    return {
+        "source_id": source_id,
+        "source_url": source_url,
+        "final_url": source_url,
+        "provider": "citation",
+        "fetched_at": "",
+        "status_code": None,
+        "blocked": False,
+        "error": "",
+        "confidence": confidence if isinstance(confidence, int | float) else None,
+        "title": "Citation source",
+        "content_sha256": "",
+        "markdown_sha256": "",
+        "html_sha256": "",
+        "text_sha256": "",
+        "dom_snapshot_sha256": "",
+        "has_markdown": False,
+        "has_html": False,
+        "has_text": False,
+        "has_dom_snapshot": False,
+        "links_count": 0,
+        "evidence": {
+            "source_id": source_id,
+            "provider": "citation",
+            "source_url": source_url,
+            "final_url": source_url,
+            "fetched_at": "",
+            "status_code": None,
+            "blocked": False,
+            "error": "",
+            "confidence": confidence if isinstance(confidence, int | float) else None,
+        },
+    }
+
+
+def _source_registry_entries(
+    sources: list[FetchResult], records: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    entries = [source_page_registry_entry(source) for source in sources]
+    seen = {str(entry.get("source_id") or "") for entry in entries}
+
+    for record in records:
+        citations = record.get("citations")
+        if not isinstance(citations, list):
+            continue
+        for citation in citations:
+            if not isinstance(citation, dict):
+                continue
+            source_id = str(citation.get("source_id") or "")
+            source_url = str(citation.get("source_url") or "")
+            if not source_id or not source_url or source_id in seen:
+                continue
+            entries.append(_citation_source_entry(citation))
+            seen.add(source_id)
+
+    return entries
+
+
 def _record_has_citations(record: dict[str, Any]) -> bool:
     citations = record.get("citations")
     return isinstance(citations, list) and len(citations) > 0
@@ -94,14 +156,14 @@ def _citation_count(record: dict[str, Any]) -> int:
 
 def _coverage_summary(
     records: list[dict[str, Any]],
-    sources: list[FetchResult],
+    source_count: int,
     blocked: list[dict[str, Any]],
 ) -> str:
     cited_records = sum(1 for record in records if _record_has_citations(record))
     total_citations = sum(_citation_count(record) for record in records)
     return (
         "\n\n## Source And Citation Coverage\n\n"
-        f"- Source pages: {len(sources)}\n"
+        f"- Source pages: {source_count}\n"
         f"- Blocked pages: {len(blocked)}\n"
         f"- Records with citations: {cited_records}/{len(records)}\n"
         f"- Total citations: {total_citations}\n"
@@ -119,6 +181,7 @@ def write_run_artifacts(
 ) -> ArtifactFiles:
     output_dir.mkdir(parents=True, exist_ok=True)
     all_findings = [*findings, *_citation_findings(records)]
+    source_entries = _source_registry_entries(sources, records)
 
     files = ArtifactFiles(
         manifest=str(output_dir / "manifest.json"),
@@ -132,7 +195,7 @@ def write_run_artifacts(
 
     manifest.artifacts = files
     manifest.total_records = len(records)
-    manifest.total_sources = len(sources)
+    manifest.total_sources = len(source_entries)
     manifest.total_blocked = len(blocked)
 
     _write_json(output_dir / "manifest.json", manifest.model_dump(mode="json"))
@@ -142,7 +205,7 @@ def write_run_artifacts(
     )
     _write_json(
         output_dir / "source_pages.json",
-        [source_page_registry_entry(source) for source in sources],
+        source_entries,
     )
     _write_json(output_dir / "blocked_pages.json", blocked)
     _write_json(
@@ -150,7 +213,7 @@ def write_run_artifacts(
         [finding.model_dump(mode="json") for finding in all_findings],
     )
     (output_dir / "extraction_report.md").write_text(
-        report.rstrip() + _coverage_summary(records, sources, blocked) + "\n"
+        report.rstrip() + _coverage_summary(records, len(source_entries), blocked) + "\n"
     )
 
     return files

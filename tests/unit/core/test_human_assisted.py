@@ -86,3 +86,28 @@ def test_blank_clear_page_is_not_treated_as_cleared() -> None:
         )
     )
     assert out.status == "timeout"
+
+
+def test_large_hidden_challenge_html_is_not_treated_as_cleared() -> None:
+    """A hidden challenge shell can be large HTML but still has no visible content."""
+    challenge = FakeCapture(
+        title="",
+        text="",
+        html=(
+            '<script src="/f0uhFB/aUmo8/pfeki/XbRG/kG5uhwzaiG"></script>'
+            '<div id="sec-if-cpt-container" style="display: none">'
+            '<p class="scf-akamai-protected-by">Powered and protected by</p>'
+            '<img alt="Akamai">'
+            "</div>" * 20
+        ),
+    )
+    out = _run(
+        human_assisted_acquire(
+            "https://www.homedepot.com/b/Tools/N-5yc1vZc1xy",
+            FakeBridge([challenge]),
+            sleep=_noop_sleep,
+            poll_interval=1.0,
+            max_wait=2.0,
+        )
+    )
+    assert out.status == "timeout"

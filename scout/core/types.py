@@ -54,10 +54,21 @@ class ScrapeResponse(BaseModel):
     success: bool
     url: str
     markdown: str = ""
+    raw_markdown: str = ""
+    clean_markdown: str = ""
     raw_html: str = ""
     screenshot_base64: str = ""
     links: list[str] = Field(default_factory=list)
     metadata: ScoutMetadata
+    final_url: str = ""
+    fetched_at: str = ""
+    provider: str = ""
+    content_hash: str = ""
+    cleanup_rules_applied: list[str] = Field(default_factory=list)
+    quality_score: float = 0.0
+    quality_reasons: list[str] = Field(default_factory=list)
+    recommended_collector: str = ""
+    recommended_collector_reason: str = ""
     error: str = ""
     duration_ms: int
 
@@ -136,6 +147,7 @@ class CaptureExtraction(BaseModel):
     success: bool
     source_url: str = ""
     markdown: str = ""  # clean filtered markdown (always populated on success)
+    raw_html: str = ""  # held/captured HTML, used for no-refetch productization paths
     records: list[dict] = Field(default_factory=list)  # typed records iff a schema was given
     record_count: int = 0
     word_count: int = 0
@@ -267,6 +279,7 @@ class AlgoliaProductRecord(BaseModel):
     variants: list[ProductVariant] = Field(default_factory=list)
     in_stock: bool | None = None
     source: ProductSource = Field(serialization_alias="_source")
+    citations: list[dict[str, object]] = Field(default_factory=list)
     completeness_score: float = 0.0
 
 

@@ -124,6 +124,7 @@ def test_visible_enabled_controls_are_classified(page: Page, tmp_path: Path) -> 
 
     manifest_path = tmp_path / "control-coverage-manifest.json"
     manifest_path.write_text(json.dumps(classified, indent=2), encoding="utf-8")
+    _write_app_ui_certification_evidence(control_manifest=classified)
 
     assert not failures, f"Unclassified visible controls: {json.dumps(failures, indent=2)}"
 
@@ -490,6 +491,12 @@ def test_non_run_navigation_controls_are_intentionally_disabled(page: Page) -> N
         expect(page.locator("#screenTitle")).to_contain_text(title)
 
     expect(page.locator("[data-top-section='docs']")).to_have_attribute("href", "/docs")
+    _write_app_ui_certification_evidence(
+        navigation_manifest=[
+            {"section": section, "title": title, "result": "visible"}
+            for section, title in {**screen_expectations, "projects": "Projects"}.items()
+        ]
+    )
 
 
 def test_each_use_case_changes_form_contract_and_payload(page: Page) -> None:
@@ -503,6 +510,8 @@ def test_each_use_case_changes_form_contract_and_payload(page: Page) -> None:
         "news": "Newsroom, blog URL, or company domain",
         "research": "URL, domain, or research prompt",
         "docs": "Documentation URL or sitemap URL",
+        "social": "Company domain or social profile source URL",
+        "locations": "Locations/store finder URL or company domain",
         "website-quality": "Website URL",
     }
     for use_case, target_label in expectations.items():
@@ -634,6 +643,37 @@ def _classify_control(control: dict[str, object]) -> str:
     if tag == "input" and control_type in {"text", "password", "number", "url", ""}:
         return "functional"
     return "fail"
+
+
+def _write_app_ui_certification_evidence(
+    *,
+    control_manifest: list[dict[str, object]] | None = None,
+    navigation_manifest: list[dict[str, object]] | None = None,
+) -> None:
+    evidence_root = os.getenv("SCOUT_CERTIFICATION_EVIDENCE_DIR", "")
+    if not evidence_root:
+        return
+    evidence_path = Path(evidence_root) / "app_ui.mocked.json"
+    if evidence_path.exists():
+        payload = json.loads(evidence_path.read_text(encoding="utf-8"))
+    else:
+        payload = {
+            "scenario_id": "app_ui.mocked",
+            "status": "success",
+            "records": [],
+            "sources": [],
+            "citations": [],
+            "artifacts": [],
+            "blocked_pages": [],
+            "raw_response": {},
+        }
+    raw_response = payload.setdefault("raw_response", {})
+    if control_manifest is not None:
+        raw_response["control_manifest"] = control_manifest
+    if navigation_manifest is not None:
+        raw_response["navigation_manifest"] = navigation_manifest
+    evidence_path.parent.mkdir(parents=True, exist_ok=True)
+    evidence_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def test_layout_fills_viewport_without_page_scroll_or_wasted_drawer_gutter(page: Page) -> None:

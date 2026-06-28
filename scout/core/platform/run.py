@@ -220,10 +220,7 @@ async def _run_prism(req: RunRequest, crawler: "ScoutCrawler", description: str)
     from scout.core.use_cases.runners.company import run_company
     from scout.core.use_cases.runners.investor import run_investor
     from scout.core.use_cases.runners.news import run_news
-    from scout.core.use_cases.runners.research import run_research
     from scout.core.use_cases.runners.social import run_social
-    from scout.core.use_cases.runners.locations import run_locations
-    from scout.core.use_cases.runners.website_quality import run_website_quality
     from scout.core.platform.execution import ExecutionMode, provider_ladder_for_mode
 
     started_at = _now_iso()
@@ -232,16 +229,10 @@ async def _run_prism(req: RunRequest, crawler: "ScoutCrawler", description: str)
     all_records: list[dict] = []
     errors: list[str] = []
 
-    for runner in [
-        run_company,
-        run_careers,
-        run_investor,
-        run_news,
-        run_research,
-        run_social,
-        run_locations,
-        run_website_quality,
-    ]:
+    # PRISM V1 is the prospect-intelligence bundle: company/executive/social,
+    # careers, investor, and recent news. Keep broader research/docs/quality
+    # workflows as explicit use cases so PRISM remains bounded for UI runs.
+    for runner in [run_company, run_careers, run_investor, run_news, run_social]:
         try:
             records = await runner(req, crawler)
             all_records.extend(records)

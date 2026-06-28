@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import re
+import json
+from html import unescape
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qsl, urlencode, urljoin, urlparse, urlunparse
 
 from scout.core.products.discovery import is_product_url
 from scout.core.types import ProductListingCard
@@ -60,17 +62,22 @@ class _ListingParser(HTMLParser):
                 )
         if tag.lower() == "a":
             self._start_anchor(attr_map.get("href", ""), context)
-        if tag.lower() == "img" and self._current:
+        if tag.lower() in {"img", "product-tile-image"} and self._current:
             self._capture_image(attr_map)
         if tag.lower() == "a" and self._product_contexts:
             url = _absolute_url(self.category_url, attr_map.get("href", ""))
             if url and is_product_url(url):
                 for context_item in self._product_contexts:
                     context_item.urls.append(url)
-        if tag.lower() == "img" and self._product_contexts:
+        if tag.lower() in {"img", "product-tile-image"} and self._product_contexts:
             self._capture_context_image(attr_map)
         if self._product_contexts and tag.lower() not in {"script", "style"}:
-            self._product_contexts[-1].text_parts.extend(_product_text_from_attrs(attr_map))
+            attr_text = _product_text_from_attrs(attr_map)
+            attr_brand = _brand_from_attrs(attr_map)
+            for context_item in self._product_contexts:
+                context_item.text_parts.extend(attr_text)
+                if attr_brand and not context_item.brand:
+                    context_item.brand = attr_brand
 
     def handle_data(self, data: str) -> None:
         if self._current and data.strip():
@@ -110,6 +117,8 @@ class _ListingParser(HTMLParser):
         if current is None:
             return
         image = attr_map.get("src") or attr_map.get("data-src") or attr_map.get("data-original")
+        if not image:
+            image = attr_map.get("base", "")
         if image:
             current.image = _absolute_url(self.category_url, image)
         alt = attr_map.get("alt", "").strip()
@@ -118,6 +127,8 @@ class _ListingParser(HTMLParser):
 
     def _capture_context_image(self, attr_map: dict[str, str]) -> None:
         image = attr_map.get("src") or attr_map.get("data-src") or attr_map.get("data-original")
+        if not image:
+            image = attr_map.get("base", "")
         alt = attr_map.get("alt", "").strip()
         for context_item in self._product_contexts:
             if image and not context_item.image:
@@ -147,14 +158,20 @@ def extract_listing_cards(
     """Return typed product cards found on a category/listing page."""
     parser = _ListingParser(category_url)
     parser.feed(html or "")
-    candidates = [*parser.candidates, *_candidates_from_links(category_url, links)]
+    candidates = [
+        *parser.candidates,
+        *_candidates_from_json_ld(category_url, html or ""),
+        *_candidates_from_links(category_url, links),
+    ]
     cards: list[ProductListingCard] = []
     seen: dict[str, int] = {}
     for candidate in candidates:
         card = _to_card(candidate, category_url, category_name)
         if not _is_usable_card(card):
             continue
-        existing_index = seen.get(card.url)
+        canonical_url = _canonical_product_url(card.url)
+        card = card.model_copy(update={"url": canonical_url})
+        existing_index = seen.get(canonical_url)
         if existing_index is not None:
             if _card_quality(card) > _card_quality(cards[existing_index]):
                 cards[existing_index] = card
@@ -162,7 +179,7 @@ def extract_listing_cards(
         if len(cards) >= limit:
             continue
         cards.append(card)
-        seen[card.url] = len(cards) - 1
+        seen[canonical_url] = len(cards) - 1
     return cards
 
 
@@ -173,6 +190,105 @@ def _candidates_from_links(category_url: str, links: list[str]) -> list[_AnchorC
         if is_product_url(url):
             candidates.append(_AnchorCandidate(url=url, text_parts=[_name_from_url(url)]))
     return candidates
+
+
+def _candidates_from_json_ld(category_url: str, html: str) -> list[_AnchorCandidate]:
+    candidates: list[_AnchorCandidate] = []
+    for payload in _json_ld_payloads(html):
+        for product in _find_json_ld_products(payload):
+            url = _product_url_from_json_ld(product, category_url)
+            if not url or not is_product_url(url):
+                continue
+            name = _json_scalar(product.get("name"))
+            brand = _json_ld_brand(product.get("brand"))
+            image = _json_ld_image(product.get("image"), category_url)
+            price = _json_ld_price(product.get("offers"))
+            text_parts = [name]
+            if price:
+                text_parts.append(f"${price}")
+            candidates.append(
+                _AnchorCandidate(
+                    url=url,
+                    text_parts=[part for part in text_parts if part],
+                    image=image,
+                    brand=brand,
+                )
+            )
+    return candidates
+
+
+def _json_ld_payloads(html: str) -> list[object]:
+    payloads: list[object] = []
+    pattern = re.compile(
+        r"<script\b[^>]*type=[\"']application/ld\+json[\"'][^>]*>(.*?)</script>",
+        re.IGNORECASE | re.DOTALL,
+    )
+    for match in pattern.finditer(html or ""):
+        raw = unescape(match.group(1)).strip()
+        if not raw:
+            continue
+        try:
+            payloads.append(json.loads(raw))
+        except Exception:
+            continue
+    return payloads
+
+
+def _find_json_ld_products(value: object) -> list[dict[str, object]]:
+    products: list[dict[str, object]] = []
+    stack: list[object] = [value]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, dict):
+            item_type = item.get("@type")
+            types = item_type if isinstance(item_type, list) else [item_type]
+            if any(str(type_value).lower() == "product" for type_value in types):
+                products.append(item)
+            stack.extend(item.values())
+        elif isinstance(item, list):
+            stack.extend(item)
+    return products
+
+
+def _product_url_from_json_ld(product: dict[str, object], category_url: str) -> str:
+    offers = product.get("offers")
+    for offer in offers if isinstance(offers, list) else [offers]:
+        if isinstance(offer, dict):
+            url = _json_scalar(offer.get("url"))
+            if url:
+                return _absolute_url(category_url, url)
+    url = _json_scalar(product.get("url"))
+    return _absolute_url(category_url, url) if url else ""
+
+
+def _json_ld_brand(value: object) -> str:
+    if isinstance(value, dict):
+        return _json_scalar(value.get("name"))
+    return _json_scalar(value)
+
+
+def _json_ld_image(value: object, category_url: str) -> str:
+    if isinstance(value, list):
+        value = value[0] if value else ""
+    if isinstance(value, dict):
+        value = value.get("url") or value.get("contentUrl")
+    text = _json_scalar(value)
+    return _absolute_url(category_url, text) if text else ""
+
+
+def _json_ld_price(offers: object) -> str:
+    for offer in offers if isinstance(offers, list) else [offers]:
+        if isinstance(offer, dict):
+            price = _json_scalar(offer.get("price"))
+            if price:
+                return price
+    return ""
+
+
+def _json_scalar(value: object) -> str:
+    if isinstance(value, (str, int, float)):
+        return str(value).strip()
+    return ""
 
 
 def _to_card(
@@ -215,8 +331,44 @@ def _extract_price(value: str) -> float | None:
 
 def _clean_name(value: str) -> str:
     text = re.sub(r"[$£€¥₹]\s*[0-9][0-9,]*(?:\.[0-9]{1,2})?", " ", value)
+    text = re.sub(r"\bprice\s*:\s*", " ", text, flags=re.IGNORECASE)
+    text = re.sub(r",\s*(new|best seller|sale)\b", " ", text, flags=re.IGNORECASE)
+    text = re.sub(r"^(new|best seller|sale)\s+", "", text, flags=re.IGNORECASE)
+    variant_duplicate = re.match(
+        r"(.+?)\s+-\s+.+?\s+\([A-Z0-9]+\)\s+\(\d+\)(?:\s+\d+(?:\.\d+)?)?\s+\1\b",
+        text,
+    )
+    if variant_duplicate:
+        text = variant_duplicate.group(1)
+    text = re.split(
+        r"\b\d+\s+colors?\s+available\b|\bColors?\b|\bPrice range from\b|\bRating:\b|\bThis product has\b",
+        text,
+        maxsplit=1,
+        flags=re.IGNORECASE,
+    )[0]
+    text = re.sub(r"\b\d+\s*$", "", text)
     text = re.sub(r"\s+", " ", text).strip(" -|")
-    return text
+    return _dedupe_repeated_phrase(text)
+
+
+def _dedupe_repeated_phrase(value: str) -> str:
+    words = value.split()
+    if len(words) < 4 or len(words) % 2:
+        return value
+    midpoint = len(words) // 2
+    if words[:midpoint] == words[midpoint:]:
+        return " ".join(words[:midpoint])
+    return value
+
+
+def _canonical_product_url(url: str) -> str:
+    parsed = urlparse(url)
+    query = [
+        (key, value)
+        for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+        if key.lower() not in {"showreviews"}
+    ]
+    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", urlencode(query), ""))
 
 
 def _clean_text(value: str) -> str:
@@ -244,7 +396,15 @@ def _card_quality(card: ProductListingCard) -> int:
 
 def _has_product_context(attr_map: dict[str, str]) -> bool:
     text = f"{attr_map.get('class', '')} {attr_map.get('id', '')}".lower()
-    return any(marker in text for marker in _PRODUCT_CONTEXT_MARKERS)
+    action = attr_map.get("data-action", "").lower()
+    if re.search(r"(^|\s)product-grid($|\s)", text):
+        return False
+    return (
+        any(marker in text for marker in _PRODUCT_CONTEXT_MARKERS)
+        or any(key in attr_map for key in {"data-product_id", "data-product-id", "data-sku"})
+        or "product#" in action
+        or "overlayproduct" in action
+    )
 
 
 def _has_nav_context(attr_map: dict[str, str]) -> bool:
@@ -264,8 +424,14 @@ def _product_text_from_attrs(attr_map: dict[str, str]) -> list[str]:
             "data-name",
             "data-product-title",
             "title",
+            "data-sale-price",
+            "data-sale-price-formatted",
+            "data-list-price",
+            "data-list-price-formatted",
         }:
             values.append(value)
+    values.extend(str(value) for value in _gtm_values_from_attrs(attr_map, "item_name"))
+    values.extend(str(value) for value in _gtm_values_from_attrs(attr_map, "price"))
     return values
 
 
@@ -274,7 +440,34 @@ def _brand_from_attrs(attr_map: dict[str, str]) -> str:
         value = attr_map.get(key, "").strip()
         if value:
             return value
+    for value in _gtm_values_from_attrs(attr_map, "item_brand"):
+        text = str(value).strip()
+        if text:
+            return text
     return ""
+
+
+def _gtm_values_from_attrs(attr_map: dict[str, str], field: str) -> list[str | int | float]:
+    payload = attr_map.get("data-gtm") or attr_map.get("data-gtm-swatch") or ""
+    if not payload:
+        return []
+    try:
+        data = json.loads(unescape(payload))
+    except Exception:
+        return []
+    values: list[str | int | float] = []
+    stack: list[object] = [data]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, dict):
+            for key, value in item.items():
+                if key == field and isinstance(value, (str, int, float)):
+                    values.append(value)
+                elif isinstance(value, (dict, list)):
+                    stack.append(value)
+        elif isinstance(item, list):
+            stack.extend(item)
+    return values
 
 
 def _unique_text_parts(values: list[str]) -> list[str]:

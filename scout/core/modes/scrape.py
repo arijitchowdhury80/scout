@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import time
 from datetime import datetime, timezone
+import hashlib
 from typing import cast
 from urllib.parse import urlparse
 
@@ -47,6 +48,66 @@ def _extract_links(links_dict: dict) -> list[str]:
         if href:
             result.append(href)
     return result
+
+
+def _content_hash(*parts: str) -> str:
+    content = "\n".join(part for part in parts if part)
+    return hashlib.sha256(content.encode("utf-8")).hexdigest() if content else ""
+
+
+def _quality_score(
+    *,
+    title: str,
+    markdown: str,
+    links: list[str],
+    success: bool,
+    error: str = "",
+) -> tuple[float, list[str], str, str]:
+    reasons: list[str] = []
+    score = 0.0
+    if success:
+        score += 0.25
+        reasons.append("not_blocked")
+    elif error:
+        reasons.append("fetch_failed")
+    if title:
+        score += 0.2
+        reasons.append("title_present")
+    if len(markdown.split()) >= 20:
+        score += 0.25
+        reasons.append("content_present")
+    else:
+        reasons.append("content_sparse")
+    if links:
+        score += 0.15
+        reasons.append("links_extracted")
+    if markdown and not _looks_like_blocked(markdown):
+        score += 0.15
+        reasons.append("not_blocked_copy")
+    elif markdown:
+        reasons.append("blocked_copy_detected")
+    score = round(min(score, 1.0), 2)
+    collector = "crawl4ai" if score >= 0.55 else "direct_http_or_feed"
+    collector_reason = (
+        "Crawl4AI returned usable rendered content."
+        if collector == "crawl4ai"
+        else "Rendered content was sparse or blocked; consider direct HTTP, RSS/feed, or browser capture."
+    )
+    return score, reasons, collector, collector_reason
+
+
+def _looks_like_blocked(markdown: str) -> bool:
+    lowered = markdown.lower()
+    return any(
+        marker in lowered
+        for marker in [
+            "access denied",
+            "captcha",
+            "checking your browser",
+            "verify you are human",
+            "blocked",
+        ]
+    )
 
 
 def _build_browser_config(req: ScrapeRequest) -> BrowserConfig:
@@ -122,10 +183,23 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
 
         if not result.success:
             logger.warning("[scout/scrape] crawl failed", url=req.url, error=result.error_message)
+            score, reasons, collector, collector_reason = _quality_score(
+                title="",
+                markdown="",
+                links=[],
+                success=False,
+                error=result.error_message or "Unknown error",
+            )
             return ScrapeResponse(
                 success=False,
                 url=req.url,
                 metadata=_empty_meta(),
+                fetched_at=crawled_at,
+                provider="crawl4ai",
+                quality_score=score,
+                quality_reasons=reasons,
+                recommended_collector=collector,
+                recommended_collector_reason=collector_reason,
                 error=result.error_message or "Unknown error",
                 duration_ms=duration_ms,
             )
@@ -134,10 +208,21 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
         # Use getattr so tests that pass plain strings as markdown mock values don't break.
         _md = result.markdown
         clean_md = getattr(_md, "fit_markdown", None) or str(_md or "") or ""
+        raw_md = str(_md or "")
         raw_meta = result.metadata or {}
+        links = _extract_links(result.links or {})
+        final_url = result.url or req.url
+        raw_html = (result.html or "") if want_raw_html else ""
+        screenshot = (result.screenshot or "") if want_screenshot else ""
+        quality, quality_reasons, collector, collector_reason = _quality_score(
+            title=raw_meta.get("title", "") or "",
+            markdown=clean_md,
+            links=links,
+            success=True,
+        )
 
         metadata = ScoutMetadata(
-            url=result.url or req.url,
+            url=final_url,
             crawled_at=crawled_at,
             title=raw_meta.get("title", "") or "",
             description=raw_meta.get("description", "") or "",
@@ -148,22 +233,46 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
 
         return ScrapeResponse(
             success=True,
-            url=result.url or req.url,
+            url=final_url,
             markdown=clean_md,
-            raw_html=result.html or "" if want_raw_html else "",
-            screenshot_base64=result.screenshot or "" if want_screenshot else "",
-            links=_extract_links(result.links or {}),
+            raw_markdown=raw_md,
+            clean_markdown=clean_md,
+            raw_html=raw_html,
+            screenshot_base64=screenshot,
+            links=links,
             metadata=metadata,
+            final_url=final_url,
+            fetched_at=crawled_at,
+            provider="crawl4ai",
+            content_hash=_content_hash(raw_md, clean_md, raw_html),
+            cleanup_rules_applied=["PruningContentFilter(threshold=0.4,fixed)"],
+            quality_score=quality,
+            quality_reasons=quality_reasons,
+            recommended_collector=collector,
+            recommended_collector_reason=collector_reason,
             duration_ms=duration_ms,
         )
 
     except Exception as exc:
         duration_ms = int((time.monotonic() - started) * 1000)
         logger.exception("[scout/scrape] unexpected error", url=req.url, exc=str(exc))
+        score, reasons, collector, collector_reason = _quality_score(
+            title="",
+            markdown="",
+            links=[],
+            success=False,
+            error=str(exc),
+        )
         return ScrapeResponse(
             success=False,
             url=req.url,
             metadata=_empty_meta(),
+            fetched_at=crawled_at,
+            provider="crawl4ai",
+            quality_score=score,
+            quality_reasons=reasons,
+            recommended_collector=collector,
+            recommended_collector_reason=collector_reason,
             error=str(exc),
             duration_ms=duration_ms,
         )

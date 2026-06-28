@@ -24,6 +24,7 @@ from scout.core.blocking import detect_block
 # A "cleared" page must be both non-blocked AND have real content, so an
 # intermediate blank load isn't mistaken for success.
 _MIN_CLEARED_CONTENT = 200
+_MIN_CLEARED_WORDS = 20
 
 
 class CaptureLike(Protocol):
@@ -51,6 +52,14 @@ class HumanAssistedOutcome(BaseModel):
     html: str = ""  # cleared-page HTML, so crawl-from-here can discover detail links
     blocked_vendor: str = ""
     error: str = ""
+
+
+def _has_real_visible_content(text: str) -> bool:
+    """Return true only when browser capture includes meaningful visible text."""
+    visible = (text or "").strip()
+    if len(visible) >= _MIN_CLEARED_CONTENT:
+        return True
+    return len(visible.split()) >= _MIN_CLEARED_WORDS
 
 
 async def human_assisted_acquire(
@@ -84,8 +93,7 @@ async def human_assisted_acquire(
             return HumanAssistedOutcome(status="error", polls=polls, error=f"capture failed: {exc}")
 
         signal = detect_block(None, title=cap.title, html=cap.html, markdown=cap.text)
-        content = cap.text or cap.html or ""
-        if not signal.blocked and len(content) >= _MIN_CLEARED_CONTENT:
+        if not signal.blocked and _has_real_visible_content(cap.text):
             return HumanAssistedOutcome(
                 status="cleared",
                 polls=polls,

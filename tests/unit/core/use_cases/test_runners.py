@@ -123,6 +123,33 @@ async def test_company_runner_returns_empty_on_total_failure() -> None:
     assert records == []
 
 
+@pytest.mark.asyncio
+async def test_company_runner_stops_after_first_about_and_team_success() -> None:
+    from scout.core.use_cases.runners.company import run_company
+
+    crawler = _mock_crawler(
+        {
+            "acme.com/about": _scrape_ok(
+                "https://www.acme.com/about",
+                "# About Acme\n\nAcme builds AI search tools.",
+            ),
+            "acme.com/team": _scrape_ok(
+                "https://www.acme.com/team",
+                "# Team\n\n**Jane Smith** — Chief Executive Officer",
+            ),
+        }
+    )
+
+    records = await run_company(_req("company"), crawler)
+    requested_urls = [call.args[0].url for call in crawler.scrape.await_args_list]
+
+    assert records
+    assert "https://www.acme.com/about" in requested_urls
+    assert "https://www.acme.com/about-us" not in requested_urls
+    assert "https://www.acme.com/team" in requested_urls
+    assert "https://www.acme.com/leadership" not in requested_urls
+
+
 # ---------------------------------------------------------------------------
 # Careers runner
 # ---------------------------------------------------------------------------
@@ -326,3 +353,74 @@ async def test_dispatcher_falls_back_to_seeds_for_saved_mode(tmp_path) -> None:
 
     assert resp.success is True
     assert resp.total_records > 0
+
+
+@pytest.mark.asyncio
+async def test_live_prism_runner_is_bounded_to_v1_bundle(monkeypatch, tmp_path) -> None:
+    """PRISM V1 is company/social + careers + investor + news, not every vertical."""
+
+    from scout.core.platform.run import run_use_case
+    from scout.core.use_cases.runners import (
+        careers,
+        company,
+        investor,
+        locations,
+        news,
+        research,
+        social,
+        website_quality,
+    )
+
+    called: list[str] = []
+    forbidden_called: list[str] = []
+
+    def fake_runner(name: str):
+        async def _run(_req, _crawler):
+            called.append(name)
+            return [
+                {
+                    "objectID": f"{name}_record",
+                    "record_type": name,
+                    "citations": [
+                        {
+                            "source_id": f"src_{name}",
+                            "source_url": "https://example.com",
+                            "field": "url",
+                            "claim": name,
+                        }
+                    ],
+                }
+            ]
+
+        return _run
+
+    def forbidden_runner(name: str):
+        async def _run(_req, _crawler):
+            forbidden_called.append(name)
+            raise AssertionError("PRISM V1 should not run this vertical")
+
+        return _run
+
+    monkeypatch.setattr(company, "run_company", fake_runner("company"))
+    monkeypatch.setattr(careers, "run_careers", fake_runner("careers"))
+    monkeypatch.setattr(investor, "run_investor", fake_runner("investor"))
+    monkeypatch.setattr(news, "run_news", fake_runner("news"))
+    monkeypatch.setattr(social, "run_social", fake_runner("social"))
+    monkeypatch.setattr(research, "run_research", forbidden_runner("research"))
+    monkeypatch.setattr(locations, "run_locations", forbidden_runner("locations"))
+    monkeypatch.setattr(website_quality, "run_website_quality", forbidden_runner("website-quality"))
+
+    resp = await run_use_case(
+        RunRequest(
+            use_case="prism",
+            query="Example",
+            url="https://example.com",
+            mode="auto",
+            output_dir=str(tmp_path / "prism-run"),
+        ),
+        crawler=object(),
+    )
+
+    assert resp.success is True
+    assert called == ["company", "careers", "investor", "news", "social"]
+    assert forbidden_called == []

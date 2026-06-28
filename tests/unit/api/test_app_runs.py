@@ -125,6 +125,181 @@ def test_app_run_auto_mode_does_not_open_user_browser(
         app.dependency_overrides.clear()
 
 
+def test_app_run_auto_mode_uses_scout_browser_when_products_are_empty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mock_crawler = MagicMock()
+    mock_crawler.products = AsyncMock(
+        return_value=ProductCrawlResponse(
+            success=True,
+            query="Nike shirts",
+            site="https://www.nike.com",
+            start_url="https://www.nike.com/w/mens-shirts-tops-9om13znik1",
+            total_records=0,
+            duration_ms=10,
+        )
+    )
+
+    async def fake_capture(*, run_id: str, url: str, output_dir: str) -> dict[str, object]:
+        browser_dir = Path(output_dir) / "browser"
+        browser_dir.mkdir(parents=True, exist_ok=True)
+        dom = browser_dir / "dom.html"
+        text = browser_dir / "text.txt"
+        screenshot = browser_dir / "screenshot.png"
+        dom.write_text(
+            """
+            <html><body>
+              <article class="product-card" aria-label="Nike Sportswear Men's T-Shirt">
+                <a href="/t/sportswear-mens-t-shirt-fGt2fr43/IZ3157-121">
+                  <img src="/shirt.jpg" alt="Nike Sportswear Men's T-Shirt">
+                  <span>Nike Sportswear Men's T-Shirt</span>
+                  <span>$45</span>
+                </a>
+              </article>
+            </body></html>
+            """,
+            encoding="utf-8",
+        )
+        text.write_text("Nike Sportswear Men's T-Shirt $45", encoding="utf-8")
+        screenshot.write_bytes(b"fake-png")
+        return {
+            "url": url,
+            "title": "Men's Shirts & T-Shirts. Nike.com",
+            "provider": "scout-browser",
+            "session_type": "Scout browser session",
+            "status": "captured",
+            "status_code": 200,
+            "dom_path": str(dom),
+            "text_path": str(text),
+            "screenshot_path": str(screenshot),
+            "screenshot_data_url": "data:image/png;base64,ZmFrZS1wbmc=",
+            "text_preview": "Nike Sportswear Men's T-Shirt $45",
+            "links": [
+                {
+                    "text": "Nike Sportswear Men's T-Shirt",
+                    "href": "https://www.nike.com/t/sportswear-mens-t-shirt-fGt2fr43/IZ3157-121",
+                }
+            ],
+            "console_errors": [],
+            "network_failures": [],
+        }
+
+    monkeypatch.setattr(app_runs, "_capture_scout_browser_evidence", fake_capture)
+    app.dependency_overrides[get_crawler] = lambda: mock_crawler
+    try:
+        with TestClient(app) as client:
+            create_resp = client.post(
+                "/app/runs",
+                headers=_HEADERS,
+                json={
+                    "use_case": "products",
+                    "mode": "auto",
+                    "url": "https://www.nike.com/w/mens-shirts-tops-9om13znik1",
+                    "output_dir": str(tmp_path / "auto-browser-products"),
+                },
+            )
+            run_id = create_resp.json()["run_id"]
+
+            deadline = time.time() + 5
+            data = create_resp.json()
+            while time.time() < deadline:
+                run_resp = client.get(f"/app/runs/{run_id}", headers=_HEADERS)
+                data = run_resp.json()
+                if data["status"] in {"failed", "complete"}:
+                    break
+                time.sleep(0.05)
+
+        assert data["status"] == "complete"
+        assert data["records"]
+        assert data["records"][0]["name"] == "Nike Sportswear Men's T-Shirt"
+        assert data["records"][0]["_source"]["extractor"] == "scout_browser_dom"
+        assert data["sources"][0]["provider"] == "scout_browser_dom"
+        assert any("Scout Browser" in event["message"] for event in data["events"])
+        mock_crawler.products.assert_awaited_once()
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_app_run_auto_mode_preserves_scout_browser_blocked_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    mock_crawler = MagicMock()
+    mock_crawler.products = AsyncMock(
+        return_value=ProductCrawlResponse(
+            success=True,
+            query="Patagonia tops",
+            site="https://www.patagonia.com",
+            start_url="https://www.patagonia.com/shop/mens/tops",
+            total_records=0,
+            duration_ms=10,
+        )
+    )
+
+    async def fake_capture(*, run_id: str, url: str, output_dir: str) -> dict[str, object]:
+        browser_dir = Path(output_dir) / "browser"
+        browser_dir.mkdir(parents=True, exist_ok=True)
+        dom = browser_dir / "dom.html"
+        text = browser_dir / "text.txt"
+        screenshot = browser_dir / "screenshot.png"
+        dom.write_text("<title>Attention Required! | Cloudflare</title>", encoding="utf-8")
+        text.write_text("Sorry, you have been blocked by Cloudflare", encoding="utf-8")
+        screenshot.write_bytes(b"fake-png")
+        return {
+            "url": url,
+            "title": "Attention Required! | Cloudflare",
+            "provider": "scout-browser",
+            "session_type": "Scout browser session",
+            "status": "captured",
+            "status_code": 403,
+            "dom_path": str(dom),
+            "text_path": str(text),
+            "screenshot_path": str(screenshot),
+            "screenshot_data_url": "data:image/png;base64,ZmFrZS1wbmc=",
+            "text_preview": "Sorry, you have been blocked by Cloudflare",
+            "links": [],
+            "console_errors": [],
+            "network_failures": [],
+        }
+
+    monkeypatch.setattr(app_runs, "_capture_scout_browser_evidence", fake_capture)
+    app.dependency_overrides[get_crawler] = lambda: mock_crawler
+    try:
+        with TestClient(app) as client:
+            create_resp = client.post(
+                "/app/runs",
+                headers=_HEADERS,
+                json={
+                    "use_case": "products",
+                    "mode": "auto",
+                    "url": "https://www.patagonia.com/shop/mens/tops",
+                    "output_dir": str(tmp_path / "auto-browser-blocked"),
+                },
+            )
+            run_id = create_resp.json()["run_id"]
+
+            deadline = time.time() + 5
+            data = create_resp.json()
+            while time.time() < deadline:
+                run_resp = client.get(f"/app/runs/{run_id}", headers=_HEADERS)
+                data = run_resp.json()
+                if data["status"] in {"failed", "complete"}:
+                    break
+                time.sleep(0.05)
+
+        assert data["status"] == "failed"
+        assert data["blocked_pages"][0]["reason"] == "scout_browser_access_denied"
+        assert data["blocked_pages"][0]["provider_attempts"] == [
+            "crawl4ai",
+            "scout-browser",
+        ]
+        assert data["sources"][0]["provider"] == "scout-browser"
+        assert data["sources"][0]["status"] == "blocked"
+        assert data["browser_evidence"]["screenshot_path"].endswith("browser/screenshot.png")
+        assert Path(data["artifacts"]["browser_screenshot"]).exists()
+    finally:
+        app.dependency_overrides.clear()
+
+
 def test_app_run_user_browser_mode_opens_chrome_and_waits_for_capture(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import re
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field
 
 from scout.core.crawler import ScoutCrawler
+from scout.core.platform.targets import target_url_for_name
 from scout.core.platform.types import Citation, RunRequest
 from scout.core.types import ScrapeRequest, ScoutFormats
 from scout.core.use_cases.runners.base import (
@@ -20,6 +22,7 @@ class WebsiteQualityRecord(BaseModel):
     record_type: str = "website_quality"
     objectID: str
     url: str
+    finding: str = ""
     has_viewport_meta: bool = False
     has_description_meta: bool = False
     has_og_tags: bool = False
@@ -53,7 +56,7 @@ _LINK_TAG = re.compile(r"<a\s+[^>]*href=", re.I)
 
 
 async def run_website_quality(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
-    url = req.url or (req.targets[0] if req.targets else "")
+    url = _resolve_quality_url(req)
     if not url:
         return []
 
@@ -103,10 +106,19 @@ async def run_website_quality(req: RunRequest, crawler: ScoutCrawler) -> list[di
         ]
     )
     confidence = min(0.9, 0.3 + signal_count * 0.08)
+    finding = _finding_summary(
+        has_viewport=has_viewport,
+        has_description=has_description,
+        has_og=has_og,
+        has_structured=has_structured,
+        uses_semantic=uses_semantic,
+        has_h1=has_h1,
+    )
 
     record = WebsiteQualityRecord(
         objectID=f"quality_{slug}",
         url=url,
+        finding=finding,
         has_viewport_meta=has_viewport,
         has_description_meta=has_description,
         has_og_tags=has_og,
@@ -124,3 +136,45 @@ async def run_website_quality(req: RunRequest, crawler: ScoutCrawler) -> list[di
     )
 
     return [record.model_dump(mode="json")]
+
+
+def _resolve_quality_url(req: RunRequest) -> str:
+    candidates = [req.url, *req.targets, req.query]
+    for candidate in candidates:
+        value = candidate.strip()
+        if not value:
+            continue
+        parsed = urlparse(value)
+        if parsed.scheme in {"http", "https"} and parsed.netloc:
+            return value
+        target_url = target_url_for_name(value)
+        if target_url:
+            return target_url
+    return ""
+
+
+def _finding_summary(
+    *,
+    has_viewport: bool,
+    has_description: bool,
+    has_og: bool,
+    has_structured: bool,
+    uses_semantic: bool,
+    has_h1: bool,
+) -> str:
+    missing = []
+    if not has_viewport:
+        missing.append("viewport metadata")
+    if not has_description:
+        missing.append("description metadata")
+    if not has_og:
+        missing.append("Open Graph metadata")
+    if not has_structured:
+        missing.append("structured data")
+    if not uses_semantic:
+        missing.append("semantic HTML")
+    if not has_h1:
+        missing.append("primary H1")
+    if not missing:
+        return "Core website quality signals are present."
+    return "Missing or weak quality signals: " + ", ".join(missing) + "."

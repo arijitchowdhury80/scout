@@ -32,6 +32,17 @@ async def test_scrape_returns_markdown_on_success():
     assert "Hello World" in resp.markdown
     assert resp.url == "https://example.com"
     assert resp.error == ""
+    assert resp.final_url == "https://example.com"
+    assert resp.fetched_at
+    assert resp.provider == "crawl4ai"
+    assert resp.raw_markdown
+    assert resp.clean_markdown == resp.markdown
+    assert resp.content_hash
+    assert resp.cleanup_rules_applied
+    assert resp.quality_score > 0
+    assert "title_present" in resp.quality_reasons
+    assert resp.recommended_collector
+    assert resp.recommended_collector_reason
 
 
 @pytest.mark.asyncio

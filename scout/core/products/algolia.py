@@ -6,6 +6,7 @@ import hashlib
 import re
 from urllib.parse import urlparse, urlunparse, urlencode, parse_qs
 
+from scout.core.platform.types import FetchProviderKind, stable_source_id
 from scout.core.products.jsonld import ProductJsonLd
 from scout.core.types import AlgoliaProductRecord, ProductListingCard, ProductSource
 
@@ -56,6 +57,7 @@ def build_algolia_record(
             category_name=category_name,
         ),
     )
+    record.citations = [_product_citation(record.source, field="name", claim=record.name)]
     record.completeness_score = _completeness_score(record)
     return record
 
@@ -83,6 +85,7 @@ def build_listing_algolia_record(card: ProductListingCard) -> AlgoliaProductReco
             category_name=card.category_name,
         ),
     )
+    record.citations = [_product_citation(record.source, field="name", claim=record.name)]
     record.completeness_score = _completeness_score(record)
     return record
 
@@ -110,6 +113,20 @@ def brand_fallback(brand: str, url: str) -> str:
 
 def _object_id(url: str) -> str:
     return hashlib.sha256(canonical_url(url).encode("utf-8")).hexdigest()[:24]
+
+
+def _product_citation(source: ProductSource, *, field: str, claim: str) -> dict[str, object]:
+    source_url = source.category_url or source.url
+    provider = source.extractor or FetchProviderKind.CRAWL4AI.value
+    return {
+        "source_id": stable_source_id(provider, source_url, source_url),
+        "source_url": source_url,
+        "field": field,
+        "claim": claim,
+        "snippet": claim[:240],
+        "selector": "",
+        "confidence": 0.75 if source.extractor == "listing" else 0.85,
+    }
 
 
 def _completeness_score(record: AlgoliaProductRecord) -> float:

@@ -169,6 +169,48 @@ def test_validation_warns_when_record_has_no_citations(tmp_path) -> None:
     assert validation[0]["record_id"] == "company_example"
 
 
+def test_source_pages_json_backfills_missing_citation_sources(tmp_path) -> None:
+    manifest = RunManifest(
+        run_id="run_citation_backfill",
+        use_case="company",
+        started_at="2026-05-15T12:00:00Z",
+        output_dir=str(tmp_path),
+    )
+
+    write_run_artifacts(
+        output_dir=tmp_path,
+        manifest=manifest,
+        records=[
+            {
+                "objectID": "company_example",
+                "citations": [
+                    {
+                        "source_id": "src_missing_registry",
+                        "source_url": "https://example.com/about",
+                        "field": "description",
+                        "claim": "Example description",
+                        "snippet": "Example description",
+                        "confidence": 0.7,
+                    }
+                ],
+            }
+        ],
+        sources=[],
+        blocked=[],
+        findings=[],
+        report="Done.",
+    )
+
+    source_pages = json.loads((tmp_path / "source_pages.json").read_text())
+    saved_manifest = json.loads((tmp_path / "manifest.json").read_text())
+
+    assert saved_manifest["total_sources"] == 1
+    assert source_pages[0]["source_id"] == "src_missing_registry"
+    assert source_pages[0]["source_url"] == "https://example.com/about"
+    assert source_pages[0]["provider"] == "citation"
+    assert source_pages[0]["has_markdown"] is False
+
+
 def test_report_includes_source_and_citation_coverage(tmp_path) -> None:
     manifest = RunManifest(
         run_id="run_report",
