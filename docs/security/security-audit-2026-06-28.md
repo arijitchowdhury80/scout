@@ -125,6 +125,8 @@ Launch impact:
 - This is a public-launch review gate, not a private-beta blocker by itself.
 - Public launch should not proceed unless the committed baseline hook passes on
   the final release commit.
+- GitHub CI now includes a blocking `secret-scan` job that runs
+  `detect-secrets-hook --baseline .secrets.baseline` over tracked files.
 
 ## Remaining Risks
 

@@ -30,6 +30,20 @@ jobs:
       - run: pip install ".[dev]"
       - run: python -m pyright scout/
 
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install detect-secrets
+      - run: |
+          detect-secrets-hook --baseline .secrets.baseline --no-verify \
+            --exclude-files '(^dist/|^validation-output/|^scout-runs/|^\.pytest_cache/|^\.ruff_cache/)' \
+            $(git ls-files)
+
   unit-tests:
     runs-on: ubuntu-latest
     steps:

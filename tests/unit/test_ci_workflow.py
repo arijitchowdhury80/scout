@@ -39,3 +39,11 @@ def test_ci_docker_job_smokes_built_container_routes() -> None:
     assert "curl -fsS http://127.0.0.1:18421/health" in runs
     assert "curl -fsS http://127.0.0.1:18421/" in runs
     assert "curl -fsS http://127.0.0.1:18421/styles.css" in runs
+
+
+def test_ci_runs_secret_scan_against_committed_baseline() -> None:
+    runs = "\n".join(_step_runs("secret-scan"))
+
+    assert "pip install detect-secrets" in runs
+    assert "detect-secrets-hook --baseline .secrets.baseline" in runs
+    assert "$(git ls-files)" in runs

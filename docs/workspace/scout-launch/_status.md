@@ -66,6 +66,7 @@ readiness work needed to turn Scout from a working tool into a testable product.
   - entropy-aware `detect-secrets` scan found 26 candidates across 18 tracked
     files; candidates are now audited as false positives in `.secrets.baseline`
     with a companion review report,
+  - GitHub CI now has a blocking `secret-scan` job for the committed baseline,
   - public launch remains blocked until the dependency CVE is resolved or an
     explicit risk decision is made.
 

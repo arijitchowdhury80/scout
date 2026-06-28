@@ -1544,3 +1544,46 @@ Boundary:
 - It does not resolve the Crawl4AI/lxml dependency CVE.
 - Public launch still requires the baseline hook to pass on the final release
   commit.
+
+## CI Secret Scan Gate Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- GitHub CI `secret-scan` job,
+- CI install step for `detect-secrets`,
+- blocking CI command:
+  `detect-secrets-hook --baseline .secrets.baseline --no-verify --exclude-files '(^dist/|^validation-output/|^scout-runs/|^\\.pytest_cache/|^\\.ruff_cache/)' $(git ls-files)`,
+- CI workflow contract test for the secret-scan job.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/test_ci_workflow.py -q` failed because
+  `.github/workflows/ci.yml` had no `secret-scan` job.
+- GREEN:
+  `python3 -m pytest tests/unit/test_ci_workflow.py -q` passed after adding
+  the CI secret-scan job.
+
+Verification:
+
+- Local hook:
+  `/tmp/scout-detect-secrets-venv/bin/detect-secrets-hook --baseline .secrets.baseline --no-verify --exclude-files '(^dist/|^validation-output/|^scout-runs/|^\\.pytest_cache/|^\\.ruff_cache/)' $(git ls-files)`
+  passed.
+- Focused CI/security gate:
+  `python3 -m pytest tests/unit/test_ci_workflow.py tests/unit/test_secret_baseline.py tests/unit/test_security_audit_docs.py -q`
+  passed: 7 tests.
+- Full unit suite:
+  `python3 -m pytest tests/unit/ -q` passed: 527 tests, 8 warnings.
+- Type check:
+  `python3 -m pyright scout/` passed: 0 errors, 0 warnings, 0 informations.
+- Lint/format:
+  `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
+  all checks passed, 213 files already formatted.
+
+Boundary:
+
+- This enforces the audited tracked-file secret baseline in CI.
+- It does not perform a dependency CVE audit in CI because the current
+  Crawl4AI/lxml CVE would fail; that remains an explicit public-launch blocker.

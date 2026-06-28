@@ -66,6 +66,8 @@ No public registry publish should happen until these decisions are closed.
       Result: `detect-secrets` found 26 candidates across 18 tracked files;
       candidates are audited as false positives in `.secrets.baseline` and
       `docs/security/detect-secrets-audit-2026-06-28.md`.
+- [x] Secret scan enforced in GitHub CI.
+      Evidence: `.github/workflows/ci.yml` `secret-scan` job.
 - [ ] Hosted SSRF checks reviewed.
 - [ ] Hosted artifact authorization and path confinement reviewed.
 - [ ] Terms/privacy placeholders created before public hosted beta.
