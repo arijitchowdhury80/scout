@@ -470,3 +470,50 @@ Still pending:
 - live Stripe test-mode Checkout Session smoke,
 - website CTA wiring to call checkout route and redirect to Stripe,
 - hosted Customer Portal.
+
+# Scout Website Hosted Beta Checkout Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- hosted beta checkout form in `website/index.html`,
+- email input for key-delivery address,
+- browser-side POST to `/v1/billing/stripe/checkout-session`,
+- redirect to returned `checkout_url`,
+- visible loading, success, and error states,
+- matching IndustrialGray form styling in `website/styles.css`,
+- static website regression test in `tests/unit/website/test_launch_website.py`.
+
+Behavior:
+
+- the website no longer has a static hosted-beta CTA only,
+- hosted beta checkout stays honest: `$22` beta pass, limited hosted credits,
+  not unlimited crawling,
+- the website contains no Stripe secret keys,
+- if Stripe Checkout is not configured, the user sees a clear error state.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/website/test_launch_website.py -q` failed
+  because `hostedBetaCheckout` did not exist.
+- GREEN:
+  `python3 -m pytest tests/unit/website/test_launch_website.py tests/unit/api/test_billing_stripe_checkout.py -q`
+  passed: 3 tests.
+- Playwright static smoke against
+  `python3 -m http.server 8767 --directory website` passed:
+  - desktop viewport: checkout form visible, email input visible, no console errors,
+  - mobile viewport: checkout form visible, email input visible, no console errors.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 198 files already
+  formatted.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 471 tests.
+
+Still pending:
+
+- live Stripe test-mode smoke from website click through Checkout redirect,
+- deploy/proxy decision for serving the static site and API from the same origin,
+- public docs links after docs are organized.

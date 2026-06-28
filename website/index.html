@@ -283,8 +283,33 @@ scout serve</code></pre>
               inspectable, reusable, and trustworthy. Not whether it can promise
               infinite hosted crawling.
             </p>
+            <p class="beta-note">
+              Local Scout stays free. Hosted beta creates a metered convenience
+              API key after Stripe confirms payment.
+            </p>
           </div>
-          <div class="beta-actions">
+          <div class="beta-panel" aria-label="Hosted beta checkout">
+            <form
+              id="hostedBetaCheckout"
+              class="beta-form"
+              data-endpoint="/v1/billing/stripe/checkout-session"
+            >
+              <label for="hostedBetaEmail">Email for hosted API key delivery</label>
+              <div class="beta-form-row">
+                <input
+                  id="hostedBetaEmail"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="you@example.com"
+                  required
+                />
+                <button class="wi-btn" type="submit">Create hosted beta checkout</button>
+              </div>
+              <p id="hostedBetaStatus" class="beta-status" role="status" aria-live="polite">
+                One-time $22 beta pass. Limited hosted credits, not unlimited crawling.
+              </p>
+            </form>
             <a class="wi-btn" href="https://github.com/arijitchowdhury80/scout">View GitHub <span>↗</span></a>
             <a
               class="wi-btn wi-btn--ghost"
@@ -313,5 +338,41 @@ scout serve</code></pre>
         </p>
       </footer>
     </div>
+    <script>
+      const checkoutForm = document.getElementById("hostedBetaCheckout");
+      const checkoutStatus = document.getElementById("hostedBetaStatus");
+
+      checkoutForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const submitButton = checkoutForm.querySelector("button[type='submit']");
+        const email = document.getElementById("hostedBetaEmail")?.value.trim() || "";
+        const endpoint = checkoutForm.dataset.endpoint || "/v1/billing/stripe/checkout-session";
+        checkoutStatus.textContent = "Creating Stripe Checkout Session...";
+        checkoutStatus.dataset.state = "loading";
+        submitButton.disabled = true;
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ email }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(payload.detail || "Hosted beta is not configured yet.");
+          }
+          if (!payload.checkout_url) {
+            throw new Error("Stripe did not return a checkout URL.");
+          }
+          checkoutStatus.textContent = "Redirecting to Stripe Checkout...";
+          checkoutStatus.dataset.state = "success";
+          window.location.assign(payload.checkout_url);
+        } catch (error) {
+          checkoutStatus.textContent =
+            error instanceof Error ? error.message : "Hosted beta is not configured yet.";
+          checkoutStatus.dataset.state = "error";
+          submitButton.disabled = false;
+        }
+      });
+    </script>
   </body>
 </html>
