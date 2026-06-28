@@ -32,6 +32,9 @@ Status: In progress
 - [x] Hosted beta provisioning CLI tests written.
 - [x] Hosted beta provisioning CLI implemented.
 - [x] Hosted beta provisioning CLI verification passed.
+- [x] Hosted payment provisioning tests written.
+- [x] Hosted payment provisioning service implemented.
+- [x] Hosted payment provisioning verification passed.
 
 ## Scope
 
@@ -45,8 +48,10 @@ Define and start the production-readiness foundation for hosted Scout:
 - security risks,
 - local-first vs hosted product decision.
 
-This slice does not implement Stripe checkout, database persistence, or a public
-dashboard.
+This stream now includes SQLite account persistence and a Stripe-compatible
+payment provisioning domain layer. It still does not implement Stripe Checkout
+webhook routing, user login, email delivery, Customer Portal, production
+Postgres, or a public dashboard.
 
 ## Verification
 
@@ -98,3 +103,12 @@ dashboard.
   - Result: 2 passed.
 - Hosted beta provisioning CLI checkpoint: `python3 -m pytest tests/unit/ -q`
   - Result: 449 passed.
+- Hosted payment provisioning RED:
+  `python3 -m pytest tests/unit/core/platform/test_payment_provisioning.py -q`
+  - Result: failed with `ModuleNotFoundError: No module named 'scout.core.platform.payment_provisioning'`.
+- Hosted payment provisioning GREEN:
+  `python3 -m pytest tests/unit/core/platform/test_payment_provisioning.py -q`
+  - Result: 6 passed.
+- Hosted payment provisioning checkpoint:
+  `python3 -m pytest tests/unit/core/platform -q`
+  - Result: 74 passed.

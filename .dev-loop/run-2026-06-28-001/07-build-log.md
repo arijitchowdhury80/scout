@@ -250,3 +250,41 @@ Verification:
 - `python3 -m pyright scout/` -> `0 errors`.
 - `ruff check scout/ tests/` -> `All checks passed!`.
 - `ruff format --check scout/ tests/` -> `188 files already formatted`.
+# Hosted Payment Provisioning Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `scout.core.platform.payment_provisioning`
+- `HostedCheckoutProvisioningRequest`
+- `HostedCheckoutProvisioningResult`
+- `HostedCheckoutProvisioningRecord`
+- `HostedPaymentProvisioningService`
+- `SQLiteHostedPaymentStore`
+
+Behavior:
+
+- paid `$22` hosted beta checkout provisions one hosted tenant/key,
+- duplicate provider/session processing is idempotent,
+- retries return existing tenant/key metadata without a raw API key,
+- unpaid checkout is rejected before provisioning,
+- wrong amount/currency is rejected before provisioning,
+- raw API keys are not stored in SQLite.
+
+Verification:
+
+- RED: `python3 -m pytest tests/unit/core/platform/test_payment_provisioning.py -q`
+  failed with missing `payment_provisioning` module.
+- GREEN: `python3 -m pytest tests/unit/core/platform/test_payment_provisioning.py -q`
+  passed: 6 tests.
+- Platform checkpoint: `python3 -m pytest tests/unit/core/platform -q`
+  passed: 74 tests.
+
+Still pending:
+
+- real Stripe webhook route,
+- Stripe signature verification,
+- email or portal key delivery,
+- production transactional Postgres store,
+- Customer Portal/subscription handling.

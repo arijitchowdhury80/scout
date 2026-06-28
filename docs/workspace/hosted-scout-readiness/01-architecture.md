@@ -94,6 +94,11 @@ Implementation seed:
 - a private-beta operator CLI now exists as `scout hosted-provision`; it creates
   hosted tenant/key/balance records in the hosted account SQLite DB and prints
   the raw API key exactly once for the operator to store.
+- a Stripe-compatible payment provisioning domain layer now exists in
+  `scout.core.platform.payment_provisioning`; it validates a paid `$22` hosted
+  beta checkout request, provisions one hosted tenant/key through
+  `HostedAccountService`, records the checkout event in SQLite for idempotency,
+  and never stores or reprints the raw API key on retry.
 - the current HTTP middleware has not yet been migrated to the hosted key model.
 - URL safety primitives for the SSRF guard now exist in
   `scout.core.platform.url_safety`.
@@ -101,13 +106,14 @@ Implementation seed:
 The current local `SCOUT_API_KEY=dev-key` middleware is not hosted-safe. It is
 acceptable for local development only.
 
-The SQLite account store is a local/dev durable repository, not the final
-production persistence layer. Hosted launch still needs Postgres or equivalent,
-login/user identity, Stripe provisioning, quota middleware, and object storage
+The SQLite account and payment stores are local/dev durable repositories, not
+the final production persistence layer. Hosted launch still needs Postgres or
+equivalent, login/user identity, a Stripe webhook route with signature
+verification, quota middleware across all hosted endpoints, and object storage
 isolation.
 
 The hosted scrape endpoint is a proof boundary, not the full hosted API. Hosted
-crawl, products, run orchestration, key provisioning endpoints, payment
+crawl, products, run orchestration, public key provisioning endpoints, payment
 webhooks, and async worker execution remain pending.
 
 The `hosted-provision` CLI is an operator bridge, not a public self-serve key

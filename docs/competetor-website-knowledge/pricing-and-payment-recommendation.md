@@ -152,9 +152,14 @@ Implementation seed now exists in code:
 - `HostedUsageDecision`
 - `plan_limits(...)`
 - `check_hosted_usage(...)`
+- `HostedPaymentProvisioningService`
+- `SQLiteHostedPaymentStore`
 
-This is not Stripe integration yet. It is the policy layer that Stripe
-provisioning, API-key middleware, and run admission control should use.
+This is not a full Stripe integration yet. It is the policy and provisioning
+core that a Stripe webhook should call after signature verification. The
+current payment provisioning layer records processed checkout sessions so
+webhook retries do not create duplicate keys and the raw API key is only
+returned on first processing.
 
 ## Public Website Pricing Copy
 
