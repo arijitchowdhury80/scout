@@ -57,6 +57,8 @@ Latest Docker smoke:
 
 - `docker build -f docker/Dockerfile -t scout:launch-smoke .` passed.
 - Container smoke passed for `/health`, `/`, and `/styles.css` on port `18421`.
+- GitHub CI now includes Docker image build plus container route smoke for
+  `/health`, `/`, and `/styles.css`.
 
 ## Package Readiness
 
@@ -89,6 +91,7 @@ Before public package release:
 - [x] Install from built wheel in a clean venv.
 - [x] Run quick smoke after install.
 - [x] Verify launch website is served from a clean wheel install.
+- [x] Add GitHub CI package build and installed CLI smoke gate.
 
 ## GitHub Readiness
 
@@ -97,6 +100,8 @@ Before public package release:
 - [ ] Keep `.env` and `.env.local` ignored.
 - [ ] Add website/docs paths intentionally.
 - [ ] Add release checklist.
+- [x] Add package build smoke to GitHub CI.
+- [x] Add Docker build and route smoke to GitHub CI.
 - [ ] Add issue templates for beta feedback.
 - [ ] Add security policy before public launch.
 

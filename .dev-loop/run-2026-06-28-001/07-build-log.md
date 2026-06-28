@@ -1229,6 +1229,38 @@ Still pending:
 - Linux CI Docker smoke with the exact release image,
 - final public release checklist.
 
+## CI Release Gate Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- GitHub CI `package-build` job,
+- CI wheel/sdist build gate,
+- CI clean virtualenv install from `dist/scout_web-0.1.0-py3-none-any.whl`,
+- CI installed package import smoke,
+- CI installed `scout --help` smoke,
+- Docker CI runtime smoke after image build:
+  - `/health`,
+  - `/`,
+  - `/styles.css`.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/test_ci_workflow.py -q` failed because the
+  workflow had no `package-build` job and no Docker runtime smoke.
+- GREEN:
+  `python3 -m pytest tests/unit/test_ci_workflow.py -q` passed after adding
+  package and Docker smoke gates.
+
+Still pending:
+
+- publish workflow and registry decision,
+- release-tag artifact upload/publish automation,
+- CI smoke against the final published package/image rather than the local
+  checkout build.
+
 ## Product Export Generalization Checkpoint
 
 Date: 2026-06-28

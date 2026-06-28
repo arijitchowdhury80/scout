@@ -42,12 +42,17 @@ readiness work needed to turn Scout from a working tool into a testable product.
   - `/health`,
   - `/`,
   - `/styles.css`.
+- GitHub CI now includes:
+  - package build,
+  - clean wheel install/import/CLI smoke,
+  - Docker build,
+  - Docker `/health`, `/`, and `/styles.css` route smoke.
 
 ## Next
 
 - Decide Scout license.
 - Add release checklist.
-- Run fresh Linux/CI Docker publish verification.
+- Run fresh publish verification against the actual release artifact/tag.
 - Build MCP server plan.
 - Add hosted artifact dashboard and object-storage/signed-URL production plan.
 - Decide whether direct Google Sheets API push belongs in Scout core or a
