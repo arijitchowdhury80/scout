@@ -115,14 +115,16 @@ Result:
   - candidate values were not reproduced in this report,
   - masked review suggests many findings are test placeholders, config examples,
     proxy examples, or intentionally named key fields,
-  - the scan is not clean until every candidate is audited and either removed
-    or explicitly allowlisted.
+  - every current candidate has been reviewed as a false positive and captured
+    in `.secrets.baseline`,
+  - detailed disposition is recorded in
+    `docs/security/detect-secrets-audit-2026-06-28.md`.
 
 Launch impact:
 
 - This is a public-launch review gate, not a private-beta blocker by itself.
-- Public launch should not proceed until candidate findings are audited and a
-  committed baseline or zero-finding scan is in place.
+- Public launch should not proceed unless the committed baseline hook passes on
+  the final release commit.
 
 ## Remaining Risks
 
@@ -135,8 +137,9 @@ Launch impact:
   - artifact authorization,
   - rate limits and abuse limits,
   - Stripe webhook secret handling.
-- A full secret scan using an entropy-aware tool should run before public
-- release. It has now been run, but candidate findings still require review.
+- A full secret scan using an entropy-aware tool has been run and current
+  candidates have been audited as false positives. New candidates must be
+  reviewed before release.
 - Terms, privacy, and acceptable-use language are still required before a
   public hosted beta.
 

@@ -64,7 +64,8 @@ No public registry publish should happen until these decisions are closed.
 - [x] Entropy-aware secret scan run and recorded.
       Evidence: `docs/security/security-audit-2026-06-28.md`.
       Result: `detect-secrets` found 26 candidates across 18 tracked files;
-      candidate review/allowlisting remains required before public launch.
+      candidates are audited as false positives in `.secrets.baseline` and
+      `docs/security/detect-secrets-audit-2026-06-28.md`.
 - [ ] Hosted SSRF checks reviewed.
 - [ ] Hosted artifact authorization and path confinement reviewed.
 - [ ] Terms/privacy placeholders created before public hosted beta.

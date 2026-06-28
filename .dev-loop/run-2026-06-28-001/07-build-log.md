@@ -1508,3 +1508,39 @@ Verification:
 - Lint/format:
   `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
   all checks passed, 212 files already formatted.
+
+## Detect-Secrets Baseline Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `.secrets.baseline` with 26 current candidates audited as non-secrets,
+- `docs/security/detect-secrets-audit-2026-06-28.md`,
+- unit tests verifying every baseline finding is audited,
+- unit tests verifying the candidate audit report is present.
+
+Scan gate:
+
+- `/tmp/scout-detect-secrets-venv/bin/detect-secrets-hook --baseline .secrets.baseline --no-verify --exclude-files '(^dist/|^validation-output/|^scout-runs/|^\\.pytest_cache/|^\\.ruff_cache/)' $(git ls-files)`
+- Result: passed with the committed baseline.
+
+Verification:
+
+- Focused baseline/security gate:
+  `python3 -m pytest tests/unit/test_secret_baseline.py tests/unit/test_security_audit_docs.py -q`
+  passed: 4 tests.
+- Full unit suite:
+  `python3 -m pytest tests/unit/ -q` passed: 526 tests, 8 warnings.
+- Type check:
+  `python3 -m pyright scout/` passed: 0 errors, 0 warnings, 0 informations.
+- Lint/format:
+  `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
+  all checks passed, 213 files already formatted.
+
+Boundary:
+
+- This creates a repeatable secret-scan gate for tracked files.
+- It does not resolve the Crawl4AI/lxml dependency CVE.
+- Public launch still requires the baseline hook to pass on the final release
+  commit.
