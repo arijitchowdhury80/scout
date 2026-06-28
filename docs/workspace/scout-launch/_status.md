@@ -67,6 +67,8 @@ readiness work needed to turn Scout from a working tool into a testable product.
     files; candidates are now audited as false positives in `.secrets.baseline`
     with a companion review report,
   - GitHub CI now has a blocking `secret-scan` job for the committed baseline,
+  - GitHub CI now has a non-blocking `dependency-audit` job for `pip-audit`
+    visibility while the Crawl4AI/lxml blocker remains open,
   - public launch remains blocked until the dependency CVE is resolved or an
     explicit risk decision is made.
 
@@ -77,6 +79,8 @@ readiness work needed to turn Scout from a working tool into a testable product.
 - Decide if/when to publish to PyPI, GHCR, Docker Hub, or another registry.
 - Resolve or explicitly risk-accept the Crawl4AI/lxml dependency CVE before
   public launch.
+- Convert GitHub CI `dependency-audit` to blocking once the dependency audit is
+  clean.
 - Keep `detect-secrets-hook --baseline .secrets.baseline` green on the final
   release commit.
 - Verify Stripe test-mode checkout/webhook before hosted beta.

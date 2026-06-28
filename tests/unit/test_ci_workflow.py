@@ -22,6 +22,10 @@ def _step_runs(job_name: str) -> list[str]:
     ]
 
 
+def _job(job_name: str) -> dict:
+    return _ci()["jobs"][job_name]
+
+
 def test_ci_builds_wheel_and_smokes_installed_cli() -> None:
     runs = "\n".join(_step_runs("package-build"))
 
@@ -47,3 +51,13 @@ def test_ci_runs_secret_scan_against_committed_baseline() -> None:
     assert "pip install detect-secrets" in runs
     assert "detect-secrets-hook --baseline .secrets.baseline" in runs
     assert "$(git ls-files)" in runs
+
+
+def test_ci_runs_dependency_audit_as_known_nonblocking_gate() -> None:
+    job = _job("dependency-audit")
+    runs = "\n".join(_step_runs("dependency-audit"))
+
+    assert job["continue-on-error"] is True
+    assert 'pip install ".[dev]"' in runs
+    assert "pip install pip-audit" in runs
+    assert "python -m pip_audit --local" in runs

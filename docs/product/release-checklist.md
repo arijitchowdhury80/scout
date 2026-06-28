@@ -58,6 +58,10 @@ No public registry publish should happen until these decisions are closed.
 - [x] Dependency CVE scan run and recorded.
       Evidence: `docs/security/security-audit-2026-06-28.md`.
       Result: blocker remains for `lxml` via Crawl4AI.
+- [x] Dependency audit visible in GitHub CI.
+      Evidence: `.github/workflows/ci.yml` `dependency-audit` job.
+      Result: non-blocking while Crawl4AI/lxml CVE is unresolved.
+- [ ] Dependency audit clean and blocking in GitHub CI.
 - [x] Secret scan run and recorded.
       Evidence: `docs/security/security-audit-2026-06-28.md`.
       Result: targeted tracked-file pattern scan found zero matches.

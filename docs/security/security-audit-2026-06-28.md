@@ -51,10 +51,15 @@ Launch impact:
 - This is a public-launch blocker.
 - Private beta can continue only with this risk documented and with no claim
   that the dependency audit is clean.
+- GitHub CI now includes a non-blocking `dependency-audit` job running
+  `python -m pip_audit --local`. It is intentionally `continue-on-error` while
+  the Crawl4AI/lxml blocker is unresolved.
 
 Next action:
 
 - Track Crawl4AI releases for an `lxml>=6.1.0` compatible version.
+- Convert CI `dependency-audit` from non-blocking to blocking once the audit is
+  clean.
 - If no upstream fix is available before public launch, evaluate whether to:
   - vendor/patch the affected dependency path,
   - pin a fixed Crawl4AI fork,

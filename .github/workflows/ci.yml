@@ -44,6 +44,19 @@ jobs:
             --exclude-files '(^dist/|^validation-output/|^scout-runs/|^\.pytest_cache/|^\.ruff_cache/)' \
             $(git ls-files)
 
+  dependency-audit:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install ".[dev]"
+      - run: pip install pip-audit
+      - run: python -m pip_audit --local
+
   unit-tests:
     runs-on: ubuntu-latest
     steps:
