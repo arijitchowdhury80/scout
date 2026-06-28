@@ -17,6 +17,12 @@ Supporting copy:
 > capture browser evidence, preserve citations, and export structured records
 > your agents, search indexes, and intelligence pipelines can trust.
 
+Sharper differentiation:
+
+> Firecrawl-style tools are excellent when you need hosted markdown from a URL.
+> Scout is for teams who need the whole evidence trail: sources, blocked pages,
+> citations, typed records, validation, and exportable artifacts.
+
 ## Primary CTAs
 
 1. `Install locally`
@@ -36,10 +42,11 @@ Sections:
 
 1. Hero with install + hosted beta CTAs.
 2. Code/readout demo.
-3. Acquisition ladder.
-4. Evidence/artifact contract.
-5. Typed record outputs.
-6. Local-first vs hosted optional.
+3. Evidence-grade record pipeline.
+4. Acquisition ladder.
+5. Evidence/artifact contract.
+6. Typed record outputs.
+7. Local-first vs hosted optional.
 7. Use cases.
 8. Pricing preview.
 9. FAQ.
@@ -102,6 +109,10 @@ HERO
 READOUT STRIP
   scout scrape URL -> source_pages.json -> records.jsonl -> extraction_report.md
 
+WHY DIFFERENT
+  Not just markdown. Scout preserves sources, blocked pages, citations,
+  validation, and exportable typed records.
+
 ACQUISITION LADDER
   direct fetch | Crawl4AI | scout browser | user browser | saved HTML | API adapters
 
@@ -161,22 +172,27 @@ Recommended hero feel:
 
 Run locally, choose acquisition mode, store artifacts where you want.
 
-### 2. Evidence First
+### 2. Evidence-Grade Records
+
+Scout's stronger wedge is not only local ownership. It is the combination of
+typed records plus source evidence, citations, validation, and artifact replay.
+
+### 3. Evidence First
 
 Every useful result should point back to source evidence, screenshots, blocked
 pages, or extraction reports.
 
-### 3. Browser-Aware
+### 4. Browser-Aware
 
 Scout can escalate from crawler to browser/user-session capture when ordinary
 fetching is not enough.
 
-### 4. Records, Not Blobs
+### 5. Records, Not Blobs
 
 Output product records, company records, investor assets, news signals, docs
 records, and research records.
 
-### 5. Honest Limits
+### 6. Honest Limits
 
 Scout does not promise universal unblock or perfect extraction. It preserves
 what happened and makes failures inspectable.

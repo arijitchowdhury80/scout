@@ -35,6 +35,13 @@ change; verify again before publishing public claims.
 | Crawl4AI | https://github.com/unclecode/crawl4ai | Upstream dependency, open-source positioning |
 | Crawl4AI License | https://raw.githubusercontent.com/unclecode/crawl4ai/main/LICENSE | Legal/attribution check |
 
+## Derived Internal Notes
+
+| Internal File | Purpose |
+|---|---|
+| `market-pricing-snapshot-2026-06-28.md` | Current public pricing/economics snapshot across crawler, browser, AI search, and extraction competitors |
+| `scout-differentiation.md` | Positioning memo explaining why Scout cannot rely only on "local-owned data" and must lead with evidence-grade records |
+
 ## Scout Internal Sources
 
 | File | Used For |
@@ -45,4 +52,3 @@ change; verify again before publishing public claims.
 | `docs/legal/legal-readiness-checklist.md` | Existing legal/compliance posture |
 | `docs/validation/scout-feature-certification-2026-06-28.md` | Current tested-feature evidence |
 | `docs/browser-verification-2026-05-20.md` | Browser/hard-site background |
-

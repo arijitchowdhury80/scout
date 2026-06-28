@@ -15,6 +15,8 @@ fee. They use:
 - enterprise/sales-assisted pricing.
 
 This is rational because crawling and browser automation have variable cost.
+See `market-pricing-snapshot-2026-06-28.md` for the current official-site
+evidence snapshot.
 
 ## Scout Pricing Principles
 
@@ -59,6 +61,14 @@ Use this only as a limited, early-access product:
 - No unlimited usage.
 
 CTA: `Get hosted beta access`
+
+This should be copy-framed as:
+
+```text
+One-time beta access. Includes finite hosted credits. Local Scout remains free.
+```
+
+Do not frame it as lifetime hosted access.
 
 ### Hosted Starter
 
@@ -121,6 +131,20 @@ Bad scenario:
 
 The one-time offer should buy **credits/access**, not unlimited hosted
 infrastructure.
+
+## Recommendation After Market Refresh
+
+Launch with:
+
+1. **Local free** as the main distribution path.
+2. **$22 hosted beta pass** as finite credits for early adopters.
+3. **No lifetime/unlimited hosted promise.**
+4. **Subscriptions only after usage data is measured**, likely:
+   - Starter: `$9/month` for light hosted use,
+   - Pro: `$29/month` for heavier records/browser use,
+   - Enterprise/self-host: custom.
+5. **Separate browser credits** because browser rendering costs materially more
+   than simple HTTP acquisition.
 
 ## Payment Stack Recommendation
 
