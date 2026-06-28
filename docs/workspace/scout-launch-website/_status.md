@@ -62,3 +62,22 @@ Additional checkout smoke:
 - Same-origin serving checkpoint:
   `python3 -m pytest tests/unit/website/test_launch_website.py tests/unit/api/test_auth.py -q`
   - Result: 10 passed.
+- Live `scout serve` browser smoke:
+  `python3 -m scout.cli serve --host 127.0.0.1 --port 8768`
+  - `/health`: 200 with Scout `0.1.0` and Crawl4AI `0.7.7`
+  - desktop `1440x1000`: root website loaded, hero visible, checkout form visible,
+    no console errors
+  - mobile `390x844`: root website loaded, hero visible, checkout form visible,
+    no console errors
+  - screenshots:
+    - `validation-output/website-scout-launch/desktop-scout-serve-root.png`
+    - `validation-output/website-scout-launch/mobile-scout-serve-root.png`
+- Checkout missing-config browser smoke:
+  - submitting the checkout form without Stripe config showed
+    `Stripe Checkout is not configured.`
+  - submit button re-enabled
+  - server returned expected `503`
+  - Chromium logged the expected failed-resource console message for that
+    intentional `503`
+  - screenshot:
+    - `validation-output/website-scout-launch/checkout-error-scout-serve-root.png`

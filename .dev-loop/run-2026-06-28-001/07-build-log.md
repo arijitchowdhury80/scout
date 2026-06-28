@@ -558,3 +558,36 @@ Still pending:
 - live browser smoke against `scout serve`,
 - production hosting/deployment target decision,
 - live Stripe test-mode Checkout redirect.
+
+# Scout Serve Launch Website Browser Smoke
+
+Date: 2026-06-28
+
+Verified:
+
+- started `python3 -m scout.cli serve --host 127.0.0.1 --port 8768`,
+- `/health` returned 200 with Scout `0.1.0` and Crawl4AI `0.7.7`,
+- desktop browser smoke at `1440x1000` loaded `/`, showed the launch website
+  hero, showed the hosted beta checkout form, and had no console errors,
+- mobile browser smoke at `390x844` loaded `/`, showed the launch website hero,
+  showed the hosted beta checkout form, and had no console errors,
+- missing-config checkout submit showed `Stripe Checkout is not configured.`,
+  re-enabled the submit button, and returned the expected server-side `503`.
+
+Evidence screenshots:
+
+- `validation-output/website-scout-launch/desktop-scout-serve-root.png`
+- `validation-output/website-scout-launch/mobile-scout-serve-root.png`
+- `validation-output/website-scout-launch/checkout-error-scout-serve-root.png`
+
+Note:
+
+- Chromium logs a failed-resource console message for the intentional `503`
+  missing-config checkout path. This is expected until real Stripe test-mode
+  config is supplied and the happy-path redirect is exercised.
+
+Still pending:
+
+- live Stripe test-mode Checkout redirect,
+- webhook smoke with Stripe CLI or Stripe test webhook,
+- production deployment/hosting target decision.
