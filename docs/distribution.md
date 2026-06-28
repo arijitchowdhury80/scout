@@ -33,6 +33,8 @@ Supported local settings:
 SCOUT_API_KEY=change-me
 LLM_API_KEY=
 SCOUT_WORKDIR=scout-runs
+DB_PATH=
+HOSTED_ACCOUNT_DB_PATH=
 HOST=0.0.0.0
 PORT=8421
 ```
@@ -43,6 +45,41 @@ variables or a deployment-managed `.env`.
 
 `SCOUT_WORKDIR` is the base directory for generated run folders when a caller
 does not pass an exact `--output-dir` or JSON `output_dir`.
+
+## Hosted Beta Configuration
+
+Local use does not require Stripe or SMTP. Paid hosted beta does.
+
+Minimum Stripe Checkout settings:
+
+```text
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_BETA_PRICE_ID=price_...
+STRIPE_SUCCESS_URL=https://your-domain.example/?checkout=success
+STRIPE_CANCEL_URL=https://your-domain.example/?checkout=cancelled
+```
+
+Payment-confirmed provisioning also needs:
+
+```text
+STRIPE_WEBHOOK_SECRET=whsec_...
+HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com
+HOSTED_KEY_DELIVERY_SMTP_PORT=587
+HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL=scout@example.com
+HOSTED_KEY_DELIVERY_SMTP_USERNAME=
+HOSTED_KEY_DELIVERY_SMTP_PASSWORD=
+HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
+```
+
+Scout exposes a non-secret readiness check for the website:
+
+```bash
+curl http://localhost:8421/v1/billing/stripe/status
+```
+
+It returns only booleans for checkout, webhook, key delivery, and end-to-end
+paid key delivery readiness. It never returns Stripe, SMTP, or Scout API
+secrets.
 
 ## Docker
 

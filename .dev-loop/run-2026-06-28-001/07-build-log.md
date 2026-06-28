@@ -642,3 +642,49 @@ Still pending:
 - live Stripe test-mode Checkout redirect,
 - webhook smoke with Stripe CLI or Stripe test webhook,
 - SMTP/test email smoke for key delivery.
+
+# Hosted Launch Environment Example Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `.env.example` now documents every `scout.api.config.Settings` field,
+- grouped local-only, persistence, Stripe Checkout, Stripe webhook, SMTP key
+  delivery, and server bind settings,
+- regression test `tests/unit/api/test_env_example.py` keeps the example aligned
+  with future settings changes,
+- `docs/distribution.md` now documents paid hosted beta env requirements and the
+  non-secret Stripe readiness endpoint.
+
+Behavior:
+
+- local users can still ignore Stripe/SMTP settings,
+- hosted beta operators can see the exact env var names required for checkout,
+  webhook confirmation, and key delivery,
+- missing future settings will fail the env-example regression test.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_env_example.py -q` failed because
+  `DB_PATH` and other settings were missing from `.env.example`.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_env_example.py -q` passed: 1 test.
+- Focused checkpoint:
+  `python3 -m pytest tests/unit/api/test_env_example.py tests/unit/api/test_billing_stripe_checkout.py tests/unit/website/test_launch_website.py -q`
+  passed: 8 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 122 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 200 files already
+  formatted.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 476 tests.
+
+Still pending:
+
+- live Stripe test-mode values,
+- SMTP smoke values,
+- deploy environment/secrets manager decision.

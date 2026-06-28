@@ -47,6 +47,8 @@ Status: In progress
 - [x] Hosted Stripe Checkout Session tests written.
 - [x] Hosted Stripe Checkout Session route implemented.
 - [x] Hosted Stripe Checkout Session verification passed.
+- [x] Hosted Stripe readiness endpoint implemented.
+- [x] `.env.example` updated with hosted Stripe/SMTP settings.
 
 ## Scope
 
@@ -65,6 +67,11 @@ provisioning domain layer, a public Stripe Checkout Session creation route, and
 a signed Stripe webhook route for `checkout.session.completed`. It still does
 not implement user login, secure Customer Portal, production Postgres, a public
 dashboard, or a live SMTP/Stripe sandbox smoke.
+
+Hosted beta configuration is now documented in `.env.example`. Local users only
+need `SCOUT_API_KEY`, `SCOUT_WORKDIR`, and optional `LLM_API_KEY`; paid hosted
+beta additionally needs Stripe Checkout, Stripe webhook, and SMTP key-delivery
+settings.
 
 ## Verification
 
