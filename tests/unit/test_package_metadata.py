@@ -50,3 +50,10 @@ def test_hatch_build_includes_launch_site_assets() -> None:
 
     force_include = data["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
     assert force_include["website"] == "website"
+
+
+def test_hatch_build_includes_third_party_notices() -> None:
+    data = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+
+    force_include = data["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
+    assert force_include["THIRD_PARTY_NOTICES.md"] == "THIRD_PARTY_NOTICES.md"

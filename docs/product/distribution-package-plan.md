@@ -74,15 +74,17 @@ Current package state:
 - Hatch wheel packaging explicitly ships the `scout` module even though the
   distribution package name is `scout-web`.
 - Hatch wheel packaging includes the launch website assets required by `/`.
-- Docker packaging copies `README.md`, `scout/`, and `website/` before
-  `pip install .`.
+- Hatch wheel packaging includes `THIRD_PARTY_NOTICES.md`; the Docker build
+  context and Dockerfile copy it before `pip install .`.
+- Docker packaging copies `README.md`, `THIRD_PARTY_NOTICES.md`, `scout/`, and
+  `website/` before `pip install .`.
 - Docker runtime uses `DB_PATH=/data/scout.db`, matching Scout settings.
 
 Before public package release:
 
 - [ ] Decide Scout's own license.
 - [ ] Add `LICENSE` if open/source-available.
-- [ ] Add `THIRD_PARTY_NOTICES.md`.
+- [x] Add `THIRD_PARTY_NOTICES.md`.
 - [x] Add classifiers to `pyproject.toml`.
 - [x] Add package metadata: authors, URLs, readme.
 - [ ] Decide and add final license expression.
@@ -104,7 +106,7 @@ Before public package release:
 - [ ] Clean generated local residue.
 - [ ] Remove accidental run artifacts from tracked status.
 - [ ] Keep `.env` and `.env.local` ignored.
-- [ ] Add website/docs paths intentionally.
+- [x] Add website/docs paths intentionally.
 - [x] Add release checklist.
 - [x] Add package build smoke to GitHub CI.
 - [x] Add Docker build and route smoke to GitHub CI.

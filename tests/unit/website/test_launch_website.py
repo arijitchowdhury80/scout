@@ -147,6 +147,18 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         assert text in response.text
 
 
+def test_api_serves_third_party_notices_without_auth() -> None:
+    client = TestClient(app)
+
+    response = client.get("/third-party-notices")
+
+    assert response.status_code == 200
+    assert "text/plain" in response.headers["content-type"]
+    assert "Third-Party Notices" in response.text
+    assert "Crawl4AI" in response.text
+    assert "Apache License, Version 2.0" in response.text
+
+
 def test_fastapi_docs_remain_api_docs_not_marketing_docs() -> None:
     client = TestClient(app)
 

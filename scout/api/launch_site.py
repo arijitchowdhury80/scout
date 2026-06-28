@@ -75,6 +75,13 @@ async def launch_site_legal() -> FileResponse:
     return _launch_site_page("legal.html")
 
 
+@router.get("/third-party-notices")
+@router.get("/THIRD_PARTY_NOTICES.md")
+async def launch_site_third_party_notices() -> FileResponse:
+    """Serve the source third-party notices file from the public website."""
+    return FileResponse(_REPO_ROOT / "THIRD_PARTY_NOTICES.md", media_type="text/plain")
+
+
 def _launch_site_page(page_file: str) -> FileResponse:
     """Return a known launch-site HTML file."""
     return FileResponse(_WEBSITE_DIR / page_file, media_type="text/html")

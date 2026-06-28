@@ -253,3 +253,32 @@ Verification:
   - screenshots:
     - `validation-output/website-scout-launch/legal-notices-desktop.png`
     - `validation-output/website-scout-launch/legal-notices-mobile.png`
+
+## 2026-06-28 Notices Packaging Checkpoint
+
+The third-party notices are now part of the distribution artifact contract:
+
+- `pyproject.toml` force-includes `THIRD_PARTY_NOTICES.md` in the wheel.
+- Docker build context preserves `THIRD_PARTY_NOTICES.md`.
+- Dockerfile copies `THIRD_PARTY_NOTICES.md` before `pip install .`.
+- Scout serves the notices locally at `/third-party-notices` and
+  `/THIRD_PARTY_NOTICES.md`.
+
+Verification:
+
+- `python3 -m pytest tests/unit/test_package_metadata.py tests/unit/test_docker_distribution.py tests/unit/website/test_launch_website.py -q`
+  - Result: `17 passed, 2 warnings`.
+- Focused launch-route regression:
+  `python3 -m pytest tests/unit/test_package_metadata.py tests/unit/test_docker_distribution.py tests/unit/website/test_launch_website.py tests/unit/api/test_auth.py tests/unit/api/test_app_frontend.py -q`
+  - Result: `37 passed, 2 warnings`.
+- `python3 -m build`
+  - Result: successfully built `scout_web-0.1.0.tar.gz` and
+    `scout_web-0.1.0-py3-none-any.whl`.
+- Artifact inspection confirmed:
+  - wheel contains `THIRD_PARTY_NOTICES.md` and `website/legal.html`.
+  - sdist contains `THIRD_PARTY_NOTICES.md` and `website/legal.html`.
+- Live `scout serve` route smoke:
+  `python3 -m scout.cli serve --host 127.0.0.1 --port 8787`
+  - `curl -fsS http://127.0.0.1:8787/third-party-notices`
+  - Result: `200 OK`, `text/plain`, includes `Third-Party Notices`,
+    `Crawl4AI`, and `Apache License, Version 2.0`.

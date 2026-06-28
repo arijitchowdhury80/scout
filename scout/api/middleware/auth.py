@@ -39,6 +39,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/quickstart.html",
             "/redoc",
             "/styles.css",
+            "/third-party-notices",
+            "/THIRD_PARTY_NOTICES.md",
         }
         if request.url.path in public_paths:
             return await call_next(request)  # type: ignore[misc]
