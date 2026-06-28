@@ -69,6 +69,7 @@ readiness work needed to turn Scout from a working tool into a testable product.
   - GitHub CI now has a blocking `secret-scan` job for the committed baseline,
   - GitHub CI now has a non-blocking `dependency-audit` job for `pip-audit`
     visibility while the Crawl4AI/lxml blocker remains open,
+  - Crawl4AI/lxml risk decision record drafted with private-beta-only options,
   - public launch remains blocked until the dependency CVE is resolved or an
     explicit risk decision is made.
 
@@ -79,6 +80,9 @@ readiness work needed to turn Scout from a working tool into a testable product.
 - Decide if/when to publish to PyPI, GHCR, Docker Hub, or another registry.
 - Resolve or explicitly risk-accept the Crawl4AI/lxml dependency CVE before
   public launch.
+- Review and approve/revise
+  `docs/security/crawl4ai-lxml-risk-decision-2026-06-28.md` before expanding
+  private beta.
 - Convert GitHub CI `dependency-audit` to blocking once the dependency audit is
   clean.
 - Keep `detect-secrets-hook --baseline .secrets.baseline` green on the final

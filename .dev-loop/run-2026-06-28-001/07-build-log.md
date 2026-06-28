@@ -1634,3 +1634,46 @@ Verification:
 - Lint/format:
   `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
   all checks passed, 213 files already formatted.
+
+## Crawl4AI/lxml Risk Decision Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `docs/security/crawl4ai-lxml-risk-decision-2026-06-28.md`,
+- release checklist gate for maintainer approval,
+- launch status link to the decision record,
+- unit tests requiring the risk decision artifact and public-launch blocker.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/test_lxml_risk_decision_docs.py -q` failed
+  because the risk decision document and release checklist gate were missing.
+- GREEN:
+  `python3 -m pytest tests/unit/test_lxml_risk_decision_docs.py -q` passed
+  after adding the decision-required artifact.
+
+Boundary:
+
+- The risk is not approved by this checkpoint.
+- Public launch remains blocked.
+- The recommended path is limited private beta only, with explicit maintainer
+  acceptance and no clean-audit claim.
+
+Verification:
+
+- Focused launch/security gate:
+  `python3 -m pytest tests/unit/test_lxml_risk_decision_docs.py tests/unit/test_ci_workflow.py tests/unit/test_security_audit_docs.py tests/unit/test_secret_baseline.py -q`
+  passed: 10 tests.
+- Local secret hook:
+  `/tmp/scout-detect-secrets-venv/bin/detect-secrets-hook --baseline .secrets.baseline --no-verify --exclude-files '(^dist/|^validation-output/|^scout-runs/|^\\.pytest_cache/|^\\.ruff_cache/)' $(git ls-files)`
+  passed.
+- Full unit suite:
+  `python3 -m pytest tests/unit/ -q` passed: 530 tests, 8 warnings.
+- Type check:
+  `python3 -m pyright scout/` passed: 0 errors, 0 warnings, 0 informations.
+- Lint/format:
+  `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
+  all checks passed, 214 files already formatted.
