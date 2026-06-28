@@ -334,3 +334,45 @@ Still pending:
 - live Stripe CLI/sandbox smoke test,
 - production transactional Postgres store,
 - Customer Portal/subscription handling.
+
+# Hosted Key Delivery Gate Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `scout.core.platform.key_delivery`
+- `HostedApiKeyDeliveryService` protocol
+- `DisabledHostedApiKeyDeliveryService`
+- Stripe webhook delivery gate
+
+Behavior:
+
+- refuses to create a new hosted key when no delivery channel is configured,
+- returns `503` before provisioning in disabled-delivery state,
+- sends the raw key to an enabled delivery adapter exactly once,
+- does not include raw `scout_live_...` keys in webhook responses,
+- does not redeliver keys on idempotent webhook replay.
+
+Verification:
+
+- RED: `python3 -m pytest tests/unit/api/test_billing_stripe_webhook.py -q`
+  failed with missing `key_delivery` module.
+- GREEN: `python3 -m pytest tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_auth.py -q`
+  passed: 13 tests.
+- Focused pyright on key delivery, billing, deps, main, and webhook tests
+  passed with 0 errors.
+- Focused Ruff check and format passed.
+
+Full verification:
+
+- `python3 -m pytest tests/unit/api -q` -> `117 passed`.
+- `python3 -m pytest tests/unit/ -q` -> `462 passed`.
+- `python3 -m pyright scout/` -> `0 errors`.
+- `ruff check scout/ tests/ && ruff format --check scout/ tests/` -> passed,
+  `193 files already formatted`.
+
+Still pending:
+
+- real email/portal/one-time handoff delivery provider,
+- live Stripe CLI/sandbox smoke test.

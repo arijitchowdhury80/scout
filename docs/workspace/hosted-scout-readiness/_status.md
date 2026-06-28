@@ -38,6 +38,9 @@ Status: In progress
 - [x] Hosted Stripe webhook tests written.
 - [x] Hosted Stripe webhook route implemented.
 - [x] Hosted Stripe webhook verification passed.
+- [x] Hosted key delivery contract tests written.
+- [x] Hosted key delivery gate implemented.
+- [x] Hosted key delivery verification passed.
 
 ## Scope
 
@@ -129,5 +132,17 @@ dashboard.
   `python3 -m pytest tests/unit/ -q`
   - Result: 461 passed.
 - Hosted Stripe webhook static/lint checkpoint:
+  `python3 -m pyright scout/` and `ruff check scout/ tests/ && ruff format --check scout/ tests/`
+  - Result: pyright 0 errors; Ruff passed.
+- Hosted key delivery gate RED:
+  `python3 -m pytest tests/unit/api/test_billing_stripe_webhook.py -q`
+  - Result: failed with `ModuleNotFoundError: No module named 'scout.core.platform.key_delivery'`.
+- Hosted key delivery gate GREEN:
+  `python3 -m pytest tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_auth.py -q`
+  - Result: 13 passed.
+- Hosted key delivery gate full checkpoint:
+  `python3 -m pytest tests/unit/api -q` and `python3 -m pytest tests/unit/ -q`
+  - Result: API unit 117 passed; full unit 462 passed.
+- Hosted key delivery static/lint checkpoint:
   `python3 -m pyright scout/` and `ruff check scout/ tests/ && ruff format --check scout/ tests/`
   - Result: pyright 0 errors; Ruff passed.

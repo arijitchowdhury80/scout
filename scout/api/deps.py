@@ -6,6 +6,10 @@ from scout.api.config import settings
 from scout.api.db import RunDB
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
+from scout.core.platform.key_delivery import (
+    DisabledHostedApiKeyDeliveryService,
+    HostedApiKeyDeliveryService,
+)
 from scout.core.platform.payment_provisioning import HostedPaymentProvisioningService
 
 
@@ -43,3 +47,13 @@ def get_hosted_payment_provisioning_service(
 def get_stripe_webhook_secret() -> str:
     """Return the configured Stripe webhook signing secret."""
     return settings.stripe_webhook_secret
+
+
+def get_hosted_key_delivery_service(request: Request) -> HostedApiKeyDeliveryService:
+    """Return the hosted API-key delivery service stored on app.state."""
+    service: HostedApiKeyDeliveryService = getattr(
+        request.app.state,
+        "hosted_key_delivery_service",
+        DisabledHostedApiKeyDeliveryService(),
+    )
+    return service

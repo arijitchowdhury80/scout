@@ -45,6 +45,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from scout.api.run_store import bind_db
     from scout.core.platform.account_service import HostedAccountService
     from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
+    from scout.core.platform.key_delivery import DisabledHostedApiKeyDeliveryService
     from scout.core.platform.payment_provisioning import (
         HostedPaymentProvisioningService,
         SQLiteHostedPaymentStore,
@@ -64,6 +65,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         hosted_account_service,
         SQLiteHostedPaymentStore(hosted_db_path),
     )
+    app.state.hosted_key_delivery_service = DisabledHostedApiKeyDeliveryService()
     bind_db(run_db)
     yield
     await run_db.close()

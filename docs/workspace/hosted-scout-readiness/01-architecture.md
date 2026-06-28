@@ -103,6 +103,10 @@ Implementation seed:
   the `Stripe-Signature` HMAC using `SCOUT_STRIPE_WEBHOOK_SECRET`, ignores
   irrelevant event types, maps `checkout.session.completed` into the hosted
   payment provisioning domain, and returns only non-secret metadata.
+- hosted key delivery contracts now exist in
+  `scout.core.platform.key_delivery`; the Stripe webhook refuses to create a new
+  key while delivery is disabled, preventing raw keys from being generated and
+  then lost.
 - the current HTTP middleware has not yet been migrated to the hosted key model.
 - URL safety primitives for the SSRF guard now exist in
   `scout.core.platform.url_safety`.
