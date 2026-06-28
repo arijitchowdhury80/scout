@@ -24,7 +24,13 @@ from scout.core.crawler import ScoutCrawler
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest
 from scout.core.platform.workspace import default_workdir, resolve_run_output_dir
+from scout.core.products.exports import (
+    ProductExportFormat,
+    ProductExportRequest,
+    export_product_records,
+)
 from scout.core.types import (
+    AlgoliaProductRecord,
     CrawlRequest,
     ExtractRequest,
     MapRequest,
@@ -421,6 +427,42 @@ def products(
     _die(resp)
 
 
+@app.command("product-export")
+def product_export(
+    records_file: str = typer.Argument(..., help="Path to records.json or a JSON list of records"),
+    output_dir: str = typer.Option(..., "--output-dir", help="Directory to write exports"),
+    format: list[ProductExportFormat] | None = typer.Option(  # noqa: A002
+        None,
+        "--format",
+        help="Export format. Repeat for multiple: json, jsonl, csv, sqlite",
+    ),
+    basename: str = typer.Option("products", "--basename", help="Export file basename"),
+    sqlite_table: str = typer.Option("products", "--sqlite-table", help="SQLite table name"),
+) -> None:
+    """Export product records to local JSON, JSONL, CSV, or SQLite artifacts."""
+    path = Path(records_file).expanduser()
+    if not path.exists():
+        typer.echo(f"Product records file does not exist: {path}", err=True)
+        raise SystemExit(1)
+    records = _load_product_records(path)
+    result = export_product_records(
+        ProductExportRequest(
+            records=records,
+            output_dir=Path(output_dir).expanduser(),
+            formats=format or [ProductExportFormat.JSONL],
+            basename=basename,
+            sqlite_table=sqlite_table,
+        )
+    )
+    _out(
+        {
+            "success": True,
+            "record_count": result.record_count,
+            "files": {key: str(value) for key, value in result.files.items()},
+        }
+    )
+
+
 @app.command()
 def certify_generate(
     evidence_dir: str = typer.Option(
@@ -554,6 +596,31 @@ def _prompt_output_dir(query: str, site: str) -> str:
 def _default_certification_report_path(timestamp: str) -> Path:
     day = timestamp.split("T", maxsplit=1)[0]
     return Path("docs") / "validation" / f"scout-feature-certification-{day}.md"
+
+
+def _load_product_records(path: Path) -> list[AlgoliaProductRecord]:
+    """Load product records from a JSON list or a ProductCrawlResponse-style envelope."""
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        typer.echo(f"Product records file is not valid JSON: {path}", err=True)
+        raise SystemExit(1) from exc
+    records = raw.get("records") if isinstance(raw, dict) else raw
+    if not isinstance(records, list):
+        typer.echo("Product records JSON must be a list or contain a 'records' list.", err=True)
+        raise SystemExit(1)
+    return [
+        AlgoliaProductRecord.model_validate(_normalise_product_record(record)) for record in records
+    ]
+
+
+def _normalise_product_record(record: object) -> object:
+    """Accept Scout's serialized `_source` alias when loading records back in."""
+    if not isinstance(record, dict):
+        return record
+    if "_source" not in record or "source" in record:
+        return record
+    return {**record, "source": record["_source"]}
 
 
 @app.command()

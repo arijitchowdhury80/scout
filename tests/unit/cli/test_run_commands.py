@@ -8,6 +8,35 @@ from scout.cli import app
 from scout.core.platform.types import RunResponse
 
 
+def _product_record_payload() -> dict:
+    return {
+        "objectID": "prod_1",
+        "name": "Advanced Night Repair Serum",
+        "url": "https://shop.example.com/product/anr",
+        "brand": "Estee Lauder",
+        "price": 85.0,
+        "currency": "USD",
+        "categories": ["Skin Care"],
+        "_source": {
+            "url": "https://shop.example.com/product/anr",
+            "extractor": "listing",
+            "category_url": "https://shop.example.com/skin-care",
+            "category_name": "Skin Care",
+        },
+        "citations": [
+            {
+                "source_id": "src_1",
+                "source_url": "https://shop.example.com/skin-care",
+                "field": "name",
+                "claim": "Advanced Night Repair Serum",
+                "snippet": "Advanced Night Repair Serum",
+                "confidence": 0.75,
+            }
+        ],
+        "completeness_score": 0.75,
+    }
+
+
 def test_run_command_lists_supported_use_cases() -> None:
     runner = CliRunner()
     result = runner.invoke(app, ["run", "--help"])
@@ -20,6 +49,69 @@ def test_run_command_lists_supported_use_cases() -> None:
     assert "prism" in result.output
     assert "investor" in result.output
     assert "website-quality" in result.output
+
+
+def test_product_export_command_writes_requested_formats() -> None:
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        records_path = Path("records.json")
+        records_path.write_text(json.dumps([_product_record_payload()]), encoding="utf-8")
+
+        result = runner.invoke(
+            app,
+            [
+                "product-export",
+                str(records_path),
+                "--output-dir",
+                "exports",
+                "--format",
+                "csv",
+                "--format",
+                "sqlite",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert '"record_count": 1' in result.output
+        assert Path("exports/products.csv").exists()
+        assert Path("exports/products.sqlite").exists()
+
+
+def test_product_export_command_accepts_records_envelope() -> None:
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        records_path = Path("records.json")
+        records_path.write_text(
+            json.dumps({"records": [_product_record_payload()]}),
+            encoding="utf-8",
+        )
+
+        result = runner.invoke(
+            app,
+            [
+                "product-export",
+                str(records_path),
+                "--output-dir",
+                "exports",
+                "--format",
+                "jsonl",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert Path("exports/products.jsonl").exists()
+
+
+def test_product_export_command_fails_for_missing_file() -> None:
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            app,
+            ["product-export", "missing.json", "--output-dir", "exports"],
+        )
+
+        assert result.exit_code == 1
+        assert "Product records file does not exist" in result.output
 
 
 def test_run_jobs_placeholder_is_explicit() -> None:

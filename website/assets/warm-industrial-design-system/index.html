@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warm Industrial — Design System Reference</title>
+<link rel="stylesheet" href="warm-industrial.css">
+<style>
+  html,body{margin:0;padding:0;}
+  .sec{max-width:1600px;margin:0 auto;border-top:1px solid var(--wi-border);}
+  .sec__head{display:flex;align-items:flex-end;justify-content:space-between;padding:56px 40px 26px;gap:24px;flex-wrap:wrap;}
+  .sec__body{padding:0 40px 64px;}
+  .grid12{display:grid;grid-template-columns:repeat(12,1fr);gap:1px;background:var(--wi-border);border:1px solid var(--wi-border);}
+  .grid12>*{background:var(--wi-bg);padding:18px 16px;}
+  .demo{border:1px solid var(--wi-border);padding:40px;display:flex;align-items:center;gap:28px;flex-wrap:wrap;}
+  .lede{font-family:var(--wi-font-serif);font-style:italic;font-size:clamp(18px,1.6vw,24px);color:#3f3f46;max-width:60ch;line-height:1.5;margin:14px 0 0;}
+  .swrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1px;background:var(--wi-border);border:1px solid var(--wi-border);}
+  .scell{background:var(--wi-bg);padding:0;}
+  .scell__chip{height:90px;}
+  .scell__meta{padding:12px 14px;}
+  pre{margin:0;}
+  @media(max-width:760px){.grid12{grid-template-columns:repeat(4,1fr);}}
+</style>
+</head>
+<body class="wi">
+
+  <div class="wi-grid-bg" aria-hidden="true">
+    <div class="wi-grid-bg__inner">
+      <div class="wi-grid-bg__col"></div><div class="wi-grid-bg__col"></div><div class="wi-grid-bg__col"></div>
+      <div class="wi-grid-bg__col"></div><div class="wi-grid-bg__col"></div><div class="wi-grid-bg__col"></div>
+      <div class="wi-grid-bg__col"></div><div class="wi-grid-bg__col"></div><div class="wi-grid-bg__col"></div>
+      <div class="wi-grid-bg__col"></div><div class="wi-grid-bg__col"></div><div class="wi-grid-bg__col"></div>
+    </div>
+  </div>
+  <div class="wi-noise" aria-hidden="true"></div>
+
+  <div style="position:relative;z-index:1;">
+
+    <!-- HEADER -->
+    <header class="wi-header">
+      <div class="wi-container" style="height:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
+        <span class="wi-label">Reference</span>
+        <span class="wi-logo" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);">
+          <span class="wi-logo__serif">Warm</span><span class="wi-logo__sans">INDUSTRIAL</span>
+        </span>
+        <a class="wi-pill" href="#">v1.0 &#8599;</a>
+      </div>
+    </header>
+
+    <!-- TITLE -->
+    <section class="sec" style="border-top:none;">
+      <div class="sec__body" style="padding-top:72px;">
+        <span class="wi-label wi-label--accent">Design System &mdash; 2026</span>
+        <h1 class="wi-display" style="margin:24px 0 0;">WARM<br><span class="wi-serif" style="font-size:0.92em;">industrial</span><br><span class="wi-stroke">SYSTEM</span></h1>
+        <p class="lede">A reference for the industrial-chic system: structural grids, warm-gray surfaces, high-impact editorial type, and technical readout accents. Link <code>warm-industrial.css</code>, add <code>class="wi"</code> to the body, and compose.</p>
+      </div>
+    </section>
+
+    <!-- COLOR -->
+    <section class="sec">
+      <div class="sec__head">
+        <div style="display:flex;align-items:center;gap:16px;"><span class="wi-label wi-label--accent">(01)</span><span class="wi-label">Color tokens</span></div>
+        <span class="wi-serif" style="font-size:20px;color:var(--wi-muted);">Warm gray + amber</span>
+      </div>
+      <div class="sec__body">
+        <div class="swrap">
+          <div class="scell"><div class="scell__chip" style="background:#EBEBE8;border-bottom:1px solid var(--wi-border);"></div><div class="scell__meta"><div class="wi-label">Background</div><div class="wi-readout" style="color:var(--wi-fg);">#EBEBE8</div></div></div>
+          <div class="scell"><div class="scell__chip" style="background:#F4F4F5;border-bottom:1px solid var(--wi-border);"></div><div class="scell__meta"><div class="wi-label">Surface</div><div class="wi-readout" style="color:var(--wi-fg);">#F4F4F5</div></div></div>
+          <div class="scell"><div class="scell__chip" style="background:#18181B;"></div><div class="scell__meta"><div class="wi-label">Foreground</div><div class="wi-readout" style="color:var(--wi-fg);">#18181B</div></div></div>
+          <div class="scell"><div class="scell__chip" style="background:#BC8A2E;"></div><div class="scell__meta"><div class="wi-label">Accent</div><div class="wi-readout" style="color:var(--wi-fg);">#BC8A2E</div></div></div>
+          <div class="scell"><div class="scell__chip" style="background:#D4D4D8;"></div><div class="scell__meta"><div class="wi-label">Border</div><div class="wi-readout" style="color:var(--wi-fg);">#D4D4D8</div></div></div>
+          <div class="scell"><div class="scell__chip" style="background:#71717A;"></div><div class="scell__meta"><div class="wi-label">Muted</div><div class="wi-readout" style="color:var(--wi-fg);">#71717A</div></div></div>
+          <div class="scell"><div class="scell__chip" style="background:#22C55E;"></div><div class="scell__meta"><div class="wi-label">Live</div><div class="wi-readout" style="color:var(--wi-fg);">#22C55E</div></div></div>
+          <div class="scell"><div class="scell__chip" style="background:#0066FF;"></div><div class="scell__meta"><div class="wi-label">Accent / alt</div><div class="wi-readout" style="color:var(--wi-fg);">#0066FF</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TYPE -->
+    <section class="sec">
+      <div class="sec__head">
+        <div style="display:flex;align-items:center;gap:16px;"><span class="wi-label wi-label--accent">(02)</span><span class="wi-label">Typography</span></div>
+        <span class="wi-serif" style="font-size:20px;color:var(--wi-muted);">Inter / Playfair / mono</span>
+      </div>
+      <div class="sec__body" style="display:flex;flex-direction:column;gap:34px;">
+        <div><span class="wi-label wi-label--muted">.wi-display &mdash; Inter 900</span><div class="wi-display" style="margin-top:10px;">STRUCTURE</div></div>
+        <div style="border-top:1px solid var(--wi-border);padding-top:28px;"><span class="wi-label wi-label--muted">.wi-stroke &mdash; outline display</span><div class="wi-display wi-stroke" style="margin-top:10px;">LIGHTNESS</div></div>
+        <div style="border-top:1px solid var(--wi-border);padding-top:28px;"><span class="wi-label wi-label--muted">.wi-serif &mdash; Playfair italic</span><div class="wi-h1 wi-serif" style="margin-top:10px;">editorial flair</div></div>
+        <div style="border-top:1px solid var(--wi-border);padding-top:28px;display:flex;flex-wrap:wrap;gap:40px;">
+          <div><span class="wi-label wi-label--muted">.wi-label</span><div class="wi-label" style="margin-top:12px;">Technical Readout</div></div>
+          <div><span class="wi-label wi-label--muted">.wi-readout (mono)</span><div class="wi-readout" style="margin-top:12px;color:var(--wi-fg);">EST &mdash; 2019 / REV 04</div></div>
+          <div><span class="wi-label wi-label--muted">.wi-h3</span><div class="wi-h3" style="margin-top:12px;">Section heading</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRID -->
+    <section class="sec">
+      <div class="sec__head">
+        <div style="display:flex;align-items:center;gap:16px;"><span class="wi-label wi-label--accent">(03)</span><span class="wi-label">12-column grid</span></div>
+        <span class="wi-serif" style="font-size:20px;color:var(--wi-muted);">Align everything</span>
+      </div>
+      <div class="sec__body">
+        <div class="grid12">
+          <div class="wi-readout" style="color:var(--wi-fg);">01</div><div class="wi-readout" style="color:var(--wi-fg);">02</div><div class="wi-readout" style="color:var(--wi-fg);">03</div><div class="wi-readout" style="color:var(--wi-fg);">04</div>
+          <div class="wi-readout" style="color:var(--wi-fg);">05</div><div class="wi-readout" style="color:var(--wi-fg);">06</div><div class="wi-readout" style="color:var(--wi-fg);">07</div><div class="wi-readout" style="color:var(--wi-fg);">08</div>
+          <div class="wi-readout" style="color:var(--wi-fg);">09</div><div class="wi-readout" style="color:var(--wi-fg);">10</div><div class="wi-readout" style="color:var(--wi-fg);">11</div><div class="wi-readout" style="color:var(--wi-fg);">12</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BUTTONS / BADGES -->
+    <section class="sec">
+      <div class="sec__head">
+        <div style="display:flex;align-items:center;gap:16px;"><span class="wi-label wi-label--accent">(04)</span><span class="wi-label">Buttons &amp; status</span></div>
+        <span class="wi-serif" style="font-size:20px;color:var(--wi-muted);">Radius only here</span>
+      </div>
+      <div class="sec__body">
+        <div class="demo">
+          <a class="wi-btn" href="#">Start the brief <span class="wi-btn__arrow">&#8599;</span></a>
+          <a class="wi-btn wi-btn--ghost" href="#">Ghost <span class="wi-btn__arrow">&#8599;</span></a>
+          <a class="wi-pill" href="#">Pill CTA &#8599;</a>
+          <span class="wi-badge">Tag</span>
+          <span class="wi-badge wi-badge--accent">Category</span>
+          <span class="wi-status"><span class="wi-pulse"></span> System operational</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLIP REVEAL / PROJECT ROW -->
+    <section class="sec">
+      <div class="sec__head">
+        <div style="display:flex;align-items:center;gap:16px;"><span class="wi-label wi-label--accent">(05)</span><span class="wi-label">Project row + clip reveal</span></div>
+        <span class="wi-serif" style="font-size:20px;color:var(--wi-muted);">Hover the row</span>
+      </div>
+      <div class="sec__body" style="padding:0;">
+        <div class="wi-proj wi-reveal-row" style="display:grid;grid-template-columns:1.05fr 0.95fr;gap:48px;align-items:start;border-bottom:1px solid var(--wi-border);">
+          <div class="wi-reveal" style="position:absolute;top:0;right:0;height:100%;width:50%;z-index:3;background:linear-gradient(0deg,rgba(255,255,255,0.045) 1px,transparent 1px) 0 0/100% 30px,linear-gradient(90deg,rgba(255,255,255,0.045) 1px,transparent 1px) 0 0/42px 100%,linear-gradient(150deg,#1b1b1f,#08080a);">
+            <div class="wi-readout" style="position:absolute;left:22px;bottom:20px;color:rgba(235,235,232,0.5);">VIEW &mdash; 01</div>
+            <div class="wi-view-disc" style="position:absolute;right:34px;top:50%;transform:translateY(-50%);">&#8599;</div>
+          </div>
+          <div style="position:relative;z-index:2;">
+            <div class="wi-proj__meta"><span>01</span><span>/</span><span>2024</span><span style="width:30px;height:1px;background:#c4c4c0;"></span><span class="wi-proj__cat">AI Workflow</span></div>
+            <h3 class="wi-proj__title">Synapse Editor</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;"><span class="wi-tag">React</span><span class="wi-tag">WebGL</span><span class="wi-tag">Python</span><span class="wi-tag">OpenAI</span></div>
+          </div>
+          <div style="position:relative;z-index:1;"><p style="font-size:14px;line-height:1.6;color:#52525b;max-width:380px;margin:0;">A node-based generative editor that branches narratives using large language models.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MARQUEE -->
+    <section class="sec">
+      <div class="sec__head">
+        <div style="display:flex;align-items:center;gap:16px;"><span class="wi-label wi-label--accent">(06)</span><span class="wi-label">Marquee ticker</span></div>
+      </div>
+    </section>
+    <div class="wi-marquee">
+      <div class="wi-marquee__track">
+        <div style="display:flex;align-items:center;gap:44px;padding:0 44px;"><span class="wi-h1 wi-stroke--thin">DESIGN</span><span style="color:var(--wi-accent);font-size:30px;">&#10022;</span><span class="wi-h1 wi-serif">systems</span><span style="color:var(--wi-accent);font-size:30px;">&#10022;</span><span class="wi-h1 wi-stroke--thin">STRATEGY</span><span style="color:var(--wi-accent);font-size:30px;">&#10022;</span><span class="wi-h1 wi-serif">motion</span><span style="color:var(--wi-accent);font-size:30px;">&#10022;</span></div>
+        <div style="display:flex;align-items:center;gap:44px;padding:0 44px;" aria-hidden="true"><span class="wi-h1 wi-stroke--thin">DESIGN</span><span style="color:var(--wi-accent);font-size:30px;">&#10022;</span><span class="wi-h1 wi-serif">systems</span><span style="color:var(--wi-accent);font-size:30px;">&#10022;</span><span class="wi-h1 wi-stroke--thin">STRATEGY</span><span style="color:var(--wi-accent);font-size:30px;">&#10022;</span><span class="wi-h1 wi-serif">motion</span><span style="color:var(--wi-accent);font-size:30px;">&#10022;</span></div>
+      </div>
+    </div>
+
+    <!-- USAGE -->
+    <section class="sec">
+      <div class="sec__head">
+        <div style="display:flex;align-items:center;gap:16px;"><span class="wi-label wi-label--accent">(07)</span><span class="wi-label">Quick start</span></div>
+      </div>
+      <div class="sec__body" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        <pre class="wi-code">&lt;link rel="stylesheet"
+  href="<span class="c">warm-industrial.css</span>"&gt;
+&lt;body class="<span class="c">wi</span>"&gt;
+  &lt;!-- grid + noise layers --&gt;
+  &lt;div class="<span class="c">wi-grid-bg</span>"&gt;…12 cols…&lt;/div&gt;
+  &lt;div class="<span class="c">wi-noise</span>"&gt;&lt;/div&gt;
+
+  &lt;h1 class="<span class="c">wi-display wi-stroke</span>"&gt;
+    STRUCTURE
+  &lt;/h1&gt;
+  &lt;a class="<span class="c">wi-btn</span>"&gt;Start
+    &lt;span class="<span class="c">wi-btn__arrow</span>"&gt;↗&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/body&gt;</pre>
+        <pre class="wi-code"><span style="color:var(--wi-muted);">// scroll-in reveals — add class wi-fade,</span>
+<span style="color:var(--wi-muted);">// then toggle is-in on enter:</span>
+const io = new IntersectionObserver(es =&gt;
+  es.forEach(e =&gt; {
+    if (e.isIntersecting) {
+      e.target.classList.add(<span class="c">'is-in'</span>);
+      io.unobserve(e.target);
+    }
+  }), { threshold: .12,
+    rootMargin: <span class="c">'0px 0px -8% 0px'</span> });
+
+document.querySelectorAll(<span class="c">'.wi-fade'</span>)
+  .forEach(el =&gt; io.observe(el));</pre>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="wi-dark" style="position:relative;overflow:hidden;">
+      <div style="max-width:1600px;margin:0 auto;padding:90px 40px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:24px;">
+        <div>
+          <span class="wi-label" style="color:var(--wi-accent);">Warm Industrial</span>
+          <div class="wi-h1" style="margin-top:16px;">Sharp. Gridded. <span class="wi-serif">warm.</span></div>
+        </div>
+        <span class="wi-status"><span class="wi-pulse"></span> v1.0 &mdash; system operational</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    (function(){
+      var io = new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('is-in'); io.unobserve(e.target); } });
+      }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' });
+      document.querySelectorAll('.wi-fade').forEach(function(el){ io.observe(el); });
+    })();
+  </script>
+</body>
+</html>
