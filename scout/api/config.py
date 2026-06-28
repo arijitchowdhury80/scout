@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     hosted_key_delivery_smtp_username: str = ""
     hosted_key_delivery_smtp_password: str = ""
     hosted_key_delivery_smtp_use_tls: bool = True
+    hosted_rate_limit_max_requests: int = 60
+    hosted_rate_limit_window_seconds: int = 60
     host: str = "0.0.0.0"
     port: int = 8421
 

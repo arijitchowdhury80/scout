@@ -6,13 +6,14 @@ from unittest.mock import AsyncMock, MagicMock
 
 from fastapi.testclient import TestClient
 
-from scout.api.deps import get_crawler, get_hosted_account_service
+from scout.api.deps import get_crawler, get_hosted_account_service, get_hosted_rate_limiter
 from scout.api.main import app
 from scout.core.platform.account_service import (
     HostedAccountService,
     InMemoryHostedAccountStore,
 )
 from scout.core.platform.hosted import HostedPlan, plan_limits
+from scout.core.platform.hosted_rate_limit import HostedRateLimitConfig, HostedRateLimiter
 from scout.core.types import ScoutMetadata, ScrapeResponse
 
 _TS = "2026-06-28T12:00:00Z"
@@ -144,3 +145,46 @@ def test_hosted_scrape_allows_valid_key_and_debits_credits() -> None:
     assert raw_key not in resp.text
     assert balance.standard_credits_remaining == limits.standard_credits - 1
     assert mock_crawler.scrape.await_count == 1
+
+
+def test_hosted_scrape_rate_limit_rejects_without_second_debit_or_crawl() -> None:
+    account_service, raw_key, tenant_id = _account_service_with_key()
+    limiter = HostedRateLimiter(HostedRateLimitConfig(max_requests=1, window_seconds=60))
+    mock_crawler = MagicMock()
+    mock_crawler.scrape = AsyncMock(
+        return_value=ScrapeResponse(
+            success=True,
+            url="https://example.com",
+            markdown="# Hello",
+            metadata=_meta(),
+            provider="test",
+            duration_ms=10,
+        )
+    )
+    app.dependency_overrides[get_crawler] = lambda: mock_crawler
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_rate_limiter] = lambda: limiter
+    try:
+        client = TestClient(app)
+        first = client.post(
+            "/v1/hosted/scrape",
+            json={"url": "https://example.com"},
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
+        second = client.post(
+            "/v1/hosted/scrape",
+            json={"url": "https://example.com"},
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    balance = account_service.get_balance(tenant_id)
+    limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.json()["detail"] == "Hosted API rate limit exceeded."
+    assert second.headers["retry-after"] == "60"
+    assert raw_key not in second.text
+    assert mock_crawler.scrape.await_count == 1
+    assert balance.standard_credits_remaining == limits.standard_credits - 1

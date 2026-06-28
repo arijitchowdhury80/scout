@@ -35,6 +35,8 @@ LLM_API_KEY=
 SCOUT_WORKDIR=scout-runs
 DB_PATH=
 HOSTED_ACCOUNT_DB_PATH=
+HOSTED_RATE_LIMIT_MAX_REQUESTS=60
+HOSTED_RATE_LIMIT_WINDOW_SECONDS=60
 HOST=0.0.0.0
 PORT=8421
 ```
@@ -70,6 +72,19 @@ HOSTED_KEY_DELIVERY_SMTP_USERNAME=
 HOSTED_KEY_DELIVERY_SMTP_PASSWORD=
 HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
 ```
+
+Hosted API requests also have a private-beta per-key throttle:
+
+```text
+HOSTED_RATE_LIMIT_MAX_REQUESTS=60
+HOSTED_RATE_LIMIT_WINDOW_SECONDS=60
+```
+
+`/v1/hosted/*` requests that exceed the configured window return `429` with a
+`Retry-After` header and do not spend hosted credits. The current limiter is
+in-memory and process-local. It is enough for a single-node private beta, but a
+multi-instance hosted launch still needs a shared limiter such as Redis or an
+API-gateway/WAF policy.
 
 Scout exposes a non-secret readiness check for the website:
 

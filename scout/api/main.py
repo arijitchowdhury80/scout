@@ -54,6 +54,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         HostedPaymentProvisioningService,
         SQLiteHostedPaymentStore,
     )
+    from scout.core.platform.hosted_rate_limit import HostedRateLimitConfig, HostedRateLimiter
     from scout.core.platform.stripe_checkout import StripeCheckoutConfig, StripeCheckoutService
 
     app.state.crawler = ScoutCrawler(llm_api_key=settings.llm_api_key)
@@ -69,6 +70,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.hosted_payment_service = HostedPaymentProvisioningService(
         hosted_account_service,
         SQLiteHostedPaymentStore(hosted_db_path),
+    )
+    app.state.hosted_rate_limiter = HostedRateLimiter(
+        HostedRateLimitConfig(
+            max_requests=settings.hosted_rate_limit_max_requests,
+            window_seconds=settings.hosted_rate_limit_window_seconds,
+        )
     )
     app.state.hosted_key_delivery_service = SmtpHostedApiKeyDeliveryService(
         SmtpHostedApiKeyDeliveryConfig(

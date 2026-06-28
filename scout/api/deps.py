@@ -11,6 +11,7 @@ from scout.core.platform.key_delivery import (
     HostedApiKeyDeliveryService,
 )
 from scout.core.platform.payment_provisioning import HostedPaymentProvisioningService
+from scout.core.platform.hosted_rate_limit import HostedRateLimitConfig, HostedRateLimiter
 from scout.core.platform.stripe_checkout import StripeCheckoutConfig, StripeCheckoutService
 
 
@@ -68,3 +69,13 @@ def get_hosted_key_delivery_service(request: Request) -> HostedApiKeyDeliverySer
         DisabledHostedApiKeyDeliveryService(),
     )
     return service
+
+
+def get_hosted_rate_limiter(request: Request) -> HostedRateLimiter:
+    """Return the hosted per-key rate limiter stored on app.state."""
+    limiter: HostedRateLimiter = getattr(
+        request.app.state,
+        "hosted_rate_limiter",
+        HostedRateLimiter(HostedRateLimitConfig(enabled=False)),
+    )
+    return limiter

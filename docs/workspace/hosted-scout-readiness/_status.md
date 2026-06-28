@@ -49,6 +49,9 @@ Status: In progress
 - [x] Hosted Stripe Checkout Session verification passed.
 - [x] Hosted Stripe readiness endpoint implemented.
 - [x] `.env.example` updated with hosted Stripe/SMTP settings.
+- [x] Hosted per-key rate-limit tests written.
+- [x] Hosted per-key rate limiter implemented.
+- [x] Hosted per-key rate-limit focused verification passed.
 
 ## Scope
 
@@ -64,14 +67,18 @@ Define and start the production-readiness foundation for hosted Scout:
 
 This stream now includes SQLite account persistence, a Stripe-compatible payment
 provisioning domain layer, a public Stripe Checkout Session creation route, and
-a signed Stripe webhook route for `checkout.session.completed`. It still does
-not implement user login, secure Customer Portal, production Postgres, a public
-dashboard, or a live SMTP/Stripe sandbox smoke.
+a signed Stripe webhook route for `checkout.session.completed`. It also includes
+a configurable process-local per-key hosted rate limiter for `/v1/hosted/*`.
+It still does not implement user login, secure Customer Portal, distributed
+throttling, production Postgres, a public dashboard, or a live SMTP/Stripe
+sandbox smoke.
 
 Hosted beta configuration is now documented in `.env.example`. Local users only
 need `SCOUT_API_KEY`, `SCOUT_WORKDIR`, and optional `LLM_API_KEY`; paid hosted
 beta additionally needs Stripe Checkout, Stripe webhook, and SMTP key-delivery
-settings.
+settings. Hosted rate limits default to 60 requests per key per 60-second
+window and should move to Redis/API-gateway enforcement before multi-instance
+production hosting.
 
 ## Verification
 
@@ -180,3 +187,54 @@ settings.
 - Hosted Stripe Checkout billing checkpoint:
   `python3 -m pytest tests/unit/api/test_billing_stripe_checkout.py tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_auth.py -q`
   - Result: 15 passed.
+
+# Hosted Per-Key Rate-Limit Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `scout.core.platform.hosted_rate_limit`
+- `HostedRateLimitConfig`
+- `HostedRateLimitDecision`
+- `HostedRateLimiter`
+- `get_hosted_rate_limiter`
+- FastAPI startup binding for `app.state.hosted_rate_limiter`
+- `/v1/hosted/me` and `/v1/hosted/scrape` rate-limit enforcement
+
+Behavior:
+
+- each hosted API key has a configurable request window,
+- over-limit requests return `429` with `Retry-After`,
+- over-limit `/v1/hosted/scrape` calls do not call the crawler,
+- over-limit `/v1/hosted/scrape` calls do not spend credits,
+- unsafe URLs are still rejected before rate-limit admission or credit debit,
+- the limiter is process-local and intended as a private-beta guardrail only.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/core/platform/test_hosted_rate_limit.py tests/unit/api/test_hosted_scrape.py -q`
+  failed because `scout.core.platform.hosted_rate_limit` and
+  `get_hosted_rate_limiter` did not exist.
+- GREEN:
+  `python3 -m pytest tests/unit/core/platform/test_hosted_rate_limit.py tests/unit/api/test_hosted_scrape.py -q`
+  passed: 9 tests.
+- Focused checkpoint:
+  `python3 -m pytest tests/unit/core/platform/test_hosted_rate_limit.py tests/unit/api/test_hosted_scrape.py tests/unit/api/test_env_example.py -q`
+  passed: 10 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 125 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 482 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 202 files already
+  formatted.
+
+Still pending:
+
+- distributed/shared hosted throttling for multi-instance production,
+- global abuse/WAF policy,
+- hosted crawl/products/run endpoints,
+- hosted usage dashboard.

@@ -731,3 +731,59 @@ Still pending:
 - global request rate-limit middleware,
 - hosted crawl/products/run endpoints,
 - hosted usage dashboard.
+
+# Hosted Per-Key Rate-Limit Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `scout.core.platform.hosted_rate_limit`
+- `HostedRateLimitConfig`
+- `HostedRateLimitDecision`
+- `HostedRateLimiter`
+- `get_hosted_rate_limiter`
+- FastAPI startup binding for `app.state.hosted_rate_limiter`
+- rate-limit enforcement on `/v1/hosted/me`
+- rate-limit enforcement on `/v1/hosted/scrape`
+
+Behavior:
+
+- hosted API keys are throttled by a configurable sliding window,
+- over-limit calls return `429` with `Retry-After`,
+- `/v1/hosted/scrape` authenticates the key and checks URL safety before
+  rate-limit admission,
+- over-limit scrapes do not call the crawler and do not spend hosted credits,
+- the limiter is process-local and appropriate only for single-node/private-beta
+  use.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/core/platform/test_hosted_rate_limit.py tests/unit/api/test_hosted_scrape.py -q`
+  failed because `scout.core.platform.hosted_rate_limit` and
+  `get_hosted_rate_limiter` did not exist.
+- GREEN:
+  `python3 -m pytest tests/unit/core/platform/test_hosted_rate_limit.py tests/unit/api/test_hosted_scrape.py -q`
+  passed: 9 tests.
+
+Verification:
+
+- Focused checkpoint:
+  `python3 -m pytest tests/unit/core/platform/test_hosted_rate_limit.py tests/unit/api/test_hosted_scrape.py tests/unit/api/test_env_example.py -q`
+  passed: 10 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 125 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 482 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 202 files already
+  formatted.
+
+Still pending:
+
+- distributed/shared throttling for multi-instance hosted production,
+- gateway/WAF abuse policy,
+- hosted crawl/products/run endpoints,
+- hosted usage dashboard.
