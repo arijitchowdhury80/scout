@@ -29,6 +29,9 @@ Status: In progress
 - [x] Hosted HTTP scrape boundary tests written.
 - [x] Hosted HTTP scrape boundary implemented.
 - [x] Hosted HTTP scrape boundary verification passed.
+- [x] Hosted beta provisioning CLI tests written.
+- [x] Hosted beta provisioning CLI implemented.
+- [x] Hosted beta provisioning CLI verification passed.
 
 ## Scope
 
@@ -87,3 +90,11 @@ dashboard.
   - Result: 9 passed.
 - Hosted HTTP boundary checkpoint: `python3 -m pytest tests/unit/ -q`
   - Result: 447 passed.
+- Hosted beta provisioning CLI RED:
+  `python3 -m pytest tests/unit/cli/test_run_commands.py -q -k "hosted_provision"`
+  - Result: failed with Typer exit code 2 because `hosted-provision` did not exist.
+- Hosted beta provisioning CLI GREEN:
+  `python3 -m pytest tests/unit/cli/test_run_commands.py -q -k "hosted_provision"`
+  - Result: 2 passed.
+- Hosted beta provisioning CLI checkpoint: `python3 -m pytest tests/unit/ -q`
+  - Result: 449 passed.

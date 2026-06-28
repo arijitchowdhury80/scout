@@ -91,6 +91,9 @@ Implementation seed:
 - the first hosted HTTP proof endpoint now exists at `/v1/hosted/scrape`; it
   accepts `Authorization: Bearer scout_live_...`, uses hosted admission, and
   returns non-secret usage metadata with the scrape response.
+- a private-beta operator CLI now exists as `scout hosted-provision`; it creates
+  hosted tenant/key/balance records in the hosted account SQLite DB and prints
+  the raw API key exactly once for the operator to store.
 - the current HTTP middleware has not yet been migrated to the hosted key model.
 - URL safety primitives for the SSRF guard now exist in
   `scout.core.platform.url_safety`.
@@ -106,6 +109,10 @@ isolation.
 The hosted scrape endpoint is a proof boundary, not the full hosted API. Hosted
 crawl, products, run orchestration, key provisioning endpoints, payment
 webhooks, and async worker execution remain pending.
+
+The `hosted-provision` CLI is an operator bridge, not a public self-serve key
+dashboard. Public key generation still needs user identity, payment
+confirmation, abuse controls, and audit logging.
 
 ## Run Model
 

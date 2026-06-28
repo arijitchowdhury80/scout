@@ -237,21 +237,30 @@ Recommended generic product schema fields:
 
 Before paid hosted beta:
 
-- [ ] tenant model,
+- [x] tenant model,
 - [x] initial API key lifecycle primitives,
-- [ ] persisted API key lifecycle,
+- [x] persisted API key lifecycle,
 - [ ] quota/rate-limit middleware,
 - [x] initial plan and credit policy model,
-- [ ] persisted usage metering,
+- [x] persisted usage metering for standard/browser credits,
 - [ ] Stripe checkout/webhook integration,
 - [ ] async job queue,
 - [ ] object storage,
 - [x] initial SSRF URL safety primitives,
-- [ ] hosted SSRF middleware enforcement,
+- [x] hosted SSRF route-admission enforcement for `/v1/hosted/scrape`,
 - [ ] hosted browser cost controls,
 - [ ] privacy/terms/acceptable-use docs,
 - [ ] dependency/license notices,
 - [ ] operational dashboards.
+
+Current implementation checkpoint:
+
+- `scout hosted-provision` creates private-beta hosted keys for operators.
+- `/v1/hosted/scrape` accepts hosted Bearer keys and charges standard credits.
+- SQLite hosted account persistence is available for local/dev hosted beta
+  testing.
+- Public signup, Stripe, dashboard key management, production Postgres
+  persistence, async hosted runs, and object storage remain pending.
 
 Before local public beta:
 

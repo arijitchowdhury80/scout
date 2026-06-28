@@ -21,6 +21,9 @@ from scout.core.modes.products import products as _products
 from scout.core.modes.scrape import scrape as _scrape
 from scout.core.modes.screenshot import screenshot as _screenshot
 from scout.core.crawler import ScoutCrawler
+from scout.core.platform.account_service import HostedAccountService
+from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
+from scout.core.platform.hosted import HostedPlan
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest
 from scout.core.platform.workspace import default_workdir, resolve_run_output_dir
@@ -463,6 +466,53 @@ def product_export(
     )
 
 
+@app.command("hosted-provision")
+def hosted_provision(
+    email: str = typer.Option(..., "--email", help="Hosted beta user email"),
+    db: str = typer.Option("", "--db", help="Hosted account SQLite DB path"),
+    workdir: str = typer.Option("", "--workdir", help="Workdir used to derive DB path"),
+    plan: HostedPlan = typer.Option(
+        HostedPlan.HOSTED_BETA_PASS,
+        "--plan",
+        help="Hosted plan to provision",
+    ),
+    scope: list[str] | None = typer.Option(  # noqa: B008
+        None,
+        "--scope",
+        help="API key scope. Repeat for multiple. Defaults to runs:create",
+    ),
+    key_name: str = typer.Option("Default key", "--key-name", help="Display name for the API key"),
+) -> None:
+    """Provision a hosted account key for private beta operators."""
+    db_path = _hosted_account_db_path(db=db, workdir=workdir)
+    service = HostedAccountService(SQLiteHostedAccountStore(db_path))
+    try:
+        result = service.provision_account(
+            email=email,
+            plan=plan,
+            scopes=scope or ["runs:create"],
+            key_name=key_name,
+        )
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise SystemExit(1) from exc
+    _out(
+        {
+            "success": True,
+            "tenant_id": result.tenant.tenant_id,
+            "key_id": result.api_key.key_id,
+            "email": str(result.tenant.email),
+            "plan": result.tenant.plan.value,
+            "scopes": result.api_key.scopes,
+            "standard_credits_remaining": result.balance.standard_credits_remaining,
+            "browser_credits_remaining": result.balance.browser_credits_remaining,
+            "db": str(db_path),
+            "raw_api_key": result.raw_api_key,
+            "warning": "Store this key now. Scout only stores its hash.",
+        }
+    )
+
+
 @app.command()
 def certify_generate(
     evidence_dir: str = typer.Option(
@@ -596,6 +646,14 @@ def _prompt_output_dir(query: str, site: str) -> str:
 def _default_certification_report_path(timestamp: str) -> Path:
     day = timestamp.split("T", maxsplit=1)[0]
     return Path("docs") / "validation" / f"scout-feature-certification-{day}.md"
+
+
+def _hosted_account_db_path(db: str, workdir: str) -> Path:
+    """Resolve hosted account DB path for operator commands."""
+    if db:
+        return Path(db).expanduser()
+    chosen_workdir = Path(workdir).expanduser() if workdir else default_workdir()
+    return Path(chosen_workdir) / "hosted_accounts.sqlite"
 
 
 def _load_product_records(path: Path) -> list[AlgoliaProductRecord]:

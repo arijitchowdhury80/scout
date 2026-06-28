@@ -5,6 +5,9 @@ from typer.testing import CliRunner
 
 import scout.cli as cli
 from scout.cli import app
+from scout.core.platform.account_service import HostedAccountService
+from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
+from scout.core.platform.hosted import HostedPlan, plan_limits
 from scout.core.platform.types import RunResponse
 
 
@@ -112,6 +115,58 @@ def test_product_export_command_fails_for_missing_file() -> None:
 
         assert result.exit_code == 1
         assert "Product records file does not exist" in result.output
+
+
+def test_hosted_provision_command_creates_usable_key_without_storing_raw_key() -> None:
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            app,
+            [
+                "hosted-provision",
+                "--email",
+                "builder@example.com",
+                "--db",
+                "hosted.sqlite",
+            ],
+        )
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        raw_key = data["raw_api_key"]
+        service = HostedAccountService(SQLiteHostedAccountStore("hosted.sqlite"))
+        auth = service.authenticate_key(raw_key, required_scope="runs:create")
+        balance = service.get_balance(data["tenant_id"])
+        limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
+
+        assert data["success"] is True
+        assert data["plan"] == "hosted_beta_pass"
+        assert data["email"] == "builder@example.com"
+        assert raw_key.startswith("scout_live_")
+        assert auth.allowed is True
+        assert balance.standard_credits_remaining == limits.standard_credits
+        assert balance.browser_credits_remaining == limits.browser_credits
+        assert raw_key not in Path("hosted.sqlite").read_text(encoding="utf-8", errors="ignore")
+
+
+def test_hosted_provision_command_rejects_local_free_plan() -> None:
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            app,
+            [
+                "hosted-provision",
+                "--email",
+                "builder@example.com",
+                "--plan",
+                "local_free",
+                "--db",
+                "hosted.sqlite",
+            ],
+        )
+
+        assert result.exit_code == 1
+        assert "not hosted-enabled" in result.output
 
 
 def test_run_jobs_placeholder_is_explicit() -> None:

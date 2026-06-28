@@ -216,3 +216,37 @@ Verification:
 - `python3 -m pyright scout/` -> `0 errors`.
 - `ruff check scout/ tests/` -> `All checks passed!`.
 - `ruff format --check scout/ tests/` -> `188 files already formatted`.
+
+## Follow-Up Checkpoint - Hosted Beta Provisioning CLI
+
+Date: 2026-06-28
+
+Built:
+
+- `scout hosted-provision`
+- `_hosted_account_db_path(...)`
+
+Behavior:
+
+- provisions a hosted tenant by email,
+- defaults to `hosted_beta_pass`,
+- defaults to `runs:create` scope,
+- accepts repeated `--scope` values,
+- writes tenant/key/balance records to hosted account SQLite DB,
+- prints raw `scout_live_...` key once,
+- does not store the raw key in SQLite,
+- rejects non-hosted plans such as `local_free`.
+
+TDD:
+
+- RED: `python3 -m pytest tests/unit/cli/test_run_commands.py -q -k "hosted_provision"`
+  failed because the command did not exist.
+- GREEN: same command passed with `2 passed`.
+
+Verification:
+
+- `python3 -m pytest tests/unit/cli/test_run_commands.py -q` -> `15 passed`.
+- `python3 -m pytest tests/unit/ -q` -> `449 passed`.
+- `python3 -m pyright scout/` -> `0 errors`.
+- `ruff check scout/ tests/` -> `All checks passed!`.
+- `ruff format --check scout/ tests/` -> `188 files already formatted`.
