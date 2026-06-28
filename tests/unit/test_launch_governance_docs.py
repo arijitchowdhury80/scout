@@ -71,3 +71,26 @@ def test_release_checklist_blocks_public_launch_until_decisions_are_closed() -> 
     assert "PyPI" in checklist
     assert "GHCR" in checklist
     assert "Docker Hub" in checklist
+
+
+def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> None:
+    economics = _read("docs/product/hosted-economics-and-usage-limits.md")
+    checklist = _read("docs/product/release-checklist.md")
+
+    assert "Hosted Economics And Usage Limits" in economics
+    assert "$22 one-time hosted beta pass" in economics
+    assert "finite hosted credits" in economics
+    assert "No unlimited hosted crawling" in economics
+    assert "Standard credits | 2,000" in economics
+    assert "Browser credits | 100" in economics
+    assert "Browser render | browser | 5" in economics
+    assert "Browser minute | browser | 10" in economics
+    assert "Firecrawl" in economics
+    assert "Browserbase" in economics
+    assert "Subscriptions can follow after private-beta usage data is measured" in economics
+    assert "- [ ] Public launch pricing and hosted usage limits approved." in checklist
+    assert (
+        "- [x] Hosted economics and usage limits documented against the `$22` beta pass"
+        in checklist
+    )
+    assert "docs/product/hosted-economics-and-usage-limits.md" in checklist

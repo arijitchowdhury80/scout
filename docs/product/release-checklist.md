@@ -24,8 +24,12 @@ The legacy app UI is not a launch surface until it is rebuilt and certified.
 - [ ] Final license expression added to `pyproject.toml`.
 - [ ] `LICENSE` file added if Scout is open source or source-available.
 - [ ] Public launch pricing and hosted usage limits approved.
-- [ ] Hosted economics and usage limits documented against the `$22` beta pass
+- [x] Hosted economics and usage limits documented against the `$22` beta pass
       and any subscription alternative.
+      Evidence: `docs/product/hosted-economics-and-usage-limits.md`.
+      Result: local remains free, the `$22` hosted beta pass is finite credits,
+      browser/rendered work is separately metered, and no unlimited hosted
+      crawling should be sold. Final public pricing approval remains open.
 - [ ] Registry publishing policy approved for PyPI, GHCR, Docker Hub, or other
       registries.
 
