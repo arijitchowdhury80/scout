@@ -137,6 +137,12 @@ No public registry publish should happen until these decisions are closed.
       access metered, and avoids unsupported claims such as unlimited hosted
       scraping or guaranteed hard-site bypass.
 - [ ] Local install instructions tested on a fresh machine or clean container.
+      Evidence: `docs/product/local-install-verification-2026-06-28.md`.
+      Result: the current launch branch installs and smokes successfully from a
+      clean venv, but the exact public GitHub quickstart URL still resolves the
+      older default-branch `scout` package instead of `scout-web`. Keep this
+      gate open until the launch branch is merged or the quickstart is made
+      branch-specific and re-tested.
 - [ ] Docker install instructions tested from docs only.
 - [ ] Hosted API quickstart tested with a newly generated API key.
 - [ ] Skill usage docs tested from current package.
