@@ -418,3 +418,55 @@ Still pending:
 
 - real SMTP smoke test with test credentials,
 - Stripe sandbox webhook smoke with SMTP configured.
+
+# Hosted Stripe Checkout Session Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `scout.core.platform.stripe_checkout`
+- `StripeCheckoutConfig`
+- `StripeCheckoutService`
+- `UrllibStripeCheckoutTransport`
+- `POST /v1/billing/stripe/checkout-session`
+- startup config for `STRIPE_SECRET_KEY`, `STRIPE_BETA_PRICE_ID`,
+  `STRIPE_SUCCESS_URL`, and `STRIPE_CANCEL_URL`
+
+Behavior:
+
+- creates one-time Stripe Checkout Sessions for the hosted beta pass,
+- sends Stripe a form-encoded `mode=payment` request with one beta price line
+  item,
+- passes optional `customer_email`,
+- returns only checkout URL, checkout session id, success, and reason,
+- fails with `503` when Stripe Checkout is not configured,
+- does not provision hosted accounts before webhook-confirmed payment,
+- does not return Stripe secret keys or raw Scout API keys.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/core/platform/test_stripe_checkout.py tests/unit/api/test_billing_stripe_checkout.py -q`
+  failed with missing `scout.core.platform.stripe_checkout` and missing
+  `get_stripe_checkout_service`.
+- GREEN:
+  `python3 -m pytest tests/unit/core/platform/test_stripe_checkout.py tests/unit/api/test_billing_stripe_checkout.py -q`
+  passed: 4 tests.
+- Billing checkpoint:
+  `python3 -m pytest tests/unit/api/test_billing_stripe_checkout.py tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_auth.py -q`
+  passed: 15 tests.
+- Full API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 119 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 470 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 197 files already
+  formatted.
+
+Still pending:
+
+- live Stripe test-mode Checkout Session smoke,
+- website CTA wiring to call checkout route and redirect to Stripe,
+- hosted Customer Portal.

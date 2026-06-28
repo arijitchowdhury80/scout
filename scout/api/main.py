@@ -53,6 +53,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         HostedPaymentProvisioningService,
         SQLiteHostedPaymentStore,
     )
+    from scout.core.platform.stripe_checkout import StripeCheckoutConfig, StripeCheckoutService
 
     app.state.crawler = ScoutCrawler(llm_api_key=settings.llm_api_key)
     db_path = settings.resolve_db_path()
@@ -76,6 +77,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             username=settings.hosted_key_delivery_smtp_username,
             password=settings.hosted_key_delivery_smtp_password,
             use_tls=settings.hosted_key_delivery_smtp_use_tls,
+        )
+    )
+    app.state.stripe_checkout_service = StripeCheckoutService(
+        StripeCheckoutConfig(
+            secret_key=settings.stripe_secret_key,
+            beta_price_id=settings.stripe_beta_price_id,
+            success_url=settings.stripe_success_url,
+            cancel_url=settings.stripe_cancel_url,
         )
     )
     bind_db(run_db)

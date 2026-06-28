@@ -44,6 +44,9 @@ Status: In progress
 - [x] Hosted SMTP key delivery tests written.
 - [x] Hosted SMTP key delivery implemented.
 - [x] Hosted SMTP key delivery verification passed.
+- [x] Hosted Stripe Checkout Session tests written.
+- [x] Hosted Stripe Checkout Session route implemented.
+- [x] Hosted Stripe Checkout Session verification passed.
 
 ## Scope
 
@@ -58,10 +61,10 @@ Define and start the production-readiness foundation for hosted Scout:
 - local-first vs hosted product decision.
 
 This stream now includes SQLite account persistence, a Stripe-compatible payment
-provisioning domain layer, and a signed Stripe webhook route for
-`checkout.session.completed`. It still does not implement user login, secure
-Customer Portal, production Postgres, a public dashboard, or a live SMTP/Stripe
-sandbox smoke.
+provisioning domain layer, a public Stripe Checkout Session creation route, and
+a signed Stripe webhook route for `checkout.session.completed`. It still does
+not implement user login, secure Customer Portal, production Postgres, a public
+dashboard, or a live SMTP/Stripe sandbox smoke.
 
 ## Verification
 
@@ -161,3 +164,12 @@ sandbox smoke.
 - Hosted SMTP key delivery static/lint checkpoint:
   `python3 -m pyright scout/` and `ruff check scout/ tests/ && ruff format --check scout/ tests/`
   - Result: pyright 0 errors; Ruff passed.
+- Hosted Stripe Checkout RED:
+  `python3 -m pytest tests/unit/core/platform/test_stripe_checkout.py tests/unit/api/test_billing_stripe_checkout.py -q`
+  - Result: failed with missing `scout.core.platform.stripe_checkout` and missing `get_stripe_checkout_service`.
+- Hosted Stripe Checkout GREEN:
+  `python3 -m pytest tests/unit/core/platform/test_stripe_checkout.py tests/unit/api/test_billing_stripe_checkout.py -q`
+  - Result: 4 passed.
+- Hosted Stripe Checkout billing checkpoint:
+  `python3 -m pytest tests/unit/api/test_billing_stripe_checkout.py tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_auth.py -q`
+  - Result: 15 passed.

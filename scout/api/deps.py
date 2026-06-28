@@ -11,6 +11,7 @@ from scout.core.platform.key_delivery import (
     HostedApiKeyDeliveryService,
 )
 from scout.core.platform.payment_provisioning import HostedPaymentProvisioningService
+from scout.core.platform.stripe_checkout import StripeCheckoutConfig, StripeCheckoutService
 
 
 def get_crawler(request: Request) -> ScoutCrawler:
@@ -47,6 +48,16 @@ def get_hosted_payment_provisioning_service(
 def get_stripe_webhook_secret() -> str:
     """Return the configured Stripe webhook signing secret."""
     return settings.stripe_webhook_secret
+
+
+def get_stripe_checkout_service(request: Request) -> StripeCheckoutService:
+    """Return the Stripe Checkout service stored on app.state."""
+    service: StripeCheckoutService = getattr(
+        request.app.state,
+        "stripe_checkout_service",
+        StripeCheckoutService(StripeCheckoutConfig()),
+    )
+    return service
 
 
 def get_hosted_key_delivery_service(request: Request) -> HostedApiKeyDeliveryService:

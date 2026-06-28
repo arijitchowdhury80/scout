@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from scout.api.deps import (
     get_hosted_key_delivery_service,
     get_hosted_payment_provisioning_service,
+    get_stripe_checkout_service,
     get_stripe_webhook_secret,
 )
 from scout.core.platform.hosted import HostedPlan
@@ -26,6 +27,11 @@ from scout.core.platform.payment_provisioning import (
     HostedCheckoutProvisioningResult,
     HostedPaymentProvider,
     HostedPaymentProvisioningService,
+)
+from scout.core.platform.stripe_checkout import (
+    StripeCheckoutRequest,
+    StripeCheckoutResult,
+    StripeCheckoutService,
 )
 
 router = APIRouter(prefix="/v1/billing", tags=["billing"])
@@ -43,6 +49,33 @@ class StripeWebhookResponse(BaseModel):
     key_id: str = ""
     reason: str = ""
     delivery_status: str = ""
+
+
+class StripeCheckoutSessionRequestBody(BaseModel):
+    """Request body for creating a hosted Scout beta checkout session."""
+
+    email: str = ""
+
+
+class StripeCheckoutSessionResponse(BaseModel):
+    """Non-secret Stripe Checkout creation response."""
+
+    success: bool
+    checkout_session_id: str = ""
+    checkout_url: str = ""
+    reason: str = ""
+
+
+@router.post("/stripe/checkout-session", response_model=StripeCheckoutSessionResponse)
+async def stripe_checkout_session(
+    body: StripeCheckoutSessionRequestBody,
+    checkout_service: StripeCheckoutService = Depends(get_stripe_checkout_service),
+) -> StripeCheckoutSessionResponse:
+    """Create a Stripe Checkout Session for the hosted beta pass."""
+    result = checkout_service.create_beta_checkout_session(StripeCheckoutRequest(email=body.email))
+    if not result.success:
+        raise HTTPException(status_code=503, detail=result.reason)
+    return _checkout_session_response(result)
 
 
 @router.post("/stripe/webhook", response_model=StripeWebhookResponse)
@@ -73,6 +106,18 @@ async def stripe_webhook(
         key_id=result.key_id,
         reason=result.reason,
         delivery_status=delivery_status,
+    )
+
+
+def _checkout_session_response(
+    result: StripeCheckoutResult,
+) -> StripeCheckoutSessionResponse:
+    """Translate the core checkout result to the public API response."""
+    return StripeCheckoutSessionResponse(
+        success=result.success,
+        checkout_session_id=result.checkout_session_id,
+        checkout_url=result.checkout_url,
+        reason=result.reason,
     )
 
 

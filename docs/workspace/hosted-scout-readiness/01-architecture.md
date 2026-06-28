@@ -99,6 +99,11 @@ Implementation seed:
   beta checkout request, provisions one hosted tenant/key through
   `HostedAccountService`, records the checkout event in SQLite for idempotency,
   and never stores or reprints the raw API key on retry.
+- a Stripe Checkout Session creation service now exists in
+  `scout.core.platform.stripe_checkout`, with the public API boundary
+  `/v1/billing/stripe/checkout-session`; it creates one-time payment sessions
+  for the hosted beta price and returns only `checkout_url` plus non-secret
+  session metadata.
 - a Stripe webhook route now exists at `/v1/billing/stripe/webhook`; it verifies
   the `Stripe-Signature` HMAC using `SCOUT_STRIPE_WEBHOOK_SECRET`, ignores
   irrelevant event types, maps `checkout.session.completed` into the hosted
@@ -124,7 +129,7 @@ equivalent, login/user identity, secure customer API-key delivery, quota
 middleware across all hosted endpoints, and object storage isolation.
 
 The hosted scrape endpoint is a proof boundary, not the full hosted API. Hosted
-crawl, products, run orchestration, public key provisioning endpoints, payment
+crawl, products, run orchestration, website-to-checkout wiring, payment
 dashboard/key retrieval, and async worker execution remain pending.
 
 The `hosted-provision` CLI is an operator bridge, not a public self-serve key

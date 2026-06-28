@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     db_path: str = ""
     hosted_account_db_path: str = ""
     stripe_webhook_secret: str = ""
+    stripe_secret_key: str = ""
+    stripe_beta_price_id: str = ""
+    stripe_success_url: str = ""
+    stripe_cancel_url: str = ""
     hosted_key_delivery_smtp_host: str = ""
     hosted_key_delivery_smtp_port: int = 587
     hosted_key_delivery_smtp_from_email: str = ""
