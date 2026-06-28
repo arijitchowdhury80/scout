@@ -130,7 +130,12 @@ No public registry publish should happen until these decisions are closed.
 ## Website And Documentation Gates
 
 - [x] Launch website exists.
-- [ ] Website copy reviewed against competitor research.
+- [x] Website copy reviewed against competitor research.
+      Evidence: `docs/product/website-copy-review-2026-06-28.md`.
+      Result: current website follows the competitor-informed spine for private
+      beta, leads with local-first evidence-grade acquisition, keeps hosted
+      access metered, and avoids unsupported claims such as unlimited hosted
+      scraping or guaranteed hard-site bypass.
 - [ ] Local install instructions tested on a fresh machine or clean container.
 - [ ] Docker install instructions tested from docs only.
 - [ ] Hosted API quickstart tested with a newly generated API key.

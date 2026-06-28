@@ -94,3 +94,22 @@ def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> 
         in checklist
     )
     assert "docs/product/hosted-economics-and-usage-limits.md" in checklist
+
+
+def test_website_copy_review_records_competitor_alignment_and_boundaries() -> None:
+    review = _read("docs/product/website-copy-review-2026-06-28.md")
+    checklist = _read("docs/product/release-checklist.md")
+
+    assert "Website Copy Review Against Competitor Research" in review
+    assert "competitor-matrix.md" in review
+    assert "website-patterns.md" in review
+    assert "Firecrawl" in review
+    assert "local-first acquisition" in review
+    assert "source evidence" in review
+    assert "blocked-page evidence" in review
+    assert "typed records" in review
+    assert "unlimited hosted scraping" in review
+    assert "guaranteed hard-site bypass" in review
+    assert "Public launch pricing and hosted usage limits approved" in review
+    assert "- [x] Website copy reviewed against competitor research." in checklist
+    assert "docs/product/website-copy-review-2026-06-28.md" in checklist
