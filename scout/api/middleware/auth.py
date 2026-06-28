@@ -30,8 +30,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/health",
             "/openapi.json",
             "/redoc",
+            "/styles.css",
         }
         if request.url.path in public_paths:
+            return await call_next(request)  # type: ignore[misc]
+        if request.url.path.startswith("/assets/warm-industrial-design-system/"):
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/v1/hosted/"):
             return await call_next(request)  # type: ignore[misc]

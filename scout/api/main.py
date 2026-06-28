@@ -10,6 +10,7 @@ from scout.api.config import settings
 from scout.api.deps import get_crawler
 from scout.api.middleware.auth import AuthMiddleware
 from scout.api.frontend import scout_app_html
+from scout.api import launch_site
 from scout.api.routers import (
     algolia,
     app_browser,
@@ -114,41 +115,13 @@ app.include_router(screenshot.router)
 app.include_router(workdir.router)
 app.include_router(hosted.router)
 app.include_router(billing.router)
+app.include_router(launch_site.router)
 
 
 @app.get("/api/config", include_in_schema=False)
 async def api_config() -> dict[str, str]:
     """Return non-secret config the frontend needs (the API key is already known to the browser)."""
     return {"api_key": settings.scout_api_key}
-
-
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def root() -> str:
-    """Return a tiny human-friendly landing page for browser visits."""
-    return """
-    <!doctype html>
-    <html lang="en">
-      <head>
-        <meta charset="utf-8" />
-        <title>Scout</title>
-        <style>
-          body { font-family: system-ui, sans-serif; margin: 3rem; max-width: 760px; }
-          code { background: #f3f4f6; padding: 0.1rem 0.3rem; border-radius: 4px; }
-          a { color: #0f766e; }
-        </style>
-      </head>
-      <body>
-        <h1>Scout</h1>
-        <p>Self-hosted web scraping and product intelligence built on Crawl4AI.</p>
-        <ul>
-          <li><a href="/health">Health</a></li>
-          <li><a href="/app">Scout app</a></li>
-          <li><a href="/docs">API docs</a></li>
-        </ul>
-        <p>CLI: <code>scout products "men shirts" --site example.com</code></p>
-      </body>
-    </html>
-    """
 
 
 @app.get("/app", response_class=HTMLResponse, include_in_schema=False)

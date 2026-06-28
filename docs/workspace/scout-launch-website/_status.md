@@ -13,6 +13,7 @@ Status: In progress
 - [x] Final notes and next steps documented.
 - [x] Hosted beta checkout form wired to `/v1/billing/stripe/checkout-session`.
 - [x] Checkout form desktop/mobile smoke completed.
+- [x] Scout API root now serves the launch website from the same origin.
 
 ## Scope
 
@@ -26,6 +27,11 @@ form. It calls the Scout API route `/v1/billing/stripe/checkout-session`, then
 redirects to the returned `checkout_url`. The page does not include Stripe
 secret keys and shows a clear configuration/error state if the route is not
 ready.
+
+The Scout API now serves `website/index.html` at `/`, plus `/styles.css` and the
+bundled IndustrialGray design-system CSS under
+`/assets/warm-industrial-design-system/`. That means `scout serve` exposes the
+marketing site and checkout form from the same origin as the billing API.
 
 ## Verification
 
@@ -53,3 +59,6 @@ Additional checkout smoke:
   - screenshots:
     - `validation-output/website-scout-launch/desktop-checkout.png`
     - `validation-output/website-scout-launch/mobile-checkout.png`
+- Same-origin serving checkpoint:
+  `python3 -m pytest tests/unit/website/test_launch_website.py tests/unit/api/test_auth.py -q`
+  - Result: 10 passed.

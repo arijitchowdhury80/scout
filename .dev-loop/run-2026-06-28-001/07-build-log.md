@@ -517,3 +517,44 @@ Still pending:
 - live Stripe test-mode smoke from website click through Checkout redirect,
 - deploy/proxy decision for serving the static site and API from the same origin,
 - public docs links after docs are organized.
+
+# Scout Website Same-Origin Serving Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `scout.api.launch_site`
+- API root `/` now serves `website/index.html`
+- public `/styles.css`
+- public `/assets/warm-industrial-design-system/warm-industrial.css`
+- auth middleware bypass for launch-site assets
+
+Behavior:
+
+- `scout serve` now opens the real Scout launch website at `/`, not a tiny
+  placeholder page,
+- hosted beta checkout posts to the same API origin,
+- `/app` remains available separately for the internal Scout app surface,
+- protected API routes still require `X-API-Key` or hosted Bearer auth.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/website/test_launch_website.py -q` failed
+  because `/` still served the placeholder and `/styles.css` returned 403.
+- GREEN:
+  `python3 -m pytest tests/unit/website/test_launch_website.py tests/unit/api/test_auth.py -q`
+  passed: 10 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 199 files already
+  formatted.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 473 tests.
+
+Still pending:
+
+- live browser smoke against `scout serve`,
+- production hosting/deployment target decision,
+- live Stripe test-mode Checkout redirect.

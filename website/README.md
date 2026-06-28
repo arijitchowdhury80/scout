@@ -3,10 +3,17 @@
 This folder contains the first static website structure for Scout's private beta
 and public developer preview.
 
-Open locally:
+Open as a static file:
 
 ```bash
 open website/index.html
+```
+
+Open through the Scout API server:
+
+```bash
+scout serve
+open http://127.0.0.1:8421/
 ```
 
 The page intentionally positions Scout as an acquisition-to-record workbench,
@@ -15,8 +22,8 @@ not a generic crawler replacement.
 Hosted beta checkout:
 
 - The beta section posts to `/v1/billing/stripe/checkout-session`.
-- The route must be served from the same origin as the Scout API or proxied to
-  it.
+- The Scout API now serves this website at `/`, so the checkout form and billing
+  API are same-origin when launched through `scout serve`.
 - The page never contains Stripe secret keys; it only handles the returned
   `checkout_url` and redirects the user to Stripe.
 
