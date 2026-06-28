@@ -105,12 +105,14 @@ Before public package release:
 - [ ] Remove accidental run artifacts from tracked status.
 - [ ] Keep `.env` and `.env.local` ignored.
 - [ ] Add website/docs paths intentionally.
-- [ ] Add release checklist.
+- [x] Add release checklist.
 - [x] Add package build smoke to GitHub CI.
 - [x] Add Docker build and route smoke to GitHub CI.
 - [x] Add tag-triggered release artifact build and upload workflow.
-- [ ] Add issue templates for beta feedback.
-- [ ] Add security policy before public launch.
+- [x] Add issue templates for beta feedback.
+- [x] Add security policy before public launch.
+- [ ] Run dependency CVE scan and record result.
+- [ ] Run secret scan and record result.
 
 ## Release Workflow
 
@@ -128,6 +130,20 @@ Current release automation is intentionally artifact-first:
 This does not publish to PyPI, GHCR, Docker Hub, or any other registry yet.
 That is deliberate until Scout's license, package visibility, and hosted/local
 distribution policy are final.
+
+## Launch Governance
+
+Current governance files:
+
+- `SECURITY.md` defines private beta security reporting, supported surfaces,
+  hosted/local boundaries, and the security review checklist.
+- `.github/ISSUE_TEMPLATE/private_beta_bug.yml` captures beta bug reports with
+  surface, version, reproduction steps, and non-sensitive evidence.
+- `.github/ISSUE_TEMPLATE/private_beta_feature.yml` captures workflow-oriented
+  beta feature requests.
+- `docs/product/release-checklist.md` is the launch gate. It explicitly blocks
+  public launch and public registry publishing until license, pricing/usage,
+  security, legal, and release artifact checks are closed.
 
 ## Hosted Scout
 

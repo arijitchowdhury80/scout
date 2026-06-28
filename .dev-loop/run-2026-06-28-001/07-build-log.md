@@ -1356,3 +1356,44 @@ Verification:
 - Lint/format:
   `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
   all checks passed, 210 files already formatted.
+
+## Launch Governance Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `SECURITY.md` private beta security policy,
+- GitHub private beta bug issue template,
+- GitHub private beta feature request template,
+- `docs/product/release-checklist.md`,
+- unit contract tests for launch governance artifacts.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/test_launch_governance_docs.py -q` failed
+  because `SECURITY.md`, beta issue templates, and the release checklist did
+  not exist.
+- GREEN:
+  `python3 -m pytest tests/unit/test_launch_governance_docs.py -q` passed
+  after adding the launch governance files.
+
+Boundary:
+
+- No license was selected in this checkpoint.
+- No PyPI, GHCR, Docker Hub, or other registry publish was enabled.
+- Public launch remains blocked until the release checklist gates are closed.
+
+Verification:
+
+- Focused governance/release gate:
+  `python3 -m pytest tests/unit/test_launch_governance_docs.py tests/unit/test_release_workflow.py tests/unit/test_ci_workflow.py -q`
+  passed: 7 tests.
+- Full unit suite:
+  `python3 -m pytest tests/unit/ -q` passed: 522 tests, 8 warnings.
+- Type check:
+  `python3 -m pyright scout/` passed: 0 errors, 0 warnings, 0 informations.
+- Lint/format:
+  `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
+  all checks passed, 211 files already formatted.

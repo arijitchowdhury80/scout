@@ -1,0 +1,69 @@
+name: Private beta bug
+description: Report a Scout private beta issue with enough context to reproduce it.
+title: "[Beta Bug]: "
+labels:
+  - private-beta
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing Scout. Do not include secrets, API keys, cookies, private customer data, or paid-site content in this issue.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      description: Where did this happen?
+      options:
+        - Local package, Docker, hosted API, or skill
+        - Local package / CLI
+        - Docker service
+        - Hosted API
+        - Claude/Codex skill
+        - Documentation
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Scout version
+      description: Version, commit hash, Docker tag, or hosted environment.
+      placeholder: "0.1.0, 8ca05f1, docker tag, or hosted beta"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect Scout to do?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include commands, endpoint paths, target type, and non-sensitive configuration.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs, run ID, or artifact path
+      description: Share non-sensitive logs, run IDs, artifact paths, or screenshots.
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, browser/runtime, Docker version, and install method.
+    validations:
+      required: false
+

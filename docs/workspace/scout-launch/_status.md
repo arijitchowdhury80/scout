@@ -54,13 +54,20 @@ readiness work needed to turn Scout from a working tool into a testable product.
   - builds and smokes Docker,
   - uploads `dist/*` as workflow artifacts,
   - attaches `dist/*` to a GitHub Release.
+- Release governance added:
+  - private beta `SECURITY.md`,
+  - GitHub private beta bug template,
+  - GitHub private beta feature request template,
+  - release checklist with explicit public-launch and registry-publish gates.
 
 ## Next
 
 - Decide Scout license.
-- Add release checklist.
 - Run the tag workflow against a real `v*` release tag.
 - Decide if/when to publish to PyPI, GHCR, Docker Hub, or another registry.
+- Run dependency CVE scan and secret scan.
+- Verify Stripe test-mode checkout/webhook before hosted beta.
+- Verify hosted key delivery with a non-production test recipient.
 - Build MCP server plan.
 - Add hosted artifact dashboard and object-storage/signed-URL production plan.
 - Decide whether direct Google Sheets API push belongs in Scout core or a

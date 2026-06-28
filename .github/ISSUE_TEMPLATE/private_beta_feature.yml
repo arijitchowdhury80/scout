@@ -1,0 +1,57 @@
+name: Private beta feature request
+description: Suggest a Scout beta improvement or missing workflow.
+title: "[Beta Feature]: "
+labels:
+  - private-beta
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for private beta workflow gaps. Please do not include secrets or customer-confidential data.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Product area
+      description: Which part of Scout does this affect?
+      options:
+        - Product, company intel, hosted API, local CLI, or distribution
+        - Product extraction
+        - Company intelligence
+        - Hosted API
+        - Local CLI/package
+        - Docker distribution
+        - Skill/agent usage
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: What workflow are you trying to complete?
+      description: Describe the job-to-be-done, not only the feature.
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: What happens today?
+      description: What workaround are you using, or where does Scout fall short?
+    validations:
+      required: true
+  - type: textarea
+    id: desired
+    attributes:
+      label: Desired behavior
+      description: What would make this workflow successful?
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example targets or data
+      description: Optional public URLs, target types, or sample outputs. Avoid private data.
+    validations:
+      required: false
+
