@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scout Quickstart - Local-first web acquisition</title>
+    <meta
+      name="description"
+      content="Install Scout locally, choose a workdir, run the HTTP service, and produce citable acquisition artifacts."
+    />
+    <link
+      rel="icon"
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%2318181b"/><text x="32" y="42" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" font-weight="900" fill="%23ebebe8">S</text></svg>'
+    />
+    <link rel="stylesheet" href="./assets/warm-industrial-design-system/warm-industrial.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="wi">
+    <div class="wi-grid-bg" aria-hidden="true"><div class="wi-grid-bg__inner"></div></div>
+    <div class="wi-noise" aria-hidden="true"></div>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Scout home">
+          <span class="brand-mark">S</span>
+          <span><strong>Scout</strong><small>Evidence-grade acquisition</small></span>
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="/quickstart">Quickstart</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/beta">Private beta</a>
+          <a href="/docs">API docs</a>
+        </nav>
+        <a class="wi-pill nav-cta" href="/beta">Join beta</a>
+      </header>
+
+      <main>
+        <section class="page-hero">
+          <p class="wi-label wi-label--accent">Scout Quickstart</p>
+          <h1>Local install is the primary beta path.</h1>
+          <p>
+            Scout is safest to test on your own machine first: your workdir,
+            your artifacts, your optional keys, and your browser capture path.
+          </p>
+        </section>
+
+        <section class="section step-section" aria-labelledby="python-install-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Path 01</p>
+            <h2 id="python-install-title">Install from GitHub until the first package release.</h2>
+          </div>
+          <pre><code>python3 -m venv .venv
+source .venv/bin/activate
+pip install git+https://github.com/arijitchowdhury80/scout.git
+playwright install chromium
+export SCOUT_WORKDIR="$PWD/scout-runs"
+scout serve</code></pre>
+          <div class="note-grid">
+            <article>
+              <h3>Workdir</h3>
+              <p>`SCOUT_WORKDIR` is where Scout writes run artifacts: records, source pages, blocked pages, validation, reports, raw evidence, and screenshots.</p>
+            </article>
+            <article>
+              <h3>Health check</h3>
+              <p>Open `http://127.0.0.1:8421/health` after `scout serve` starts. The launch website is served from `/` and API docs remain at `/docs`.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section step-section" aria-labelledby="docker-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Path 02</p>
+            <h2 id="docker-title">Run with Docker when you want a clean service boundary.</h2>
+          </div>
+          <pre><code>docker compose -f docker/docker-compose.yml up -d
+curl http://127.0.0.1:8421/health</code></pre>
+          <div class="note-grid">
+            <article>
+              <h3>Persistence</h3>
+              <p>Mount a host volume for Scout runs so artifacts survive container restarts.</p>
+            </article>
+            <article>
+              <h3>Browser capture</h3>
+              <p>Docker is best for service-style scraping. User-browser capture remains a local-machine workflow because it can touch your active session.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section quickstart-checklist" aria-labelledby="first-run-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">First useful run</p>
+            <h2 id="first-run-title">Make one artifact folder, then inspect it.</h2>
+          </div>
+          <div class="check-grid">
+            <article><h3>1. Pick a target</h3><p>Start with a public page you are allowed to access.</p></article>
+            <article><h3>2. Run Scout</h3><p>Use CLI or HTTP API. Keep live hard-site testing small and intentional.</p></article>
+            <article><h3>3. Inspect evidence</h3><p>Open `records.json`, `source_pages.json`, `blocked_pages.json`, and `extraction_report.md`.</p></article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

@@ -45,3 +45,29 @@ def _asset_media_type(asset_name: str) -> str:
     if asset_name.endswith(".html"):
         return "text/html"
     return "text/plain"
+
+
+@router.get("/quickstart")
+@router.get("/quickstart.html")
+async def launch_site_quickstart() -> FileResponse:
+    """Serve the Scout local-install quickstart page."""
+    return _launch_site_page("quickstart.html")
+
+
+@router.get("/pricing")
+@router.get("/pricing.html")
+async def launch_site_pricing() -> FileResponse:
+    """Serve the Scout pricing and hosted-limits page."""
+    return _launch_site_page("pricing.html")
+
+
+@router.get("/beta")
+@router.get("/beta.html")
+async def launch_site_beta() -> FileResponse:
+    """Serve the Scout private-beta onboarding page."""
+    return _launch_site_page("beta.html")
+
+
+def _launch_site_page(page_file: str) -> FileResponse:
+    """Return a known launch-site HTML file."""
+    return FileResponse(_WEBSITE_DIR / page_file, media_type="text/html")

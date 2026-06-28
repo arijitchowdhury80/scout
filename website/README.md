@@ -19,6 +19,14 @@ open http://127.0.0.1:8421/
 The page intentionally positions Scout as an acquisition-to-record workbench,
 not a generic crawler replacement.
 
+Public website paths served by `scout serve`:
+
+- `/` - launch homepage.
+- `/quickstart` - local install, Docker, workdir, and first-run guidance.
+- `/pricing` - local-free and hosted-metered pricing posture.
+- `/beta` - local-vs-hosted beta path and hosted checkout form.
+- `/docs` - FastAPI/Swagger API docs, intentionally preserved for developers.
+
 Hosted beta checkout:
 
 - The beta section posts to `/v1/billing/stripe/checkout-session`.
@@ -30,7 +38,8 @@ Hosted beta checkout:
 Next website tasks:
 
 - [x] Replace static hosted-beta CTA with checkout-session form.
+- [x] Add quickstart, pricing, and private beta onboarding pages.
 - [ ] Add a short product demo GIF/video.
-- [ ] Add docs links after public docs are organized.
+- [ ] Add a separate docs-site if/when Swagger `/docs` is not enough.
 - [ ] Add legal/third-party notices link.
 - [x] Validate responsive layout in browser.

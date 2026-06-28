@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scout Private Beta - Local install or hosted pass</title>
+    <meta
+      name="description"
+      content="Join the Scout private beta through local install or a limited hosted beta checkout."
+    />
+    <link
+      rel="icon"
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%2318181b"/><text x="32" y="42" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" font-weight="900" fill="%23ebebe8">S</text></svg>'
+    />
+    <link rel="stylesheet" href="./assets/warm-industrial-design-system/warm-industrial.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="wi">
+    <div class="wi-grid-bg" aria-hidden="true"><div class="wi-grid-bg__inner"></div></div>
+    <div class="wi-noise" aria-hidden="true"></div>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Scout home">
+          <span class="brand-mark">S</span>
+          <span><strong>Scout</strong><small>Evidence-grade acquisition</small></span>
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="/quickstart">Quickstart</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/beta">Private beta</a>
+          <a href="/docs">API docs</a>
+        </nav>
+        <a class="wi-pill nav-cta" href="/quickstart">Install locally</a>
+      </header>
+
+      <main>
+        <section class="page-hero">
+          <p class="wi-label wi-label--accent">Scout Private Beta</p>
+          <h1>Choose your beta path.</h1>
+          <p>
+            Private beta is limited. Start locally if you want the cleanest path.
+            Choose hosted only when you want a convenience API key with finite,
+            metered beta credits.
+          </p>
+        </section>
+
+        <section class="section local-hosted" aria-labelledby="beta-path-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Beta paths</p>
+            <h2 id="beta-path-title">Local install first. Hosted beta when convenience matters.</h2>
+          </div>
+          <div class="compare-grid">
+            <article>
+              <h3>Local beta</h3>
+              <p>Best for first tests, private workflows, browser capture, and artifact inspection.</p>
+              <a class="wi-btn" href="/quickstart">Open quickstart</a>
+            </article>
+            <article>
+              <h3>Hosted beta checkout</h3>
+              <p>Creates a Stripe checkout session for a limited hosted beta pass when payment is configured.</p>
+              <p class="beta-note">Hosted beta is capped and metered. It is not unlimited crawling.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section beta" id="hosted-checkout">
+          <div>
+            <p class="wi-label wi-label--accent">Hosted beta checkout</p>
+            <h2>Request hosted API access.</h2>
+            <p>
+              Scout will only redirect to Stripe if hosted beta payment is
+              configured. Otherwise, the page tells you to use the local beta
+              path and try again later.
+            </p>
+          </div>
+          <div class="beta-panel" aria-label="Hosted beta checkout">
+            <form
+              id="hostedBetaCheckout"
+              class="beta-form"
+              data-endpoint="/v1/billing/stripe/checkout-session"
+              data-status-endpoint="/v1/billing/stripe/status"
+            >
+              <label for="hostedBetaEmail">Email for hosted API key delivery</label>
+              <div class="beta-form-row">
+                <input
+                  id="hostedBetaEmail"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="you@example.com"
+                  required
+                />
+                <button class="wi-btn" type="submit">Create hosted beta checkout</button>
+              </div>
+              <p id="hostedBetaStatus" class="beta-status" role="status" aria-live="polite">
+                One-time $22 beta pass. Limited hosted credits, not unlimited crawling.
+              </p>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      const checkoutForm = document.getElementById("hostedBetaCheckout");
+      const checkoutStatus = document.getElementById("hostedBetaStatus");
+      const checkoutButton = checkoutForm?.querySelector("button[type='submit']");
+
+      async function loadCheckoutReadiness() {
+        if (!checkoutForm || !checkoutStatus || !checkoutButton) return;
+        const endpoint = checkoutForm.dataset.statusEndpoint || "/v1/billing/stripe/status";
+        try {
+          const response = await fetch(endpoint);
+          const status = await response.json();
+          checkoutButton.disabled = !status.checkout_configured;
+          checkoutStatus.textContent = status.checkout_configured
+            ? "Hosted beta payment is configured. Stripe confirms payment before key delivery."
+            : "Hosted beta payment is not configured yet. Install locally today or check back for hosted access.";
+          checkoutStatus.dataset.state = status.checkout_configured ? "success" : "error";
+        } catch (_error) {
+          checkoutStatus.textContent = "Hosted beta payment status is temporarily unavailable.";
+          checkoutStatus.dataset.state = "error";
+          checkoutButton.disabled = true;
+        }
+      }
+
+      checkoutForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!checkoutButton) return;
+        const email = document.getElementById("hostedBetaEmail")?.value.trim() || "";
+        const endpoint = checkoutForm.dataset.endpoint || "/v1/billing/stripe/checkout-session";
+        checkoutStatus.textContent = "Creating Stripe Checkout Session...";
+        checkoutStatus.dataset.state = "loading";
+        checkoutButton.disabled = true;
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ email }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(payload.detail || "Hosted beta is not configured yet.");
+          if (!payload.checkout_url) throw new Error("Stripe did not return a checkout URL.");
+          window.location.assign(payload.checkout_url);
+        } catch (error) {
+          checkoutStatus.textContent =
+            error instanceof Error ? error.message : "Hosted beta is not configured yet.";
+          checkoutStatus.dataset.state = "error";
+          checkoutButton.disabled = false;
+        }
+      });
+
+      loadCheckoutReadiness();
+    </script>
+  </body>
+</html>

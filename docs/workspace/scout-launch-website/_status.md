@@ -176,3 +176,50 @@ Verification:
   - screenshots:
     - `validation-output/website-scout-launch/desktop-launch-status-scout-serve.png`
     - `validation-output/website-scout-launch/mobile-launch-status-scout-serve.png`
+
+## 2026-06-28 Beta-Onboarding Pages Checkpoint
+
+The website now has reachable onboarding pages beyond the homepage:
+
+- `/quickstart` and `/quickstart.html` for local install, Docker, workdir, and
+  first-run artifact inspection.
+- `/pricing` and `/pricing.html` for the local-free / hosted-metered pricing
+  posture.
+- `/beta` and `/beta.html` for local-vs-hosted beta paths plus the hosted beta
+  checkout form.
+
+Decision: keep `/docs` as FastAPI/Swagger API docs for now. The website uses
+`/quickstart` for user-facing onboarding so we do not break the developer API
+documentation path.
+
+Verification:
+
+- `python3 -m pytest tests/unit/website/test_launch_website.py -q`
+  - Result: `7 passed, 2 warnings`.
+- Live `scout serve` browser smoke:
+  `python3 -m scout.cli serve --host 127.0.0.1 --port 8784`
+  - routes checked: `/`, `/quickstart`, `/pricing`, `/beta`
+  - viewports checked: desktop `1440x1000`, mobile `390x844`
+  - all pages rendered required headings
+  - `/beta` and `/` checkout readiness endpoint returned 200
+  - console errors/warnings: 0
+  - screenshots:
+    - `validation-output/website-scout-launch/home-beta-onboarding-desktop.png`
+    - `validation-output/website-scout-launch/home-beta-onboarding-mobile.png`
+    - `validation-output/website-scout-launch/quickstart-beta-onboarding-desktop.png`
+    - `validation-output/website-scout-launch/quickstart-beta-onboarding-mobile.png`
+    - `validation-output/website-scout-launch/pricing-beta-onboarding-desktop.png`
+    - `validation-output/website-scout-launch/pricing-beta-onboarding-mobile.png`
+    - `validation-output/website-scout-launch/beta-beta-onboarding-desktop.png`
+    - `validation-output/website-scout-launch/beta-beta-onboarding-mobile.png`
+- Explicit-route smoke after removing the catch-all route:
+  `python3 -m scout.cli serve --host 127.0.0.1 --port 8785`
+  - routes checked: `/`, `/quickstart`, `/pricing`, `/beta`, `/docs`
+  - `/docs` page title remained `Scout - Swagger UI`
+  - console errors/warnings: 0
+  - screenshots:
+    - `validation-output/website-scout-launch/home-beta-onboarding-routes.png`
+    - `validation-output/website-scout-launch/quickstart-beta-onboarding-routes.png`
+    - `validation-output/website-scout-launch/pricing-beta-onboarding-routes.png`
+    - `validation-output/website-scout-launch/beta-beta-onboarding-routes.png`
+    - `validation-output/website-scout-launch/api-docs-preserved-routes.png`

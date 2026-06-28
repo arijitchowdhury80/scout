@@ -10,6 +10,7 @@ from scout.api.main import app
 
 
 _WEBSITE_INDEX = Path(__file__).resolve().parents[3] / "website" / "index.html"
+_WEBSITE_DIR = _WEBSITE_INDEX.parent
 
 
 def test_launch_website_exposes_hosted_beta_checkout_form_without_secrets() -> None:
@@ -79,3 +80,66 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert design_system.status_code == 200
     assert "text/css" in design_system.headers["content-type"]
     assert ".wi-grid-bg" in design_system.text
+
+
+def test_launch_website_has_beta_onboarding_pages() -> None:
+    pages = {
+        "quickstart.html": [
+            "Scout Quickstart",
+            "Local install is the primary beta path.",
+            "pip install git+https://github.com/arijitchowdhury80/scout.git",
+            "SCOUT_WORKDIR",
+            "docker compose",
+        ],
+        "pricing.html": [
+            "Scout Pricing",
+            "Free local beta",
+            "$22 hosted beta pass",
+            "finite hosted credits",
+            "No unlimited hosted crawling",
+        ],
+        "beta.html": [
+            "Scout Private Beta",
+            "Choose your beta path",
+            "Hosted beta checkout",
+            "/v1/billing/stripe/checkout-session",
+            "Private beta is limited",
+        ],
+    }
+
+    for page_name, expected_strings in pages.items():
+        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
+        normalized_html = " ".join(html.split())
+        for expected in expected_strings:
+            assert expected in normalized_html
+        assert "sk_live_" not in html
+        assert "sk_test_" not in html
+
+
+def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
+    client = TestClient(app)
+
+    expected = {
+        "/quickstart": "Scout Quickstart",
+        "/pricing": "Scout Pricing",
+        "/beta": "Scout Private Beta",
+        "/quickstart.html": "Scout Quickstart",
+        "/pricing.html": "Scout Pricing",
+        "/beta.html": "Scout Private Beta",
+    }
+
+    for path, text in expected.items():
+        response = client.get(path)
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+        assert text in response.text
+
+
+def test_fastapi_docs_remain_api_docs_not_marketing_docs() -> None:
+    client = TestClient(app)
+
+    response = client.get("/docs")
+
+    assert response.status_code == 200
+    assert "Swagger UI" in response.text
+    assert "Scout Quickstart" not in response.text

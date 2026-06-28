@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scout Pricing - Free local, metered hosted beta</title>
+    <meta
+      name="description"
+      content="Scout pricing starts with a free local beta and a limited hosted beta pass with finite hosted credits."
+    />
+    <link
+      rel="icon"
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%2318181b"/><text x="32" y="42" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" font-weight="900" fill="%23ebebe8">S</text></svg>'
+    />
+    <link rel="stylesheet" href="./assets/warm-industrial-design-system/warm-industrial.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="wi">
+    <div class="wi-grid-bg" aria-hidden="true"><div class="wi-grid-bg__inner"></div></div>
+    <div class="wi-noise" aria-hidden="true"></div>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Scout home">
+          <span class="brand-mark">S</span>
+          <span><strong>Scout</strong><small>Evidence-grade acquisition</small></span>
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="/quickstart">Quickstart</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/beta">Private beta</a>
+          <a href="/docs">API docs</a>
+        </nav>
+        <a class="wi-pill nav-cta" href="/beta">Join beta</a>
+      </header>
+
+      <main>
+        <section class="page-hero">
+          <p class="wi-label wi-label--accent">Scout Pricing</p>
+          <h1>Free local beta. Metered hosted convenience.</h1>
+          <p>
+            The economic rule is simple: local runs use your compute, so local
+            beta can be free. Hosted runs use Scout workers, browsers, storage,
+            and support, so hosted usage must be capped.
+          </p>
+        </section>
+
+        <section class="section pricing">
+          <div class="pricing-grid">
+            <article>
+              <span class="price">$0</span>
+              <h3>Free local beta</h3>
+              <p>Install Scout locally, choose your workdir, and run CLI/HTTP/Docker workflows on your machine.</p>
+            </article>
+            <article class="featured-price">
+              <span class="price">$22</span>
+              <h3>$22 hosted beta pass</h3>
+              <p>Finite hosted credits for approved beta testers. This is for convenience testing, not unlimited production crawling.</p>
+            </article>
+            <article>
+              <span class="price">$9+</span>
+              <h3>Future hosted plans</h3>
+              <p>Monthly hosted plans should include quotas, rate limits, retention rules, and browser-session metering.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section launch-status" aria-labelledby="pricing-limits-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Hosted economics</p>
+            <h2 id="pricing-limits-title">No unlimited hosted crawling.</h2>
+          </div>
+          <div class="status-grid">
+            <article>
+              <span class="status-tag status-tag--limited">Credits</span>
+              <h3>Finite hosted credits</h3>
+              <p>Every hosted run consumes variable resources: fetches, browser minutes, screenshots, storage, retries, and support.</p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--blocker">Limits</span>
+              <h3>No unlimited hosted crawling</h3>
+              <p>A one-time pass cannot economically support millions of calls. Hosted Scout must meter usage from day one.</p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--primary">Local</span>
+              <h3>Local stays the default</h3>
+              <p>Use local Scout when you need private artifacts, user-browser capture, repeatable research, or low-cost experimentation.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
