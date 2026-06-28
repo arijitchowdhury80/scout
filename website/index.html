@@ -293,6 +293,7 @@ scout serve</code></pre>
               id="hostedBetaCheckout"
               class="beta-form"
               data-endpoint="/v1/billing/stripe/checkout-session"
+              data-status-endpoint="/v1/billing/stripe/status"
             >
               <label for="hostedBetaEmail">Email for hosted API key delivery</label>
               <div class="beta-form-row">
@@ -341,10 +342,39 @@ scout serve</code></pre>
     <script>
       const checkoutForm = document.getElementById("hostedBetaCheckout");
       const checkoutStatus = document.getElementById("hostedBetaStatus");
+      const checkoutButton = checkoutForm?.querySelector("button[type='submit']");
+
+      async function loadCheckoutReadiness() {
+        if (!checkoutForm || !checkoutStatus || !checkoutButton) return;
+        const endpoint = checkoutForm.dataset.statusEndpoint || "/v1/billing/stripe/status";
+        try {
+          const response = await fetch(endpoint);
+          const status = await response.json();
+          if (status.checkout_configured) {
+            checkoutStatus.textContent =
+              status.ready_for_paid_key_delivery
+                ? "Hosted beta payment is configured. Stripe will confirm payment before Scout emails your API key."
+                : "Hosted beta payment is configured, but key delivery is still being finalized.";
+            checkoutStatus.dataset.state = "success";
+            checkoutButton.disabled = false;
+            return;
+          }
+        } catch (_error) {
+          checkoutStatus.textContent = "Hosted beta payment status is temporarily unavailable.";
+          checkoutStatus.dataset.state = "error";
+          checkoutButton.disabled = true;
+          return;
+        }
+        checkoutStatus.textContent =
+          "Hosted beta payment is not configured yet. Install locally today or check back for hosted access.";
+        checkoutStatus.dataset.state = "error";
+        checkoutButton.disabled = true;
+      }
 
       checkoutForm?.addEventListener("submit", async (event) => {
         event.preventDefault();
-        const submitButton = checkoutForm.querySelector("button[type='submit']");
+        const submitButton = checkoutButton;
+        if (!submitButton) return;
         const email = document.getElementById("hostedBetaEmail")?.value.trim() || "";
         const endpoint = checkoutForm.dataset.endpoint || "/v1/billing/stripe/checkout-session";
         checkoutStatus.textContent = "Creating Stripe Checkout Session...";
@@ -373,6 +403,8 @@ scout serve</code></pre>
           submitButton.disabled = false;
         }
       });
+
+      loadCheckoutReadiness();
     </script>
   </body>
 </html>

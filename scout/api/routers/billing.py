@@ -66,6 +66,35 @@ class StripeCheckoutSessionResponse(BaseModel):
     reason: str = ""
 
 
+class StripeBillingStatusResponse(BaseModel):
+    """Non-secret Stripe billing readiness flags."""
+
+    checkout_configured: bool
+    webhook_configured: bool
+    key_delivery_configured: bool
+    ready_for_paid_key_delivery: bool
+
+
+@router.get("/stripe/status", response_model=StripeBillingStatusResponse)
+async def stripe_status(
+    webhook_secret: str = Depends(get_stripe_webhook_secret),
+    checkout_service: StripeCheckoutService = Depends(get_stripe_checkout_service),
+    delivery_service: HostedApiKeyDeliveryService = Depends(get_hosted_key_delivery_service),
+) -> StripeBillingStatusResponse:
+    """Return non-secret Stripe readiness for the launch website."""
+    checkout_configured = checkout_service.enabled
+    webhook_configured = webhook_secret != ""
+    key_delivery_configured = delivery_service.enabled
+    return StripeBillingStatusResponse(
+        checkout_configured=checkout_configured,
+        webhook_configured=webhook_configured,
+        key_delivery_configured=key_delivery_configured,
+        ready_for_paid_key_delivery=(
+            checkout_configured and webhook_configured and key_delivery_configured
+        ),
+    )
+
+
 @router.post("/stripe/checkout-session", response_model=StripeCheckoutSessionResponse)
 async def stripe_checkout_session(
     body: StripeCheckoutSessionRequestBody,

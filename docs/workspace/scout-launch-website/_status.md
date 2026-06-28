@@ -28,6 +28,11 @@ redirects to the returned `checkout_url`. The page does not include Stripe
 secret keys and shows a clear configuration/error state if the route is not
 ready.
 
+The page also reads `/v1/billing/stripe/status` on load. When checkout is not
+configured, the hosted beta submit button is disabled and the page tells users
+to install locally or check back for hosted access. This avoids a silent or
+surprising first-click failure.
+
 The Scout API now serves `website/index.html` at `/`, plus `/styles.css` and the
 bundled IndustrialGray design-system CSS under
 `/assets/warm-industrial-design-system/`. That means `scout serve` exposes the
@@ -81,3 +86,11 @@ Additional checkout smoke:
     intentional `503`
   - screenshot:
     - `validation-output/website-scout-launch/checkout-error-scout-serve-root.png`
+- Checkout readiness browser smoke:
+  `python3 -m scout.cli serve --host 127.0.0.1 --port 8769`
+  - page requested `/v1/billing/stripe/status`
+  - hosted beta checkout button disabled when Stripe config is absent
+  - status text showed `Hosted beta payment is not configured yet...`
+  - console errors: 0
+  - screenshot:
+    - `validation-output/website-scout-launch/checkout-readiness-disabled.png`

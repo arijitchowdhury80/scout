@@ -20,6 +20,9 @@ def test_launch_website_exposes_hosted_beta_checkout_form_without_secrets() -> N
     assert 'type="email"' in html
     assert "Create hosted beta checkout" in html
     assert "/v1/billing/stripe/checkout-session" in html
+    assert "/v1/billing/stripe/status" in html
+    assert "Hosted beta payment is not configured yet" in html
+    assert "Hosted beta payment is configured" in html
     assert "checkout_url" in html
     assert "window.location.assign" in html
     assert "Hosted beta is not configured yet" in html

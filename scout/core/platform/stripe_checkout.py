@@ -112,6 +112,11 @@ class StripeCheckoutService:
         self._config = config
         self._transport = transport or UrllibStripeCheckoutTransport(config.timeout_seconds)
 
+    @property
+    def enabled(self) -> bool:
+        """Return whether Stripe Checkout creation has required configuration."""
+        return self._config.enabled
+
     def create_beta_checkout_session(
         self,
         request: StripeCheckoutRequest,

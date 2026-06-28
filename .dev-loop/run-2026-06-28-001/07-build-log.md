@@ -591,3 +591,54 @@ Still pending:
 - live Stripe test-mode Checkout redirect,
 - webhook smoke with Stripe CLI or Stripe test webhook,
 - production deployment/hosting target decision.
+
+# Stripe Billing Readiness Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `GET /v1/billing/stripe/status`
+- non-secret readiness flags for checkout, webhook, key delivery, and
+  paid-key-delivery readiness
+- website startup fetch of `/v1/billing/stripe/status`
+- disabled hosted-beta checkout button when Stripe checkout is not configured
+- clear website copy directing users to local install when hosted payment is
+  unavailable
+
+Behavior:
+
+- the readiness endpoint returns booleans only,
+- no Stripe keys, webhook secrets, SMTP secrets, or Scout API keys are exposed,
+- the website no longer waits for a failed submit to explain hosted beta status,
+- when checkout is configured but key delivery is not, the website can warn that
+  delivery is still being finalized.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_billing_stripe_checkout.py tests/unit/website/test_launch_website.py -q`
+  failed because `/v1/billing/stripe/status` returned 404 and the website did
+  not fetch readiness.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_billing_stripe_checkout.py tests/unit/website/test_launch_website.py -q`
+  passed: 7 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 121 tests.
+- Browser smoke:
+  `python3 -m scout.cli serve --host 127.0.0.1 --port 8769`; Playwright
+  confirmed the page requested `/v1/billing/stripe/status`, disabled the
+  checkout button when config was absent, showed hosted-beta-not-configured
+  copy, and emitted no console errors.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 199 files already
+  formatted.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 475 tests.
+
+Still pending:
+
+- live Stripe test-mode Checkout redirect,
+- webhook smoke with Stripe CLI or Stripe test webhook,
+- SMTP/test email smoke for key delivery.
