@@ -110,8 +110,17 @@ No public registry publish should happen until these decisions are closed.
 - [x] Private beta feedback templates.
 - [ ] Support contact/channel confirmed.
 - [ ] Beta tester onboarding instructions verified.
-- [ ] Hosted API key generation flow verified.
-- [ ] Key delivery email flow verified with a non-production test recipient.
+- [x] Hosted API key generation flow verified.
+      Evidence:
+      `docs/security/hosted-key-generation-delivery-review-2026-06-28.md`.
+      Result: operator CLI and Stripe webhook provisioning create usable hosted
+      keys without storing or returning raw keys from hosted webhook responses.
+- [x] Key delivery email flow verified with a non-production test recipient.
+      Evidence:
+      `docs/security/hosted-key-generation-delivery-review-2026-06-28.md`.
+      Result: deterministic fake SMTP delivery sends the one-time key to
+      `scout-beta-test@example.com`, and the delivered key authenticates.
+      Live SMTP provider smoke remains pending before broader hosted launch.
 - [ ] Stripe checkout and webhook tested in Stripe test mode.
 
 ## Website And Documentation Gates

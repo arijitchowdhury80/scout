@@ -59,3 +59,21 @@ def test_hosted_artifact_authorization_review_records_current_boundary() -> None
     assert "object storage" in review
     assert "- [x] Hosted artifact authorization and path confinement reviewed." in checklist
     assert "docs/security/hosted-artifact-authorization-review-2026-06-28.md" in checklist
+
+
+def test_hosted_key_generation_and_delivery_review_records_beta_boundary() -> None:
+    review = _read("docs/security/hosted-key-generation-delivery-review-2026-06-28.md")
+    checklist = _read("docs/product/release-checklist.md")
+
+    assert "Hosted API Key Generation And Delivery Review" in review
+    assert "operator CLI" in review
+    assert "Stripe webhook" in review
+    assert "fake SMTP" in review
+    assert "non-production test recipient" in review
+    assert "raw API key is not stored" in review
+    assert "live SMTP provider smoke remains pending" in review
+    assert "- [x] Hosted API key generation flow verified." in checklist
+    assert (
+        "- [x] Key delivery email flow verified with a non-production test recipient." in checklist
+    )
+    assert "docs/security/hosted-key-generation-delivery-review-2026-06-28.md" in checklist

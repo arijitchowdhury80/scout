@@ -109,6 +109,11 @@ def test_stripe_webhook_checkout_completed_provisions_without_leaking_raw_key(
         },
     )
     stored = _stored_checkout(payment_store)
+    delivered_key = delivery_service.deliveries[0].raw_api_key
+    delivered_key_auth = HostedAccountService(account_store).authenticate_key(
+        delivered_key,
+        required_scope="runs:create",
+    )
 
     assert response.status_code == 200
     body = response.json()
@@ -121,9 +126,10 @@ def test_stripe_webhook_checkout_completed_provisions_without_leaking_raw_key(
     assert body["key_id"] == stored.key_id
     assert "scout_live_" not in response.text
     assert len(account_store.api_keys) == 1
-    assert delivery_service.deliveries[0].email == "builder@example.com"
-    assert delivery_service.deliveries[0].raw_api_key.startswith("scout_live_")
-    assert stored.email == "builder@example.com"
+    assert delivery_service.deliveries[0].email == "scout-beta-test@example.com"
+    assert delivered_key.startswith("scout_live_")
+    assert delivered_key_auth.allowed is True
+    assert stored.email == "scout-beta-test@example.com"
     assert stored.amount_total_cents == 2200
 
 
@@ -258,7 +264,7 @@ def _checkout_event_payload() -> bytes:
                     "amount_total": 2200,
                     "currency": "usd",
                     "payment_status": "paid",
-                    "customer_details": {"email": "builder@example.com"},
+                    "customer_details": {"email": "scout-beta-test@example.com"},
                 }
             },
         }

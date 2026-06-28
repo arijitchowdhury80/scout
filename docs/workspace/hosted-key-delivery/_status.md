@@ -62,6 +62,15 @@ Still pending:
 - Stripe sandbox smoke with a configured delivery adapter.
 - Operational runbook for key recovery when delivery fails after creation.
 
+## Release Gate Update
+
+The private-beta release gate for non-production delivery verification is
+closed by deterministic fake SMTP coverage using
+`scout-beta-test@example.com`. The delivered raw key is verified as usable for
+hosted `runs:create`, and the webhook response still excludes the raw key.
+
+Evidence: `docs/security/hosted-key-generation-delivery-review-2026-06-28.md`.
+
 Broad verification:
 
 - API unit checkpoint: `python3 -m pytest tests/unit/api -q`

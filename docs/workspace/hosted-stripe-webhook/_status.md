@@ -40,9 +40,9 @@ Non-goals:
 
 ## Remaining Work
 
-- Add secure key delivery after webhook provisioning. The webhook response
-  intentionally never returns raw `scout_live_...` keys to Stripe.
 - Add Stripe CLI/live sandbox smoke test when a webhook secret is available.
+- Add production key recovery/support policy. The webhook response
+  intentionally never returns raw `scout_live_...` keys to Stripe.
 
 ## Key Delivery Gate Update
 

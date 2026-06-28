@@ -140,7 +140,7 @@ Launch impact:
 - Hosted Scout still needs a production security review for:
   - crawler redirect/retry SSRF enforcement and deployment egress policy,
   - tenant isolation,
-  - API key handling,
+  - live SMTP/Stripe key-delivery operations,
   - object-storage artifact IAM and retention,
   - rate limits and abuse limits,
   - Stripe webhook secret handling.
@@ -150,6 +150,9 @@ Launch impact:
 - Hosted artifact authorization and local path confinement have now been
   reviewed and implemented for current hosted run retrieval endpoints. Evidence:
   `docs/security/hosted-artifact-authorization-review-2026-06-28.md`.
+- Hosted API-key generation and deterministic non-production email delivery
+  have now been reviewed for private beta. Evidence:
+  `docs/security/hosted-key-generation-delivery-review-2026-06-28.md`.
 - A full secret scan using an entropy-aware tool has been run and current
   candidates have been audited as false positives. New candidates must be
   reviewed before release.
