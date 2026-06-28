@@ -33,6 +33,13 @@ DNS-resolved unsafe IPs, and URL-like values in high-level run fields are
 blocked before crawler invocation and before credit debit. Evidence:
 `docs/security/hosted-ssrf-review-2026-06-28.md`.
 
+## Artifact Authorization Update
+
+Hosted run retrieval is authorized by persisted tenant ownership. Artifact
+download and `/records` paths are restricted to known artifact names inside the
+stored run output directory. Evidence:
+`docs/security/hosted-artifact-authorization-review-2026-06-28.md`.
+
 ## TDD Evidence
 
 RED:

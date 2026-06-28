@@ -91,7 +91,14 @@ No public registry publish should happen until these decisions are closed.
       fields in high-level runs before crawler invocation or credit debit.
       Remaining public-launch work: deployment egress policy and crawler
       redirect/retry validation.
-- [ ] Hosted artifact authorization and path confinement reviewed.
+- [x] Hosted artifact authorization and path confinement reviewed.
+      Evidence:
+      `docs/security/hosted-artifact-authorization-review-2026-06-28.md`.
+      Result: hosted read endpoints require Bearer auth, enforce persisted
+      tenant ownership, hide other-tenant runs, allow only known artifact names,
+      and confine records/download paths to the stored run output directory.
+      Remaining public-launch work: object storage, signed URLs, retention, and
+      production IAM review.
 - [x] Terms/privacy placeholders created before public hosted beta.
       Evidence: `docs/legal/beta-terms-placeholder.md`,
       `docs/legal/beta-privacy-placeholder.md`, `/terms`, and `/privacy`.

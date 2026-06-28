@@ -18,7 +18,7 @@ from scout.api.deps import (
     get_hosted_rate_limiter,
 )
 from scout.api.run_store import remember_run
-from scout.api.run_store import artifact_path, get_run, list_runs
+from scout.api.run_store import get_run, list_runs
 from scout.api.run_store import StoredRun
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
@@ -331,7 +331,7 @@ async def hosted_run_records(
     """Return records for a hosted run if the Bearer key owns it."""
     auth = _hosted_auth_for_read(authorization, account_service, rate_limiter)
     run = await _require_hosted_run(run_id, auth.tenant_id)
-    records = _read_json_list(artifact_path(run, "records_json"))
+    records = _read_json_list(_hosted_artifact_path(run, "records_json"))
     return {"run_id": run_id, "total": len(records), "records": records}
 
 

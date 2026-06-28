@@ -141,12 +141,15 @@ Launch impact:
   - crawler redirect/retry SSRF enforcement and deployment egress policy,
   - tenant isolation,
   - API key handling,
-  - artifact authorization,
+  - object-storage artifact IAM and retention,
   - rate limits and abuse limits,
   - Stripe webhook secret handling.
 - Hosted SSRF admission controls have now been reviewed and implemented for
   hosted scrape, crawl, products, and run endpoints. Evidence:
   `docs/security/hosted-ssrf-review-2026-06-28.md`.
+- Hosted artifact authorization and local path confinement have now been
+  reviewed and implemented for current hosted run retrieval endpoints. Evidence:
+  `docs/security/hosted-artifact-authorization-review-2026-06-28.md`.
 - A full secret scan using an entropy-aware tool has been run and current
   candidates have been audited as false positives. New candidates must be
   reviewed before release.

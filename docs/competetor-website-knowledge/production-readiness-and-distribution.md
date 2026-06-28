@@ -263,7 +263,8 @@ Before paid hosted beta:
 - [ ] async job queue,
 - [ ] object storage,
 - [x] initial SSRF URL safety primitives,
-- [x] hosted SSRF route-admission enforcement for `/v1/hosted/scrape`,
+- [x] hosted SSRF route-admission enforcement for hosted scrape, crawl,
+  products, and high-level run endpoints,
 - [ ] hosted browser cost controls,
 - [ ] privacy/terms/acceptable-use docs,
 - [ ] dependency/license notices,
@@ -293,6 +294,8 @@ Current implementation checkpoint:
   run metadata, records, artifact metadata, and artifact files.
 - Hosted artifact downloads are restricted to known artifact names under the
   persisted run output directory.
+- Hosted `/records` retrieval uses the same path confinement as artifact
+  downloads, so a stored `records_json` outside the run directory is rejected.
 - Hosted run persistence stores non-secret `tenant_id` and `key_id` ownership
   metadata, and retrieval authorizes from that persisted ownership instead of
   deriving ownership from output directory names.

@@ -45,3 +45,17 @@ def test_hosted_ssrf_review_records_admission_controls_and_limits() -> None:
     assert "- [x] Hosted SSRF checks reviewed." in checklist
     assert "docs/security/hosted-ssrf-review-2026-06-28.md" in checklist
     assert "Hosted artifact authorization and path confinement reviewed" in checklist
+
+
+def test_hosted_artifact_authorization_review_records_current_boundary() -> None:
+    review = _read("docs/security/hosted-artifact-authorization-review-2026-06-28.md")
+    checklist = _read("docs/product/release-checklist.md")
+
+    assert "Hosted Artifact Authorization Review" in review
+    assert "persisted `tenant_id` ownership" in review
+    assert "known allowlist of artifact names" in review
+    assert "inside the persisted run" in review
+    assert "/records` now uses the same hosted artifact confinement helper" in review
+    assert "object storage" in review
+    assert "- [x] Hosted artifact authorization and path confinement reviewed." in checklist
+    assert "docs/security/hosted-artifact-authorization-review-2026-06-28.md" in checklist
