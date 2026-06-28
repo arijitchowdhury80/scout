@@ -55,8 +55,12 @@ No public registry publish should happen until these decisions are closed.
 
 - [x] Third-party notices.
 - [x] Security policy.
-- [ ] Dependency CVE scan run and recorded.
-- [ ] Secret scan run and recorded.
+- [x] Dependency CVE scan run and recorded.
+      Evidence: `docs/security/security-audit-2026-06-28.md`.
+      Result: blocker remains for `lxml` via Crawl4AI.
+- [x] Secret scan run and recorded.
+      Evidence: `docs/security/security-audit-2026-06-28.md`.
+      Result: targeted tracked-file pattern scan found zero matches.
 - [ ] Hosted SSRF checks reviewed.
 - [ ] Hosted artifact authorization and path confinement reviewed.
 - [ ] Terms/privacy placeholders created before public hosted beta.
@@ -86,4 +90,3 @@ No public registry publish should happen until these decisions are closed.
 - Public hosted API without usage limits.
 - Certified app UI.
 - Guaranteed hard-site bypass.
-

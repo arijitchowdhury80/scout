@@ -1397,3 +1397,63 @@ Verification:
 - Lint/format:
   `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
   all checks passed, 211 files already formatted.
+
+## Security Scan Evidence Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `docs/security/security-audit-2026-06-28.md`,
+- security audit documentation tests,
+- release checklist links to recorded dependency and secret scan evidence.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/test_security_audit_docs.py -q` failed
+  because the security audit report did not exist and the release checklist
+  did not mark scans as recorded.
+
+Dependency CVE scan:
+
+- Command:
+  `rm -rf /tmp/scout-security-audit-venv && python3 -m venv /tmp/scout-security-audit-venv && /tmp/scout-security-audit-venv/bin/python -m pip install --upgrade pip && /tmp/scout-security-audit-venv/bin/python -m pip install . && /tmp/scout-security-audit-venv/bin/python -m pip install pip-audit && /tmp/scout-security-audit-venv/bin/python -m pip_audit --local`
+- Result:
+  failed with 2 vulnerability rows for `lxml 5.4.0` / `PYSEC-2026-87`;
+  fixed version is `6.1.0`.
+- Root constraint:
+  current Crawl4AI releases tested require `lxml~=5.3`.
+- Attempted fix:
+  adding `lxml>=6.1.0` to Scout made package installation fail because it
+  conflicts with Crawl4AI's current constraint. The attempted dependency floor
+  was reverted to keep Scout installable.
+
+Secret scan:
+
+- Command:
+  targeted `git grep` over tracked files for common OpenAI, Slack, Google,
+  AWS, private-key, and Stripe token patterns.
+- Result:
+  zero matches.
+
+Boundary:
+
+- The dependency scan is recorded but not clean.
+- Public launch remains blocked until the `lxml` CVE is resolved upstream,
+  patched, or explicitly risk-accepted.
+- The secret scan was targeted and tracked-file-only; an entropy-aware scan is
+  still needed before public launch.
+
+Verification:
+
+- Focused security/doc/package gate:
+  `python3 -m pytest tests/unit/test_security_audit_docs.py tests/unit/test_launch_governance_docs.py tests/unit/test_package_metadata.py -q`
+  passed: 9 tests.
+- Full unit suite:
+  `python3 -m pytest tests/unit/ -q` passed: 524 tests, 8 warnings.
+- Type check:
+  `python3 -m pyright scout/` passed: 0 errors, 0 warnings, 0 informations.
+- Lint/format:
+  `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
+  all checks passed, 212 files already formatted.

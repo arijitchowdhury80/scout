@@ -59,13 +59,21 @@ readiness work needed to turn Scout from a working tool into a testable product.
   - GitHub private beta bug template,
   - GitHub private beta feature request template,
   - release checklist with explicit public-launch and registry-publish gates.
+- Security scan evidence recorded:
+  - dependency audit found `lxml 5.4.0` / `PYSEC-2026-87` through Crawl4AI's
+    current `lxml~=5.3` constraint,
+  - targeted tracked-file secret pattern scan found zero matches,
+  - public launch remains blocked until the dependency CVE is resolved or an
+    explicit risk decision is made.
 
 ## Next
 
 - Decide Scout license.
 - Run the tag workflow against a real `v*` release tag.
 - Decide if/when to publish to PyPI, GHCR, Docker Hub, or another registry.
-- Run dependency CVE scan and secret scan.
+- Resolve or explicitly risk-accept the Crawl4AI/lxml dependency CVE before
+  public launch.
+- Run entropy-aware secret scan before public launch.
 - Verify Stripe test-mode checkout/webhook before hosted beta.
 - Verify hosted key delivery with a non-production test recipient.
 - Build MCP server plan.
