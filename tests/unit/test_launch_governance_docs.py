@@ -115,22 +115,24 @@ def test_website_copy_review_records_competitor_alignment_and_boundaries() -> No
     assert "docs/product/website-copy-review-2026-06-28.md" in checklist
 
 
-def test_local_install_verification_records_branch_pass_and_public_gap() -> None:
+def test_local_install_verification_records_verified_beta_branch_path() -> None:
     verification = _read("docs/product/local-install-verification-2026-06-28.md")
     checklist = _read("docs/product/release-checklist.md")
 
     assert "Local Install Verification" in verification
+    assert "Private-beta branch install path verified" in verification
     assert "codex/scout-platform-foundation" in verification
     assert "scout_web-0.1.0-py3-none-any.whl" in verification
     assert "import-ok" in verification
+    assert "installed distribution version `0.1.0`" in verification
     assert "scout --help" in verification
     assert "Authenticated scrape check" in verification
     assert "success`: `true" in verification
     assert "PackageNotFoundError" in verification
     assert "older/default-branch package `scout==0.1.0`" in verification
     assert (
-        "- [ ] Local install instructions tested on a fresh machine or clean container."
+        "- [x] Local install instructions tested on a fresh machine or clean container."
         in checklist
     )
     assert "docs/product/local-install-verification-2026-06-28.md" in checklist
-    assert "gate open until the launch branch is merged" in checklist
+    assert "branch-qualified" in checklist

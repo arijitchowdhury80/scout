@@ -6,11 +6,13 @@ as a Claude/Codex skill integration.
 ## Standalone Package
 
 ```bash
-pip install scout-web
-# or until the first package release:
-pip install git+https://github.com/arijitchowdhury80/scout.git
+pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
 playwright install chromium
 ```
+
+`pip install scout-web` is the target command for the first package-registry
+release. Do not publish or document it as the primary install path until the
+license, PyPI visibility, and release gates are closed.
 
 ## Development Install
 

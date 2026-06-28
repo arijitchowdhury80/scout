@@ -88,7 +88,8 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         "quickstart.html": [
             "Scout Quickstart",
             "Local install is the primary beta path.",
-            "pip install git+https://github.com/arijitchowdhury80/scout.git",
+            "codex/scout-platform-foundation",
+            'pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"',
             "SCOUT_WORKDIR",
             "docker compose",
         ],

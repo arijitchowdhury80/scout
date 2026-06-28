@@ -1,8 +1,7 @@
 # Local Install Verification
 
 Date: 2026-06-28
-Status: Current launch branch passes; public default-branch quickstart remains
-open
+Status: Private-beta branch install path verified
 
 ## Scope
 
@@ -21,12 +20,13 @@ Test environment:
 
 | Install path | Result | Notes |
 |---|---|---|
-| `pip install git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation` | Pass | Installs `scout-web==0.1.0`, exposes `scout`, serves website/docs, and runs `/scrape`. |
-| `pip install git+https://github.com/arijitchowdhury80/scout.git` | Fail for current launch docs | Installs older/default-branch package `scout==0.1.0` from commit `9831b7f75d80f6ca0b0f842ed531d09b6b9e9726`; `scout-web` metadata is absent. |
+| `pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"` | Pass | Installs `scout-web==0.1.0`, exposes `scout`, serves website/docs, and runs `/scrape`. |
+| `pip install git+https://github.com/arijitchowdhury80/scout.git` | Not accepted for beta docs | Installs older/default-branch package `scout==0.1.0` from commit `9831b7f75d80f6ca0b0f842ed531d09b6b9e9726`; `scout-web` metadata is absent. |
 
-The release checklist item "Local install instructions tested on a fresh
-machine or clean container" remains open until the exact public/default-branch
-quickstart command installs the current `scout-web` package.
+The beta quickstart now intentionally uses the branch-qualified command. The
+release checklist item "Local install instructions tested on a fresh machine or
+clean container" is satisfied for the current private-beta branch path. Public
+PyPI/default-branch install remains a separate launch/publishing gate.
 
 ## Passing Branch-Qualified Check
 
@@ -58,6 +58,29 @@ Observed evidence:
   - `website/index.html`
   - `website/quickstart.html`
   - `THIRD_PARTY_NOTICES.md`
+
+## Re-Run After Quickstart Correction
+
+The branch-qualified command was re-run in a fresh virtual environment after the
+quickstart docs were changed to use the verified private-beta branch:
+
+```bash
+rm -rf /tmp/scout-beta-doc-install-smoke /tmp/scout-beta-doc-runs
+python3 -m venv /tmp/scout-beta-doc-install-smoke
+/tmp/scout-beta-doc-install-smoke/bin/python -m pip install --upgrade pip
+/tmp/scout-beta-doc-install-smoke/bin/python -m pip install \
+  'git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation'
+/tmp/scout-beta-doc-install-smoke/bin/python -m playwright install chromium
+/tmp/scout-beta-doc-install-smoke/bin/python -c \
+  "import scout; import scout.api.main; import importlib.metadata as m; print('import-ok'); print(m.version('scout-web'))"
+/tmp/scout-beta-doc-install-smoke/bin/scout --help
+```
+
+Observed evidence:
+
+- `import-ok`
+- installed distribution version `0.1.0`
+- `scout --help` listed the expected commands.
 
 ## Passing Installed Server Check
 
@@ -105,7 +128,7 @@ Observed response facts:
 - `markdown`: present
 - `duration_ms`: present
 
-## Failing Public Default-Branch Check
+## Rejected Public Default-Branch Check
 
 Commands:
 
@@ -131,12 +154,13 @@ Additional evidence:
 scout @ git+https://github.com/arijitchowdhury80/scout.git@9831b7f75d80f6ca0b0f842ed531d09b6b9e9726
 ```
 
-The exact public GitHub URL currently installs the repository default branch,
-which has not caught up to the launch branch. The public quickstart should not
-be called verified until one of these is true:
+The exact unqualified GitHub URL currently installs the repository default
+branch, which has not caught up to the launch branch. It should not be used in
+private-beta docs until one of these is true:
 
 1. `codex/scout-platform-foundation` is merged into the repository default
    branch and the exact public quickstart command is re-tested, or
-2. the private-beta quickstart is changed to a branch-qualified install command
-   and that branch-specific instruction is intentionally accepted.
+2. the private-beta quickstart remains branch-qualified and that
+   branch-specific instruction is intentionally accepted.
 
+For the current beta, option 2 is the accepted path.

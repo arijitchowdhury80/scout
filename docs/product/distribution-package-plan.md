@@ -17,11 +17,15 @@ Scout should be usable in four ways:
 Target command:
 
 ```bash
-pip install scout-web
-# or until the first package release:
-pip install git+https://github.com/arijitchowdhury80/scout.git
+pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
 playwright install chromium
 scout serve
+```
+
+Future package-registry command after release approval:
+
+```bash
+pip install scout-web
 ```
 
 Required docs:

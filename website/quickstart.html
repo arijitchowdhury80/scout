@@ -47,11 +47,11 @@
         <section class="section step-section" aria-labelledby="python-install-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Path 01</p>
-            <h2 id="python-install-title">Install from GitHub until the first package release.</h2>
+            <h2 id="python-install-title">Install from the verified private-beta branch.</h2>
           </div>
           <pre><code>python3 -m venv .venv
 source .venv/bin/activate
-pip install git+https://github.com/arijitchowdhury80/scout.git
+pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
 playwright install chromium
 export SCOUT_WORKDIR="$PWD/scout-runs"
 scout serve</code></pre>
@@ -63,6 +63,10 @@ scout serve</code></pre>
             <article>
               <h3>Health check</h3>
               <p>Open `http://127.0.0.1:8421/health` after `scout serve` starts. The launch website is served from `/` and API docs remain at `/docs`.</p>
+            </article>
+            <article>
+              <h3>Package release</h3>
+              <p>`pip install scout-web` comes after the registry publishing and license gates close. Until then, beta installs use the verified launch branch.</p>
             </article>
           </div>
         </section>

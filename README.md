@@ -37,10 +37,8 @@ Still beta/experimental: hard-site extraction reliability, user-browser capture 
 ## Quick Start
 
 ```bash
-# Install
-pip install scout-web
-# or until the first package release:
-pip install git+https://github.com/arijitchowdhury80/scout.git
+# Private beta install
+pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
 playwright install chromium
 
 # Configure
@@ -55,7 +53,11 @@ scout serve
 curl http://localhost:8421/health
 ```
 
-Open `http://localhost:8421/app` for the Scout frontend, or `http://localhost:8421/docs` for Swagger API docs.
+`pip install scout-web` is reserved for the first package-registry release
+after the license and publishing gates close.
+
+Open `http://localhost:8421/` for the Scout launch website, or
+`http://localhost:8421/docs` for Swagger API docs.
 
 For the initial static product website, open:
 
