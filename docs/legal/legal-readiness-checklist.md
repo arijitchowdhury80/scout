@@ -11,7 +11,10 @@ Status: Draft for private beta planning
 - [x] Include `THIRD_PARTY_NOTICES.md` in source.
 - [ ] Confirm `THIRD_PARTY_NOTICES.md` is included in all final package
   artifacts before public publishing.
-- [ ] Generate a dependency license inventory before public launch.
+- [x] Generate a dependency license inventory before public launch.
+  Evidence: `docs/legal/dependency-license-inventory-2026-06-28.md`.
+  This is a metadata-derived inventory and still requires manual review for
+  packages with missing license metadata.
 - [ ] Pin and audit dependency versions before release.
 - [ ] Review whether Scout will be released as open source, source-available,
   commercial/proprietary, or dual-license.

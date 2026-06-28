@@ -85,6 +85,7 @@ Before public package release:
 - [ ] Decide Scout's own license.
 - [ ] Add `LICENSE` if open/source-available.
 - [x] Add `THIRD_PARTY_NOTICES.md`.
+- [x] Generate runtime dependency license inventory.
 - [x] Add classifiers to `pyproject.toml`.
 - [x] Add package metadata: authors, URLs, readme.
 - [ ] Decide and add final license expression.

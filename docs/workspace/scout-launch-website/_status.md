@@ -282,3 +282,24 @@ Verification:
   - `curl -fsS http://127.0.0.1:8787/third-party-notices`
   - Result: `200 OK`, `text/plain`, includes `Third-Party Notices`,
     `Crawl4AI`, and `Apache License, Version 2.0`.
+
+## 2026-06-28 Dependency License Inventory Checkpoint
+
+Generated a runtime dependency license inventory from a clean virtual
+environment:
+
+```bash
+rm -rf /tmp/scout-license-inventory-venv
+python3 -m venv /tmp/scout-license-inventory-venv
+/tmp/scout-license-inventory-venv/bin/python -m pip install --upgrade pip
+/tmp/scout-license-inventory-venv/bin/python -m pip install .
+/tmp/scout-license-inventory-venv/bin/python scripts/generate_dependency_license_inventory.py
+```
+
+Output:
+
+- `docs/legal/dependency-license-inventory-2026-06-28.md`
+
+The inventory is explicitly metadata-derived and not legal advice. It flags
+packages with missing license metadata for manual upstream review and keeps the
+`lxml` / `PYSEC-2026-87` Crawl4AI dependency risk visible.

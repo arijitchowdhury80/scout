@@ -58,6 +58,10 @@ No public registry publish should happen until these decisions are closed.
       Evidence: `python3 -m build` and artifact inspection confirmed
       `THIRD_PARTY_NOTICES.md` in `scout_web-0.1.0-py3-none-any.whl` and
       `scout_web-0.1.0.tar.gz`.
+- [x] Dependency license inventory generated.
+      Evidence: `docs/legal/dependency-license-inventory-2026-06-28.md`.
+      Result: runtime inventory exists, but packages with missing license
+      metadata still require manual upstream review before public launch.
 - [x] Security policy.
 - [x] Dependency CVE scan run and recorded.
       Evidence: `docs/security/security-audit-2026-06-28.md`.
