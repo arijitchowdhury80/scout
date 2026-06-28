@@ -1,7 +1,7 @@
 # Scout Launch Website Status
 
 Date: 2026-06-28
-Status: In progress
+Status: In progress - positioning refresh
 
 ## Checklist
 
@@ -14,6 +14,9 @@ Status: In progress
 - [x] Hosted beta checkout form wired to `/v1/billing/stripe/checkout-session`.
 - [x] Checkout form desktop/mobile smoke completed.
 - [x] Scout API root now serves the launch website from the same origin.
+- [x] Refresh homepage around evidence-grade records differentiation.
+- [x] Verify refreshed homepage across desktop/mobile.
+- [x] Commit refreshed website checkpoint.
 
 ## Scope
 
@@ -37,6 +40,28 @@ The Scout API now serves `website/index.html` at `/`, plus `/styles.css` and the
 bundled IndustrialGray design-system CSS under
 `/assets/warm-industrial-design-system/`. That means `scout serve` exposes the
 marketing site and checkout form from the same origin as the billing API.
+
+## 2026-06-28 Positioning Refresh
+
+The competitor research refresh found that Scout should not depend on
+"local-owned data" as the main differentiation. Other crawler APIs also return
+private copies of public data. The refreshed launch page must lead with
+evidence-grade records:
+
+- target acquisition,
+- acquisition ladder,
+- source/blocked evidence,
+- typed records,
+- citations and validation,
+- exports to downstream workflows.
+
+Acceptance for this slice:
+
+- above-the-fold copy answers "why Scout, not just another crawler?",
+- homepage includes a visible ledger/pipeline of evidence -> records -> exports,
+- pricing copy frames `$22` as finite hosted beta credits,
+- checkout form remains wired to same-origin Stripe routes,
+- tests and browser smoke still pass.
 
 ## Verification
 
@@ -94,3 +119,30 @@ Additional checkout smoke:
   - console errors: 0
   - screenshot:
     - `validation-output/website-scout-launch/checkout-readiness-disabled.png`
+
+## 2026-06-28 Positioning Refresh Verification
+
+- Static/source checkpoint:
+  `python3 -m pytest tests/unit/website/test_launch_website.py -q`
+  - Result: 3 passed.
+- Whitespace checkpoint:
+  `git diff --check`
+  - Result: passed.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/`
+  - Result: 0 errors, 0 warnings, 0 informations.
+- Ruff checkpoint:
+  `ruff check scout/ tests/ && ruff format --check scout/ tests/`
+  - Result: all checks passed; 206 files already formatted.
+- Live `scout serve` browser smoke:
+  `python3 -m scout.cli serve --host 127.0.0.1 --port 8771`
+  - `/health`: 200 with Scout `0.1.0` and Crawl4AI `0.7.7`
+  - desktop `1440x1000`: root website loaded, evidence ledger visible,
+    differentiation copy visible, export section visible, checkout form visible,
+    no console errors
+  - mobile `390x844`: root website loaded, evidence ledger visible,
+    differentiation copy visible, export section visible, checkout form visible,
+    no console errors
+  - screenshots:
+    - `validation-output/website-scout-launch/desktop-refresh-scout-serve.png`
+    - `validation-output/website-scout-launch/mobile-refresh-scout-serve.png`

@@ -1,6 +1,7 @@
 # Scout Launch Website - Design Thinking
 
 Date: 2026-06-28
+Updated: 2026-06-28 website positioning refresh
 
 ## 1. Mental Model
 
@@ -17,7 +18,11 @@ What would confuse them:
 - making hard-site extraction sound magical.
 
 The page should feel like an infrastructure field manual: precise, inspectable,
-technical, and commercially honest.
+technical, and commercially honest. The refreshed page must also answer the
+skeptical question: "why not just use Firecrawl or another crawler?" The answer
+cannot be "because local data is private." The answer is evidence-grade records:
+source pages, blocked pages, citations, validation, and exportable typed
+outputs.
 
 ## 2. Information Architecture
 
@@ -28,12 +33,13 @@ technical, and commercially honest.
 | Hosted beta CTA | Primary | Ghost/pill button |
 | Docs CTA | Secondary | Text/ghost button |
 | Product proof command | Primary | Mono readout/terminal strip |
+| Evidence ledger / record pipeline | Hero | Above-the-fold operational schematic |
 | Acquisition ladder | Primary | Horizontal process grid |
 | Artifact contract | Primary | File-tree schematic |
 | Record outputs | Secondary | Compact cards/tags |
 | Local vs hosted comparison | Primary | Two-column comparison |
 | Pricing recommendation | Secondary | Pricing bands |
-| Competitor-aware differentiation | Secondary | Punchy comparison section |
+| Competitor-aware differentiation | Primary | Direct "crawler vs Scout" comparison |
 | Crawl4AI/legal note | Supporting | Footer/FAQ |
 | Source/provenance claim | Supporting | Small readout labels |
 
@@ -68,7 +74,7 @@ First viewport chunks:
 1. Header/nav.
 2. Hero headline and copy.
 3. CTA row.
-4. Technical readout.
+4. Evidence ledger schematic.
 
 Below the fold, each section has one job. Dense details live in structured
 grids, artifact tree, and FAQ rows. The site avoids showing app navigation or
@@ -82,7 +88,7 @@ screenshots as the main proof because the app UI is not the launch product.
 - Trust: "They are honest about blocked pages, local control, and hosted cost."
 - Action: "I can try this locally without waiting for a SaaS account."
 
-The emotional weight is carried by the headline, terminal readout, artifact
+The emotional weight is carried by the headline, evidence ledger, artifact
 contract, and local-vs-hosted comparison.
 
 ## 6. Design Pre-Mortem
@@ -108,6 +114,36 @@ contract, and local-vs-hosted comparison.
 - Users may compare Scout to Firecrawl immediately. The page should answer the
   comparison without attacking competitors.
 
+## Refresh Design Plan
+
+### Token Direction
+
+- Color: keep Supadesign warm canvas `#EBEBE8`, ink `#18181B`, ochre
+  `#BC8A2E`, border `#D4D4D8`, muted `#71717A`, and use blue only for focus.
+- Type: keep Supadesign Inter/Playfair/mono roles.
+- Layout: hero becomes a two-part grid with a large thesis on the left and a
+  structured evidence ledger on the right.
+- Signature: "ledger spine" boxes that show target -> acquisition -> evidence
+  -> typed record -> export. This is memorable because it represents Scout's
+  actual product contract.
+
+### Revised Above-The-Fold Wireframe
+
+```text
+HEADER
+HERO LEFT
+  Evidence-grade acquisition for AI workflows
+  Turn messy web pages into citable, downstream-ready records.
+  [Install locally] [Join hosted beta]
+
+HERO RIGHT
+  TARGET URL
+  -> acquisition ladder
+  -> source_pages / blocked_pages
+  -> product.v1 / company.v1 / ...
+  -> JSONL / CSV / SQLite / Algolia
+```
+
 ## Aesthetic Selection
 
 Chosen aesthetic: Supadesign IndustrialGray, with the provided warm industrial
@@ -120,4 +156,3 @@ Why:
 - It makes technical artifacts feel like the product, which is correct.
 - It gives Scout a distinctive launch look without relying on fake dashboard
   screenshots.
-

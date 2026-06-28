@@ -23,6 +23,10 @@ def test_launch_website_exposes_hosted_beta_checkout_form_without_secrets() -> N
     assert "/v1/billing/stripe/status" in html
     assert "Hosted beta payment is not configured yet" in html
     assert "Hosted beta payment is configured" in html
+    assert "Run ledger" in html
+    assert "Hosted crawlers return content. Scout returns an evidence trail." in html
+    assert "Product data should not be trapped in one destination." in html
+    assert "JSONL / CSV / SQLite / Google Sheets / Algolia" in html
     assert "checkout_url" in html
     assert "window.location.assign" in html
     assert "Hosted beta is not configured yet" in html
@@ -39,6 +43,8 @@ def test_api_root_serves_launch_website_from_same_origin() -> None:
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "Turn messy web pages into citable, downstream-ready records." in response.text
+    assert "Run ledger" in response.text
+    assert "Hosted crawlers return content. Scout returns an evidence trail." in response.text
     assert 'id="hostedBetaCheckout"' in response.text
     assert "/v1/billing/stripe/checkout-session" in response.text
     assert "Scout app" not in response.text

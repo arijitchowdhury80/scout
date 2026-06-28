@@ -134,6 +134,7 @@ a {
 }
 
 .terminal-proof,
+.evidence-ledger,
 .quickstart pre,
 .artifact-card pre {
   border: 1px solid var(--wi-fg);
@@ -180,6 +181,59 @@ code {
 .quickstart pre,
 .artifact-card pre {
   padding: 26px;
+}
+
+.evidence-ledger {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+}
+
+.ledger-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px;
+  border-bottom: 1px solid rgba(235, 235, 232, 0.22);
+}
+
+.ledger-steps {
+  display: grid;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ledger-steps li {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  margin: 0;
+  padding: 22px 24px;
+  border-bottom: 1px solid rgba(235, 235, 232, 0.16);
+  color: var(--wi-bg);
+}
+
+.ledger-steps li:last-child {
+  border-bottom: 0;
+}
+
+.ledger-steps strong {
+  color: var(--wi-accent);
+  font-family: var(--wi-font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.ledger-steps span {
+  color: #f4f4f5;
+  font-family: var(--wi-font-mono);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .marquee-band {
@@ -246,9 +300,11 @@ li {
 }
 
 .ladder-grid,
+.proof-grid,
 .compare-grid,
 .use-case-grid,
-.pricing-grid {
+.pricing-grid,
+.export-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid var(--wi-border);
@@ -260,7 +316,9 @@ li {
 }
 
 .use-case-grid,
-.pricing-grid {
+.pricing-grid,
+.proof-grid,
+.export-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -277,6 +335,15 @@ article,
 .ladder-grid article span {
   display: inline-block;
   margin-bottom: 70px;
+  color: var(--wi-accent);
+  font-family: var(--wi-font-mono);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.proof-index {
+  display: inline-block;
+  margin-bottom: 46px;
   color: var(--wi-accent);
   font-family: var(--wi-font-mono);
   font-size: 12px;
@@ -461,7 +528,9 @@ ul {
   }
 
   .ladder-grid,
-  .pricing-grid {
+  .pricing-grid,
+  .proof-grid,
+  .export-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -514,6 +583,8 @@ ul {
   .compare-grid,
   .use-case-grid,
   .ladder-grid,
+  .proof-grid,
+  .export-grid,
   .pricing-grid,
   .site-footer {
     grid-template-columns: 1fr;

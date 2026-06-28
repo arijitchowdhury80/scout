@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout - Local-first web acquisition for AI workflows</title>
+    <title>Scout - Evidence-grade web acquisition for AI workflows</title>
     <meta
       name="description"
       content="Scout turns messy web pages into citable, downstream-ready records with local-first acquisition, browser evidence, and artifact folders."
@@ -36,12 +36,12 @@
           <span class="brand-mark">S</span>
           <span>
             <strong>Scout</strong>
-            <small>Local acquisition system</small>
+            <small>Evidence-grade acquisition</small>
           </span>
         </a>
         <nav class="site-nav" aria-label="Primary navigation">
-          <a href="#why">Why Scout</a>
-          <a href="#evidence">Evidence</a>
+          <a href="#ledger">Ledger</a>
+          <a href="#why">Why different</a>
           <a href="#pricing">Pricing</a>
           <a href="#quickstart">Quickstart</a>
         </nav>
@@ -52,42 +52,52 @@
         <section class="hero" aria-labelledby="hero-title">
           <div class="hero-kicker">
             <span class="wi-status"><span class="wi-pulse"></span>Private beta</span>
-            <span class="wi-readout">CLI / HTTP / Docker / Skill</span>
+            <span class="wi-readout">CLI / HTTP / Docker / Skill / Hosted beta</span>
           </div>
           <div class="hero-grid">
             <div class="hero-copy">
-              <p class="wi-label wi-label--accent">Owned web acquisition</p>
+              <p class="wi-label wi-label--accent">Evidence-grade acquisition</p>
               <h1 id="hero-title">
                 Turn messy web pages into citable, downstream-ready records.
               </h1>
               <p>
-                Scout is a local-first acquisition system for AI workflows. Scrape
-                pages, capture browser evidence, preserve citations, and export
-                structured records your agents, search indexes, and intelligence
-                pipelines can trust.
+                Scout is a local-first acquisition workbench for AI workflows.
+                It does more than fetch markdown: it preserves source evidence,
+                blocked pages, citations, validation, and typed records your
+                agents, search indexes, and intelligence pipelines can trust.
               </p>
               <div class="hero-actions" aria-label="Primary actions">
                 <a class="wi-btn" href="#quickstart">Install locally <span>↗</span></a>
                 <a class="wi-btn wi-btn--ghost" href="#beta">Join hosted beta</a>
               </div>
             </div>
-            <aside class="terminal-proof" aria-label="Scout terminal example">
-              <div class="terminal-bar">
-                <span></span>
-                <span></span>
-                <span></span>
-                <strong>scout-run</strong>
+            <aside class="evidence-ledger" aria-label="Scout evidence ledger">
+              <div class="ledger-header">
+                <span class="wi-label wi-label--accent">Run ledger</span>
+                <span class="wi-readout">auditable by default</span>
               </div>
-              <pre><code>$ scout scrape https://example.com --output ./runs/example
-✓ source_pages.json
-✓ records.jsonl
-✓ blocked_pages.json
-✓ extraction_report.md
-
-$ scout products https://shop.example.com/category
-records: 42
-citations: 42
-status: ready for export</code></pre>
+              <ol class="ledger-steps">
+                <li>
+                  <strong>Target</strong>
+                  <span>https://brand.com/category</span>
+                </li>
+                <li>
+                  <strong>Acquire</strong>
+                  <span>crawl4ai -> scout browser -> saved evidence</span>
+                </li>
+                <li>
+                  <strong>Preserve</strong>
+                  <span>source_pages + blocked_pages + screenshots</span>
+                </li>
+                <li>
+                  <strong>Extract</strong>
+                  <span>product.v1 / company.v1 / investor_asset.v1</span>
+                </li>
+                <li>
+                  <strong>Export</strong>
+                  <span>JSONL / CSV / SQLite / Google Sheets / Algolia</span>
+                </li>
+              </ol>
             </aside>
           </div>
         </section>
@@ -103,22 +113,45 @@ status: ready for export</code></pre>
           <span>Citations</span>
         </section>
 
+        <section class="section proof-strip" id="ledger" aria-labelledby="ledger-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">What Scout produces</p>
+            <h2 id="ledger-title">A run is not done until the evidence is reusable.</h2>
+          </div>
+          <div class="proof-grid">
+            <article>
+              <span class="proof-index">01</span>
+              <h3>Source registry</h3>
+              <p>Every fetched, rendered, saved, blocked, or API-provided source gets a stable identity, URL, provider, status, timestamp, and hash.</p>
+            </article>
+            <article>
+              <span class="proof-index">02</span>
+              <h3>Cited records</h3>
+              <p>Records carry citations back to source evidence. Missing citations become validation warnings instead of hidden risk.</p>
+            </article>
+            <article>
+              <span class="proof-index">03</span>
+              <h3>Portable artifacts</h3>
+              <p>Outputs are files you can inspect, version, export, hand to agents, load into search, or replay without re-crawling.</p>
+            </article>
+          </div>
+        </section>
+
         <section class="section two-col" id="why">
           <div>
-            <p class="wi-label wi-label--accent">Not another hosted crawler clone</p>
-            <h2>Scout is built around the whole acquisition workflow.</h2>
+            <p class="wi-label wi-label--accent">Why not just another crawler?</p>
+            <h2>Hosted crawlers return content. Scout returns an evidence trail.</h2>
           </div>
           <div class="body-copy">
             <p>
-              Firecrawl-style APIs are excellent when you want managed hosted
-              crawling. Scout is different: it is designed for people who need to
-              own acquisition mode, evidence, blocked-page truth, browser handoff,
-              records, and artifact folders.
+              Firecrawl-style APIs are excellent when you need hosted markdown
+              from a URL. Scout is for the next step: turning acquisition into
+              records that can be audited, exported, and reused.
             </p>
             <p>
               Use Scout when the question is not only "can I fetch this page?"
-              but "can I prove where this record came from and reuse it in a
-              downstream workflow?"
+              but "can I prove where this field came from, explain what was
+              blocked, and ship the result into a downstream workflow?"
             </p>
           </div>
         </section>
@@ -183,6 +216,27 @@ status: ready for export</code></pre>
           </div>
         </section>
 
+        <section class="section export-section" aria-labelledby="export-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Exports beyond Algolia</p>
+            <h2 id="export-title">Product data should not be trapped in one destination.</h2>
+          </div>
+          <div class="export-grid">
+            <article>
+              <h3>Search-ready</h3>
+              <p>Prepare object IDs, names, prices, categories, URLs, images, variants, citations, and completeness warnings for search indexes.</p>
+            </article>
+            <article>
+              <h3>Spreadsheet-ready</h3>
+              <p>Export product and intelligence records to CSV or Google Sheets workflows for review, enrichment, and lightweight operations.</p>
+            </article>
+            <article>
+              <h3>Database-ready</h3>
+              <p>Keep local SQLite/JSONL datasets for repeatable research, diffing, replay, and agent consumption.</p>
+            </article>
+          </div>
+        </section>
+
         <section class="section local-hosted" aria-labelledby="local-hosted-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Distribution model</p>
@@ -218,7 +272,7 @@ status: ready for export</code></pre>
           <div class="use-case-grid">
             <article>
               <h3>Product catalogs</h3>
-              <p>Extract listing records, preserve source evidence, and prepare exports for Algolia, JSONL, CSV, or future adapters.</p>
+              <p>Extract listing records, preserve source evidence, and prepare exports for Algolia, JSONL, CSV, SQLite, or spreadsheet adapters.</p>
             </article>
             <article>
               <h3>Competitive intelligence</h3>
@@ -245,7 +299,7 @@ status: ready for export</code></pre>
             <article class="featured-price">
               <span class="price">$22</span>
               <h3>Hosted beta pass</h3>
-              <p>One-time early access with limited credits. Not unlimited hosted crawling.</p>
+              <p>One-time early access with finite hosted credits, usage caps, and short artifact retention. Not lifetime hosted crawling.</p>
             </article>
             <article>
               <span class="price">$9+</span>
