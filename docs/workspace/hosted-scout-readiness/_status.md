@@ -23,6 +23,9 @@ Status: In progress
 - [x] Hosted admission service tests written.
 - [x] Hosted admission service implemented.
 - [x] Hosted admission service verification passed.
+- [x] SQLite hosted account persistence tests written.
+- [x] SQLite hosted account store implemented.
+- [x] SQLite hosted account persistence verification passed.
 
 ## Scope
 
@@ -65,3 +68,11 @@ dashboard.
   - Result: 6 passed.
 - Hosted admission checkpoint: `python3 -m pytest tests/unit/ -q`
   - Result: 440 passed.
+- SQLite hosted account persistence RED:
+  `python3 -m pytest tests/unit/core/platform/test_account_sqlite_store.py -q`
+  - Result: failed with `ModuleNotFoundError: No module named 'scout.core.platform.account_sqlite_store'`.
+- SQLite hosted account persistence GREEN:
+  `python3 -m pytest tests/unit/core/platform/test_account_sqlite_store.py -q`
+  - Result: 3 passed.
+- SQLite hosted account persistence checkpoint: `python3 -m pytest tests/unit/ -q`
+  - Result: 443 passed.

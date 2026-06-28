@@ -85,6 +85,9 @@ Implementation seed:
   testing.
 - hosted request admission now exists in `scout.core.platform.hosted_admission`;
   it authenticates first, validates URL safety second, and debits credits last.
+- durable local hosted account persistence now exists in
+  `scout.core.platform.account_sqlite_store`; it stores tenants, hashed API-key
+  metadata, and credit balances in SQLite without storing raw API keys.
 - the current HTTP middleware has not yet been migrated to the hosted key model.
 - URL safety primitives for the SSRF guard now exist in
   `scout.core.platform.url_safety`.
@@ -92,9 +95,10 @@ Implementation seed:
 The current local `SCOUT_API_KEY=dev-key` middleware is not hosted-safe. It is
 acceptable for local development only.
 
-The account service is not production persistence. Hosted launch still needs a
-database-backed repository, login/user identity, Stripe provisioning, quota
-middleware, and object storage isolation.
+The SQLite account store is a local/dev durable repository, not the final
+production persistence layer. Hosted launch still needs Postgres or equivalent,
+login/user identity, Stripe provisioning, quota middleware, and object storage
+isolation.
 
 ## Run Model
 

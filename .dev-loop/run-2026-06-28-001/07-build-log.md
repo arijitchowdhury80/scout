@@ -146,3 +146,35 @@ Verification:
 - `python3 -m pyright scout/` -> `0 errors`.
 - `ruff check scout/ tests/` -> `All checks passed!`.
 - `ruff format --check scout/ tests/` -> `184 files already formatted`.
+
+## Follow-Up Checkpoint - Hosted Account Persistence
+
+Date: 2026-06-28
+
+Built:
+
+- `scout.core.platform.account_sqlite_store`
+- `SQLiteHostedAccountStore`
+
+Behavior:
+
+- persists hosted tenants,
+- persists API-key metadata and scopes without storing raw API keys,
+- persists standard and browser credit balances,
+- supports lookup by key hash,
+- supports persisted key revocation,
+- preserves credit debits across fresh service instances.
+
+TDD:
+
+- RED: `python3 -m pytest tests/unit/core/platform/test_account_sqlite_store.py -q`
+  failed with missing `scout.core.platform.account_sqlite_store`.
+- GREEN: same command passed with `3 passed`.
+
+Verification:
+
+- `python3 -m pytest tests/unit/core/platform -q` -> `68 passed`.
+- `python3 -m pytest tests/unit/ -q` -> `443 passed`.
+- `python3 -m pyright scout/` -> `0 errors`.
+- `ruff check scout/ tests/` -> `All checks passed!`.
+- `ruff format --check scout/ tests/` -> `186 files already formatted`.
