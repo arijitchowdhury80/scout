@@ -125,6 +125,11 @@ curl http://localhost:8421/v1/hosted/products \
   -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}" \
   -H "Content-Type: application/json" \
   -d '{"start_url":"https://shop.example.com/products","max_products":10}'
+
+curl http://localhost:8421/v1/hosted/run/company \
+  -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Adobe","mode":"saved","max_records":25}'
 ```
 
 Hosted crawls are metered at one standard credit per returned page. Scout
@@ -139,6 +144,15 @@ remaining standard credits before starting product discovery, then debits the
 actual returned product count after completion. The hosted products endpoint is
 currently synchronous; async hosted product jobs and artifact object storage are
 future production work.
+
+Hosted high-level runs expose the same `RunRequest`/`RunResponse` shape as
+`/run/{use_case}` under `/v1/hosted/run/{use_case}`. Hosted callers cannot
+choose arbitrary server output paths: Scout ignores request `output_dir` and
+derives a tenant-labeled folder under `SCOUT_WORKDIR`. Hosted runs are metered
+at one standard credit per returned record, with preflight based on
+`max_records`. This endpoint is synchronous in the private-beta foundation;
+async hosted run jobs, artifact object storage, and dashboard browsing remain
+production work.
 
 ## Docker
 

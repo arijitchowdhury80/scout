@@ -58,6 +58,9 @@ Status: In progress
 - [x] Hosted products endpoint tests written.
 - [x] Hosted products endpoint implemented.
 - [x] Hosted products endpoint focused verification passed.
+- [x] Hosted high-level run endpoint tests written.
+- [x] Hosted high-level run endpoint implemented.
+- [x] Hosted high-level run endpoint focused verification passed.
 
 ## Scope
 
@@ -76,9 +79,10 @@ provisioning domain layer, a public Stripe Checkout Session creation route, and
 a signed Stripe webhook route for `checkout.session.completed`. It also includes
 a configurable process-local per-key hosted rate limiter for `/v1/hosted/*` and
 hosted crawl admission at `/v1/hosted/crawl`, and hosted product extraction at
-`/v1/hosted/products`. It still does not implement user login, secure Customer
-Portal, distributed throttling, production Postgres, a public dashboard, async
-hosted workers, or a live SMTP/Stripe sandbox smoke.
+`/v1/hosted/products`, and hosted high-level runs at
+`/v1/hosted/run/{use_case}`. It still does not implement user login, secure
+Customer Portal, distributed throttling, production Postgres, a public
+dashboard, async hosted workers, or a live SMTP/Stripe sandbox smoke.
 
 Hosted beta configuration is now documented in `.env.example`. Local users only
 need `SCOUT_API_KEY`, `SCOUT_WORKDIR`, and optional `LLM_API_KEY`; paid hosted
@@ -347,5 +351,60 @@ Still pending:
 
 - async hosted product jobs,
 - persisted product artifacts for hosted users,
-- high-level hosted `run` endpoints,
+- dashboard access to hosted run artifacts,
+- distributed/shared throttling for multi-instance production.
+
+# Hosted High-Level Run Endpoint Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `POST /v1/hosted/run/{use_case}`
+- `HostedRunResponse`
+- hosted run record-limit enforcement
+- hosted run standard-credit preflight
+- hosted run returned-record debit
+- tenant-labeled server-derived output directories
+
+Behavior:
+
+- hosted high-level runs require a Bearer `scout_live_...` key with
+  `runs:create`,
+- request `url` is checked through hosted URL safety when supplied,
+- caller-provided `output_dir` is ignored for hosted safety,
+- Scout derives output under server `SCOUT_WORKDIR` with a tenant-labeled run
+  folder,
+- requested `max_records` must be at least 1 and no greater than the hosted plan
+  `max_pages_per_run`,
+- the account must have enough standard credits for requested `max_records`
+  before the run starts,
+- returned runs charge one standard credit per returned record, capped by
+  requested `max_records`,
+- hosted run shares the per-key rate limiter and returns `429` without a second
+  debit when the key is over limit.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_hosted_run.py -q` failed because
+  `/v1/hosted/run/company` returned 404.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_hosted_run.py -q` passed: 5 tests.
+- Focused checkpoint:
+  `python3 -m pytest tests/unit/api/test_hosted_run.py tests/unit/api/test_hosted_products.py tests/unit/api/test_hosted_crawl.py tests/unit/api/test_hosted_scrape.py -q`
+  passed: 21 tests.
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 140 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 497 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 205 files already
+  formatted.
+
+Still pending:
+
+- async hosted run jobs,
+- hosted run artifact browsing/dashboard,
 - distributed/shared throttling for multi-instance production.

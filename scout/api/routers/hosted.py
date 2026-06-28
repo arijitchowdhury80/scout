@@ -5,7 +5,14 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 
-from scout.api.deps import get_crawler, get_hosted_account_service, get_hosted_rate_limiter
+from scout.api.config import settings
+from scout.api.deps import (
+    get_crawler,
+    get_crawler_optional,
+    get_hosted_account_service,
+    get_hosted_rate_limiter,
+)
+from scout.api.run_store import remember_run
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
 from scout.core.platform.hosted import (
@@ -15,7 +22,10 @@ from scout.core.platform.hosted import (
     plan_limits,
 )
 from scout.core.platform.hosted_rate_limit import HostedRateLimiter
+from scout.core.platform.run import run_use_case
+from scout.core.platform.types import RunRequest, RunResponse
 from scout.core.platform.url_safety import validate_hosted_url
+from scout.core.platform.workspace import resolve_run_output_dir
 from scout.core.types import (
     CrawlRequest,
     CrawlResponse,
@@ -59,6 +69,14 @@ class HostedProductsResponse(BaseModel):
     success: bool
     hosted: HostedUsageSummary
     products: ProductCrawlResponse
+
+
+class HostedRunResponse(BaseModel):
+    """Hosted high-level run response with hosted usage metadata."""
+
+    success: bool
+    hosted: HostedUsageSummary
+    run: RunResponse
 
 
 class HostedAccountSummaryResponse(BaseModel):
@@ -213,6 +231,60 @@ async def hosted_products(
     )
 
 
+@router.post("/run/{use_case}", response_model=HostedRunResponse)
+async def hosted_run(
+    use_case: str,
+    req: RunRequest,
+    authorization: str = Header(default=""),
+    crawler: ScoutCrawler | None = Depends(get_crawler_optional),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+) -> HostedRunResponse:
+    """Run a hosted high-level Scout use case after hosted admission checks."""
+    raw_key = _bearer_token(authorization)
+    auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
+    if not auth.allowed:
+        raise HTTPException(status_code=403, detail=auth.reason)
+    if req.url:
+        url_safety = validate_hosted_url(req.url)
+        if not url_safety.allowed:
+            raise HTTPException(status_code=403, detail=url_safety.reason)
+    tenant = account_service.get_tenant(auth.tenant_id)
+    if tenant is None:
+        raise HTTPException(status_code=403, detail="Hosted account is not active.")
+    limits = plan_limits(tenant.plan)
+    _enforce_run_record_limit(req.max_records, limits)
+    _enforce_standard_credit_preflight(account_service, auth.tenant_id, req.max_records)
+    _enforce_rate_limit(rate_limiter, auth.key_id)
+
+    hosted_req = req.model_copy(
+        update={
+            "use_case": use_case,
+            "output_dir": resolve_run_output_dir(
+                use_case=f"hosted-{auth.tenant_id}-{use_case}",
+                query=req.query,
+                output_dir="",
+                workdir=settings.scout_workdir,
+            ),
+        }
+    )
+    run_response = await run_use_case(hosted_req, crawler)
+    if run_response.manifest is not None:
+        await remember_run(run_response.manifest)
+    records_charged = _hosted_run_records_charged(run_response, req.max_records)
+    _debit_standard_credits(account_service, auth.tenant_id, records_charged)
+    return HostedRunResponse(
+        success=run_response.success,
+        hosted=HostedUsageSummary(
+            tenant_id=auth.tenant_id,
+            key_id=auth.key_id,
+            credits_charged=records_charged,
+            credit_type=HostedAction.CRAWL_PAGE.credit_type,
+        ),
+        run=run_response,
+    )
+
+
 def _bearer_token(authorization: str) -> str:
     """Extract a Bearer token or reject the hosted request."""
     prefix = "Bearer "
@@ -292,6 +364,20 @@ def _enforce_product_limit(max_products: int, limits: HostedPlanLimits) -> None:
         )
 
 
+def _enforce_run_record_limit(max_records: int, limits: HostedPlanLimits) -> None:
+    """Reject hosted high-level runs that exceed plan record limits."""
+    if max_records < 1:
+        raise HTTPException(
+            status_code=403,
+            detail="Hosted runs require at least 1 record.",
+        )
+    if max_records > limits.max_pages_per_run:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Plan allows at most {limits.max_pages_per_run} records per hosted run.",
+        )
+
+
 def _hosted_product_records_charged(
     response: ProductCrawlResponse,
     requested_max_products: int,
@@ -299,6 +385,11 @@ def _hosted_product_records_charged(
     """Return product-credit charge, capped by requested max_products."""
     observed_records = max(response.total_records, len(response.records))
     return min(observed_records, requested_max_products)
+
+
+def _hosted_run_records_charged(response: RunResponse, requested_max_records: int) -> int:
+    """Return high-level run credit charge, capped by requested max_records."""
+    return min(response.total_records, requested_max_records)
 
 
 def _debit_standard_credits(
