@@ -131,6 +131,9 @@ curl http://localhost:8421/v1/hosted/run/company \
   -H "Content-Type: application/json" \
   -d '{"query":"Adobe","mode":"saved","max_records":25}'
 
+curl http://localhost:8421/v1/hosted/runs \
+  -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}"
+
 curl http://localhost:8421/v1/hosted/runs/${RUN_ID} \
   -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}"
 
@@ -167,14 +170,15 @@ at one standard credit per returned record, with preflight based on
 async hosted run jobs, artifact object storage, and dashboard browsing remain
 production work.
 
-Hosted run retrieval endpoints return summaries, records, artifact paths, and
-authenticated private-beta artifact download URLs for the hosted tenant that
-created the run. Ownership is stored in run persistence with non-secret
+Hosted run retrieval endpoints let a hosted key list its own runs, fetch a run
+summary, retrieve records, inspect artifact paths, and download private-beta
+artifact files. The run list returns dashboard-safe links and does not expose
+server filesystem paths. Ownership is stored in run persistence with non-secret
 `tenant_id` and `key_id` fields; retrieval checks the persisted tenant owner
 rather than trusting caller-provided paths. Artifact downloads are restricted to
 known artifact names under the run output directory. A production deployment
 still needs async hosted jobs, object storage, signed artifact URLs, and a
-dashboard for browsing hosted run outputs.
+hosted dashboard for browsing run outputs.
 
 ## Docker
 

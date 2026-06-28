@@ -251,6 +251,7 @@ Before paid hosted beta:
 - [x] finite plan credits and hosted page debit for `/v1/hosted/crawl`,
 - [x] finite plan credits and hosted product-record debit for `/v1/hosted/products`,
 - [x] finite plan credits and hosted high-level record debit for `/v1/hosted/run/{use_case}`,
+- [x] hosted run listing for owner keys,
 - [x] hosted run summary, records, artifact metadata, and private-beta artifact
   downloads for owner keys,
 - [x] hosted account/plan/balance inspection endpoint at `/v1/hosted/me`,
@@ -285,6 +286,8 @@ Current implementation checkpoint:
 - `/v1/hosted/run/{use_case}` accepts hosted Bearer keys, ignores caller
   `output_dir`, writes under server `SCOUT_WORKDIR`, preflights
   `max_records`, and charges one standard credit per returned record.
+- `/v1/hosted/runs` lets a hosted key list its own runs with dashboard-safe
+  summary, records, and artifact links.
 - `/v1/hosted/runs/{run_id}` plus `/records`, `/artifacts`, and
   `/artifacts/{artifact_name}/download` let the creating hosted tenant retrieve
   run metadata, records, artifact metadata, and artifact files.

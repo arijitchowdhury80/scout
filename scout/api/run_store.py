@@ -96,6 +96,32 @@ async def get_run(run_id: str) -> StoredRun | None:
     return stored
 
 
+async def list_runs(*, tenant_id: str = "", limit: int = 100) -> list[StoredRun]:
+    """List recent runs, optionally scoped to a hosted tenant."""
+    safe_limit = max(1, min(limit, 500))
+    if _db_ready():
+        assert _DB is not None
+        rows = await _DB.list_runs(tenant_id=tenant_id or None, limit=safe_limit)
+        runs = [
+            StoredRun(
+                run_id=row.run_id,
+                use_case=row.use_case,
+                query=row.query,
+                status=row.status,
+                tenant_id=row.tenant_id,
+                key_id=row.key_id,
+                output_dir=row.output_dir,
+                artifacts=ArtifactFiles(**json.loads(row.artifacts_json)),
+            )
+            for row in rows
+        ]
+        for run in runs:
+            _RUNS[run.run_id] = run
+        return runs
+    runs = [run for run in _RUNS.values() if not tenant_id or run.tenant_id == tenant_id]
+    return sorted(runs, key=lambda run: run.run_id, reverse=True)[:safe_limit]
+
+
 def artifact_path(run: StoredRun, artifact_name: str) -> Path:
     value = getattr(run.artifacts, artifact_name)
     return Path(value)

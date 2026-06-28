@@ -1097,6 +1097,51 @@ Still pending:
 - object storage and signed artifact URLs for multi-instance hosting,
 - async hosted jobs for long-running artifact-producing workflows.
 
+## Hosted Run List Checkpoint
+
+Date: 2026-06-28
+
+Built:
+
+- `GET /v1/hosted/runs`
+- tenant-scoped run listing in `scout.api.run_store`
+- SQLite `RunDB.list_runs(..., tenant_id=...)`
+- dashboard-safe hosted run list items with summary, records, and artifact URLs
+
+Behavior:
+
+- hosted users can list runs created by their own Bearer key tenant,
+- runs from other tenants are omitted,
+- list responses do not expose server `output_dir` paths,
+- list responses do not echo raw hosted API keys,
+- persisted SQLite run ownership supports listing after restart.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/api/test_hosted_run_retrieval.py -q` failed
+  because `/v1/hosted/runs` returned `404`.
+- GREEN:
+  `python3 -m pytest tests/unit/api/test_hosted_run_retrieval.py tests/unit/api/test_db.py -q`
+  passed: 18 tests.
+
+Verification:
+
+- API checkpoint:
+  `python3 -m pytest tests/unit/api -q` passed: 148 tests.
+- Full unit checkpoint:
+  `python3 -m pytest tests/unit/ -q` passed: 508 tests.
+- Static/lint checkpoint:
+  `python3 -m pyright scout/` passed with 0 errors; `ruff check scout/ tests/`
+  and `ruff format --check scout/ tests/` passed with 206 files already
+  formatted.
+
+Still pending:
+
+- hosted dashboard UI,
+- object storage and signed artifact URLs for multi-instance hosting,
+- async hosted jobs for long-running workflows.
+
 ## Product Export Generalization Checkpoint
 
 Date: 2026-06-28

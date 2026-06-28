@@ -18,7 +18,7 @@ from scout.api.deps import (
     get_hosted_rate_limiter,
 )
 from scout.api.run_store import remember_run
-from scout.api.run_store import artifact_path, get_run
+from scout.api.run_store import artifact_path, get_run, list_runs
 from scout.api.run_store import StoredRun
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
@@ -302,6 +302,20 @@ async def hosted_run(
     )
 
 
+@router.get("/runs")
+async def hosted_run_list(
+    limit: int = 50,
+    authorization: str = Header(default=""),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+) -> dict[str, Any]:
+    """Return recent hosted runs owned by the Bearer key."""
+    auth = _hosted_auth_for_read(authorization, account_service, rate_limiter)
+    runs = await list_runs(tenant_id=auth.tenant_id, limit=limit)
+    items = [_hosted_run_list_item(run) for run in runs]
+    return {"total": len(items), "runs": items}
+
+
 @router.get("/runs/{run_id}")
 async def hosted_run_summary(
     run_id: str,
@@ -398,6 +412,19 @@ async def _require_hosted_run(run_id: str, tenant_id: str) -> StoredRun:
 def _run_belongs_to_tenant(run: StoredRun, tenant_id: str) -> bool:
     """Check hosted run ownership using persisted tenant metadata."""
     return run.tenant_id == tenant_id
+
+
+def _hosted_run_list_item(run: StoredRun) -> dict[str, Any]:
+    """Return dashboard-safe hosted run metadata without local filesystem paths."""
+    return {
+        "run_id": run.run_id,
+        "use_case": run.use_case,
+        "query": run.query,
+        "status": run.status,
+        "summary_url": f"/v1/hosted/runs/{run.run_id}",
+        "records_url": f"/v1/hosted/runs/{run.run_id}/records",
+        "artifacts_url": f"/v1/hosted/runs/{run.run_id}/artifacts",
+    }
 
 
 def _read_json_list(path: Path) -> list[dict[str, Any]]:

@@ -85,6 +85,18 @@ async def test_list_runs_filters_by_use_case(db: RunDB) -> None:
     assert rows[0].run_id == "b"
 
 
+async def test_list_runs_filters_by_tenant(db: RunDB) -> None:
+    await db.save_run(
+        RunRow(run_id="owner", use_case="company", tenant_id="tenant_owner", output_dir="/tmp")
+    )
+    await db.save_run(
+        RunRow(run_id="other", use_case="company", tenant_id="tenant_other", output_dir="/tmp")
+    )
+    rows = await db.list_runs(tenant_id="tenant_owner")
+    assert len(rows) == 1
+    assert rows[0].run_id == "owner"
+
+
 async def test_append_and_get_events(db: RunDB) -> None:
     await db.save_run(RunRow(run_id="run_e", use_case="careers", output_dir="/tmp"))
     await db.append_event(RunEventRow(run_id="run_e", stage="fetch", message="scraping /careers"))

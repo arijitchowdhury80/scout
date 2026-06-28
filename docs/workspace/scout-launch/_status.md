@@ -22,6 +22,7 @@ readiness work needed to turn Scout from a working tool into a testable product.
 - Competitor website/pricing research refreshed.
 - Static Scout launch website refreshed around evidence-grade records.
 - Hosted run ownership persistence implemented.
+- Hosted run listing implemented for private-beta hosted API keys.
 - Hosted owner-scoped artifact download URLs implemented for private-beta
   filesystem-backed runs.
 - Product export adapters generalized beyond Algolia:

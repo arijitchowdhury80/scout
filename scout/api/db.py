@@ -142,11 +142,31 @@ class RunDB:
         cols = [d[0] for d in cursor.description]
         return RunRow(**dict(zip(cols, row)))
 
-    async def list_runs(self, *, use_case: str | None = None, limit: int = 100) -> list[RunRow]:
-        if use_case:
+    async def list_runs(
+        self,
+        *,
+        use_case: str | None = None,
+        tenant_id: str | None = None,
+        limit: int = 100,
+    ) -> list[RunRow]:
+        if use_case and tenant_id:
+            cursor = await self._db.execute(
+                """
+                SELECT * FROM runs
+                WHERE use_case = ? AND tenant_id = ?
+                ORDER BY created_at DESC LIMIT ?
+                """,
+                (use_case, tenant_id, limit),
+            )
+        elif use_case:
             cursor = await self._db.execute(
                 "SELECT * FROM runs WHERE use_case = ? ORDER BY created_at DESC LIMIT ?",
                 (use_case, limit),
+            )
+        elif tenant_id:
+            cursor = await self._db.execute(
+                "SELECT * FROM runs WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ?",
+                (tenant_id, limit),
             )
         else:
             cursor = await self._db.execute(

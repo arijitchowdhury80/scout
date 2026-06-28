@@ -96,6 +96,35 @@ def test_hosted_run_summary_records_and_artifacts_are_retrievable_for_owner(
     assert raw_key not in artifact_download.text
 
 
+def test_hosted_run_list_returns_only_authenticated_tenant_runs(tmp_path, monkeypatch) -> None:
+    account_service, owner_key, other_key = _account_service_with_two_keys()
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        owner_run_id = _create_hosted_company_run(client, owner_key, tmp_path, monkeypatch)
+        other_run_id = _create_hosted_company_run(client, other_key, tmp_path, monkeypatch)
+        resp = client.get(
+            "/v1/hosted/runs",
+            headers={"Authorization": f"Bearer {owner_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 200
+    payload = resp.json()
+    run_ids = {run["run_id"] for run in payload["runs"]}
+    assert owner_run_id in run_ids
+    assert other_run_id not in run_ids
+    assert payload["total"] == len(payload["runs"])
+    owner_item = next(run for run in payload["runs"] if run["run_id"] == owner_run_id)
+    assert owner_item["summary_url"] == f"/v1/hosted/runs/{owner_run_id}"
+    assert owner_item["records_url"] == f"/v1/hosted/runs/{owner_run_id}/records"
+    assert owner_item["artifacts_url"] == f"/v1/hosted/runs/{owner_run_id}/artifacts"
+    assert "output_dir" not in owner_item
+    assert owner_key not in resp.text
+    assert other_key not in resp.text
+
+
 def test_hosted_run_retrieval_requires_bearer_token() -> None:
     account_service, _raw_key, _other_key = _account_service_with_two_keys()
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
