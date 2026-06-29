@@ -233,3 +233,23 @@ def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> N
     assert "- [ ] Stripe checkout and webhook tested in Stripe test mode." in checklist
     assert "docs/product/stripe-test-mode-readiness-2026-06-29.md" in checklist
     assert "real Stripe test-mode credentials/webhook secret" in checklist
+
+
+def test_dependency_audit_refresh_keeps_lxml_gate_open_until_clean() -> None:
+    refresh = _read("docs/security/dependency-audit-refresh-2026-06-29.md")
+    risk_decision = _read("docs/security/crawl4ai-lxml-risk-decision-2026-06-28.md")
+    checklist = _read("docs/product/release-checklist.md")
+
+    assert "Dependency Audit Refresh" in refresh
+    assert "Audit still failing; public launch remains blocked." in refresh
+    assert "crawl4ai 0.9.0" in refresh
+    assert "lxml 5.4.0" in refresh
+    assert "`lxml` latest available version: `6.1.1`" in refresh
+    assert "PYSEC-2026-87" in refresh
+    assert "ResolutionImpossible" in refresh
+    assert "continue-on-error: true" in refresh
+    assert "Scout is not public-launch-ready while this dependency audit fails." in refresh
+    assert "Refresh on 2026-06-29" in risk_decision
+    assert "docs/security/dependency-audit-refresh-2026-06-29.md" in checklist
+    assert "- [ ] Crawl4AI/lxml risk decision approved." in checklist
+    assert "- [ ] Dependency audit clean and blocking in GitHub CI." in checklist

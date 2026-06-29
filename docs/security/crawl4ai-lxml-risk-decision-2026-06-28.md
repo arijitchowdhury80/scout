@@ -9,6 +9,16 @@ Scout depends on Crawl4AI for core acquisition. The current installable
 Crawl4AI release line resolves `lxml 5.4.0`, and the dependency audit reports
 `PYSEC-2026-87`. The fixed lxml version is `lxml 6.1.0`.
 
+Refresh on 2026-06-29:
+
+- `crawl4ai 0.9.0` is available.
+- `lxml 6.1.1` is available.
+- A fresh Scout install with eager upgrades still resolves `crawl4ai 0.9.0`
+  with `lxml 5.4.0`.
+- Installing `crawl4ai==0.9.0` with `lxml>=6.1.0` still fails dependency
+  resolution.
+- Evidence: `docs/security/dependency-audit-refresh-2026-06-29.md`.
+
 Attempted mitigation:
 
 - Adding `lxml>=6.1.0` directly to Scout was tested.
@@ -104,4 +114,3 @@ approve or revise before private beta expansion.
 - [ ] Public launch remains blocked in `docs/product/release-checklist.md`.
 - [ ] Dependency audit converted to blocking before public launch or a formal
       exception is approved.
-

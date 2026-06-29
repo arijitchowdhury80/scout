@@ -69,12 +69,16 @@ No public registry publish should happen until these decisions are closed.
 - [x] Security policy.
 - [x] Dependency CVE scan run and recorded.
       Evidence: `docs/security/security-audit-2026-06-28.md`.
-      Result: blocker remains for `lxml` via Crawl4AI.
+      Additional refresh:
+      `docs/security/dependency-audit-refresh-2026-06-29.md`.
+      Result: blocker remains for `lxml` via Crawl4AI, including with the
+      latest checked `crawl4ai 0.9.0` dependency resolution.
 - [x] Dependency audit visible in GitHub CI.
       Evidence: `.github/workflows/ci.yml` `dependency-audit` job.
       Result: non-blocking while Crawl4AI/lxml CVE is unresolved.
 - [ ] Crawl4AI/lxml risk decision approved.
-      Evidence: `docs/security/crawl4ai-lxml-risk-decision-2026-06-28.md`.
+      Evidence: `docs/security/crawl4ai-lxml-risk-decision-2026-06-28.md`,
+      `docs/security/dependency-audit-refresh-2026-06-29.md`.
       Public launch remains blocked until the dependency audit is clean or a
       formal exception is approved.
 - [ ] Dependency audit clean and blocking in GitHub CI.
