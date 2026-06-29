@@ -10,6 +10,9 @@ documented exception exists.
 Current decision dashboard:
 `docs/product/launch-decision-dashboard-2026-06-29.md`.
 
+Current launch gate burndown:
+`docs/product/launch-gate-burndown-2026-06-29.md`.
+
 ## Release Scope
 
 Current intended release surfaces:
