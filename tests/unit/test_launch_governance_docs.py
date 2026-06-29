@@ -608,6 +608,21 @@ def test_license_distribution_decision_brief_keeps_release_gates_open() -> None:
     assert "license-implementation-runbook-2026-06-29.md" in legal_checklist
 
 
+def test_readme_exposes_private_beta_launch_readiness_workflow() -> None:
+    readme = _read("README.md")
+
+    assert "## Launch Readiness And Decision Workflow" in readme
+    assert "Private beta: `ready_with_limits`" in readme
+    assert "Public launch: `blocked`" in readme
+    assert "Codex-actionable now: `0`" in readme
+    assert "scout launch-readiness" in readme
+    assert "scout launch-readiness --json" in readme
+    assert "scout launch-readiness --require-public" in readme
+    assert "scout launch-decision-check --check-existing --check-drafts" in readme
+    assert "docs/product/founder-decision-drafts/index.md" in readme
+    assert "drafts are not approvals" in readme
+
+
 def test_registry_publishing_policy_blocks_public_registries_until_approved() -> None:
     policy = _read("docs/product/registry-publishing-policy-2026-06-29.md")
     checklist = _read("docs/product/release-checklist.md")

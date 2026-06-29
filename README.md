@@ -34,6 +34,36 @@ Scout is ready for private beta testing with technical users. Core scrape/crawl/
 
 Still beta/experimental: hard-site extraction reliability, user-browser capture workflows, broad vertical intelligence depth, MCP server, and public/commercial packaging.
 
+## Launch Readiness And Decision Workflow
+
+Current launch gate truth:
+
+- Private beta: `ready_with_limits`
+- Public launch: `blocked`
+- Codex-actionable now: `0`
+
+Use the launch readiness commands before making release or website claims:
+
+```bash
+scout launch-readiness
+scout launch-readiness --json
+scout launch-readiness --require-public
+scout launch-decision-check --check-existing --check-drafts
+```
+
+Founder decision drafts live at
+`docs/product/founder-decision-drafts/index.md`. These drafts are not approvals,
+launch evidence, or completed decision records. They are review aids
+that must be copied into the completed decision-record pattern, have placeholders
+removed, and pass `scout launch-decision-check` before any release gate changes.
+
+Primary launch references:
+
+- [Launch status page](website/status.html)
+- [Launch decision dashboard](docs/product/launch-decision-dashboard-2026-06-29.md)
+- [Public launch action packet](docs/product/public-launch-action-packet-2026-06-29.md)
+- [Founder decision drafts](docs/product/founder-decision-drafts/index.md)
+
 ## Quick Start
 
 ```bash

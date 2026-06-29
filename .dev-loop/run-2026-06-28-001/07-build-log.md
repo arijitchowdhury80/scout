@@ -1768,6 +1768,39 @@ Verification:
   `python3 scripts/founder_decision_record_check.py --root . --check-existing --check-drafts`
   passed with 0 completed records and 6 safe deferred drafts.
 
+## README Launch Readiness Workflow Checkpoint
+
+Date: 2026-06-29
+
+Built:
+
+- Added a README launch-readiness section that exposes the current launch gate
+  truth at the repo entry point.
+- Documented the verification commands:
+  - `scout launch-readiness`
+  - `scout launch-readiness --json`
+  - `scout launch-readiness --require-public`
+  - `scout launch-decision-check --check-existing --check-drafts`
+- Linked the founder decision draft packet and clarified that drafts are review
+  aids only, not approvals or release evidence.
+
+TDD:
+
+- RED: `python3 -m pytest tests/unit/test_launch_governance_docs.py -q`
+  failed because README did not include the launch readiness workflow section.
+- GREEN: same command passed with `26 passed`.
+
+Verification:
+
+- `python3 -m pytest tests/unit/test_launch_governance_docs.py -q` -> `26 passed`.
+- `python3 -m scout.cli launch-readiness --root . --json` confirmed:
+  - private beta: `ready_with_limits`
+  - public launch: `blocked`
+  - Codex-actionable now: `0`
+- `python3 -m scout.cli launch-decision-check --root . --check-existing --check-drafts`
+  -> `PASS: 0 founder decision records found`; `PASS: 6 founder decision drafts are safe for review`.
+- `python3 -m pytest tests/unit/ -q` -> `639 passed, 8 warnings`.
+
 ## Launch Readiness Actionable Summary Checkpoint
 
 Date: 2026-06-29
