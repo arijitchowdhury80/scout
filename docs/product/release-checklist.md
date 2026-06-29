@@ -143,7 +143,14 @@ No public registry publish should happen until these decisions are closed.
       `import scout`, `scout --help`, Playwright Chromium install, `scout
       serve`, `/health`, `/`, `/quickstart`, `/docs`, and authenticated
       `/scrape` against `https://example.com`.
-- [ ] Docker install instructions tested from docs only.
+- [x] Docker install instructions tested from docs only.
+      Evidence: `docs/product/docker-install-verification-2026-06-28.md`.
+      Result: documented compose build starts a healthy container, serves
+      `/health`, `/`, `/styles.css`, `/quickstart`, `/docs`, and OpenAPI,
+      runs authenticated `/scrape` with `X-API-Key: dev-key`, and confirms the
+      `/data` volume is writable. A stale local uvicorn process on port `8421`
+      was detected and cleared before the final smoke, so operators should keep
+      the host port free or change the compose port mapping.
 - [ ] Hosted API quickstart tested with a newly generated API key.
 - [ ] Skill usage docs tested from current package.
 

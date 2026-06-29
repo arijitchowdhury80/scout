@@ -136,3 +136,29 @@ def test_local_install_verification_records_verified_beta_branch_path() -> None:
     )
     assert "docs/product/local-install-verification-2026-06-28.md" in checklist
     assert "branch-qualified" in checklist
+
+
+def test_docker_install_verification_records_docs_only_smoke() -> None:
+    verification = _read("docs/product/docker-install-verification-2026-06-28.md")
+    checklist = _read("docs/product/release-checklist.md")
+
+    assert "Docker Install Verification" in verification
+    assert (
+        "docker compose -p scout-docs-smoke -f docker/docker-compose.yml up --build -d"
+        in verification
+    )
+    assert "Docker version 29.1.3" in verification
+    assert "Docker Compose version v5.0.1" in verification
+    assert "/health" in verification
+    assert "/styles.css" in verification
+    assert "/quickstart" in verification
+    assert "/docs" in verification
+    assert "OpenAPI" in verification
+    assert "Authenticated scrape" in verification
+    assert "quality score `1.0`" in verification
+    assert "data-ok" in verification
+    assert "stale local Python/uvicorn Scout server" in verification
+    assert "docker compose -p scout-docs-smoke -f docker/docker-compose.yml down -v" in verification
+    assert "- [x] Docker install instructions tested from docs only." in checklist
+    assert "docs/product/docker-install-verification-2026-06-28.md" in checklist
+    assert "stale local uvicorn process" in checklist
