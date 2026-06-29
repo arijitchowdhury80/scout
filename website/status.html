@@ -194,6 +194,34 @@ scout launch-readiness --require-public</code></pre>
             </article>
           </div>
         </section>
+
+        <section class="section step-section" aria-labelledby="decision-workflow-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Decision workflow</p>
+            <h2 id="decision-workflow-title">Turn blocker keys into reviewable founder decisions.</h2>
+            <p>Use the installed Scout CLI to generate draft decision records, edit them into completed decisions, and validate them before any launch gate treats them as evidence.</p>
+          </div>
+          <pre><code>scout launch-decision-drafts \
+  --owner Arijit \
+  --include-shared-owner \
+  --decision-date YYYYMMDD
+
+scout launch-decision-draft \
+  --blocker-id license-decision \
+  --decision-id SCOUT-DEC-YYYYMMDD-NN
+
+scout launch-decision-check --check-existing</code></pre>
+          <div class="note-grid">
+            <article>
+              <h3>Drafts are not approvals</h3>
+              <p>Drafts live under <code>docs/product/founder-decision-drafts/</code>. They do not count as launch evidence until reviewed, moved into the completed record naming pattern, and validated.</p>
+            </article>
+            <article>
+              <h3>Packet first, single draft when needed</h3>
+              <p>The bulk command prepares Arijit-owned and shared decision drafts. Use the single-draft command when one blocker needs a separate discussion.</p>
+            </article>
+          </div>
+        </section>
       </main>
     </div>
   </body>
