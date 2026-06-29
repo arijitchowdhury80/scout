@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import types
 
@@ -104,6 +105,8 @@ async def test_cdp_service_clears_stale_chrome_session_restore_before_launch(
     (sessions_dir / "Session_123").write_text("old estee session", encoding="utf-8")
     for name in ("Current Session", "Current Tabs", "Last Session", "Last Tabs"):
         (default_dir / name).write_text("old restored tab", encoding="utf-8")
+    for name in ("SingletonLock", "SingletonSocket", "SingletonCookie"):
+        (tmp_path / name).symlink_to(f"dead-host-{999999}")
 
     class FakeProcess:
         pid = 4321
@@ -135,6 +138,44 @@ async def test_cdp_service_clears_stale_chrome_session_restore_before_launch(
     assert not sessions_dir.exists()
     for name in ("Current Session", "Current Tabs", "Last Session", "Last Tabs"):
         assert not (default_dir / name).exists()
+    for name in ("SingletonLock", "SingletonSocket", "SingletonCookie"):
+        assert not (tmp_path / name).exists()
+
+
+async def test_cdp_service_keeps_singleton_files_for_running_profile(monkeypatch, tmp_path) -> None:
+    default_dir = tmp_path / "Default"
+    default_dir.mkdir(parents=True)
+    (tmp_path / "SingletonLock").symlink_to(f"live-host-{os.getpid()}")
+    (tmp_path / "SingletonSocket").symlink_to("/tmp/scout-live-socket")
+    (tmp_path / "SingletonCookie").symlink_to("live-cookie")
+
+    class FakeProcess:
+        pid = 4321
+
+        def poll(self) -> int | None:
+            return None
+
+    chrome_path = tmp_path / "Google Chrome"
+    chrome_path.write_text("fake chrome", encoding="utf-8")
+
+    monkeypatch.setattr(user_browser.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(user_browser, "CHROME_PATH", str(chrome_path))
+    monkeypatch.setattr(user_browser.subprocess, "Popen", lambda *_args, **_kwargs: FakeProcess())
+    monkeypatch.setattr(user_browser, "_free_port", lambda: 49999)
+    monkeypatch.setattr(ChromeCDPService, "_wait_for_cdp", lambda _self, _port: True)
+    monkeypatch.setattr(
+        ChromeCDPService,
+        "_launched_process_is_stable",
+        lambda _self, _process, _port: True,
+    )
+
+    service = ChromeCDPService()
+    await service.open_browser(
+        UserBrowserOpenRequest(url="https://www.nike.com/", profile_dir=str(tmp_path))
+    )
+
+    for name in ("SingletonLock", "SingletonSocket", "SingletonCookie"):
+        assert (tmp_path / name).is_symlink()
 
 
 async def test_cdp_status_persists_unreachable_state(monkeypatch, tmp_path) -> None:

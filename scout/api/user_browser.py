@@ -355,17 +355,44 @@ def _clear_chrome_session_restore(profile_dir: Path) -> None:
         default_dir / "Last Session",
         default_dir / "Last Tabs",
     ]
+    if not _profile_has_running_chrome(profile_dir):
+        targets.extend(
+            [
+                profile_dir / "SingletonLock",
+                profile_dir / "SingletonSocket",
+                profile_dir / "SingletonCookie",
+            ]
+        )
     for target in targets:
         try:
             if target.is_dir():
                 shutil.rmtree(target)
-            elif target.exists():
+            elif target.exists() or target.is_symlink():
                 target.unlink()
         except OSError:
             # A running Chrome may hold these files. In that case CDP reuse or
             # explicit launch-state validation will decide whether capture can
             # proceed; do not fail the user before Chrome has a chance to open.
             continue
+
+
+def _profile_has_running_chrome(profile_dir: Path) -> bool:
+    lock_path = profile_dir / "SingletonLock"
+    if not lock_path.exists() and not lock_path.is_symlink():
+        return False
+    try:
+        lock_target = os.readlink(lock_path)
+    except OSError:
+        return False
+    try:
+        pid = int(lock_target.rsplit("-", 1)[-1])
+    except ValueError:
+        return False
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    return True
 
 
 def _cdp_json(port: int, path: str, *, method: str = "GET") -> dict[str, Any]:
