@@ -64,7 +64,7 @@ retention, and overage rules are not approved yet. Do not treat hosted beta as
 unlimited crawling or lifetime API access.
 
 ```bash
-export SCOUT_HOSTED_BASE_URL="https://your-hosted-scout.example"
+export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
 export SCOUT_HOSTED_API_KEY="paste-your-delivered-key"
 
 curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \

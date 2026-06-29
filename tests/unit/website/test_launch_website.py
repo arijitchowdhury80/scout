@@ -217,7 +217,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "source_pages.json",
             "blocked_pages.json",
             "extraction_report.md",
-            "Swagger API docs remain at /docs",
+            "Hosted API examples live in this guide; local Swagger docs remain available only when running Scout locally",
             "No unlimited hosted crawling",
             "No certified legacy /app UI claim",
         ],

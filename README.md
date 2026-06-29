@@ -813,7 +813,7 @@ surface as the public SaaS API.
 Current private-beta VPS base URL:
 
 ```bash
-SCOUT_HOSTED_BASE_URL=https://judge.contentengagement.info/scout
+SCOUT_HOSTED_BASE_URL=https://scout.chowmes.com
 ```
 
 The VPS deployment is expected to keep Scout bound to `127.0.0.1:8421` behind

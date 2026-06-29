@@ -6,7 +6,7 @@ Status: In progress
 ## 2026-06-29 VPS Hosted API Checkpoint
 
 - Caddy now exposes Scout under
-  `https://judge.contentengagement.info/scout/*`, proxying to the localhost-only
+  `https://scout.chowmes.com/*`, proxying to the localhost-only
   Scout container.
 - The Scout container was redeployed from the current repo source so the
   `/v1/hosted/*` Bearer-key routes are present.
@@ -24,6 +24,34 @@ Status: In progress
   - hosted provisioned Bearer key -> `/v1/hosted/me` `200`;
   - hosted provisioned Bearer key -> `/v1/hosted/scrape` `200`, one standard
     credit charged.
+
+## 2026-06-29 Scout Domain Website + Security Checkpoint
+
+- `scout.chowmes.com` is now the canonical private-beta public surface.
+- The Scout launch website is live at `https://scout.chowmes.com/`.
+- Website routes verified: `/`, `/quickstart`, `/guide`, `/examples`,
+  `/pricing`, `/status`, `/beta`, `/legal`, `/privacy`, and `/terms` all
+  return `200`.
+- Hosted API routes remain on the same host:
+  - `/health` -> `200`;
+  - `/v1/hosted/me` without Bearer -> `401`;
+  - `/v1/hosted/me` with a provisioned hosted key -> `200`;
+  - `/v1/hosted/scrape` with a provisioned hosted key -> `200`, one standard
+    credit charged.
+- Local/admin routes remain blocked in hosted-only mode:
+  - `/api/config` -> `403`;
+  - `/app` -> `403`;
+  - `/docs` -> `403`.
+- Public website navigation was updated to link to the public API guide instead
+  of hosted-only-blocked Swagger `/docs`.
+- VPS security review found Postgres and Redis publicly published by Docker.
+  They were corrected to bind only to localhost:
+  - `127.0.0.1:5432`;
+  - `127.0.0.1:6379`.
+- External port check now shows only `22`, `80`, and `443` open; `5432`,
+  `6379`, and `8421` are closed/filtered externally.
+- Stale `temporal.contentengagement.info` Caddy host block was removed because
+  the DNS name no longer resolves and was causing repeated certificate retries.
 
 ## Checklist
 

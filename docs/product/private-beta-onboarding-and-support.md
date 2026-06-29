@@ -87,7 +87,7 @@ curl http://127.0.0.1:8421/health
 For hosted beta:
 
 ```bash
-export SCOUT_HOSTED_BASE_URL="https://your-hosted-scout.example"
+export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
 export SCOUT_HOSTED_API_KEY="paste-your-delivered-key"
 curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"

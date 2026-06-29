@@ -17,7 +17,7 @@ The hosted API surface is:
 Current private-beta VPS base URL:
 
 ```text
-https://judge.contentengagement.info/scout
+https://scout.chowmes.com
 ```
 
 The VPS keeps Scout bound to `127.0.0.1:8421`; Caddy exposes only the
@@ -65,7 +65,7 @@ This is the expected posture for a hosted SaaS-style deployment.
 
 Current VPS verification from 2026-06-29:
 
-- `GET https://judge.contentengagement.info/scout/health` -> `200`.
+- `GET https://scout.chowmes.com/health` -> `200`.
 - `GET /v1/hosted/me` without Bearer token -> `401 Missing Bearer token`.
 - `POST /v1/hosted/scrape` without Bearer token -> `401 Missing Bearer token`.
 - `GET /api/config` -> `403 Local Scout API is disabled in hosted-only mode`.
@@ -92,7 +92,7 @@ Scout stores only a hash of the raw key.
 ## Consumer: Configure PRISM Or Another App
 
 ```bash
-SCOUT_HOSTED_BASE_URL=https://judge.contentengagement.info/scout
+SCOUT_HOSTED_BASE_URL=https://scout.chowmes.com
 SCOUT_HOSTED_API_KEY=scout_live_paste_the_delivered_key
 ```
 
