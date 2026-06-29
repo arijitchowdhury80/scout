@@ -458,6 +458,41 @@ def test_hosted_api_quickstart_verification_records_new_key_smoke() -> None:
     assert "docs/product/hosted-api-quickstart-verification-2026-06-28.md" in checklist
 
 
+def test_hosted_operating_contract_documents_private_beta_boundary() -> None:
+    contract = _read("docs/product/hosted-operating-contract-2026-06-29.md")
+    checklist = _read("docs/product/release-checklist.md")
+    evidence = _read("docs/product/launch-evidence-index-2026-06-29.md")
+
+    assert "Hosted Scout Operating Contract" in contract
+    assert "Private-beta hosted operating contract" in contract
+    assert "Local Scout" in contract
+    assert "Hosted Scout" in contract
+    assert "scout hosted-provision --email tester@example.com --db hosted.sqlite" in contract
+    assert "stores the API key hash, not the raw key" in contract
+    assert "Authorization: Bearer scout_live_" in contract
+    assert "GET /v1/hosted/me" in contract
+    assert "POST /v1/hosted/scrape" in contract
+    assert "POST /v1/hosted/crawl" in contract
+    assert "POST /v1/hosted/products" in contract
+    assert "POST /v1/hosted/run/{use_case}" in contract
+    assert "GET /v1/hosted/runs/{run_id}/artifacts" in contract
+    assert "`hosted_beta_pass` | 2,000 | 100 | 7 days | 100 | 1" in contract
+    assert "browser render | browser | 5" in contract
+    assert "browser minute | browser | 10" in contract
+    assert "server `SCOUT_WORKDIR`" in contract
+    assert "tenant_id" in contract
+    assert "another tenant receives `404`" in contract
+    assert "distributed/global rate limiting" in contract
+    assert "production database such as Postgres" in contract
+    assert "object storage with tenant-scoped keys" in contract
+    assert "real Stripe test-mode checkout and webhook smoke" in contract
+    assert "Production-ready multi-tenant SaaS" in contract
+    assert "docs/product/hosted-operating-contract-2026-06-29.md" in checklist
+    assert "Hosted operating contract documented for private beta" in checklist
+    assert "docs/product/hosted-operating-contract-2026-06-29.md" in evidence
+    assert "This does not approve public self-serve hosted Scout." in evidence
+
+
 def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> None:
     readiness = _read("docs/product/stripe-test-mode-readiness-2026-06-29.md")
     checklist = _read("docs/product/release-checklist.md")

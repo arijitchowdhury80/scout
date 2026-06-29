@@ -51,6 +51,11 @@ The legacy app UI is not a launch surface until it is rebuilt and certified.
       Result: local remains free, the `$22` hosted beta pass is finite credits,
       browser/rendered work is separately metered, and no unlimited hosted
       crawling should be sold. Final public pricing approval remains open.
+- [x] Hosted operating contract documented for private beta.
+      Evidence: `docs/product/hosted-operating-contract-2026-06-29.md`.
+      Result: local-vs-hosted boundary, API-key lifecycle, hosted routes,
+      metering, tenant-owned artifact retrieval, and production hosted gaps are
+      documented. This does not approve public self-serve hosted Scout.
 - [ ] Registry publishing policy approved for PyPI, GHCR, Docker Hub, or other
       registries.
       Decision brief:
