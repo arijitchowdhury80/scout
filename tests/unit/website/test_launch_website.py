@@ -180,6 +180,8 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         "beta.html": [
             "Scout Private Beta",
             "Choose your beta path",
+            "Tester handoff packet",
+            "docs/product/private-beta-tester-handoff.md",
             "Hosted beta checkout",
             "2,000 standard credits",
             "100 browser credits",

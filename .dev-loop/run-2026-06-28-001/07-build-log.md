@@ -1801,6 +1801,53 @@ Verification:
   -> `PASS: 0 founder decision records found`; `PASS: 6 founder decision drafts are safe for review`.
 - `python3 -m pytest tests/unit/ -q` -> `639 passed, 8 warnings`.
 
+## Private Beta Tester Handoff Checkpoint
+
+Date: 2026-06-29
+
+Built:
+
+- Added `docs/product/private-beta-tester-handoff.md`, a sendable packet for
+  approved private beta testers.
+- Linked the handoff from README and `/beta`.
+- Registered the handoff in the release checklist and launch evidence index.
+
+Behavior:
+
+- Gives testers a 30-minute first-run path.
+- Separates local-first, Docker, hosted convenience, and skill/agent paths.
+- States current launch truth: private beta `ready_with_limits`, public launch
+  `blocked`.
+- Repeats hosted beta finite-credit limits and no-unlimited/no-hard-site-bypass
+  boundaries.
+- Points feedback to private beta issue templates and warns testers not to
+  share secrets.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/test_launch_governance_docs.py::test_private_beta_tester_handoff_packet_is_sendable_and_boundary_safe -q`
+  failed because the handoff packet did not exist.
+- RED:
+  `python3 -m pytest tests/unit/website/test_launch_website.py::test_launch_website_has_beta_onboarding_pages -q`
+  failed because `/beta` did not link the handoff.
+- GREEN:
+  both focused tests passed after adding the packet and website link.
+
+Verification:
+
+- `python3 -m pytest tests/unit/test_launch_governance_docs.py tests/unit/website/test_launch_website.py -q`
+  -> `38 passed, 2 warnings`.
+- `ruff check tests/unit/test_launch_governance_docs.py tests/unit/website/test_launch_website.py`
+  -> `All checks passed!`.
+- `ruff format --check tests/unit/test_launch_governance_docs.py tests/unit/website/test_launch_website.py`
+  -> `2 files already formatted`.
+- `python3 -m pytest tests/unit/ -q` -> `640 passed, 8 warnings`.
+- `python3 -m scout.cli launch-readiness --root . --json` confirmed:
+  - private beta: `ready_with_limits`
+  - public launch: `blocked`
+  - Codex-actionable now: `0`
+
 ## Launch Readiness Actionable Summary Checkpoint
 
 Date: 2026-06-29

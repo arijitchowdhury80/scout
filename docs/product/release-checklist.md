@@ -191,10 +191,11 @@ No public registry publish should happen until these decisions are closed.
       feature issue templates; security reports stay private through
       `SECURITY.md`; beta response targets and support boundaries are documented.
 - [x] Beta tester onboarding instructions verified.
-      Evidence: `docs/product/private-beta-onboarding-and-support.md`.
+      Evidence: `docs/product/private-beta-onboarding-and-support.md`;
+      `docs/product/private-beta-tester-handoff.md`.
       Result: onboarding now covers local package, Docker, hosted API, and
-      skill usage paths; first-run smoke commands; artifact inspection; and
-      feedback expectations without secrets.
+      skill usage paths; a sendable 30-minute first-run packet; artifact
+      inspection; and feedback expectations without secrets.
 - [x] Hosted API key generation flow verified.
       Evidence:
       `docs/security/hosted-key-generation-delivery-review-2026-06-28.md`.

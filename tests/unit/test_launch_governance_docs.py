@@ -83,6 +83,36 @@ def test_private_beta_support_and_onboarding_playbook_closes_beta_ops_gates() ->
     assert "private beta issue templates" in launch_plan
 
 
+def test_private_beta_tester_handoff_packet_is_sendable_and_boundary_safe() -> None:
+    handoff = _read("docs/product/private-beta-tester-handoff.md")
+    readme = _read("README.md")
+    checklist = _read("docs/product/release-checklist.md")
+    evidence = _read("docs/product/launch-evidence-index-2026-06-29.md")
+
+    assert "Private Beta Tester Handoff" in handoff
+    assert "Send this packet to approved private beta testers" in handoff
+    assert "30-minute first run" in handoff
+    assert "Local-first path" in handoff
+    assert "Hosted convenience path" in handoff
+    assert "Skill/agent path" in handoff
+    assert "codex/scout-platform-foundation" in handoff
+    assert "scout launch-readiness" in handoff
+    assert "Private beta: `ready_with_limits`" in handoff
+    assert "Public launch: `blocked`" in handoff
+    assert "2,000 standard credits" in handoff
+    assert "100 browser credits" in handoff
+    assert "100 pages per run" in handoff
+    assert "No unlimited hosted crawling" in handoff
+    assert "No guaranteed hard-site bypass" in handoff
+    assert "Do not paste API keys" in handoff
+    assert ".github/ISSUE_TEMPLATE/private_beta_bug.yml" in handoff
+    assert ".github/ISSUE_TEMPLATE/private_beta_feature.yml" in handoff
+    assert "Tester is onboarded when" in handoff
+    assert "docs/product/private-beta-tester-handoff.md" in readme
+    assert "docs/product/private-beta-tester-handoff.md" in checklist
+    assert "docs/product/private-beta-tester-handoff.md" in evidence
+
+
 def test_private_beta_launch_plan_reflects_current_evidence_and_boundaries() -> None:
     launch_plan = _read("docs/product/private-beta-launch-plan.md")
 
