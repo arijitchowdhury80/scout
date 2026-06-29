@@ -295,6 +295,9 @@ def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> N
 def test_dependency_audit_refresh_keeps_lxml_gate_open_until_clean() -> None:
     refresh = _read("docs/security/dependency-audit-refresh-2026-06-29.md")
     risk_decision = _read("docs/security/crawl4ai-lxml-risk-decision-2026-06-28.md")
+    exception_packet = _read(
+        "docs/security/crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md"
+    )
     checklist = _read("docs/product/release-checklist.md")
 
     assert "Dependency Audit Refresh" in refresh
@@ -307,7 +310,12 @@ def test_dependency_audit_refresh_keeps_lxml_gate_open_until_clean() -> None:
     assert "continue-on-error: true" in refresh
     assert "Scout is not public-launch-ready while this dependency audit fails." in refresh
     assert "Refresh on 2026-06-29" in risk_decision
+    assert "Proposed private-beta exception packet" in risk_decision
+    assert "Crawl4AI/lxml Private-Beta Exception Packet" in exception_packet
+    assert "not approved" in exception_packet
+    assert "hosted usage remains capped and metered" in exception_packet
     assert "docs/security/dependency-audit-refresh-2026-06-29.md" in checklist
+    assert "docs/security/crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md" in checklist
     assert "- [ ] Crawl4AI/lxml risk decision approved." in checklist
     assert "- [ ] Dependency audit clean and blocking in GitHub CI." in checklist
 
@@ -391,6 +399,7 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
     assert "Stripe real test-mode smoke" in burndown
     assert "External credentials/webhook" in burndown
     assert "Crawl4AI/lxml risk decision" in burndown
+    assert "crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md" in burndown
     assert "Dependency audit clean and blocking in CI" in burndown
     assert "website-route-render-verification-2026-06-29.md" in burndown
     assert "Do Not Claim Yet" in burndown

@@ -18,6 +18,8 @@ Refresh on 2026-06-29:
 - Installing `crawl4ai==0.9.0` with `lxml>=6.1.0` still fails dependency
   resolution.
 - Evidence: `docs/security/dependency-audit-refresh-2026-06-29.md`.
+- Proposed private-beta exception packet:
+  `docs/security/crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md`.
 
 Attempted mitigation:
 
@@ -106,6 +108,10 @@ Recommended decision for the next milestone:
 
 This document is not an approval. It is the decision record that Arijit must
 approve or revise before private beta expansion.
+
+The companion exception packet turns Option A into an approval-ready checklist
+with scope, controls, exit criteria, and rejection path. It is also not an
+approval until an approver and date are recorded.
 
 ## Required Approval
 
