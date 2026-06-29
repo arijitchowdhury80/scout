@@ -15,7 +15,10 @@ blocker:
 - `codex_actionable_now`
 
 That means the action list is machine-readable as well as human-readable; the
-plain-English tables below are a dashboard over the same blocker contract.
+plain-English tables below are a dashboard over the same blocker contract. The
+report now includes both blocker-type and owner summaries, so it is clear
+whether the next bottleneck is a founder decision, Codex implementation, shared
+Stripe smoke, or a risk decision.
 
 Useful slices:
 

@@ -39,7 +39,8 @@ Use `--owner` or `--blocker-type` to filter the displayed public-launch
 blockers without changing the underlying readiness verdict. For example,
 `--owner Arijit` shows the founder/risk decisions that Arijit must make, while
 `--blocker-type engineering` shows engineering gates that can close after their
-prerequisites exist.
+prerequisites exist. The readiness report summarizes blockers by both blocker
+type and owner so the next bottleneck is visible without opening the JSON.
 
 ## Current Verdict
 

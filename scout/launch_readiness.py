@@ -419,6 +419,11 @@ def _blocker_summary(blockers: list[EvidenceCheck]) -> dict[str, Any]:
     }
 
 
+def _owner_summary(blockers: list[EvidenceCheck]) -> dict[str, int]:
+    by_owner = Counter(blocker.owner for blocker in blockers if blocker.owner)
+    return dict(sorted(by_owner.items()))
+
+
 def build_report(root: Path) -> dict[str, Any]:
     private_beta = _private_beta_checks(root)
     public_blockers = _public_blockers(root)
@@ -442,6 +447,7 @@ def build_report(root: Path) -> dict[str, Any]:
         "public_launch": {
             "status": "ready" if public_ready else "blocked",
             "blocker_summary": _blocker_summary(public_blockers),
+            "owner_summary": _owner_summary(public_blockers),
             "blockers": [blocker.as_dict() for blocker in public_blockers],
         },
     }
@@ -477,6 +483,7 @@ def filter_report(
 
     public_launch["blockers"] = blockers
     public_launch["blocker_summary"] = _dict_blocker_summary(blockers)
+    public_launch["owner_summary"] = _dict_owner_summary(blockers)
     return {
         **report,
         "public_launch": public_launch,
@@ -489,6 +496,11 @@ def _dict_blocker_summary(blockers: list[dict[str, Any]]) -> dict[str, Any]:
         "total": len(blockers),
         "by_type": dict(sorted(by_type.items())),
     }
+
+
+def _dict_owner_summary(blockers: list[dict[str, Any]]) -> dict[str, int]:
+    by_owner = Counter(str(blocker["owner"]) for blocker in blockers if blocker.get("owner"))
+    return dict(sorted(by_owner.items()))
 
 
 def print_text_report(report: dict[str, Any]) -> None:
@@ -505,6 +517,11 @@ def print_text_report(report: dict[str, Any]) -> None:
     print(f"Blocker summary: {blocker_summary['total']} total")
     for blocker_type, count in blocker_summary["by_type"].items():
         print(f"  - {blocker_type}: {count}")
+    owner_summary = public_launch.get("owner_summary", {})
+    if owner_summary:
+        print("Owner summary:")
+        for owner, count in owner_summary.items():
+            print(f"  - {owner}: {count}")
     for blocker in public_launch["blockers"]:
         print(f"  - {blocker['area']} [{blocker['blocker_type']}]: {blocker['note']}")
         if "owner" in blocker:
