@@ -104,6 +104,17 @@ Required before GHCR:
 - published image is pulled fresh and smoke-tested,
 - volume, `SCOUT_WORKDIR`, `DB_PATH`, and API-key docs are current.
 
+After an approved image is published, pull and smoke it with:
+
+```bash
+python3 scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG
+```
+
+The smoke pulls the image, starts it locally, checks `/health`, `/`,
+`/styles.css`, and runs authenticated `/scrape` against `https://example.com`
+with a local `dev-key`. Use `--skip-scrape` only for network-restricted
+debugging; the release gate requires authenticated scrape.
+
 Rationale:
 
 - GHCR ties image provenance to the GitHub repo.

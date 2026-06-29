@@ -84,6 +84,7 @@ No public registry publish should happen until these decisions are closed.
       provenance, and post-publish smoke gates are approved.
 - [ ] Published Docker image smoke-tested if GHCR, Docker Hub, or another
       registry is used.
+      Helper: `scripts/docker_image_smoke.py`.
 
 ## Security And Legal Gates
 

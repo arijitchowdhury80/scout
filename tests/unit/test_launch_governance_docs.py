@@ -359,6 +359,7 @@ def test_registry_publishing_policy_blocks_public_registries_until_approved() ->
     assert "`v*` tags may create a GitHub Release" in policy
     assert "must **not** publish to PyPI" in policy
     assert "must **not** push Docker images to GHCR or Docker Hub" in policy
+    assert "scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG" in policy
     assert "twine upload" in policy
     assert "docker/build-push-action" in policy
     assert "PyPI first if license/security gates close" in policy

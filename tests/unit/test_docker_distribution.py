@@ -44,3 +44,17 @@ def test_docker_runtime_uses_settings_environment_names() -> None:
     assert "SCOUT_DB_PATH" not in dockerfile
     assert "DB_PATH=/data/scout.db" in compose
     assert "SCOUT_DB_PATH" not in compose
+
+
+def test_published_docker_image_smoke_helper_is_documented() -> None:
+    helper = _ROOT / "scripts" / "docker_image_smoke.py"
+    policy = (_ROOT / "docs" / "product" / "registry-publishing-policy-2026-06-29.md").read_text(
+        encoding="utf-8"
+    )
+    checklist = (_ROOT / "docs" / "product" / "release-checklist.md").read_text(encoding="utf-8")
+
+    assert helper.exists()
+    assert "Smoke-test a published Scout Docker image" in helper.read_text(encoding="utf-8")
+    assert "scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG" in policy
+    assert "authenticated `/scrape`" in policy
+    assert "Helper: `scripts/docker_image_smoke.py`." in checklist
