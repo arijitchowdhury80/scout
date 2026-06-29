@@ -70,12 +70,12 @@
             <h2 id="beta-readiness-title">Run the launch readiness checker.</h2>
           </div>
           <p>
-            Scout ships a repo-local readiness check so beta operators can tell
+            Scout ships a packaged readiness check so beta operators can tell
             the difference between controlled private beta readiness and public
             launch readiness.
           </p>
-          <pre><code>python3 scripts/launch_readiness_check.py
-python3 scripts/launch_readiness_check.py --require-public</code></pre>
+          <pre><code>scout launch-readiness
+scout launch-readiness --require-public</code></pre>
           <div class="note-grid">
             <article>
               <h3>Private beta</h3>

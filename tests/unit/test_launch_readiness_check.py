@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from scripts.launch_readiness_check import build_report
+from scout.launch_readiness import build_report
 
 
 ROOT = Path(__file__).resolve().parents[2]

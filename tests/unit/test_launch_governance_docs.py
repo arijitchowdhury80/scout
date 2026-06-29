@@ -317,9 +317,9 @@ def test_distribution_package_plan_reflects_verified_beta_paths_and_blocks_regis
     assert "docs/product/registry-publishing-policy-2026-06-29.md" in distribution
     assert "docs/legal/scout-license-distribution-decision-brief-2026-06-29.md" in distribution
     assert "docs/legal/license-implementation-runbook-2026-06-29.md" in distribution
-    assert "python3 scripts/launch_readiness_check.py" in distribution
-    assert "GitHub CI runs this checker" in distribution
-    assert "python3 scripts/launch_readiness_check.py --require-public" in distribution
+    assert "scout launch-readiness" in distribution
+    assert "GitHub CI runs the repository wrapper for this checker" in distribution
+    assert "scout launch-readiness --require-public" in distribution
     assert "The beta strategy is local-first." in distribution
 
     beta_surfaces = [
@@ -689,7 +689,10 @@ def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> 
     assert "docs/product/launch-evidence-index-2026-06-29.md" in checklist
     assert "docs/product/launch-evidence-index-2026-06-29.md" in dashboard
     assert "docs/product/launch-evidence-index-2026-06-29.md" in burndown
-    assert "scripts/launch_readiness_check.py" in checklist
-    assert "GitHub CI runs `python3 scripts/launch_readiness_check.py`" in evidence
-    assert "GitHub CI runs the default and JSON forms" in checklist
-    assert "python3 scripts/launch_readiness_check.py --require-public" in evidence
+    assert "scout launch-readiness" in checklist
+    assert (
+        "GitHub CI runs the repository wrapper, `python3 scripts/launch_readiness_check.py`"
+        in evidence
+    )
+    assert "GitHub CI runs the repository wrapper default and JSON forms" in checklist
+    assert "scout launch-readiness --require-public" in evidence

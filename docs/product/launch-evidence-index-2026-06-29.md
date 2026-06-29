@@ -20,13 +20,14 @@ truth for launch gates:
 Executable readiness check:
 
 ```bash
-python3 scripts/launch_readiness_check.py
-python3 scripts/launch_readiness_check.py --json
-python3 scripts/launch_readiness_check.py --require-public
+scout launch-readiness
+scout launch-readiness --json
+scout launch-readiness --require-public
 ```
 
-GitHub CI runs `python3 scripts/launch_readiness_check.py` and the JSON form as
-the private-beta readiness gate.
+GitHub CI runs the repository wrapper, `python3 scripts/launch_readiness_check.py`,
+and the JSON form as the private-beta readiness gate. The installed package
+exposes the same check as `scout launch-readiness`.
 
 `--require-public` intentionally exits nonzero while public launch blockers are
 open.

@@ -16,11 +16,11 @@ Use this plan with:
 Quick status command:
 
 ```bash
-python3 scripts/launch_readiness_check.py
+scout launch-readiness
 ```
 
-GitHub CI runs this checker to keep the verified private-beta distribution
-evidence intact on every pull request.
+GitHub CI runs the repository wrapper for this checker to keep the verified
+private-beta distribution evidence intact on every pull request.
 
 ## Distribution Goals
 
@@ -154,7 +154,7 @@ python3 scripts/release_artifact_smoke.py --dist-dir /path/to/downloaded/dist --
 To enforce that a public release is actually ready, run:
 
 ```bash
-python3 scripts/launch_readiness_check.py --require-public
+scout launch-readiness --require-public
 ```
 
 This command must fail until public-launch blockers are closed.

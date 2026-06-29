@@ -57,3 +57,13 @@ def test_hatch_build_includes_third_party_notices() -> None:
 
     force_include = data["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
     assert force_include["THIRD_PARTY_NOTICES.md"] == "THIRD_PARTY_NOTICES.md"
+
+
+def test_hatch_build_includes_launch_readiness_evidence() -> None:
+    data = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+
+    force_include = data["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
+    assert force_include["docs/product"] == "docs/product"
+    assert force_include["docs/legal"] == "docs/legal"
+    assert force_include["docs/security"] == "docs/security"
+    assert force_include["pyproject.toml"] == "pyproject.toml"

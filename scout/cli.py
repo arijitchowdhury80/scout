@@ -32,6 +32,7 @@ from scout.core.products.exports import (
     ProductExportRequest,
     export_product_records,
 )
+from scout.launch_readiness import build_report, default_root, print_text_report
 from scout.core.types import (
     AlgoliaProductRecord,
     CrawlRequest,
@@ -81,6 +82,35 @@ def _die(resp: object) -> None:
     d = resp.model_dump(by_alias=True)  # type: ignore[union-attr]
     _out(d)
     if not d.get("success", True):
+        raise SystemExit(1)
+
+
+@app.command("launch-readiness")
+def launch_readiness(
+    root: str = typer.Option(
+        "",
+        "--root",
+        help="Scout repo/package root containing launch evidence docs.",
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Print machine-readable JSON."),
+    require_public: bool = typer.Option(
+        False,
+        "--require-public",
+        help="Exit nonzero unless public launch is ready.",
+    ),
+) -> None:
+    """Report private-beta and public-launch readiness from packaged evidence."""
+    chosen_root = Path(root).expanduser().resolve() if root else default_root()
+    report = build_report(chosen_root)
+
+    if json_output:
+        _out(report)
+    else:
+        print_text_report(report)
+
+    if require_public and report["public_launch"]["status"] != "ready":
+        raise SystemExit(1)
+    if report["private_beta"]["status"] != "ready_with_limits":
         raise SystemExit(1)
 
 

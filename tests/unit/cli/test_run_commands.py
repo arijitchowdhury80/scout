@@ -54,6 +54,39 @@ def test_run_command_lists_supported_use_cases() -> None:
     assert "website-quality" in result.output
 
 
+def test_launch_readiness_command_reports_private_beta_and_public_status() -> None:
+    runner = CliRunner()
+    root = Path(__file__).resolve().parents[3]
+
+    result = runner.invoke(app, ["launch-readiness", "--root", str(root)])
+
+    assert result.exit_code == 0
+    assert "Private beta: ready_with_limits" in result.output
+    assert "Public launch: blocked" in result.output
+
+
+def test_launch_readiness_command_outputs_json() -> None:
+    runner = CliRunner()
+    root = Path(__file__).resolve().parents[3]
+
+    result = runner.invoke(app, ["launch-readiness", "--root", str(root), "--json"])
+
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert data["private_beta"]["status"] == "ready_with_limits"
+    assert data["public_launch"]["status"] == "blocked"
+
+
+def test_launch_readiness_command_can_fail_public_gate() -> None:
+    runner = CliRunner()
+    root = Path(__file__).resolve().parents[3]
+
+    result = runner.invoke(app, ["launch-readiness", "--root", str(root), "--require-public"])
+
+    assert result.exit_code == 1
+    assert "Public launch: blocked" in result.output
+
+
 def test_product_export_command_writes_requested_formats() -> None:
     runner = CliRunner()
     with runner.isolated_filesystem():
