@@ -1848,6 +1848,46 @@ Verification:
   - public launch: `blocked`
   - Codex-actionable now: `0`
 
+## Private Beta Invitation Packet Checkpoint
+
+Date: 2026-06-29
+
+Built:
+
+- Added `docs/product/private-beta-invitation-packet.md`.
+- Registered the packet in the private beta launch plan and launch evidence
+  index.
+
+Behavior:
+
+- Defines the recommended 5-10 tester cohort profiles.
+- Names users not to invite during private beta.
+- Provides operator preflight commands before sending invitations.
+- Includes invite and follow-up email copy.
+- Defines manual success metrics for activation, artifact discovery, feedback,
+  value clarity, and boundary clarity.
+- Keeps tester names, emails, API keys, and private feedback out of the public
+  repository.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/test_launch_governance_docs.py::test_private_beta_invitation_packet_defines_recruiting_and_preflight -q`
+  failed because the invite packet did not exist.
+- GREEN:
+  same focused test passed after adding the packet and references.
+
+Verification:
+
+- `python3 -m pytest tests/unit/test_launch_governance_docs.py -q` -> `28 passed`.
+- `ruff check tests/unit/test_launch_governance_docs.py` -> `All checks passed!`.
+- `ruff format --check tests/unit/test_launch_governance_docs.py` -> `1 file already formatted`.
+- `python3 -m pytest tests/unit/ -q` -> `641 passed, 8 warnings`.
+- `python3 -m scout.cli launch-readiness --root . --json` confirmed:
+  - private beta: `ready_with_limits`
+  - public launch: `blocked`
+  - Codex-actionable now: `0`
+
 ## Launch Readiness Actionable Summary Checkpoint
 
 Date: 2026-06-29

@@ -113,6 +113,37 @@ def test_private_beta_tester_handoff_packet_is_sendable_and_boundary_safe() -> N
     assert "docs/product/private-beta-tester-handoff.md" in evidence
 
 
+def test_private_beta_invitation_packet_defines_recruiting_and_preflight() -> None:
+    packet = _read("docs/product/private-beta-invitation-packet.md")
+    launch_plan = _read("docs/product/private-beta-launch-plan.md")
+    evidence = _read("docs/product/launch-evidence-index-2026-06-29.md")
+    readme = _read("README.md")
+
+    assert "Private Beta Invitation Packet" in packet
+    assert "Use this packet before inviting testers" in packet
+    assert "5-10 trusted testers" in packet
+    assert "solutions engineers" in packet
+    assert "AI-agent builders" in packet
+    assert "competitive intelligence researchers" in packet
+    assert "RevOps or data teams" in packet
+    assert "Do not invite" in packet
+    assert "unlimited hosted crawling" in packet
+    assert "guaranteed hard-site bypass" in packet
+    assert "Preflight checklist" in packet
+    assert "scout launch-readiness" in packet
+    assert "scout launch-decision-check --check-existing --check-drafts" in packet
+    assert "Invite email" in packet
+    assert "Follow-up email" in packet
+    assert "docs/product/private-beta-tester-handoff.md" in packet
+    assert "Success metrics" in packet
+    assert "activation" in packet
+    assert "artifact found" in packet
+    assert "feedback filed" in packet
+    assert "docs/product/private-beta-invitation-packet.md" in launch_plan
+    assert "docs/product/private-beta-invitation-packet.md" in evidence
+    assert "docs/product/private-beta-invitation-packet.md" in readme
+
+
 def test_private_beta_launch_plan_reflects_current_evidence_and_boundaries() -> None:
     launch_plan = _read("docs/product/private-beta-launch-plan.md")
 

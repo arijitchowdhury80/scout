@@ -63,6 +63,7 @@ Primary launch references:
 - [Launch decision dashboard](docs/product/launch-decision-dashboard-2026-06-29.md)
 - [Public launch action packet](docs/product/public-launch-action-packet-2026-06-29.md)
 - [Founder decision drafts](docs/product/founder-decision-drafts/index.md)
+- [Private beta invitation packet](docs/product/private-beta-invitation-packet.md)
 - [Private beta tester handoff](docs/product/private-beta-tester-handoff.md)
 
 ## Quick Start

@@ -86,7 +86,7 @@ Goal: make the product understandable and repeatable.
 | Add website with private-beta status and limitations | Done | `docs/product/website-route-render-verification-2026-06-29.md`; `docs/product/website-copy-review-2026-06-28.md`. |
 | Add installation and Docker guide | Done | `README.md`; `docs/distribution.md`; `docs/product/local-install-verification-2026-06-28.md`; `docs/product/docker-install-verification-2026-06-28.md`. |
 | Add API examples | Done | `README.md`; `docs/distribution.md`; hosted quickstart verification. |
-| Add private beta support channel and onboarding guide | Done | `docs/product/private-beta-onboarding-and-support.md`; `.github/ISSUE_TEMPLATE/private_beta_bug.yml`; `.github/ISSUE_TEMPLATE/private_beta_feature.yml`. |
+| Add private beta support channel and onboarding guide | Done | `docs/product/private-beta-onboarding-and-support.md`; `docs/product/private-beta-tester-handoff.md`; `docs/product/private-beta-invitation-packet.md`; `.github/ISSUE_TEMPLATE/private_beta_bug.yml`; `.github/ISSUE_TEMPLATE/private_beta_feature.yml`. |
 | Add quickstart demo script | Deferred | Current quickstart uses documented CLI/API commands. Add a video/GIF or scripted demo only after the beta flow stabilizes. |
 
 ### Phase 2: Controlled Private Beta
