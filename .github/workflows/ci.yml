@@ -54,6 +54,7 @@ jobs:
           cache: pip
       - run: python scripts/launch_readiness_check.py
       - run: python scripts/launch_readiness_check.py --json
+      - run: python scripts/founder_decision_record_check.py --root . --check-existing
 
   dependency-audit:
     runs-on: ubuntu-latest

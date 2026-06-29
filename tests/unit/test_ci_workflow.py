@@ -68,6 +68,7 @@ def test_ci_runs_private_beta_launch_readiness_without_public_gate() -> None:
     assert job["runs-on"] == "ubuntu-latest"
     assert "python scripts/launch_readiness_check.py" in runs
     assert "python scripts/launch_readiness_check.py --json" in runs
+    assert "python scripts/founder_decision_record_check.py --root . --check-existing" in runs
     assert "--require-public" not in runs
 
 

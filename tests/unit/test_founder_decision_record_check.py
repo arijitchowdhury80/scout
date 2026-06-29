@@ -97,3 +97,32 @@ def test_founder_decision_record_check_main_reports_failure(
     assert founder_decision_record_check.main([str(missing)]) == 2
 
     assert "FAIL" in capsys.readouterr().err
+
+
+def test_founder_decision_record_check_existing_records_passes_when_none_exist(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    (tmp_path / "docs" / "product").mkdir(parents=True)
+
+    assert founder_decision_record_check.main(["--root", str(tmp_path), "--check-existing"]) == 0
+
+    assert "0 founder decision records" in capsys.readouterr().out
+
+
+def test_founder_decision_record_check_existing_records_validates_matching_records(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    records_dir = tmp_path / "docs" / "product"
+    records_dir.mkdir(parents=True)
+    _write_decision_record(records_dir / "founder-decision-record-SCOUT-DEC-20260629-01.md")
+    (records_dir / "founder-decision-record-template-2026-06-29.md").write_text(
+        "template is not a completed record", encoding="utf-8"
+    )
+
+    assert founder_decision_record_check.main(["--root", str(tmp_path), "--check-existing"]) == 0
+
+    output = capsys.readouterr().out
+    assert "1 founder decision records" in output
+    assert "SCOUT-DEC-20260629-01" in output

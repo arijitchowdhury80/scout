@@ -83,6 +83,12 @@ def validate_decision_record(path: Path) -> FounderDecisionRecordResult:
     return FounderDecisionRecordResult(path=path, decision_id=decision_id, status=status)
 
 
+def existing_decision_records(root: Path) -> list[Path]:
+    """Return completed founder decision records under a Scout repo root."""
+    records_dir = root / "docs" / "product"
+    return sorted(records_dir.glob("founder-decision-record-SCOUT-DEC-*.md"))
+
+
 def _require_contains(content: str, needle: str) -> None:
     if needle not in content:
         raise FounderDecisionRecordError(f"Missing required text: {needle}")
@@ -101,20 +107,33 @@ def _field_value(content: str, label: str) -> str:
 def build_parser() -> argparse.ArgumentParser:
     """Build CLI parser."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("records", nargs="+", type=Path)
+    parser.add_argument("records", nargs="*", type=Path)
+    parser.add_argument("--root", type=Path, default=Path("."))
+    parser.add_argument(
+        "--check-existing",
+        action="store_true",
+        help="Validate existing completed founder decision records under docs/product.",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     """Run founder decision record validation."""
     args = build_parser().parse_args(argv)
+    records = list(args.records)
+    if args.check_existing:
+        records.extend(existing_decision_records(args.root))
+    if not records:
+        print("PASS: 0 founder decision records found.")
+        return 0
     try:
-        results = [validate_decision_record(path) for path in args.records]
+        results = [validate_decision_record(path) for path in records]
     except FounderDecisionRecordError as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 2
 
     print("PASS: Scout founder decision record validation satisfied.")
+    print(f"Validated {len(results)} founder decision records.")
     for result in results:
         print(f"{result.decision_id}: {result.status} ({result.path})")
     return 0
