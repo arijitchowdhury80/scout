@@ -151,7 +151,12 @@ No public registry publish should happen until these decisions are closed.
       `/data` volume is writable. A stale local uvicorn process on port `8421`
       was detected and cleared before the final smoke, so operators should keep
       the host port free or change the compose port mapping.
-- [ ] Hosted API quickstart tested with a newly generated API key.
+- [x] Hosted API quickstart tested with a newly generated API key.
+      Evidence: `docs/product/hosted-api-quickstart-verification-2026-06-28.md`.
+      Result: a fresh `hosted_beta_pass` key authenticated to `/v1/hosted/me`,
+      ran `/v1/hosted/scrape` against `https://example.com`, returned provider
+      `crawl4ai`, quality score `1.0`, and debited standard credits from
+      `2000` to `1999`. Raw key was masked in evidence.
 - [ ] Skill usage docs tested from current package.
 
 ## Explicit Non-Goals For Current Release

@@ -162,3 +162,24 @@ def test_docker_install_verification_records_docs_only_smoke() -> None:
     assert "- [x] Docker install instructions tested from docs only." in checklist
     assert "docs/product/docker-install-verification-2026-06-28.md" in checklist
     assert "stale local uvicorn process" in checklist
+
+
+def test_hosted_api_quickstart_verification_records_new_key_smoke() -> None:
+    verification = _read("docs/product/hosted-api-quickstart-verification-2026-06-28.md")
+    checklist = _read("docs/product/release-checklist.md")
+
+    assert "Hosted API Quickstart Verification" in verification
+    assert "freshly generated hosted beta key" in verification
+    assert "python3 -m scout.cli hosted-provision" in verification
+    assert "/v1/hosted/me" in verification
+    assert "/v1/hosted/scrape" in verification
+    assert "hosted_beta_pass" in verification
+    assert "raw_api_key_masked" in verification
+    assert "scrape_success: true" in verification
+    assert "credits_charged: 1" in verification
+    assert "provider: crawl4ai" in verification
+    assert "quality_score: 1.0" in verification
+    assert "before_standard: 2000" in verification
+    assert "after_standard: 1999" in verification
+    assert "- [x] Hosted API quickstart tested with a newly generated API key." in checklist
+    assert "docs/product/hosted-api-quickstart-verification-2026-06-28.md" in checklist

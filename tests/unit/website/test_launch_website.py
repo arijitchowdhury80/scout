@@ -92,6 +92,11 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             'pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"',
             "SCOUT_WORKDIR",
             "docker compose",
+            "Use hosted Scout only after you receive an API key.",
+            "SCOUT_HOSTED_API_KEY",
+            "/v1/hosted/me",
+            "/v1/hosted/scrape",
+            "finite credits",
         ],
         "pricing.html": [
             "Scout Pricing",

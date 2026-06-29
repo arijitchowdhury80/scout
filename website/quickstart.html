@@ -101,6 +101,41 @@ curl http://127.0.0.1:8421/health</code></pre>
             <article><h3>3. Inspect evidence</h3><p>Open `records.json`, `source_pages.json`, `blocked_pages.json`, and `extraction_report.md`.</p></article>
           </div>
         </section>
+
+        <section class="section step-section" aria-labelledby="hosted-api-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Hosted beta</p>
+            <h2 id="hosted-api-title">Use hosted Scout only after you receive an API key.</h2>
+          </div>
+          <p>
+            Hosted beta is a convenience API with finite credits. It is not
+            unlimited crawling, and local Scout remains the primary beta path.
+          </p>
+          <pre><code>export SCOUT_HOSTED_BASE_URL="https://your-hosted-scout.example"
+export SCOUT_HOSTED_API_KEY="paste-your-delivered-key"
+
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+
+curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","formats":["markdown"],"timeout_ms":30000}'</code></pre>
+          <div class="note-grid">
+            <article>
+              <h3>Credits</h3>
+              <p>`/v1/hosted/me` shows your plan, credit balance, and current limits. A basic hosted scrape consumes one standard credit.</p>
+            </article>
+            <article>
+              <h3>Bearer auth</h3>
+              <p>Hosted endpoints use `Authorization: Bearer ...`. Do not put hosted keys in frontend code, public repos, screenshots, or shared logs.</p>
+            </article>
+            <article>
+              <h3>Artifacts</h3>
+              <p>High-level hosted runs write records and source evidence into hosted artifact storage with limited beta retention.</p>
+            </article>
+          </div>
+        </section>
       </main>
     </div>
   </body>
