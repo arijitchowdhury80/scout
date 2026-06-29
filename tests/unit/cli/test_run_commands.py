@@ -87,6 +87,57 @@ def test_launch_readiness_command_can_fail_public_gate() -> None:
     assert "Public launch: blocked" in result.output
 
 
+def test_launch_readiness_command_can_filter_by_blocker_id() -> None:
+    runner = CliRunner()
+    root = Path(__file__).resolve().parents[3]
+
+    result = runner.invoke(
+        app,
+        [
+            "launch-readiness",
+            "--root",
+            str(root),
+            "--blocker-id",
+            "license-decision",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Blocker summary: 1 total" in result.output
+    assert "license-decision: license decision [founder_decision]" in result.output
+    assert "stripe-real-test-mode-smoke" not in result.output
+
+
+def test_launch_decision_draft_command_writes_prefilled_draft() -> None:
+    runner = CliRunner()
+    root = Path(__file__).resolve().parents[3]
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            app,
+            [
+                "launch-decision-draft",
+                "--root",
+                str(root),
+                "--blocker-id",
+                "license-decision",
+                "--decision-id",
+                "SCOUT-DEC-20260629-04",
+                "--date",
+                "2026-06-29",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "founder-decision-draft-SCOUT-DEC-20260629-04.md" in result.output
+        draft = Path(
+            "docs/product/founder-decision-drafts/founder-decision-draft-SCOUT-DEC-20260629-04.md"
+        )
+        assert draft.exists()
+        content = draft.read_text(encoding="utf-8")
+        assert "Related blocker type: founder_decision" in content
+        assert "Public launch allowed by this decision? No" in content
+
+
 def test_product_export_command_writes_requested_formats() -> None:
     runner = CliRunner()
     with runner.isolated_filesystem():

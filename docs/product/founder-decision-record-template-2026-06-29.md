@@ -150,6 +150,10 @@ verify hosted key authentication, mask secrets in evidence.
 Draft records generated from current public-launch blockers should be saved as:
 
 ```bash
+scout launch-decision-draft \
+  --blocker-id license-decision \
+  --decision-id SCOUT-DEC-YYYYMMDD-NN
+
 python3 scripts/founder_decision_record_draft.py \
   --blocker-id license-decision \
   --decision-id SCOUT-DEC-YYYYMMDD-NN

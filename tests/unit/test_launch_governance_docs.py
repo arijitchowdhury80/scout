@@ -715,6 +715,7 @@ def test_public_launch_action_packet_groups_executable_blocker_types() -> None:
     assert "GitHub release workflow run" in action_packet
     assert "Stripe real test-mode smoke" in action_packet
     assert "Crawl4AI/lxml risk decision" in action_packet
+    assert "scout launch-decision-draft" in action_packet
     assert "python3 scripts/founder_decision_record_draft.py" in action_packet
     assert "--blocker-id license-decision" in action_packet
     assert "docs/product/public-launch-action-packet-2026-06-29.md" in checklist
@@ -745,6 +746,7 @@ def test_founder_decision_record_template_captures_launch_gate_approvals() -> No
     assert "Docker image publishing policy" in template
     assert "Stripe real test-mode smoke" in template
     assert "founder-decision-drafts" in template
+    assert "scout launch-decision-draft" in template
     assert "python3 scripts/founder_decision_record_draft.py" in template
     assert "python3 scripts/founder_decision_record_check.py" in template
     assert "python3 scripts/founder_decision_record_check.py" in action_packet

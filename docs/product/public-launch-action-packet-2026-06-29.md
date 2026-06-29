@@ -45,6 +45,10 @@ Generate a prefilled draft for any stable blocker ID before editing the
 decision:
 
 ```bash
+scout launch-decision-draft \
+  --blocker-id license-decision \
+  --decision-id SCOUT-DEC-YYYYMMDD-NN
+
 python3 scripts/founder_decision_record_draft.py \
   --blocker-id license-decision \
   --decision-id SCOUT-DEC-YYYYMMDD-NN

@@ -32,7 +32,12 @@ from scout.core.products.exports import (
     ProductExportRequest,
     export_product_records,
 )
-from scout.launch_readiness import build_report, default_root, print_text_report
+from scout.launch_decision_draft import (
+    FounderDecisionRecordDraftError,
+    default_decision_date,
+    write_decision_record_draft,
+)
+from scout.launch_readiness import build_report, default_root, filter_report, print_text_report
 from scout.core.types import (
     AlgoliaProductRecord,
     CrawlRequest,
@@ -98,20 +103,84 @@ def launch_readiness(
         "--require-public",
         help="Exit nonzero unless public launch is ready.",
     ),
+    owner: str = typer.Option(
+        "",
+        "--owner",
+        help="Filter displayed public launch blockers by exact owner, case-insensitive.",
+    ),
+    blocker_type: str = typer.Option(
+        "",
+        "--blocker-type",
+        help="Filter displayed public launch blockers by blocker type, case-insensitive.",
+    ),
+    blocker_id: str = typer.Option(
+        "",
+        "--blocker-id",
+        help="Filter displayed public launch blockers by stable blocker ID, case-insensitive.",
+    ),
 ) -> None:
     """Report private-beta and public-launch readiness from packaged evidence."""
     chosen_root = Path(root).expanduser().resolve() if root else default_root()
     report = build_report(chosen_root)
+    display_report = filter_report(
+        report,
+        owner=owner or None,
+        blocker_type=blocker_type or None,
+        blocker_id=blocker_id or None,
+    )
 
     if json_output:
-        _out(report)
+        _out(display_report)
     else:
-        print_text_report(report)
+        print_text_report(display_report)
 
     if require_public and report["public_launch"]["status"] != "ready":
         raise SystemExit(1)
     if report["private_beta"]["status"] != "ready_with_limits":
         raise SystemExit(1)
+
+
+@app.command("launch-decision-draft")
+def launch_decision_draft(
+    blocker_id: str = typer.Option(..., "--blocker-id", help="Stable launch blocker ID."),
+    decision_id: str = typer.Option(
+        ...,
+        "--decision-id",
+        help="Decision ID in the form SCOUT-DEC-YYYYMMDD-NN.",
+    ),
+    root: str = typer.Option(
+        "",
+        "--root",
+        help="Scout repo/package root containing launch evidence docs.",
+    ),
+    output_root: str = typer.Option(
+        ".",
+        "--output-root",
+        help="Root where docs/product/founder-decision-drafts will be written.",
+    ),
+    decision_date: str = typer.Option(
+        default_decision_date(),
+        "--date",
+        help="Decision date to write into the draft.",
+    ),
+    recorded_by: str = typer.Option("Codex", "--recorded-by", help="Recorder name."),
+) -> None:
+    """Write a prefilled founder decision draft from a launch blocker ID."""
+    chosen_root = Path(root).expanduser().resolve() if root else default_root()
+    try:
+        output_path = write_decision_record_draft(
+            root=chosen_root,
+            output_root=Path(output_root).expanduser().resolve(),
+            blocker_id=blocker_id,
+            decision_id=decision_id,
+            date=decision_date,
+            recorded_by=recorded_by,
+        )
+    except FounderDecisionRecordDraftError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from exc
+
+    typer.echo(f"Wrote founder decision draft: {output_path}")
 
 
 def _run_high_level_use_case(
