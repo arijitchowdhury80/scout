@@ -36,6 +36,7 @@ from scout.launch_decision_draft import (
     FounderDecisionRecordDraftError,
     default_decision_date,
     write_decision_record_draft,
+    write_decision_record_drafts,
 )
 from scout.launch_decision_record import (
     FounderDecisionRecordError,
@@ -186,6 +187,67 @@ def launch_decision_draft(
         raise typer.Exit(2) from exc
 
     typer.echo(f"Wrote founder decision draft: {output_path}")
+
+
+@app.command("launch-decision-drafts")
+def launch_decision_drafts(
+    blocker_id: list[str] | None = typer.Option(
+        None,
+        "--blocker-id",
+        help="Stable launch blocker ID. Repeat to generate a packet in explicit order.",
+    ),
+    owner: str = typer.Option("", "--owner", help="Filter blockers by exact owner."),
+    include_shared_owner: bool = typer.Option(
+        False,
+        "--include-shared-owner",
+        help="When --owner is set, include shared owners containing that owner name.",
+    ),
+    blocker_type: str = typer.Option("", "--blocker-type", help="Filter by blocker type."),
+    decision_date: str = typer.Option(
+        ...,
+        "--decision-date",
+        help="Decision ID date segment in YYYYMMDD form.",
+    ),
+    start_index: int = typer.Option(1, "--start-index", help="First NN value for IDs."),
+    root: str = typer.Option(
+        "",
+        "--root",
+        help="Scout repo/package root containing launch evidence docs.",
+    ),
+    output_root: str = typer.Option(
+        ".",
+        "--output-root",
+        help="Root where docs/product/founder-decision-drafts will be written.",
+    ),
+    date_text: str = typer.Option(
+        default_decision_date(),
+        "--date",
+        help="Display date to write into each draft.",
+    ),
+    recorded_by: str = typer.Option("Codex", "--recorded-by", help="Recorder name."),
+) -> None:
+    """Write a filtered packet of founder decision drafts."""
+    chosen_root = Path(root).expanduser().resolve() if root else default_root()
+    try:
+        output_paths = write_decision_record_drafts(
+            root=chosen_root,
+            output_root=Path(output_root).expanduser().resolve(),
+            blocker_ids=blocker_id or [],
+            owner=owner,
+            include_shared_owner=include_shared_owner,
+            blocker_type=blocker_type,
+            decision_date=decision_date,
+            date=date_text,
+            start_index=start_index,
+            recorded_by=recorded_by,
+        )
+    except FounderDecisionRecordDraftError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from exc
+
+    typer.echo(f"Wrote {len(output_paths)} founder decision drafts:")
+    for output_path in output_paths:
+        typer.echo(f"  - {output_path}")
 
 
 @app.command("launch-decision-check")

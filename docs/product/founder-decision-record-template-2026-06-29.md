@@ -150,6 +150,11 @@ verify hosted key authentication, mask secrets in evidence.
 Draft records generated from current public-launch blockers should be saved as:
 
 ```bash
+scout launch-decision-drafts \
+  --owner Arijit \
+  --include-shared-owner \
+  --decision-date YYYYMMDD
+
 scout launch-decision-draft \
   --blocker-id license-decision \
   --decision-id SCOUT-DEC-YYYYMMDD-NN

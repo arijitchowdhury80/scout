@@ -57,6 +57,56 @@ def test_write_decision_record_draft_uses_drafts_directory(tmp_path: Path) -> No
     assert "Public launch allowed by this decision? No" in content
 
 
+def test_write_decision_record_drafts_generates_sequential_filtered_packet(
+    tmp_path: Path,
+) -> None:
+    draft_paths = founder_decision_record_draft.write_decision_record_drafts(
+        root=ROOT,
+        output_root=tmp_path,
+        blocker_ids=[],
+        owner="Arijit",
+        include_shared_owner=True,
+        blocker_type="",
+        decision_date="20260629",
+        date="2026-06-29",
+        start_index=1,
+        recorded_by="Codex",
+    )
+
+    assert [path.name for path in draft_paths] == [
+        "founder-decision-draft-SCOUT-DEC-20260629-01.md",
+        "founder-decision-draft-SCOUT-DEC-20260629-02.md",
+        "founder-decision-draft-SCOUT-DEC-20260629-03.md",
+        "founder-decision-draft-SCOUT-DEC-20260629-04.md",
+        "founder-decision-draft-SCOUT-DEC-20260629-05.md",
+        "founder-decision-draft-SCOUT-DEC-20260629-06.md",
+    ]
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in draft_paths)
+    assert "Related release gate: license decision" in combined
+    assert "Related release gate: Crawl4AI/lxml risk decision" in combined
+    assert "Related release gate: Stripe real test-mode smoke" in combined
+    assert "Public launch allowed by this decision? No" in combined
+
+
+def test_write_decision_record_drafts_rejects_empty_filter_result(tmp_path: Path) -> None:
+    with pytest.raises(
+        founder_decision_record_draft.FounderDecisionRecordDraftError,
+        match="No public-launch blockers matched",
+    ):
+        founder_decision_record_draft.write_decision_record_drafts(
+            root=ROOT,
+            output_root=tmp_path,
+            blocker_ids=[],
+            owner="Nobody",
+            include_shared_owner=False,
+            blocker_type="",
+            decision_date="20260629",
+            date="2026-06-29",
+            start_index=1,
+            recorded_by="Codex",
+        )
+
+
 def test_generated_drafts_are_not_completed_decision_records(tmp_path: Path) -> None:
     founder_decision_record_draft.write_decision_record_draft(
         root=ROOT,

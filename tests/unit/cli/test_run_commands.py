@@ -138,6 +138,37 @@ def test_launch_decision_draft_command_writes_prefilled_draft() -> None:
         assert "Public launch allowed by this decision? No" in content
 
 
+def test_launch_decision_drafts_command_writes_founder_packet() -> None:
+    runner = CliRunner()
+    root = Path(__file__).resolve().parents[3]
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            app,
+            [
+                "launch-decision-drafts",
+                "--root",
+                str(root),
+                "--owner",
+                "Arijit",
+                "--include-shared-owner",
+                "--decision-date",
+                "20260629",
+                "--date",
+                "2026-06-29",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "Wrote 6 founder decision drafts" in result.output
+        draft_dir = Path("docs/product/founder-decision-drafts")
+        drafts = sorted(draft_dir.glob("founder-decision-draft-SCOUT-DEC-20260629-*.md"))
+        assert len(drafts) == 6
+        combined = "\n".join(path.read_text(encoding="utf-8") for path in drafts)
+        assert "Related release gate: license decision" in combined
+        assert "Related release gate: Stripe real test-mode smoke" in combined
+        assert "Public launch allowed by this decision? No" in combined
+
+
 def test_launch_decision_check_command_validates_completed_record() -> None:
     runner = CliRunner()
     with runner.isolated_filesystem():

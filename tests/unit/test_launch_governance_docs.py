@@ -747,10 +747,12 @@ def test_founder_decision_record_template_captures_launch_gate_approvals() -> No
     assert "Stripe real test-mode smoke" in template
     assert "founder-decision-drafts" in template
     assert "scout launch-decision-draft" in template
+    assert "scout launch-decision-drafts" in template
     assert "scout launch-decision-check" in template
     assert "python3 scripts/founder_decision_record_draft.py" in template
     assert "python3 scripts/founder_decision_record_check.py" in template
     assert "scout launch-decision-check" in action_packet
+    assert "scout launch-decision-drafts" in action_packet
     assert "python3 scripts/founder_decision_record_check.py" in action_packet
     assert "Do not use this template to approve public launch by accident." in template
     assert "docs/product/founder-decision-record-template-2026-06-29.md" in action_packet

@@ -45,6 +45,11 @@ Generate a prefilled draft for any stable blocker ID before editing the
 decision:
 
 ```bash
+scout launch-decision-drafts \
+  --owner Arijit \
+  --include-shared-owner \
+  --decision-date YYYYMMDD
+
 scout launch-decision-draft \
   --blocker-id license-decision \
   --decision-id SCOUT-DEC-YYYYMMDD-NN

@@ -12,8 +12,18 @@ from scout.launch_decision_draft import (
     build_decision_record_draft,
     default_decision_date,
     write_decision_record_draft,
+    write_decision_record_drafts,
 )
 from scout.launch_readiness import default_root
+
+
+__all__ = [
+    "FounderDecisionRecordDraftError",
+    "build_decision_record_draft",
+    "default_decision_date",
+    "write_decision_record_draft",
+    "write_decision_record_drafts",
+]
 
 
 def build_parser() -> argparse.ArgumentParser:
