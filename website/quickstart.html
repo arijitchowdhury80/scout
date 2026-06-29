@@ -102,6 +102,31 @@ curl http://127.0.0.1:8421/health</code></pre>
           </div>
         </section>
 
+        <section class="section step-section" aria-labelledby="readiness-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Readiness check</p>
+            <h2 id="readiness-title">Verify the same launch gate CI runs.</h2>
+          </div>
+          <p>
+            The readiness checker summarizes the current truth: private beta is
+            ready with limits, while public launch remains blocked until license,
+            Stripe, dependency, registry, and legal gates close.
+          </p>
+          <pre><code>python3 scripts/launch_readiness_check.py
+python3 scripts/launch_readiness_check.py --json
+python3 scripts/launch_readiness_check.py --require-public</code></pre>
+          <div class="note-grid">
+            <article>
+              <h3>Beta gate</h3>
+              <p>The default command should report `Private beta: ready_with_limits` when the repo evidence is intact.</p>
+            </article>
+            <article>
+              <h3>Public gate</h3>
+              <p>`--require-public` is expected to fail until the public launch blockers are closed.</p>
+            </article>
+          </div>
+        </section>
+
         <section class="section step-section" aria-labelledby="hosted-api-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Hosted beta</p>
