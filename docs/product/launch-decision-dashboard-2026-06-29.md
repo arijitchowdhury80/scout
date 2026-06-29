@@ -41,10 +41,10 @@ scope:
 | Gate | Current state | Closure evidence needed |
 |---|---|---|
 | GitHub release artifact workflow run against real `v*` tag | Workflow exists; real tag run not executed/recorded | Push an approved `v*` tag, confirm workflow success, record run URL |
-| Release artifact downloaded and smoke-tested locally | Not done because no approved release tag exists | Download GitHub Release artifact into clean env, install, run smoke |
-| Stripe checkout and webhook tested in Stripe test mode | Deterministic tests pass; real Stripe credentials/webhook secret absent | Configure test Stripe keys, create Checkout Session, complete test payment, deliver real webhook, prove hosted key delivery |
+| Release artifact downloaded and smoke-tested locally | Not done because no approved release tag exists; helper exists | Download GitHub Release artifact into clean env, run `scripts/release_artifact_smoke.py --dist-dir ... --serve`, record output |
+| Stripe checkout and webhook tested in Stripe test mode | Deterministic tests pass; real Stripe credentials/webhook secret absent; helper exists | Configure test Stripe keys, run `scripts/stripe_test_mode_smoke.py --create-checkout`, complete test payment, deliver real webhook, prove hosted key delivery |
 | Dependency audit clean and blocking in CI | Not clean; CI job is visible but non-blocking | Crawl4AI/lxml fixed, or dependency strategy changed, or approved formal exception |
-| Published Docker image smoke-tested | Not applicable until image publishing approved | Pull published image fresh from registry and smoke `/health`, `/`, `/styles.css`, authenticated `/scrape` |
+| Published Docker image smoke-tested | Not applicable until image publishing approved; helper exists | Pull published image fresh and run `scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG` |
 
 ## Evidence Already Closed
 
@@ -108,6 +108,8 @@ Required inputs:
 Expected evidence:
 
 - checkout status ready,
+- `scripts/stripe_test_mode_smoke.py --create-checkout` passes readiness and
+  Checkout Session creation,
 - checkout URL created,
 - test payment completed,
 - real webhook accepted,
@@ -127,7 +129,8 @@ Expected evidence:
 
 - release workflow passes on `v*` tag,
 - GitHub Release artifacts exist,
-- downloaded wheel smoke passes locally.
+- downloaded wheel smoke passes locally with
+  `scripts/release_artifact_smoke.py --dist-dir ... --serve`.
 
 ### 5. Revisit public launch
 

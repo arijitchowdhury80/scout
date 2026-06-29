@@ -384,6 +384,9 @@ def test_launch_decision_dashboard_lists_current_open_gates_and_next_decisions()
     assert "Approve Apache-2.0 for Scout local/core" in dashboard
     assert "Crawl4AI/lxml blocker" in dashboard
     assert "Stripe test-mode credentials" in dashboard
+    assert "scripts/stripe_test_mode_smoke.py --create-checkout" in dashboard
+    assert "scripts/release_artifact_smoke.py --dist-dir" in dashboard
+    assert "scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG" in dashboard
     assert "Approve one artifact-only private beta tag" in dashboard
     assert "Do not publish `scout-web` to PyPI." in dashboard
     assert "Do not push Docker images to GHCR or Docker Hub." in dashboard
@@ -403,11 +406,14 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
     assert "Arijit decision" in burndown
     assert "Final license expression" in burndown
     assert "GitHub release workflow on real `v*` tag" in burndown
+    assert "scripts/release_artifact_smoke.py --dist-dir" in burndown
     assert "Stripe real test-mode smoke" in burndown
+    assert "scripts/stripe_test_mode_smoke.py --create-checkout" in burndown
     assert "External credentials/webhook" in burndown
     assert "Crawl4AI/lxml risk decision" in burndown
     assert "crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md" in burndown
     assert "Dependency audit clean and blocking in CI" in burndown
+    assert "scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG" in burndown
     assert "website-route-render-verification-2026-06-29.md" in burndown
     assert "Do Not Claim Yet" in burndown
     assert "certified app UI" in burndown

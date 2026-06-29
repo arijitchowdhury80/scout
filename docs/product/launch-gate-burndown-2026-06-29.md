@@ -40,12 +40,12 @@ boundaries:
 | Public pricing and hosted usage limits | Open | Arijit decision | Arijit | Approve finite hosted beta pricing or choose subscription/credit model | `docs/product/hosted-economics-and-usage-limits.md` |
 | Registry publishing policy | Open | Arijit decision | Arijit | Approve artifact-only beta tag policy or keep branch installs only | `docs/product/registry-publishing-policy-2026-06-29.md` |
 | GitHub release workflow on real `v*` tag | Open | Depends on registry/tag approval | Codex | After approval, create one private-beta tag and record workflow URL | `docs/product/registry-publishing-policy-2026-06-29.md` |
-| Release artifact download smoke | Open | Depends on `v*` release artifact | Codex | Download wheel/sdist from GitHub Release into clean env and smoke install | `docs/product/registry-publishing-policy-2026-06-29.md` |
+| Release artifact download smoke | Open | Depends on `v*` release artifact | Codex | Download wheel/sdist from GitHub Release and run `scripts/release_artifact_smoke.py --dist-dir ... --serve` | `docs/product/registry-publishing-policy-2026-06-29.md` |
 | Docker image publishing policy | Open | Arijit decision | Arijit | Approve GHCR-first policy or defer public image publishing | `docs/product/registry-publishing-policy-2026-06-29.md` |
-| Published Docker image smoke | Open | Depends on image publishing approval | Codex | Pull published image fresh and smoke `/health`, `/`, `/styles.css`, `/scrape` | `docs/product/registry-publishing-policy-2026-06-29.md` |
+| Published Docker image smoke | Open | Depends on image publishing approval | Codex | Pull published image fresh and run `scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG` | `docs/product/registry-publishing-policy-2026-06-29.md` |
 | Crawl4AI/lxml risk decision | Open | Security/business risk decision | Arijit | Approve limited private-beta exception or require clean audit first | `docs/security/crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md` |
 | Dependency audit clean and blocking in CI | Open | Upstream/dependency strategy | Codex plus upstream | Wait for Crawl4AI compatible with `lxml>=6.1.0`, replace/fork dependency path, or formal exception | `docs/security/dependency-audit-refresh-2026-06-29.md` |
-| Stripe real test-mode smoke | Open | External credentials/webhook | Arijit plus Codex | Provide test Stripe keys/webhook setup; run real Checkout and webhook smoke | `docs/product/stripe-test-mode-readiness-2026-06-29.md` |
+| Stripe real test-mode smoke | Open | External credentials/webhook | Arijit plus Codex | Provide test Stripe keys/webhook setup; run `scripts/stripe_test_mode_smoke.py --create-checkout`, complete payment, deliver webhook | `docs/product/stripe-test-mode-readiness-2026-06-29.md` |
 | Final hosted terms/privacy | Open | Legal/commercial review | Arijit/legal | Replace beta placeholders before broad commercial hosted access | `docs/legal/beta-terms-placeholder.md`, `docs/legal/beta-privacy-placeholder.md` |
 
 ## Codex-Executable Work Remaining
@@ -64,12 +64,11 @@ These can be done immediately after the named dependency is satisfied:
    - wait for GitHub release artifact workflow,
    - record workflow URL,
    - download artifacts from GitHub Release,
-   - run clean install smoke.
+   - run `scripts/release_artifact_smoke.py --dist-dir ... --serve`.
 
 3. **After Stripe test credentials are available**
    - start Scout locally with Stripe test settings,
-   - check `/v1/billing/stripe/status`,
-   - create Checkout Session,
+   - run `scripts/stripe_test_mode_smoke.py --create-checkout`,
    - complete test payment,
    - deliver webhook,
    - prove hosted key delivery and no secret leakage.
@@ -77,8 +76,7 @@ These can be done immediately after the named dependency is satisfied:
 4. **After Docker publishing approval**
    - add approved registry publishing workflow,
    - publish one image,
-   - pull it fresh,
-   - smoke `/health`, `/`, `/styles.css`, and authenticated `/scrape`.
+   - run `scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG`.
 
 ## Recommended Decision Order
 
