@@ -42,6 +42,7 @@ def test_ci_docker_job_smokes_built_container_routes() -> None:
     assert "docker run -d --rm -p 18421:8421" in runs
     assert "curl -fsS http://127.0.0.1:18421/health" in runs
     assert "curl -fsS http://127.0.0.1:18421/" in runs
+    assert "curl -fsS http://127.0.0.1:18421/status" in runs
     assert "curl -fsS http://127.0.0.1:18421/styles.css" in runs
 
 

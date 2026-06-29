@@ -134,4 +134,5 @@ jobs:
             fi
           done
           curl -fsS http://127.0.0.1:18421/
+          curl -fsS http://127.0.0.1:18421/status
           curl -fsS http://127.0.0.1:18421/styles.css

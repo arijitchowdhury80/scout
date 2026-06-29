@@ -64,6 +64,13 @@ The Docker path itself passed. The practical operator note is that port `8421`
 must be free, or the user should change the host port mapping before running
 the compose smoke.
 
+## CI Follow-Up
+
+After the launch status page was added, GitHub CI's `docker-build` job was
+updated to smoke the public `/status` route in addition to `/`, `/health`, and
+`/styles.css`. This extends future Docker route protection without rewriting
+the historical 2026-06-28 manual smoke result.
+
 ## Cleanup
 
 The verification container and named volume should be removed after smoke
@@ -72,4 +79,3 @@ testing:
 ```bash
 docker compose -p scout-docs-smoke -f docker/docker-compose.yml down -v
 ```
-
