@@ -161,6 +161,29 @@ def test_website_copy_review_records_competitor_alignment_and_boundaries() -> No
     assert "docs/product/website-copy-review-2026-06-28.md" in checklist
 
 
+def test_website_route_render_verification_records_local_server_smoke() -> None:
+    verification = _read("docs/product/website-route-render-verification-2026-06-29.md")
+    checklist = _read("docs/product/release-checklist.md")
+
+    assert "Website Route And Render Verification" in verification
+    assert "Launch website route/render smoke passed locally" in verification
+    assert "python3 -m pytest tests/unit/website/test_launch_website.py -q" in verification
+    assert "9 passed, 2 warnings" in verification
+    assert "python3 -m scout.cli serve --host 127.0.0.1 --port 18423" in verification
+    assert "`/quickstart`" in verification
+    assert "`/pricing`" in verification
+    assert "`/beta`" in verification
+    assert "`/third-party-notices`" in verification
+    assert "docs/product/screenshots/website-2026-06-29/home.png" in verification
+    assert "docs/product/screenshots/website-2026-06-29/quickstart.png" in verification
+    assert "docs/product/screenshots/website-2026-06-29/pricing.png" in verification
+    assert "docs/product/screenshots/website-2026-06-29/beta.png" in verification
+    assert "It does not prove the old `/app` interface is usable." in verification
+    assert "- [x] Launch website routes and browser render smoke verified locally." in checklist
+    assert "docs/product/website-route-render-verification-2026-06-29.md" in checklist
+    assert "This does not certify" in checklist
+
+
 def test_local_install_verification_records_verified_beta_branch_path() -> None:
     verification = _read("docs/product/local-install-verification-2026-06-28.md")
     checklist = _read("docs/product/release-checklist.md")
