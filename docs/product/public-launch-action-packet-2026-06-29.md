@@ -39,6 +39,13 @@ the underlying public-launch verdict.
 Founder decision record template:
 `docs/product/founder-decision-record-template-2026-06-29.md`.
 
+Validate completed founder decision records before using them as launch
+evidence:
+
+```bash
+python3 scripts/founder_decision_record_check.py docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md
+```
+
 ## Current Readiness Truth
 
 Private beta remains `ready_with_limits`.

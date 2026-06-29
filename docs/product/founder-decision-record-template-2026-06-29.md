@@ -159,3 +159,9 @@ After a record is created, update:
 - `docs/product/public-launch-action-packet-2026-06-29.md`
 - `docs/product/launch-decision-dashboard-2026-06-29.md`
 - `docs/product/launch-gate-burndown-2026-06-29.md`
+
+Before Codex acts on a completed record, validate it:
+
+```bash
+python3 scripts/founder_decision_record_check.py docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md
+```
