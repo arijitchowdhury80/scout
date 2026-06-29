@@ -63,6 +63,17 @@ Required before leaving Phase 0:
 - Stripe test-mode checkout/webhook smoke completed if hosted payment remains in scope,
 - hosted usage limits/pricing approved.
 
+After an approved artifact-only `v*` tag produces a GitHub Release, download
+the attached `dist/*` files and run:
+
+```bash
+python3 scripts/release_artifact_smoke.py --dist-dir /path/to/downloaded/dist --serve
+```
+
+This verifies the downloaded wheel in a fresh virtual environment and can also
+start the installed `scout serve` command to smoke `/health`, `/`,
+`/styles.css`, and `/quickstart`.
+
 ### Phase 1: PyPI first, if local/core is open source
 
 Publish `scout-web` to PyPI only after:

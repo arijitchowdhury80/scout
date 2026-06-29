@@ -60,6 +60,7 @@ No public registry publish should happen until these decisions are closed.
 - [x] GitHub release artifact workflow added.
 - [ ] GitHub release artifact workflow run against a real `v*` tag.
 - [ ] Release artifact downloaded from GitHub Release and smoke-tested locally.
+      Helper: `scripts/release_artifact_smoke.py`.
 
 ## Product Capability Gates
 

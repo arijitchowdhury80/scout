@@ -77,3 +77,19 @@ def test_release_workflow_remains_artifact_only_until_registry_policy_is_approve
         assert command not in commands
     for action in forbidden_actions:
         assert action not in uses
+
+
+def test_release_artifact_smoke_helper_is_documented_for_downloaded_artifacts() -> None:
+    helper = ROOT / "scripts" / "release_artifact_smoke.py"
+    policy = (ROOT / "docs" / "product" / "registry-publishing-policy-2026-06-29.md").read_text(
+        encoding="utf-8"
+    )
+    checklist = (ROOT / "docs" / "product" / "release-checklist.md").read_text(encoding="utf-8")
+
+    assert helper.exists()
+    assert "Smoke-test downloaded Scout GitHub Release artifacts" in helper.read_text(
+        encoding="utf-8"
+    )
+    assert "scripts/release_artifact_smoke.py --dist-dir" in policy
+    assert "/quickstart" in policy
+    assert "Helper: `scripts/release_artifact_smoke.py`." in checklist
