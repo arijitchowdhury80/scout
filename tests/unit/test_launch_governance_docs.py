@@ -278,6 +278,7 @@ def test_hosted_api_quickstart_verification_records_new_key_smoke() -> None:
 def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> None:
     readiness = _read("docs/product/stripe-test-mode-readiness-2026-06-29.md")
     checklist = _read("docs/product/release-checklist.md")
+    distribution = _read("docs/distribution.md")
 
     assert "Stripe Test-Mode Readiness" in readiness
     assert "Deterministic coverage passed; real Stripe test-mode smoke is still open." in readiness
@@ -286,6 +287,11 @@ def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> N
     assert "STRIPE_BETA_PRICE_ID" in readiness
     assert "STRIPE_WEBHOOK_SECRET" in readiness
     assert "checkout.session.completed" in readiness
+    assert "scripts/stripe_test_mode_smoke.py" in readiness
+    assert "It does not" in readiness
+    assert "complete the card payment" in readiness
+    assert "scripts/stripe_test_mode_smoke.py" in distribution
+    assert "Complete the test payment in Stripe Checkout" in distribution
     assert "This gate is **not approved for public launch** yet." in readiness
     assert "- [ ] Stripe checkout and webhook tested in Stripe test mode." in checklist
     assert "docs/product/stripe-test-mode-readiness-2026-06-29.md" in checklist

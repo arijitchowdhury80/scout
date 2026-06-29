@@ -92,6 +92,21 @@ The release checklist item **"Stripe checkout and webhook tested in Stripe test 
 7. Confirm hosted API key is provisioned, delivered, and usable against `/v1/hosted/me`.
 8. Confirm no raw hosted key or Stripe secret appears in HTTP responses, logs, artifacts, or website source.
 
+Helper script:
+
+```bash
+python3 scripts/stripe_test_mode_smoke.py \
+  --base-url http://127.0.0.1:8421 \
+  --email scout-beta-test@example.com \
+  --create-checkout
+```
+
+The helper checks `/v1/billing/stripe/status`, verifies paid-key delivery
+readiness flags, scans billing responses for obvious secret markers, and
+creates a Checkout Session when `--create-checkout` is passed. It does not
+complete the card payment or deliver the real Stripe webhook; those remain
+manual/Stripe-CLI steps.
+
 ## Release Decision
 
 This gate is **not approved for public launch** yet.

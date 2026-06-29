@@ -100,6 +100,21 @@ It returns only booleans for checkout, webhook, key delivery, and end-to-end
 paid key delivery readiness. It never returns Stripe, SMTP, or Scout API
 secrets.
 
+For a real Stripe test-mode smoke, start Scout with the Stripe and SMTP
+settings above, then run:
+
+```bash
+python3 scripts/stripe_test_mode_smoke.py \
+  --base-url http://127.0.0.1:8421 \
+  --email scout-beta-test@example.com \
+  --create-checkout
+```
+
+The helper verifies non-secret readiness, creates a Checkout Session, and
+prints the Checkout URL. Complete the test payment in Stripe Checkout, deliver
+the webhook to `/v1/billing/stripe/webhook`, then confirm the delivered hosted
+key works against `/v1/hosted/me`.
+
 After a hosted beta user receives a `scout_live_...` API key, they can inspect
 their plan limits and remaining credits:
 
