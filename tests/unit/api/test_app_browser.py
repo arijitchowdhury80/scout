@@ -93,6 +93,76 @@ async def test_cdp_service_reports_unreachable_when_chrome_port_never_opens(
     assert "not reachable" in state.error
 
 
+async def test_cdp_service_clears_stale_chrome_session_restore_before_launch(
+    monkeypatch, tmp_path
+) -> None:
+    """Persistent profile cookies are useful; restored old target tabs are not."""
+
+    default_dir = tmp_path / "Default"
+    sessions_dir = default_dir / "Sessions"
+    sessions_dir.mkdir(parents=True)
+    (sessions_dir / "Session_123").write_text("old estee session", encoding="utf-8")
+    for name in ("Current Session", "Current Tabs", "Last Session", "Last Tabs"):
+        (default_dir / name).write_text("old restored tab", encoding="utf-8")
+
+    class FakeProcess:
+        pid = 4321
+
+        def poll(self) -> int | None:
+            return None
+
+    chrome_path = tmp_path / "Google Chrome"
+    chrome_path.write_text("fake chrome", encoding="utf-8")
+
+    monkeypatch.setattr(user_browser.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(user_browser, "CHROME_PATH", str(chrome_path))
+    monkeypatch.setattr(user_browser.subprocess, "Popen", lambda *_args, **_kwargs: FakeProcess())
+    monkeypatch.setattr(user_browser, "_free_port", lambda: 49999)
+    monkeypatch.setattr(ChromeCDPService, "_wait_for_cdp", lambda _self, _port: True)
+    monkeypatch.setattr(
+        ChromeCDPService,
+        "_launched_process_is_stable",
+        lambda _self, _process, _port: True,
+    )
+
+    service = ChromeCDPService()
+    state = await service.open_browser(
+        UserBrowserOpenRequest(url="https://www.nike.com/", profile_dir=str(tmp_path))
+    )
+
+    assert state.connected is True
+    assert state.active_url == "https://www.nike.com/"
+    assert not sessions_dir.exists()
+    for name in ("Current Session", "Current Tabs", "Last Session", "Last Tabs"):
+        assert not (default_dir / name).exists()
+
+
+async def test_cdp_status_persists_unreachable_state(monkeypatch, tmp_path) -> None:
+    service = ChromeCDPService()
+    service._state = app_browser.UserBrowserSessionState(
+        connected=True,
+        status="opened",
+        debugging_port=45555,
+        profile_dir=str(tmp_path),
+        chrome_pid=1234,
+        active_url="https://www.esteelauder.com/products/681/product-catalog/skin-care",
+        title="",
+        error="",
+    )
+    service._save_state(service._state)
+    monkeypatch.setattr(ChromeCDPService, "_cdp_reachable", lambda _self, _port: False)
+
+    state = await service.status()
+    saved = app_browser.UserBrowserSessionState.model_validate_json(
+        (tmp_path / "scout-cdp-session.json").read_text(encoding="utf-8")
+    )
+
+    assert state.connected is False
+    assert state.status == "cdp_unreachable"
+    assert saved.connected is False
+    assert saved.status == "cdp_unreachable"
+
+
 async def test_cdp_service_reuses_reachable_saved_profile_session(monkeypatch, tmp_path) -> None:
     opened_tabs: list[tuple[int, str]] = []
     service = ChromeCDPService()

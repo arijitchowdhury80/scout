@@ -6,6 +6,7 @@ import base64
 import json
 import os
 import platform
+import shutil
 import socket
 import subprocess
 import time
@@ -90,6 +91,7 @@ class ChromeCDPService:
             self._save_state(self._state)
             return self._state
 
+        _clear_chrome_session_restore(profile_dir)
         port = _free_port()
         process = subprocess.Popen(
             [
@@ -143,6 +145,7 @@ class ChromeCDPService:
                     "error": "Chrome CDP endpoint is no longer reachable.",
                 }
             )
+            self._save_state(self._state)
         return self._state
 
     async def capture_active_tab(self, target_url: str) -> UserBrowserCaptureRequest:
@@ -156,6 +159,7 @@ class ChromeCDPService:
                     "error": "Chrome CDP endpoint is not reachable.",
                 }
             )
+            self._save_state(self._state)
             raise RuntimeError(
                 "Chrome CDP endpoint is not reachable. Close the Scout Chrome window and start a new User Browser run."
             )
@@ -330,6 +334,38 @@ def _profile_dir(profile_dir: str = "") -> Path:
 
 def _session_path(profile_dir: Path) -> Path:
     return profile_dir / "scout-cdp-session.json"
+
+
+def _clear_chrome_session_restore(profile_dir: Path) -> None:
+    """Prevent stale tabs from being restored while preserving profile cookies.
+
+    Scout's User Browser profile is intentionally persistent so hard-site cookies
+    and consent state survive across runs. Chrome also persists session restore
+    files in that same profile, though. If a previous run opened Estée Lauder,
+    a later fresh Chrome launch can restore that old tab in addition to the new
+    requested URL. Removing only the session/tab restore files keeps useful site
+    state but stops old targets from reappearing.
+    """
+
+    default_dir = profile_dir / "Default"
+    targets = [
+        default_dir / "Sessions",
+        default_dir / "Current Session",
+        default_dir / "Current Tabs",
+        default_dir / "Last Session",
+        default_dir / "Last Tabs",
+    ]
+    for target in targets:
+        try:
+            if target.is_dir():
+                shutil.rmtree(target)
+            elif target.exists():
+                target.unlink()
+        except OSError:
+            # A running Chrome may hold these files. In that case CDP reuse or
+            # explicit launch-state validation will decide whether capture can
+            # proceed; do not fail the user before Chrome has a chance to open.
+            continue
 
 
 def _cdp_json(port: int, path: str, *, method: str = "GET") -> dict[str, Any]:
