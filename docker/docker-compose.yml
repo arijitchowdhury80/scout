@@ -3,19 +3,15 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+    container_name: scout
     ports:
-      - "8421:8421"
+      - "127.0.0.1:8421:8421"
     env_file:
       - ../.env
     environment:
-      - SCOUT_API_KEY=${SCOUT_API_KEY:-dev-key}
-      - LLM_API_KEY=${LLM_API_KEY:-}
       - SCOUT_WORKDIR=/data/runs
       - DB_PATH=/data/scout.db
       - HOSTED_ACCOUNT_DB_PATH=/data/hosted_accounts.sqlite
-      - SCOUT_PUBLIC_HOSTED_ONLY=${SCOUT_PUBLIC_HOSTED_ONLY:-false}
-      - HOSTED_RATE_LIMIT_MAX_REQUESTS=${HOSTED_RATE_LIMIT_MAX_REQUESTS:-60}
-      - HOSTED_RATE_LIMIT_WINDOW_SECONDS=${HOSTED_RATE_LIMIT_WINDOW_SECONDS:-60}
     volumes:
       - scout-data:/data
     shm_size: '1gb'

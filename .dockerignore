@@ -13,7 +13,13 @@ build
 .env.local
 scout-runs
 tests
-docs
+docs/*
+!docs/product/
+!docs/product/**
+!docs/legal/
+!docs/legal/**
+!docs/security/
+!docs/security/**
 *.md
 !README.md
 !THIRD_PARTY_NOTICES.md

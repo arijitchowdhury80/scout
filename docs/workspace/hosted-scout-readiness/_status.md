@@ -3,6 +3,28 @@
 Date: 2026-06-28
 Status: In progress
 
+## 2026-06-29 VPS Hosted API Checkpoint
+
+- Caddy now exposes Scout under
+  `https://judge.contentengagement.info/scout/*`, proxying to the localhost-only
+  Scout container.
+- The Scout container was redeployed from the current repo source so the
+  `/v1/hosted/*` Bearer-key routes are present.
+- VPS env is set to `SCOUT_PUBLIC_HOSTED_ONLY=true` and
+  `HOSTED_ACCOUNT_DB_PATH=/data/hosted_accounts.sqlite`.
+- Docker compose was corrected to preserve `.env` secrets instead of
+  overriding them with defaults, and to bind Scout only on
+  `127.0.0.1:8421`.
+- Verification passed:
+  - public `/health` -> `200`;
+  - hosted `/v1/hosted/me` without Bearer -> `401`;
+  - hosted `/v1/hosted/scrape` without Bearer -> `401`;
+  - `/api/config` -> `403`;
+  - raw `/scrape` with local `X-API-Key` -> `403`;
+  - hosted provisioned Bearer key -> `/v1/hosted/me` `200`;
+  - hosted provisioned Bearer key -> `/v1/hosted/scrape` `200`, one standard
+    credit charged.
+
 ## Checklist
 
 - [x] Existing auth/settings/run persistence inspected.

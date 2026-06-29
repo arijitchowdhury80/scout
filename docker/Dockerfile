@@ -35,6 +35,9 @@ WORKDIR /app
 COPY pyproject.toml README.md THIRD_PARTY_NOTICES.md ./
 COPY scout/ scout/
 COPY website/ website/
+COPY docs/product/ docs/product/
+COPY docs/legal/ docs/legal/
+COPY docs/security/ docs/security/
 RUN pip install --no-cache-dir .
 
 # Install Playwright and Chromium browser, then Crawl4AI browser setup

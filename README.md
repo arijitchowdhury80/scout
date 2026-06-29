@@ -810,6 +810,16 @@ Then give consuming apps hosted Bearer keys created with
 `Authorization: Bearer scout_live_...`; do not expose the local `X-API-Key`
 surface as the public SaaS API.
 
+Current private-beta VPS base URL:
+
+```bash
+SCOUT_HOSTED_BASE_URL=https://judge.contentengagement.info/scout
+```
+
+The VPS deployment is expected to keep Scout bound to `127.0.0.1:8421` behind
+Caddy. Public callers use hosted Bearer keys only; local/admin `X-API-Key`
+routes are disabled when `SCOUT_PUBLIC_HOSTED_ONLY=true`.
+
 The Docker setup includes:
 - **Dockerfile** — Python 3.11 + Crawl4AI + Playwright Chromium
 - **docker-compose.yml** — Named volume for `/data`, env var passthrough

@@ -14,6 +14,15 @@ The hosted API surface is:
 /v1/hosted/*
 ```
 
+Current private-beta VPS base URL:
+
+```text
+https://judge.contentengagement.info/scout
+```
+
+The VPS keeps Scout bound to `127.0.0.1:8421`; Caddy exposes only the
+`/scout/*` path publicly and strips that prefix before proxying to Scout.
+
 Hosted API calls use:
 
 ```http
@@ -54,6 +63,16 @@ The following remain available:
 
 This is the expected posture for a hosted SaaS-style deployment.
 
+Current VPS verification from 2026-06-29:
+
+- `GET https://judge.contentengagement.info/scout/health` -> `200`.
+- `GET /v1/hosted/me` without Bearer token -> `401 Missing Bearer token`.
+- `POST /v1/hosted/scrape` without Bearer token -> `401 Missing Bearer token`.
+- `GET /api/config` -> `403 Local Scout API is disabled in hosted-only mode`.
+- `POST /scrape` with the real local `X-API-Key` -> `403 Local Scout API is disabled in hosted-only mode`.
+- Direct public `http://72.61.72.147:8421/health` is unreachable; Scout listens only on `127.0.0.1:8421`.
+- Hosted key smoke passed: `scout hosted-provision` created a beta key, `/v1/hosted/me` returned plan/balance/limits, and `/v1/hosted/scrape` returned `success: true` with `hosted.credits_charged: 1` and rendered scrape evidence under `scrape`.
+
 ## Operator: Provision A Hosted API Key
 
 Use the same hosted account database used by the running service:
@@ -73,7 +92,7 @@ Scout stores only a hash of the raw key.
 ## Consumer: Configure PRISM Or Another App
 
 ```bash
-SCOUT_HOSTED_BASE_URL=https://your-scout-domain.example
+SCOUT_HOSTED_BASE_URL=https://judge.contentengagement.info/scout
 SCOUT_HOSTED_API_KEY=scout_live_paste_the_delivered_key
 ```
 
