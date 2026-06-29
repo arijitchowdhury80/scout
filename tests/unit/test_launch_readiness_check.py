@@ -128,6 +128,38 @@ def test_launch_readiness_json_can_filter_public_blockers_by_owner() -> None:
     }
 
 
+def test_launch_readiness_json_can_filter_public_blockers_by_id() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            "--root",
+            str(ROOT),
+            "--json",
+            "--blocker-id",
+            "license-decision",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["private_beta"]["status"] == "ready_with_limits"
+    assert payload["public_launch"]["status"] == "blocked"
+    assert payload["public_launch"]["blocker_summary"] == {
+        "total": 1,
+        "by_type": {
+            "founder_decision": 1,
+        },
+    }
+    assert payload["public_launch"]["owner_summary"] == {"Arijit": 1}
+    assert [blocker["id"] for blocker in payload["public_launch"]["blockers"]] == [
+        "license-decision"
+    ]
+    assert payload["public_launch"]["blockers"][0]["summary"] == "license decision"
+
+
 def test_launch_readiness_text_can_filter_public_blockers_by_type() -> None:
     result = subprocess.run(
         [
@@ -155,6 +187,29 @@ def test_launch_readiness_text_can_filter_public_blockers_by_type() -> None:
         "crawl4ai-lxml-risk-decision: Crawl4AI/lxml risk decision [risk_decision]"
         not in result.stdout
     )
+
+
+def test_launch_readiness_text_can_filter_similar_public_blockers_by_exact_id() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            "--root",
+            str(ROOT),
+            "--blocker-id",
+            "license-file-missing",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "Public launch: blocked" in result.stdout
+    assert "Blocker summary: 1 total" in result.stdout
+    assert "legal_implementation: 1" in result.stdout
+    assert "license-file-missing: LICENSE file [legal_implementation]" in result.stdout
+    assert "license-file: LICENSE file [legal_implementation]" not in result.stdout
+    assert "license-decision: license decision [founder_decision]" not in result.stdout
 
 
 def test_launch_readiness_script_can_fail_for_public_launch_gate() -> None:

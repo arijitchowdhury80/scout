@@ -26,6 +26,7 @@ scout launch-readiness --json
 scout launch-readiness --require-public
 scout launch-readiness --owner Arijit
 scout launch-readiness --blocker-type founder_decision
+scout launch-readiness --blocker-id license-decision
 ```
 
 GitHub CI runs the repository wrapper, `python3 scripts/launch_readiness_check.py`,
@@ -35,16 +36,17 @@ exposes the same check as `scout launch-readiness`.
 `--require-public` intentionally exits nonzero while public launch blockers are
 open.
 
-Use `--owner` or `--blocker-type` to filter the displayed public-launch
-blockers without changing the underlying readiness verdict. For example,
-`--owner Arijit` shows the founder/risk decisions that Arijit must make, while
-`--blocker-type engineering` shows engineering gates that can close after their
-prerequisites exist. The readiness report summarizes blockers by both blocker
-type and owner so the next bottleneck is visible without opening the JSON.
-Every readiness item also emits a stable `id` and human `summary` so status
-pages, scripts, and handoff notes can reference blockers without fragile
-field-name guessing. The text report prints blockers as
-`id: summary [blocker_type]` for the same reason.
+Use `--owner`, `--blocker-type`, or `--blocker-id` to filter the displayed
+public-launch blockers without changing the underlying readiness verdict. For
+example, `--owner Arijit` shows the founder/risk decisions that Arijit must
+make, `--blocker-type engineering` shows engineering gates that can close after
+their prerequisites exist, and `--blocker-id license-decision` isolates one
+specific stable gate. The readiness report summarizes blockers by both blocker
+type and owner so the next bottleneck is visible without opening the JSON. Every
+readiness item also emits a stable `id` and human `summary` so status pages,
+scripts, and handoff notes can reference blockers without fragile field-name
+guessing. The text report prints blockers as `id: summary [blocker_type]` for
+the same reason.
 
 ## Current Verdict
 

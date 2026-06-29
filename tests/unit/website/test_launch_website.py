@@ -161,6 +161,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "stripe-real-test-mode-smoke",
             "scout launch-readiness --owner Arijit",
             "scout launch-readiness --blocker-type engineering",
+            "scout launch-readiness --blocker-id license-decision",
             "No certified legacy /app UI claim",
             "No unlimited hosted crawling",
         ],

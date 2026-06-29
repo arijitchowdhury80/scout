@@ -470,13 +470,15 @@ def filter_report(
     *,
     owner: str | None = None,
     blocker_type: str | None = None,
+    blocker_id: str | None = None,
 ) -> dict[str, Any]:
     """Return a display copy of the report with public blockers filtered."""
-    if not owner and not blocker_type:
+    if not owner and not blocker_type and not blocker_id:
         return report
 
     owner_filter = owner.casefold() if owner else None
     type_filter = blocker_type.casefold() if blocker_type else None
+    id_filter = blocker_id.casefold() if blocker_id else None
     public_launch = dict(report["public_launch"])
     blockers = list(public_launch["blockers"])
 
@@ -491,6 +493,10 @@ def filter_report(
             blocker
             for blocker in blockers
             if str(blocker.get("blocker_type", "")).casefold() == type_filter
+        ]
+    if id_filter:
+        blockers = [
+            blocker for blocker in blockers if str(blocker.get("id", "")).casefold() == id_filter
         ]
 
     public_launch["blockers"] = blockers
@@ -574,11 +580,20 @@ def main(argv: list[str] | None = None) -> int:
         "--blocker-type",
         help="Filter displayed public launch blockers by blocker type, case-insensitive.",
     )
+    parser.add_argument(
+        "--blocker-id",
+        help="Filter displayed public launch blockers by stable blocker ID, case-insensitive.",
+    )
     args = parser.parse_args(argv)
 
     root = args.root.resolve()
     report = build_report(root)
-    display_report = filter_report(report, owner=args.owner, blocker_type=args.blocker_type)
+    display_report = filter_report(
+        report,
+        owner=args.owner,
+        blocker_type=args.blocker_type,
+        blocker_id=args.blocker_id,
+    )
 
     if args.json:
         print(json.dumps(display_report, indent=2, sort_keys=True))

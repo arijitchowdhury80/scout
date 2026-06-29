@@ -30,11 +30,13 @@ scout launch-readiness --owner Arijit
 scout launch-readiness --owner Codex
 scout launch-readiness --blocker-type founder_decision
 scout launch-readiness --blocker-type engineering
+scout launch-readiness --blocker-id license-decision
 scout launch-readiness --json --owner Arijit
 ```
 
 Filters change the displayed blocker list and summary only. They do not change
-the underlying public-launch verdict.
+the underlying public-launch verdict. Use `--blocker-id` when a decision,
+handoff, or release note needs to reference one stable gate exactly.
 
 Founder decision record template:
 `docs/product/founder-decision-record-template-2026-06-29.md`.
