@@ -9,12 +9,14 @@ Read source: `~/Library/CloudStorage/GoogleDrive-arijit.chowdhury@algolia.com/My
 - Evidence/proof content can use proof pills, source tags, or compact command blocks.
 - Navigation/wayfinding should stay supporting; no new nav is needed for this slice.
 - Accessibility target remains WCAG 2.2 AA.
+- Responsive behavior must hold at 375px, 768px, 1024px, and 1280px.
 
 ## Component Choice
 
 - Use existing `section step-section` for the workflow.
 - Use existing `pre code` command block for terminal commands.
 - Use existing `note-grid` articles for explanations.
+- Avoid introducing new controls; this is guidance, not an interactive app flow.
 
 ## Responsive Notes
 
