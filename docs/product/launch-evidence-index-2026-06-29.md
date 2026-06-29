@@ -25,6 +25,9 @@ python3 scripts/launch_readiness_check.py --json
 python3 scripts/launch_readiness_check.py --require-public
 ```
 
+GitHub CI runs `python3 scripts/launch_readiness_check.py` and the JSON form as
+the private-beta readiness gate.
+
 `--require-public` intentionally exits nonzero while public launch blockers are
 open.
 

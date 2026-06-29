@@ -53,6 +53,23 @@ def test_ci_runs_secret_scan_against_committed_baseline() -> None:
     assert "$(git ls-files)" in runs
 
 
+def test_ci_lints_scripts_alongside_application_and_tests() -> None:
+    runs = "\n".join(_step_runs("lint"))
+
+    assert "ruff check scout/ tests/ scripts/" in runs
+    assert "ruff format --check scout/ tests/ scripts/" in runs
+
+
+def test_ci_runs_private_beta_launch_readiness_without_public_gate() -> None:
+    job = _job("launch-readiness")
+    runs = "\n".join(_step_runs("launch-readiness"))
+
+    assert job["runs-on"] == "ubuntu-latest"
+    assert "python scripts/launch_readiness_check.py" in runs
+    assert "python scripts/launch_readiness_check.py --json" in runs
+    assert "--require-public" not in runs
+
+
 def test_ci_runs_dependency_audit_as_known_nonblocking_gate() -> None:
     job = _job("dependency-audit")
     runs = "\n".join(_step_runs("dependency-audit"))

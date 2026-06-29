@@ -18,6 +18,7 @@ Current launch evidence index:
 
 Executable launch readiness check:
 `scripts/launch_readiness_check.py`.
+GitHub CI runs the default and JSON forms as the private-beta readiness gate.
 
 Current decision request memo:
 `docs/product/launch-decision-request-2026-06-29.md`.

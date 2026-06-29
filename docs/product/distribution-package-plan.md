@@ -19,6 +19,9 @@ Quick status command:
 python3 scripts/launch_readiness_check.py
 ```
 
+GitHub CI runs this checker to keep the verified private-beta distribution
+evidence intact on every pull request.
+
 ## Distribution Goals
 
 Scout should be usable in four ways:

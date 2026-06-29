@@ -16,8 +16,8 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install ruff
-      - run: ruff check scout/ tests/
-      - run: ruff format --check scout/ tests/
+      - run: ruff check scout/ tests/ scripts/
+      - run: ruff format --check scout/ tests/ scripts/
 
   typecheck:
     runs-on: ubuntu-latest
@@ -43,6 +43,17 @@ jobs:
           detect-secrets-hook --baseline .secrets.baseline --no-verify \
             --exclude-files '(^dist/|^validation-output/|^scout-runs/|^\.pytest_cache/|^\.ruff_cache/)' \
             $(git ls-files)
+
+  launch-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python scripts/launch_readiness_check.py
+      - run: python scripts/launch_readiness_check.py --json
 
   dependency-audit:
     runs-on: ubuntu-latest
