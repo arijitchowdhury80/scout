@@ -19,6 +19,7 @@ class EvidenceCheck:
     status: str
     evidence: str
     note: str
+    check_id: str = ""
     blocker_type: str = "evidence"
     owner: str = ""
     next_action: str = ""
@@ -27,7 +28,7 @@ class EvidenceCheck:
 
     def as_dict(self) -> dict[str, str | bool]:
         payload: dict[str, str | bool] = {
-            "id": _stable_id(self.area),
+            "id": self.check_id or _stable_id(self.area),
             "area": self.area,
             "summary": self.area,
             "status": self.status,
@@ -354,6 +355,7 @@ def _with_remediation(check: EvidenceCheck) -> EvidenceCheck:
         status=check.status,
         evidence=check.evidence,
         note=check.note,
+        check_id=check.check_id,
         blocker_type=check.blocker_type,
         owner=str(remediation.get("owner", "")),
         next_action=str(remediation.get("next_action", "")),
@@ -412,6 +414,7 @@ def _public_blockers(root: Path) -> list[EvidenceCheck]:
                     status="blocked",
                     evidence="LICENSE",
                     note="No project LICENSE file is present.",
+                    check_id="license-file-missing",
                     blocker_type="legal_implementation",
                 )
             )

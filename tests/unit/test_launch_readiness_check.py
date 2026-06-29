@@ -40,11 +40,13 @@ def test_launch_readiness_report_marks_private_beta_ready_and_public_blocked() -
     assert all(check["status"] == "verified" for check in report["private_beta"]["checks"])
 
     blocker_areas = {blocker["area"] for blocker in report["public_launch"]["blockers"]}
+    blocker_ids = [blocker["id"] for blocker in report["public_launch"]["blockers"]]
     assert "license decision" in blocker_areas
     assert "Stripe real test-mode smoke" in blocker_areas
     assert "Crawl4AI/lxml risk decision" in blocker_areas
     assert "pyproject license expression" in blocker_areas
     assert "LICENSE file" in blocker_areas
+    assert len(blocker_ids) == len(set(blocker_ids))
 
     blockers_by_area = {blocker["area"]: blocker for blocker in report["public_launch"]["blockers"]}
     assert all("owner" in blocker for blocker in report["public_launch"]["blockers"])
