@@ -37,6 +37,11 @@ from scout.launch_decision_draft import (
     default_decision_date,
     write_decision_record_draft,
 )
+from scout.launch_decision_record import (
+    FounderDecisionRecordError,
+    format_validation_success,
+    validate_decision_records,
+)
 from scout.launch_readiness import build_report, default_root, filter_report, print_text_report
 from scout.core.types import (
     AlgoliaProductRecord,
@@ -181,6 +186,37 @@ def launch_decision_draft(
         raise typer.Exit(2) from exc
 
     typer.echo(f"Wrote founder decision draft: {output_path}")
+
+
+@app.command("launch-decision-check")
+def launch_decision_check(
+    records: list[str] | None = typer.Argument(
+        None,
+        help="Completed founder decision record files to validate.",
+    ),
+    root: str = typer.Option(
+        ".",
+        "--root",
+        help="Scout repo/package root for --check-existing.",
+    ),
+    check_existing: bool = typer.Option(
+        False,
+        "--check-existing",
+        help="Validate existing completed founder decision records under docs/product.",
+    ),
+) -> None:
+    """Validate completed founder decision records before launch gates use them."""
+    try:
+        results = validate_decision_records(
+            [Path(record).expanduser().resolve() for record in records or []],
+            root=Path(root).expanduser().resolve(),
+            check_existing=check_existing,
+        )
+    except FounderDecisionRecordError as exc:
+        typer.echo(f"FAIL: {exc}", err=True)
+        raise typer.Exit(2) from exc
+
+    typer.echo(format_validation_success(results))
 
 
 def _run_high_level_use_case(

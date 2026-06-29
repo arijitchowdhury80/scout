@@ -138,6 +138,75 @@ def test_launch_decision_draft_command_writes_prefilled_draft() -> None:
         assert "Public launch allowed by this decision? No" in content
 
 
+def test_launch_decision_check_command_validates_completed_record() -> None:
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        record = Path("founder-decision-record-SCOUT-DEC-20260629-06.md")
+        record.write_text(
+            """# Scout Founder Decision Record: License
+
+Decision ID: SCOUT-DEC-20260629-06
+Date: 2026-06-29
+Decision owner: Arijit Chowdhury
+Recorded by: Codex
+Status: Approved
+Related blocker type: founder_decision
+Related release gate: License decision recorded.
+Source prompt / meeting / approval note: CLI test fixture
+
+## Approved decision
+
+Scout local/core is licensed as Apache-2.0.
+
+## Rejected alternatives
+
+- MIT
+
+## Scope and limits
+
+- Applies to: local package and source distribution
+- Does not apply to: hosted service terms
+- Private beta only? Yes
+- Public launch allowed by this decision? No
+
+## Required Codex follow-up
+
+- [ ] Code/doc change: add LICENSE and pyproject license expression
+- [ ] Verification command: scout launch-readiness --blocker-id license-decision
+- [ ] Evidence file to update: docs/product/launch-evidence-index-2026-06-29.md
+- [ ] Release checklist gate to update: License decision recorded.
+
+## Expiration or revisit trigger
+
+Before public launch.
+
+## Evidence links
+
+- Release checklist: docs/product/release-checklist.md
+- Decision packet: docs/product/public-launch-action-packet-2026-06-29.md
+- Supporting brief: docs/legal/scout-license-distribution-decision-brief-2026-06-29.md
+- Verification output: pending
+""",
+            encoding="utf-8",
+        )
+
+        result = runner.invoke(app, ["launch-decision-check", str(record)])
+
+        assert result.exit_code == 0
+        assert "PASS: Scout founder decision record validation satisfied." in result.output
+        assert "SCOUT-DEC-20260629-06: Approved" in result.output
+
+
+def test_launch_decision_check_command_scans_existing_records() -> None:
+    runner = CliRunner()
+    root = Path(__file__).resolve().parents[3]
+
+    result = runner.invoke(app, ["launch-decision-check", "--root", str(root), "--check-existing"])
+
+    assert result.exit_code == 0
+    assert "PASS: 0 founder decision records found." in result.output
+
+
 def test_product_export_command_writes_requested_formats() -> None:
     runner = CliRunner()
     with runner.isolated_filesystem():

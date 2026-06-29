@@ -62,6 +62,9 @@ Validate completed founder decision records before using them as launch
 evidence:
 
 ```bash
+scout launch-decision-check docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md
+scout launch-decision-check --check-existing
+
 python3 scripts/founder_decision_record_check.py docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md
 ```
 
