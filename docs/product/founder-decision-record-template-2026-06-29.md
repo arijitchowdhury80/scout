@@ -147,6 +147,23 @@ verify hosted key authentication, mask secrets in evidence.
 
 ## Storage
 
+Draft records generated from current public-launch blockers should be saved as:
+
+```bash
+python3 scripts/founder_decision_record_draft.py \
+  --blocker-id license-decision \
+  --decision-id SCOUT-DEC-YYYYMMDD-NN
+```
+
+That command writes to:
+
+```text
+docs/product/founder-decision-drafts/founder-decision-draft-SCOUT-DEC-YYYYMMDD-NN.md
+```
+
+Drafts are editing aids only. They are not completed decision evidence and are
+not picked up by the completed-record validator.
+
 Completed records should be saved next to this template as:
 
 ```text

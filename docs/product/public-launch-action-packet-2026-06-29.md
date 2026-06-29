@@ -41,6 +41,19 @@ handoff, or release note needs to reference one stable gate exactly.
 Founder decision record template:
 `docs/product/founder-decision-record-template-2026-06-29.md`.
 
+Generate a prefilled draft for any stable blocker ID before editing the
+decision:
+
+```bash
+python3 scripts/founder_decision_record_draft.py \
+  --blocker-id license-decision \
+  --decision-id SCOUT-DEC-YYYYMMDD-NN
+```
+
+Drafts are written under `docs/product/founder-decision-drafts/` so they do not
+count as completed launch evidence until reviewed, moved into the completed
+record naming pattern, and validated.
+
 Validate completed founder decision records before using them as launch
 evidence:
 
