@@ -134,6 +134,10 @@ No public registry publish should happen until these decisions are closed.
       `scout-beta-test@example.com`, and the delivered key authenticates.
       Live SMTP provider smoke remains pending before broader hosted launch.
 - [ ] Stripe checkout and webhook tested in Stripe test mode.
+      Evidence: `docs/product/stripe-test-mode-readiness-2026-06-29.md`.
+      Result: deterministic checkout, webhook, payment provisioning, and key
+      delivery tests pass, but real Stripe test-mode credentials/webhook secret
+      are not configured in this checkout, so the live Stripe smoke remains open.
 
 ## Website And Documentation Gates
 

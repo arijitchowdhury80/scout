@@ -216,3 +216,20 @@ def test_hosted_api_quickstart_verification_records_new_key_smoke() -> None:
     assert "after_standard: 1999" in verification
     assert "- [x] Hosted API quickstart tested with a newly generated API key." in checklist
     assert "docs/product/hosted-api-quickstart-verification-2026-06-28.md" in checklist
+
+
+def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> None:
+    readiness = _read("docs/product/stripe-test-mode-readiness-2026-06-29.md")
+    checklist = _read("docs/product/release-checklist.md")
+
+    assert "Stripe Test-Mode Readiness" in readiness
+    assert "Deterministic coverage passed; real Stripe test-mode smoke is still open." in readiness
+    assert "22 passed, 2 warnings" in readiness
+    assert "STRIPE_SECRET_KEY" in readiness
+    assert "STRIPE_BETA_PRICE_ID" in readiness
+    assert "STRIPE_WEBHOOK_SECRET" in readiness
+    assert "checkout.session.completed" in readiness
+    assert "This gate is **not approved for public launch** yet." in readiness
+    assert "- [ ] Stripe checkout and webhook tested in Stripe test mode." in checklist
+    assert "docs/product/stripe-test-mode-readiness-2026-06-29.md" in checklist
+    assert "real Stripe test-mode credentials/webhook secret" in checklist
