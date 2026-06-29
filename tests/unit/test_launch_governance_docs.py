@@ -637,6 +637,7 @@ def test_launch_decision_dashboard_lists_current_open_gates_and_next_decisions()
     assert "Scout Launch Decision Dashboard" in dashboard
     assert "docs/product/launch-decision-request-2026-06-29.md" in dashboard
     assert "Private beta can continue with limits; public launch is blocked." in dashboard
+    assert "Codex-actionable now: 0" in dashboard
     assert "Scout is not ready for public launch." in dashboard
     assert "Open Decisions" in dashboard
     assert "Open Verification Gates" in dashboard
@@ -668,6 +669,7 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
     assert "Scout Launch Gate Burndown" in burndown
     assert "docs/product/launch-decision-request-2026-06-29.md" in burndown
     assert "Private beta can continue; public launch remains blocked" in burndown
+    assert "Codex-actionable now: 0" in burndown
     assert "Gate Burndown" in burndown
     assert "Blocker type" in burndown
     assert "Owner" in burndown

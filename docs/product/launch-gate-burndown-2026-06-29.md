@@ -34,6 +34,10 @@ boundaries:
 - no certified legacy `/app` UI claim,
 - no security-clean claim while the dependency audit is failing.
 
+Codex-actionable now: 0. Every Codex-owned public-launch item currently depends
+on an approved founder/risk/publishing decision, real release artifact, or
+Stripe test-mode setup before implementation can safely proceed.
+
 ## Gate Burndown
 
 | Gate | Status | Blocker type | Owner | Next action | Evidence |

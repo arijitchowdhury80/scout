@@ -38,6 +38,7 @@
     "hosted_stripe_checkout_session": "PASS",
     "launch_decision_draft_packet": "PASS",
     "launch_decision_draft_safety_check": "PASS",
+    "launch_actionable_summary": "PASS",
     "launch_evidence_index": "PASS",
     "launch_action_packet": "PASS",
     "unit_tests_latest": "PASS",

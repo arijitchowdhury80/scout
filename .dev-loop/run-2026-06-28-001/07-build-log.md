@@ -1767,3 +1767,42 @@ Verification:
 - Real script smoke:
   `python3 scripts/founder_decision_record_check.py --root . --check-existing --check-drafts`
   passed with 0 completed records and 6 safe deferred drafts.
+
+## Launch Readiness Actionable Summary Checkpoint
+
+Date: 2026-06-29
+
+Built:
+
+- `public_launch.actionable_summary.codex_actionable_now` in the readiness JSON,
+- `Codex actionable now: 0` in the readiness text output,
+- matching copy in the launch dashboard, gate burndown, and status website.
+
+Why:
+
+- The readiness report already assigned Codex eight public-launch blockers, but
+  every Codex-owned item depends on a founder/risk/publishing decision, release
+  artifact, or Stripe test-mode setup. The new summary prevents handoffs from
+  misreading assigned work as immediately executable work.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/test_launch_readiness_check.py -q` failed
+  because `actionable_summary` and `Codex actionable now: 0` did not exist.
+- Focused suite:
+  `python3 -m pytest tests/unit/test_launch_readiness_check.py tests/unit/website/test_launch_website.py tests/unit/test_launch_governance_docs.py -q`
+  passed: 43 tests, 2 warnings.
+- Readiness text smoke:
+  `python3 scripts/launch_readiness_check.py --root .` printed
+  `Codex actionable now: 0`.
+- Readiness JSON smoke:
+  `python3 scripts/launch_readiness_check.py --json` summarized as
+  `ready_with_limits blocked 0` for private beta, public launch, and Codex
+  actionable-now count.
+- Type check:
+  `python3 -m pyright scout/` passed: 0 errors.
+- Lint/format:
+  `ruff check ... && ruff format --check ...` passed for touched Python files.
+- Full unit suite:
+  `python3 -m pytest tests/unit/ -q` passed: 638 tests, 8 warnings.

@@ -33,6 +33,10 @@ scope:
 - no certified app UI claim,
 - no guaranteed hard-site bypass claim.
 
+Codex-actionable now: 0. Codex owns implementation gates, but the current
+public-launch implementation work is intentionally blocked until founder,
+risk, publishing, or Stripe setup decisions are approved and recorded.
+
 ## Open Decisions
 
 | Decision | Current recommendation | Required owner | Blocks |

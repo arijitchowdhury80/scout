@@ -146,6 +146,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Arijit: 5",
             "Codex: 8",
             "Codex + Arijit: 1",
+            "Codex-actionable now: 0",
             "Blocker summary",
             "founder_decision: 4",
             "engineering: 4",

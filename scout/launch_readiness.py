@@ -436,6 +436,15 @@ def _owner_summary(blockers: list[EvidenceCheck]) -> dict[str, int]:
     return dict(sorted(by_owner.items()))
 
 
+def _actionable_summary(blockers: list[EvidenceCheck]) -> dict[str, int]:
+    """Return counts for blockers that Codex can execute immediately."""
+    return {
+        "codex_actionable_now": sum(
+            1 for blocker in blockers if blocker.codex_actionable_now is True
+        )
+    }
+
+
 def build_report(root: Path) -> dict[str, Any]:
     private_beta = _private_beta_checks(root)
     public_blockers = _public_blockers(root)
@@ -460,6 +469,7 @@ def build_report(root: Path) -> dict[str, Any]:
             "status": "ready" if public_ready else "blocked",
             "blocker_summary": _blocker_summary(public_blockers),
             "owner_summary": _owner_summary(public_blockers),
+            "actionable_summary": _actionable_summary(public_blockers),
             "blockers": [blocker.as_dict() for blocker in public_blockers],
         },
     }
@@ -502,6 +512,7 @@ def filter_report(
     public_launch["blockers"] = blockers
     public_launch["blocker_summary"] = _dict_blocker_summary(blockers)
     public_launch["owner_summary"] = _dict_owner_summary(blockers)
+    public_launch["actionable_summary"] = _dict_actionable_summary(blockers)
     return {
         **report,
         "public_launch": public_launch,
@@ -521,6 +532,14 @@ def _dict_owner_summary(blockers: list[dict[str, Any]]) -> dict[str, int]:
     return dict(sorted(by_owner.items()))
 
 
+def _dict_actionable_summary(blockers: list[dict[str, Any]]) -> dict[str, int]:
+    return {
+        "codex_actionable_now": sum(
+            1 for blocker in blockers if blocker.get("codex_actionable_now") is True
+        )
+    }
+
+
 def print_text_report(report: dict[str, Any]) -> None:
     private_beta = report["private_beta"]
     public_launch = report["public_launch"]
@@ -535,6 +554,9 @@ def print_text_report(report: dict[str, Any]) -> None:
     print(f"Blocker summary: {blocker_summary['total']} total")
     for blocker_type, count in blocker_summary["by_type"].items():
         print(f"  - {blocker_type}: {count}")
+    actionable_summary = public_launch.get("actionable_summary", {})
+    if actionable_summary:
+        print(f"Codex actionable now: {actionable_summary.get('codex_actionable_now', 0)}")
     owner_summary = public_launch.get("owner_summary", {})
     if owner_summary:
         print("Owner summary:")
