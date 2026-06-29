@@ -1,7 +1,7 @@
 # Hosted SaaS API Verification
 
 Date: 2026-06-29
-Status: local hosted-only smoke passed; live VPS endpoint still needs domain/SSH verification
+Status: local hosted-only smoke passed; live VPS endpoint still needs SSH-port access restored
 
 ## Scope
 
@@ -16,8 +16,8 @@ single-node deployment configuration:
 
 It verifies the software behavior required before exposing Scout to consuming
 apps such as PRISM. It does not prove the current VPS firewall, TLS certificate,
-domain, or environment variables because no current VPS host alias, SSH config,
-or canonical hosted base URL was available in the repo/workstation context.
+domain, or environment variables because the current SSH port started refusing
+connections before live VPS inspection could run.
 
 ## Commands
 
@@ -87,16 +87,24 @@ curl -X POST http://127.0.0.1:18425/v1/hosted/scrape \
 Known workstation evidence:
 
 - `~/.ssh/known_hosts` includes `72.61.72.147`.
-- Non-interactive SSH with the available `~/.ssh/chowmes_ed25519` key failed
-  for both `root@72.61.72.147` and `arijitchowdhury@72.61.72.147` with
-  `Permission denied (publickey)`.
+- There is no `~/.ssh/config`, but the ChowMes project has the intended helper:
+  `/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/scripts/chowmes-ssh-helper`.
+- The helper reads SSH details from
+  `/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/.env.local`.
+  The env file contains `SSH_HOST`, `SSH_USER`, and `SSH_KEY`; the user starts
+  with `chowmesa...`, and the configured key path exists locally.
+- Direct non-helper SSH probes with the wrong users (`root`, `arijitchowdhury`,
+  `ubuntu`, `debian`) failed with `Permission denied (publickey)`.
+- After those failed probes, the correct helper reached the configured host but
+  SSH port 22 returned `Connection refused`.
 - `http://72.61.72.147/health` returned `308` from Caddy redirecting to HTTPS.
 - `http://72.61.72.147:8421/health` did not connect.
 - `https://72.61.72.147/health` did not complete on the raw IP within the
   smoke timeout.
 
-To verify the actual VPS, use the real hosted domain or working SSH credential
-and run the same smoke against the live hosted base URL after confirming:
+To verify the actual VPS, wait for SSH port 22 to accept connections again or
+use the real hosted domain/base URL, then run the same smoke against the live
+hosted service after confirming:
 
 - DNS and TLS are correct;
 - `SCOUT_PUBLIC_HOSTED_ONLY=true`;
