@@ -75,6 +75,12 @@ local Scout server:
 - The Scout HTTP service serves the public website routes without API auth.
 - The hosted beta checkout return URLs surface success/cancel states instead
   of dropping testers back onto the site without context.
+- The website now exposes the code-aligned hosted beta pass limits: 2,000
+  standard credits, 100 browser credits, 7-day artifact retention, 100 pages
+  per run, and 1 concurrent hosted run where relevant.
+- The launch readiness checker verifies those hosted beta limit markers against
+  the current `hosted_beta_pass` policy so website copy cannot silently drift
+  back to vague "finite credits" language.
 - The launch website can be rendered by a real browser.
 - Public website copy continues to expose local-first install, finite hosted
   beta, legal/third-party notices, pricing direction, and beta boundaries.

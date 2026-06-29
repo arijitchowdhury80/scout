@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from scout.core.platform.hosted import HostedPlan, plan_limits
+
 
 @dataclass(frozen=True)
 class EvidenceCheck:
@@ -189,7 +191,55 @@ def _private_beta_checks(root: Path) -> list[EvidenceCheck]:
                 note=check.note,
             )
         )
+    checks.append(_website_hosted_beta_limits_status(root))
     return checks
+
+
+def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
+    """Verify website pages expose the code-aligned hosted beta limits."""
+    limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
+    required_markers = [
+        f"{limits.standard_credits:,} standard credits",
+        f"{limits.browser_credits:,} browser credits",
+        f"{limits.artifact_retention_days}-day artifact retention",
+        f"{limits.max_pages_per_run:,} pages per run",
+    ]
+    website_pages = [
+        "website/pricing.html",
+        "website/beta.html",
+        "website/quickstart.html",
+    ]
+
+    missing_pages = [page for page in website_pages if not (root / page).exists()]
+    if missing_pages:
+        return EvidenceCheck(
+            area="website hosted beta limits",
+            status="missing",
+            evidence=", ".join(missing_pages),
+            note="Website page is missing.",
+        )
+
+    missing_markers: list[str] = []
+    for page in website_pages:
+        content = " ".join(_read(root / page).split())
+        for marker in required_markers:
+            if marker not in content:
+                missing_markers.append(f"{page}: {marker}")
+
+    if missing_markers:
+        return EvidenceCheck(
+            area="website hosted beta limits",
+            status="weak",
+            evidence=", ".join(website_pages),
+            note="Missing hosted beta limit markers: " + "; ".join(missing_markers),
+        )
+
+    return EvidenceCheck(
+        area="website hosted beta limits",
+        status="verified",
+        evidence=", ".join(website_pages),
+        note="Website exposes code-aligned hosted beta pass limits.",
+    )
 
 
 def _public_blockers(root: Path) -> list[EvidenceCheck]:
