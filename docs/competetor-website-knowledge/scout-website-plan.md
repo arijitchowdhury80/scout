@@ -32,6 +32,30 @@ Sharper differentiation:
 Avoid leading with `Get API key` until the hosted product has tenancy, payment,
 quotas, and security controls.
 
+## Current Website Product Surface
+
+For the current launch stage, the website should sell **Scout the utility /
+service layer**, not the unfinished legacy app UI.
+
+Primary product surfaces to show:
+
+- CLI and local HTTP service.
+- Hosted API for approved beta testers.
+- Claude/Codex skill usage.
+- Artifact folders and evidence reports.
+- Product export workflows.
+
+Product surfaces to avoid showing as launch-ready:
+
+- The legacy `/app` UI.
+- A public self-serve API-key dashboard.
+- Unlimited browser workbench claims.
+- Any hard-site bypass guarantee.
+
+The website can still use visual schematics, terminal readouts, artifact
+previews, and record tables. It should not show screenshots that imply the
+current `/app` surface is the product.
+
 ## Site Map
 
 ### `/`
@@ -79,6 +103,9 @@ Initial copy:
 - Hosted beta pass.
 - Hosted subscriptions later.
 - Credit explanation.
+
+The pricing page must say that `$22` is a finite-credit hosted beta pass, not
+lifetime hosted access.
 
 ### `/examples`
 

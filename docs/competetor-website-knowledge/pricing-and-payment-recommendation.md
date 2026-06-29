@@ -146,6 +146,33 @@ Launch with:
 5. **Separate browser credits** because browser rendering costs materially more
    than simple HTTP acquisition.
 
+## Decision Boundary For Launch
+
+The launch site can show the private-beta offer, but it should not imply that
+hosted Scout is generally self-serve or unlimited.
+
+Approved beta-safe copy:
+
+```text
+Hosted beta pass: $22 one-time.
+Includes finite hosted credits for approved testers.
+Local Scout remains free.
+Browser-heavy workflows use separate, smaller credits.
+```
+
+Unsafe copy:
+
+```text
+Pay $22 and use hosted Scout forever.
+Unlimited hosted crawling.
+Unlimited browser extraction.
+Public self-serve API access.
+```
+
+Rationale: competitor pricing pages consistently separate free/local adoption
+from hosted infrastructure cost. Scout should follow the market economics while
+keeping its local-first differentiation.
+
 ## Payment Stack Recommendation
 
 Hosted beta:

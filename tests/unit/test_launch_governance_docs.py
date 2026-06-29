@@ -217,12 +217,17 @@ def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> 
     assert "ScrapingBee" in pricing_refresh
     assert "Zyte" in pricing_refresh
     assert "Do not approve public pricing yet." in pricing_refresh
+    assert "Approve $22 as a private-beta finite-credit pass." in pricing_refresh
+    assert "Do not approve $22 as a public, unlimited, or lifetime hosted plan." in (
+        pricing_refresh
+    )
     assert "market-pricing-refresh-2026-06-29.md" in source_index
 
 
 def test_website_copy_review_records_competitor_alignment_and_boundaries() -> None:
     review = _read("docs/product/website-copy-review-2026-06-28.md")
     checklist = _read("docs/product/release-checklist.md")
+    website_plan = _read("docs/competetor-website-knowledge/scout-website-plan.md")
 
     assert "Website Copy Review Against Competitor Research" in review
     assert "competitor-matrix.md" in review
@@ -233,6 +238,9 @@ def test_website_copy_review_records_competitor_alignment_and_boundaries() -> No
     assert "blocked-page evidence" in review
     assert "typed records" in review
     assert "unlimited hosted scraping" in review
+    assert "Scout the utility /\nservice layer" in website_plan
+    assert "The legacy `/app` UI." in website_plan
+    assert "not\nlifetime hosted access" in website_plan
     assert "guaranteed hard-site bypass" in review
     assert "Public launch pricing and hosted usage limits approved" in review
     assert "- [x] Website copy reviewed against competitor research." in checklist

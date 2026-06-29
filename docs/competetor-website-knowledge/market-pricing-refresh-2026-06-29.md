@@ -19,6 +19,34 @@ The market still supports Scout's current hosted pricing posture:
 - A future recurring hosted plan is more defensible than a permanent one-time
   hosted plan, but only after Stripe, support, limits, and security gates close.
 
+## 2026-06-29 Live Refresh Addendum
+
+The follow-up source refresh did not change the core recommendation. It made the
+risk clearer:
+
+- **Hosted crawler APIs sell metered operations.** Firecrawl, Tavily, Exa,
+  ScrapingBee, ScraperAPI, Apify, and Zyte all communicate usage in credits,
+  requests, plan allowances, compute units, or endpoint-specific prices.
+- **Browser infrastructure is explicitly metered.** Browserbase and Zyte-style
+  pricing make browser/rendered work a separate cost center. Scout should keep
+  `browser_credits` separate from simple scrape/crawl credits.
+- **Free tiers are acquisition tools, not unlimited infrastructure.** Competitors
+  use free credits/trials to start developers, then route real usage into paid
+  plans, enterprise, or pay-as-you-go.
+- **A one-time hosted pass is safe only as beta packaging.** The `$22` hosted
+  beta pass should buy a fixed credit allotment and a support relationship, not
+  lifetime hosted execution.
+
+Decision implication:
+
+```text
+Approve $22 as a private-beta finite-credit pass.
+Do not approve $22 as a public, unlimited, or lifetime hosted plan.
+Do not launch public hosted pricing until usage telemetry proves real cost per
+standard page, browser page, screenshot, extraction run, artifact write, and
+support incident.
+```
+
 ## Current Competitor Signals
 
 | Vendor | Current public signal | Scout implication |
