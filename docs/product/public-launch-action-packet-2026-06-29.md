@@ -17,6 +17,19 @@ blocker:
 That means the action list is machine-readable as well as human-readable; the
 plain-English tables below are a dashboard over the same blocker contract.
 
+Useful slices:
+
+```bash
+scout launch-readiness --owner Arijit
+scout launch-readiness --owner Codex
+scout launch-readiness --blocker-type founder_decision
+scout launch-readiness --blocker-type engineering
+scout launch-readiness --json --owner Arijit
+```
+
+Filters change the displayed blocker list and summary only. They do not change
+the underlying public-launch verdict.
+
 Founder decision record template:
 `docs/product/founder-decision-record-template-2026-06-29.md`.
 

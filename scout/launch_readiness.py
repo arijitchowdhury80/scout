@@ -447,6 +447,50 @@ def build_report(root: Path) -> dict[str, Any]:
     }
 
 
+def filter_report(
+    report: dict[str, Any],
+    *,
+    owner: str | None = None,
+    blocker_type: str | None = None,
+) -> dict[str, Any]:
+    """Return a display copy of the report with public blockers filtered."""
+    if not owner and not blocker_type:
+        return report
+
+    owner_filter = owner.casefold() if owner else None
+    type_filter = blocker_type.casefold() if blocker_type else None
+    public_launch = dict(report["public_launch"])
+    blockers = list(public_launch["blockers"])
+
+    if owner_filter:
+        blockers = [
+            blocker
+            for blocker in blockers
+            if str(blocker.get("owner", "")).casefold() == owner_filter
+        ]
+    if type_filter:
+        blockers = [
+            blocker
+            for blocker in blockers
+            if str(blocker.get("blocker_type", "")).casefold() == type_filter
+        ]
+
+    public_launch["blockers"] = blockers
+    public_launch["blocker_summary"] = _dict_blocker_summary(blockers)
+    return {
+        **report,
+        "public_launch": public_launch,
+    }
+
+
+def _dict_blocker_summary(blockers: list[dict[str, Any]]) -> dict[str, Any]:
+    by_type = Counter(str(blocker["blocker_type"]) for blocker in blockers)
+    return {
+        "total": len(blockers),
+        "by_type": dict(sorted(by_type.items())),
+    }
+
+
 def print_text_report(report: dict[str, Any]) -> None:
     private_beta = report["private_beta"]
     public_launch = report["public_launch"]
@@ -490,15 +534,24 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Exit nonzero unless public launch is ready.",
     )
+    parser.add_argument(
+        "--owner",
+        help="Filter displayed public launch blockers by exact owner, case-insensitive.",
+    )
+    parser.add_argument(
+        "--blocker-type",
+        help="Filter displayed public launch blockers by blocker type, case-insensitive.",
+    )
     args = parser.parse_args(argv)
 
     root = args.root.resolve()
     report = build_report(root)
+    display_report = filter_report(report, owner=args.owner, blocker_type=args.blocker_type)
 
     if args.json:
-        print(json.dumps(report, indent=2, sort_keys=True))
+        print(json.dumps(display_report, indent=2, sort_keys=True))
     else:
-        print_text_report(report)
+        print_text_report(display_report)
 
     if args.require_public and report["public_launch"]["status"] != "ready":
         return 1

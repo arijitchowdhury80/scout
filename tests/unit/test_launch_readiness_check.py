@@ -83,6 +83,56 @@ def test_launch_readiness_script_outputs_json() -> None:
     assert all("next_action" in blocker for blocker in payload["public_launch"]["blockers"])
 
 
+def test_launch_readiness_json_can_filter_public_blockers_by_owner() -> None:
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--root", str(ROOT), "--json", "--owner", "arijit"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(result.stdout)
+
+    assert payload["private_beta"]["status"] == "ready_with_limits"
+    assert payload["public_launch"]["status"] == "blocked"
+    assert payload["public_launch"]["blocker_summary"] == {
+        "total": 5,
+        "by_type": {
+            "founder_decision": 4,
+            "risk_decision": 1,
+        },
+    }
+    assert {blocker["owner"] for blocker in payload["public_launch"]["blockers"]} == {"Arijit"}
+    assert "license decision" in {
+        blocker["area"] for blocker in payload["public_launch"]["blockers"]
+    }
+    assert "GitHub release workflow run" not in {
+        blocker["area"] for blocker in payload["public_launch"]["blockers"]
+    }
+
+
+def test_launch_readiness_text_can_filter_public_blockers_by_type() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            "--root",
+            str(ROOT),
+            "--blocker-type",
+            "founder_decision",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "Public launch: blocked" in result.stdout
+    assert "Blocker summary: 4 total" in result.stdout
+    assert "founder_decision: 4" in result.stdout
+    assert "license decision [founder_decision]" in result.stdout
+    assert "GitHub release workflow run [engineering]" not in result.stdout
+    assert "Crawl4AI/lxml risk decision [risk_decision]" not in result.stdout
+
+
 def test_launch_readiness_script_can_fail_for_public_launch_gate() -> None:
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--root", str(ROOT), "--require-public"],
