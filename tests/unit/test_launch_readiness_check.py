@@ -97,3 +97,12 @@ def test_launch_readiness_script_can_fail_for_public_launch_gate() -> None:
     assert "Blocker summary: 14 total" in result.stdout
     assert "founder_decision: 4" in result.stdout
     assert "license decision [founder_decision]" in result.stdout
+    assert "owner: Arijit" in result.stdout
+    assert "next action: Approve Apache-2.0 for Scout local/core" in result.stdout
+    assert (
+        "closure evidence: Signed founder decision record plus updated release checklist."
+        in result.stdout
+    )
+    assert "codex actionable now: false" in result.stdout
+    assert "owner: Codex + Arijit" in result.stdout
+    assert "next action: Configure Stripe test keys/webhook secret" in result.stdout

@@ -463,6 +463,15 @@ def print_text_report(report: dict[str, Any]) -> None:
         print(f"  - {blocker_type}: {count}")
     for blocker in public_launch["blockers"]:
         print(f"  - {blocker['area']} [{blocker['blocker_type']}]: {blocker['note']}")
+        if "owner" in blocker:
+            print(f"      owner: {blocker['owner']}")
+        if "next_action" in blocker:
+            print(f"      next action: {blocker['next_action']}")
+        if "closure_evidence" in blocker:
+            print(f"      closure evidence: {blocker['closure_evidence']}")
+        if "codex_actionable_now" in blocker:
+            codex_actionable = str(blocker["codex_actionable_now"]).lower()
+            print(f"      codex actionable now: {codex_actionable}")
 
     if public_launch["status"] == "blocked":
         print("")
