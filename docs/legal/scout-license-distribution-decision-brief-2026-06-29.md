@@ -198,6 +198,10 @@ If Apache-2.0 is approved:
 - Update website legal/third-party page.
 - Keep `THIRD_PARTY_NOTICES.md` in wheel and sdist.
 - Rebuild package and verify license files are included.
+- Implementation runbook:
+  `docs/legal/license-implementation-runbook-2026-06-29.md`.
+- Verification helper:
+  `scripts/license_release_gate_check.py --expected-license Apache-2.0 --dist-dir dist`.
 
 If a proprietary/source-available path is approved:
 

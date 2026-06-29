@@ -330,6 +330,7 @@ def test_license_distribution_decision_brief_keeps_release_gates_open() -> None:
     brief = _read("docs/legal/scout-license-distribution-decision-brief-2026-06-29.md")
     checklist = _read("docs/product/release-checklist.md")
     legal_checklist = _read("docs/legal/legal-readiness-checklist.md")
+    runbook = _read("docs/legal/license-implementation-runbook-2026-06-29.md")
 
     assert "Scout License And Distribution Decision Brief" in brief
     assert "Decision required before public registry publishing." in brief
@@ -341,12 +342,18 @@ def test_license_distribution_decision_brief_keeps_release_gates_open() -> None:
     assert "Do not publish to PyPI" in brief
     assert "Do not publish Docker images to Docker Hub or GHCR" in brief
     assert "Decision Needed" in brief
+    assert "license-implementation-runbook-2026-06-29.md" in brief
+    assert "scripts/license_release_gate_check.py" in brief
+    assert "Scout License Implementation Runbook" in runbook
+    assert "waiting for license decision" in runbook
+    assert "python3 scripts/license_release_gate_check.py" in runbook
     assert "- [ ] Approve Apache-2.0 for Scout local/core." in brief
     assert "- [ ] License decision recorded." in checklist
     assert "- [ ] Final license expression added to `pyproject.toml`." in checklist
     assert "- [ ] `LICENSE` file added if Scout is open source or source-available." in checklist
     assert "scout-license-distribution-decision-brief-2026-06-29.md" in checklist
     assert "scout-license-distribution-decision-brief-2026-06-29.md" in legal_checklist
+    assert "license-implementation-runbook-2026-06-29.md" in legal_checklist
 
 
 def test_registry_publishing_policy_blocks_public_registries_until_approved() -> None:
@@ -405,6 +412,7 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
     assert "License decision" in burndown
     assert "Arijit decision" in burndown
     assert "Final license expression" in burndown
+    assert "scripts/license_release_gate_check.py" in burndown
     assert "GitHub release workflow on real `v*` tag" in burndown
     assert "scripts/release_artifact_smoke.py --dist-dir" in burndown
     assert "Stripe real test-mode smoke" in burndown

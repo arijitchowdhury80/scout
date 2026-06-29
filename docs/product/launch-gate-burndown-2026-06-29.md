@@ -35,8 +35,8 @@ boundaries:
 | Hosted API quickstart | Closed | None | Codex | Keep hosted beta limited to approved testers | `docs/product/hosted-api-quickstart-verification-2026-06-28.md` |
 | Product export beyond Algolia | Closed | None | Codex | Treat Algolia as one adapter, not the product's only output | `docs/product/product-export-generalization-verification-2026-06-29.md` |
 | License decision | Open | Arijit decision | Arijit | Approve Apache-2.0, MIT, source-available, beta license, or legal review | `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md` |
-| Final license expression | Open | Depends on license decision | Codex | After approval, update `pyproject.toml` and package metadata | `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md` |
-| `LICENSE` file | Open | Depends on license decision | Codex | After approval, add the selected license file and rebuild artifacts | `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md` |
+| Final license expression | Open | Depends on license decision | Codex | After approval, update `pyproject.toml`, rebuild artifacts, and run `scripts/license_release_gate_check.py` | `docs/legal/license-implementation-runbook-2026-06-29.md` |
+| `LICENSE` file | Open | Depends on license decision | Codex | After approval, add the selected license file and run the license gate helper | `docs/legal/license-implementation-runbook-2026-06-29.md` |
 | Public pricing and hosted usage limits | Open | Arijit decision | Arijit | Approve finite hosted beta pricing or choose subscription/credit model | `docs/product/hosted-economics-and-usage-limits.md` |
 | Registry publishing policy | Open | Arijit decision | Arijit | Approve artifact-only beta tag policy or keep branch installs only | `docs/product/registry-publishing-policy-2026-06-29.md` |
 | GitHub release workflow on real `v*` tag | Open | Depends on registry/tag approval | Codex | After approval, create one private-beta tag and record workflow URL | `docs/product/registry-publishing-policy-2026-06-29.md` |

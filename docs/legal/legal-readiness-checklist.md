@@ -20,6 +20,8 @@ Status: Draft for private beta planning
   commercial/proprietary, or dual-license.
   Evidence brief:
   `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`.
+  Implementation runbook:
+  `docs/legal/license-implementation-runbook-2026-06-29.md`.
   Current recommendation is Apache-2.0 local/core plus hosted/service
   monetization, but Arijit approval is still required.
 
