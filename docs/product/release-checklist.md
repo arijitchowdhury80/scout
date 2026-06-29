@@ -112,8 +112,16 @@ No public registry publish should happen until these decisions are closed.
 ## Beta Operations Gates
 
 - [x] Private beta feedback templates.
-- [ ] Support contact/channel confirmed.
-- [ ] Beta tester onboarding instructions verified.
+- [x] Support contact/channel confirmed.
+      Evidence: `docs/product/private-beta-onboarding-and-support.md`.
+      Result: non-security beta support uses GitHub private-beta bug and
+      feature issue templates; security reports stay private through
+      `SECURITY.md`; beta response targets and support boundaries are documented.
+- [x] Beta tester onboarding instructions verified.
+      Evidence: `docs/product/private-beta-onboarding-and-support.md`.
+      Result: onboarding now covers local package, Docker, hosted API, and
+      skill usage paths; first-run smoke commands; artifact inspection; and
+      feedback expectations without secrets.
 - [x] Hosted API key generation flow verified.
       Evidence:
       `docs/security/hosted-key-generation-delivery-review-2026-06-28.md`.

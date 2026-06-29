@@ -111,6 +111,11 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Hosted beta checkout",
             "/v1/billing/stripe/checkout-session",
             "Private beta is limited",
+            "Beta support is evidence-first.",
+            "private beta bug template",
+            "private beta feature template",
+            "Keep secrets out",
+            "Security reports should not be filed as public issues.",
         ],
         "legal.html": [
             "Scout Legal And Third-Party Notices",

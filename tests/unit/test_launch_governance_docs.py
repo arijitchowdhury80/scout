@@ -50,6 +50,39 @@ def test_private_beta_issue_templates_exist_and_route_feedback() -> None:
     assert "What workflow are you trying to complete?" in feature_text
 
 
+def test_private_beta_support_and_onboarding_playbook_closes_beta_ops_gates() -> None:
+    playbook = _read("docs/product/private-beta-onboarding-and-support.md")
+    checklist = _read("docs/product/release-checklist.md")
+    launch_plan = _read("docs/product/private-beta-launch-plan.md")
+
+    assert "Private Beta Onboarding And Support" in playbook
+    assert "GitHub issue templates" in playbook
+    assert ".github/ISSUE_TEMPLATE/private_beta_bug.yml" in playbook
+    assert ".github/ISSUE_TEMPLATE/private_beta_feature.yml" in playbook
+    assert "Security reports must not be filed as public GitHub issues" in playbook
+    assert "Best-effort private beta targets" in playbook
+    assert "Hosted key/payment access issue" in playbook
+    assert "Choose A Path" in playbook
+    assert "Local package" in playbook
+    assert "Docker" in playbook
+    assert "Hosted beta" in playbook
+    assert "Skill" in playbook
+    assert "pip install" in playbook
+    assert "/v1/hosted/me" in playbook
+    assert "/v1/hosted/scrape" in playbook
+    assert "source_pages.json" in playbook
+    assert "extraction_report.md" in playbook
+    assert "Do not include" in playbook
+    assert "API keys" in playbook
+    assert "cookies" in playbook
+    assert "private customer data" in playbook
+    assert "- [x] Support contact/channel confirmed." in checklist
+    assert "- [x] Beta tester onboarding instructions verified." in checklist
+    assert "docs/product/private-beta-onboarding-and-support.md" in checklist
+    assert "Add private beta support channel and onboarding guide" in launch_plan
+    assert "private beta issue templates" in launch_plan
+
+
 def test_release_checklist_blocks_public_launch_until_decisions_are_closed() -> None:
     checklist = _read("docs/product/release-checklist.md")
 

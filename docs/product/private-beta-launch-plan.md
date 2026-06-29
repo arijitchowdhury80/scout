@@ -52,6 +52,7 @@ Tasks:
 - [ ] Add feature list, differentiation, legal readiness, and third-party notices.
 - [ ] Add a private-beta website page.
 - [ ] Add a quickstart demo script.
+- [x] Add private beta support channel and onboarding guide.
 
 ### Phase 2: Private Beta
 
@@ -72,6 +73,9 @@ Success criteria:
 - user can find output artifacts,
 - user understands blocked evidence,
 - user can explain Scout's value back in one sentence.
+- user can file feedback with non-sensitive run evidence through the private
+  beta issue templates in `.github/ISSUE_TEMPLATE/`.
+- private beta issue templates are the default non-security support channel.
 
 ### Phase 3: Public Developer Preview
 

@@ -36,12 +36,16 @@ Hosted beta checkout:
   API are same-origin when launched through `scout serve`.
 - The page never contains Stripe secret keys; it only handles the returned
   `checkout_url` and redirects the user to Stripe.
+- The beta page also describes support expectations: GitHub private-beta issue
+  templates for non-security feedback, private reporting for vulnerabilities,
+  and no secrets in public issues.
 
 Next website tasks:
 
 - [x] Replace static hosted-beta CTA with checkout-session form.
 - [x] Add quickstart, pricing, and private beta onboarding pages.
 - [x] Add legal/third-party notices website page.
+- [x] Add private beta support and onboarding guidance.
 - [ ] Add a short product demo GIF/video.
 - [ ] Add a separate docs-site if/when Swagger `/docs` is not enough.
 - [x] Validate responsive layout in browser.
