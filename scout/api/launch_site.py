@@ -68,6 +68,13 @@ async def launch_site_quickstart() -> FileResponse:
     return _launch_site_page("quickstart.html")
 
 
+@router.get("/guide")
+@router.get("/guide.html")
+async def launch_site_guide() -> FileResponse:
+    """Serve the Scout developer guide page."""
+    return _launch_site_page("guide.html")
+
+
 @router.get("/pricing")
 @router.get("/pricing.html")
 async def launch_site_pricing() -> FileResponse:

@@ -24,12 +24,15 @@ Public website paths served by `scout serve`:
 - `/` - launch homepage.
 - `/assets/scout-product-demo.gif` - beta-safe product demo GIF used by the homepage.
 - `/quickstart` - local install, Docker, workdir, and first-run guidance.
+- `/guide` - human developer guide for choosing local, hosted, HTTP, CLI, and
+  skill usage before opening Swagger.
 - `/examples` - beta-safe workflow examples and artifact expectations.
 - `/pricing` - local-free and hosted-metered pricing posture.
 - `/beta` - local-vs-hosted beta path and hosted checkout form.
 - `/legal` - third-party notices, attribution, legal-readiness boundaries, and
   beta use cautions.
-- `/docs` - FastAPI/Swagger API docs, intentionally preserved for developers.
+- `/docs` - FastAPI/Swagger API docs, intentionally preserved for exact API
+  schemas.
 
 Hosted beta checkout:
 
@@ -46,9 +49,10 @@ Next website tasks:
 
 - [x] Replace static hosted-beta CTA with checkout-session form.
 - [x] Add quickstart, pricing, and private beta onboarding pages.
+- [x] Add human developer guide while keeping `/docs` as Swagger.
 - [x] Add beta-safe examples page.
 - [x] Add legal/third-party notices website page.
 - [x] Add private beta support and onboarding guidance.
 - [x] Add a short product demo GIF/video.
-- [ ] Add a separate docs-site if/when Swagger `/docs` is not enough.
+- [x] Add a separate docs-site if/when Swagger `/docs` is not enough.
 - [x] Validate responsive layout in browser.

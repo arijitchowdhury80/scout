@@ -32,6 +32,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/examples.html",
             "/assets/scout-product-demo.gif",
             "/favicon.ico",
+            "/guide",
+            "/guide.html",
             "/health",
             "/legal",
             "/legal.html",

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scout Developer Guide - Local, hosted, and skill usage</title>
+    <meta
+      name="description"
+      content="Choose the right Scout surface, configure local workdirs and auth, use hosted beta API keys, and inspect artifacts."
+    />
+    <link
+      rel="icon"
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%2318181b"/><text x="32" y="42" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" font-weight="900" fill="%23ebebe8">S</text></svg>'
+    />
+    <link rel="stylesheet" href="./assets/warm-industrial-design-system/warm-industrial.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="wi">
+    <div class="wi-grid-bg" aria-hidden="true"><div class="wi-grid-bg__inner"></div></div>
+    <div class="wi-noise" aria-hidden="true"></div>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Scout home">
+          <span class="brand-mark">S</span>
+          <span><strong>Scout</strong><small>Evidence-grade acquisition</small></span>
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="/quickstart">Quickstart</a>
+          <a href="/guide">Guide</a>
+          <a href="/examples">Examples</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/status">Status</a>
+          <a href="/beta">Private beta</a>
+          <a href="/legal">Legal</a>
+          <a href="/docs">API docs</a>
+        </nav>
+        <a class="wi-pill nav-cta" href="/quickstart">Install locally</a>
+      </header>
+
+      <main>
+        <section class="page-hero">
+          <p class="wi-label wi-label--accent">Scout Developer Guide</p>
+          <h1>Choose the right Scout surface before you run.</h1>
+          <p>
+            Use this guide when you need operating judgment: local versus
+            hosted, CLI versus HTTP, workdir setup, auth headers, and what to
+            inspect after a run. Swagger API docs remain at /docs for exact
+            request and response schemas.
+          </p>
+        </section>
+
+        <section class="section step-section" aria-labelledby="surface-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Surfaces</p>
+            <h2 id="surface-title">Pick the interface that matches the job.</h2>
+          </div>
+          <div class="check-grid">
+            <article>
+              <h3>Local CLI</h3>
+              <p>Best for repeatable local runs, scripts, saved workdirs, and quick product exports.</p>
+              <pre><code>scout scrape https://example.com
+scout products books --site books.toscrape.com</code></pre>
+            </article>
+            <article>
+              <h3>Local HTTP service</h3>
+              <p>Best when agents, notebooks, or local apps need a controlled acquisition service.</p>
+              <pre><code>export SCOUT_API_KEY="dev-key"
+scout serve
+curl -H "X-API-Key: dev-key" http://127.0.0.1:8421/health</code></pre>
+            </article>
+            <article>
+              <h3>Hosted beta API</h3>
+              <p>Best for approved testers who need a convenience endpoint with finite hosted credits.</p>
+              <pre><code>curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"</code></pre>
+            </article>
+            <article>
+              <h3>Claude/Codex skill backend</h3>
+              <p>Best when an agent needs Scout as a local evidence-preserving acquisition tool.</p>
+              <pre><code>Use Scout locally, then inspect records and source evidence before trusting the answer.</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="section step-section" aria-labelledby="auth-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Auth and workdir</p>
+            <h2 id="auth-title">Keep credentials separate from artifacts.</h2>
+          </div>
+          <div class="note-grid">
+            <article>
+              <h3>SCOUT_WORKDIR</h3>
+              <p>Set `SCOUT_WORKDIR` so local runs write artifacts somewhere predictable.</p>
+              <pre><code>export SCOUT_WORKDIR="$PWD/scout-runs"</code></pre>
+            </article>
+            <article>
+              <h3>X-API-Key</h3>
+              <p>Local authenticated routes use the `X-API-Key` header. Do not expose local Scout without setting a non-default key.</p>
+              <pre><code>curl -X POST http://127.0.0.1:8421/scrape \
+  -H "X-API-Key: dev-key" \
+  -H "Content-Type: application/json"</code></pre>
+            </article>
+            <article>
+              <h3>Authorization: Bearer</h3>
+              <p>Hosted beta routes use Bearer tokens. Hosted keys are finite-credit credentials, not unlimited access.</p>
+              <pre><code>curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"</code></pre>
+            </article>
+            <article>
+              <h3>Secrets</h3>
+              <p>Put local secrets in `.env.local` or shell environment. Do not put keys in screenshots, issue text, public repos, or run artifacts.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section step-section" aria-labelledby="artifact-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Artifacts</p>
+            <h2 id="artifact-title">A successful run is inspectable after the command exits.</h2>
+          </div>
+          <div class="check-grid">
+            <article><h3>records.json</h3><p>Structured records from the run.</p></article>
+            <article><h3>source_pages.json</h3><p>Source registry with provider, URL, status, timestamps, and hashes.</p></article>
+            <article><h3>blocked_pages.json</h3><p>Blocked or failed pages with reasons where available.</p></article>
+            <article><h3>extraction_report.md</h3><p>Human-readable summary for review and handoff.</p></article>
+          </div>
+        </section>
+
+        <section class="section step-section" aria-labelledby="boundaries-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Boundaries</p>
+            <h2 id="boundaries-title">Know what this beta does not promise.</h2>
+          </div>
+          <div class="note-grid">
+            <article>
+              <h3>No unlimited hosted crawling</h3>
+              <p>Hosted beta has finite standard credits, browser credits, page limits, retention limits, and concurrency limits.</p>
+            </article>
+            <article>
+              <h3>No certified legacy /app UI claim</h3>
+              <p>The beta launch surface is CLI, HTTP API, Docker, skill docs, hosted beta API, this website, and artifact evidence.</p>
+            </article>
+            <article>
+              <h3>Swagger API docs remain at /docs</h3>
+              <p>Open `/docs` when you need endpoint schemas. Use this guide when you need workflow and operating context.</p>
+            </article>
+            <article>
+              <h3>Public launch remains blocked</h3>
+              <p>License, legal, registry, Stripe real test-mode, dependency audit, and publishing gates still need closure before broad public launch.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div class="footer-links">
+          <a href="/quickstart">Quickstart</a>
+          <a href="/guide">Guide</a>
+          <a href="/examples">Examples</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/status">Status</a>
+          <a href="/beta">Private beta</a>
+          <a href="/legal">Legal</a>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

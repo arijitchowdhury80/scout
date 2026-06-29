@@ -42,6 +42,7 @@ python3 -m scout.cli serve --host 127.0.0.1 --port 18423
 | `/?checkout=success` | Stripe checkout return status for successful hosted beta payment | Pass |
 | `/?checkout=cancelled` | Stripe checkout return status for cancelled hosted beta checkout | Pass |
 | `/quickstart` | `Scout Quickstart - Local-first web acquisition` | Pass |
+| `/guide` | `Scout Developer Guide - Local, hosted, and skill usage` | Pass |
 | `/examples` | `Scout Examples - Beta-safe workflows` | Pass |
 | `/pricing` | `Scout Pricing - Free local, metered hosted beta` | Pass |
 | `/status` | `Scout Launch Status - Private beta readiness` | Pass |
@@ -86,6 +87,9 @@ Additional demo media smoke was run with Playwright Chromium against
 
 - The static launch website files exist and are covered by unit tests.
 - The Scout HTTP service serves the public website routes without API auth.
+- The human developer guide at `/guide` explains local CLI, local HTTP, hosted
+  beta API, skill backend, workdir, auth headers, artifact inspection, and the
+  boundary between guide content and Swagger `/docs`.
 - The homepage includes a beta-safe product demo GIF that shows URL ->
   evidence -> records -> exports without claiming hard-site bypass.
 - The `/status` page exposes the current private-beta/public-launch verdict,

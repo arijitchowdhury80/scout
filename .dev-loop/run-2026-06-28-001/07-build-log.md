@@ -195,6 +195,43 @@ Verification:
 - Launch-readiness smoke -> private beta `ready_with_limits`, public launch
   `blocked`, Codex-actionable now `0`.
 
+## Follow-Up Checkpoint - Launch Website Developer Guide
+
+Date: 2026-06-29
+
+Built:
+
+- `website/guide.html`
+- public `/guide` and `/guide.html` launch-site routes
+- auth allowlist entries for the new guide routes
+- launch-site navigation links to Guide
+- website README update marking a human docs guide complete while preserving
+  Swagger at `/docs`
+- frontend-builder workspace notes for the developer guide
+
+Behavior:
+
+- Gives beta testers one human-readable page for choosing Local CLI, Local HTTP
+  service, Hosted beta API, or Claude/Codex skill backend.
+- Documents `SCOUT_WORKDIR`, local `X-API-Key`, hosted `Authorization: Bearer`,
+  `/v1/hosted/me`, `/v1/hosted/scrape`, and artifact inspection.
+- Keeps `/docs` as Swagger API docs for exact endpoint schemas.
+- Repeats launch boundaries: no unlimited hosted crawling and no certified
+  legacy `/app` UI claim.
+
+TDD:
+
+- RED: focused website tests failed because `website/guide.html` did not exist
+  and `/guide` returned `403`.
+- GREEN: focused tests passed after adding the page, routes, and auth allowlist.
+
+Verification:
+
+- `python3 -m pytest tests/unit/website/test_launch_website.py::test_launch_website_has_beta_onboarding_pages tests/unit/website/test_launch_website.py::test_api_serves_launch_website_beta_onboarding_pages_without_auth -q` -> `2 passed, 2 warnings`.
+- `python3 -m pytest tests/unit/website/test_launch_website.py -q` -> `12 passed, 2 warnings`.
+- `python3 -m pytest tests/unit/test_launch_governance_docs.py -q` -> `29 passed`.
+- Playwright Chromium against `scout serve --host 127.0.0.1 --port 8769` -> desktop and mobile loaded `/guide`, showed the local CLI, hosted beta API, and Swagger boundary sections, and had no console errors.
+
 ## Follow-Up Checkpoint - Hosted Admission Service
 
 Date: 2026-06-28
