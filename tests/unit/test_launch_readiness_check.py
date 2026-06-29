@@ -17,7 +17,10 @@ def test_launch_readiness_report_marks_private_beta_ready_and_public_blocked() -
 
     assert report["private_beta"]["status"] == "ready_with_limits"
     assert report["public_launch"]["status"] == "blocked"
-    assert len(report["private_beta"]["checks"]) >= 7
+    private_beta_areas = {check["area"] for check in report["private_beta"]["checks"]}
+    assert len(report["private_beta"]["checks"]) >= 9
+    assert "hosted operating contract" in private_beta_areas
+    assert "scalability and security launch audit" in private_beta_areas
     assert all(check["status"] == "verified" for check in report["private_beta"]["checks"])
 
     blocker_areas = {blocker["area"] for blocker in report["public_launch"]["blockers"]}

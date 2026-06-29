@@ -47,6 +47,16 @@ PRIVATE_BETA_EVIDENCE = [
         "freshly generated hosted beta key",
     ),
     (
+        "hosted operating contract",
+        "docs/product/hosted-operating-contract-2026-06-29.md",
+        "Private-beta hosted operating contract",
+    ),
+    (
+        "scalability and security launch audit",
+        "docs/product/scalability-security-audit-2026-06-29.md",
+        "Private-beta scale/security audit",
+    ),
+    (
         "skill usage",
         "docs/product/skill-usage-verification-2026-06-29.md",
         "skill CLI examples",
