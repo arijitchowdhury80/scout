@@ -13,6 +13,9 @@ Current decision dashboard:
 Current launch gate burndown:
 `docs/product/launch-gate-burndown-2026-06-29.md`.
 
+Current launch evidence index:
+`docs/product/launch-evidence-index-2026-06-29.md`.
+
 Current decision request memo:
 `docs/product/launch-decision-request-2026-06-29.md`.
 

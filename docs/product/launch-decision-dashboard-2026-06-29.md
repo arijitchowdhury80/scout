@@ -11,6 +11,9 @@ into one operating view.
 Decision request memo:
 `docs/product/launch-decision-request-2026-06-29.md`.
 
+Evidence index:
+`docs/product/launch-evidence-index-2026-06-29.md`.
+
 ## Current Verdict
 
 Scout is not ready for public launch.

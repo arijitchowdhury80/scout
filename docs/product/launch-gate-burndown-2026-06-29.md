@@ -12,6 +12,9 @@ blocker types, and next actions.
 Consolidated decision request:
 `docs/product/launch-decision-request-2026-06-29.md`.
 
+Launch evidence index:
+`docs/product/launch-evidence-index-2026-06-29.md`.
+
 ## Current Verdict
 
 Scout is not public-launch-ready.

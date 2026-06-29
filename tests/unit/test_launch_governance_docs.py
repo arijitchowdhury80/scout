@@ -441,3 +441,77 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
     assert "Current launch gate burndown" in checklist
     assert "docs/product/launch-gate-burndown-2026-06-29.md" in checklist
     assert "docs/product/launch-decision-dashboard-2026-06-29.md" in checklist
+
+
+def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> None:
+    evidence = _read("docs/product/launch-evidence-index-2026-06-29.md")
+    checklist = _read("docs/product/release-checklist.md")
+    dashboard = _read("docs/product/launch-decision-dashboard-2026-06-29.md")
+    burndown = _read("docs/product/launch-gate-burndown-2026-06-29.md")
+
+    assert "Scout Launch Evidence Index" in evidence
+    assert "What is actually verified, what is blocked, and where is the proof?" in evidence
+    assert "Scout is credible for controlled private beta with limits." in evidence
+    assert "Scout is not public-launch-ready." in evidence
+    assert "If a claim is not listed here with a proof file, treat it as unverified." in evidence
+    assert "Do not claim" in evidence
+    assert "certified legacy `/app` UI" in evidence
+    assert "unlimited hosted crawling" in evidence
+    assert "guaranteed hard-site bypass" in evidence
+
+    required_proof_files = [
+        "docs/product/website-route-render-verification-2026-06-29.md",
+        "docs/product/website-copy-review-2026-06-28.md",
+        "docs/competetor-website-knowledge/",
+        "docs/product/local-install-verification-2026-06-28.md",
+        "docs/product/docker-install-verification-2026-06-28.md",
+        "docs/product/hosted-api-quickstart-verification-2026-06-28.md",
+        "docs/product/skill-usage-verification-2026-06-29.md",
+        "docs/product/product-export-generalization-verification-2026-06-29.md",
+        "docs/product/hosted-economics-and-usage-limits.md",
+        "docs/product/stripe-test-mode-readiness-2026-06-29.md",
+        "scripts/stripe_test_mode_smoke.py",
+        "scripts/release_artifact_smoke.py",
+        "scripts/docker_image_smoke.py",
+        "docs/legal/scout-license-distribution-decision-brief-2026-06-29.md",
+        "docs/legal/license-implementation-runbook-2026-06-29.md",
+        "scripts/license_release_gate_check.py",
+        "docs/security/dependency-audit-refresh-2026-06-29.md",
+        "docs/security/crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md",
+        "docs/product/private-beta-onboarding-and-support.md",
+        ".github/ISSUE_TEMPLATE/private_beta_bug.yml",
+        ".github/ISSUE_TEMPLATE/private_beta_feature.yml",
+    ]
+    for proof_file in required_proof_files:
+        assert proof_file in evidence
+
+    required_boundaries = [
+        "Does not certify the legacy `/app` UI.",
+        "This is a branch/private-beta install path, not PyPI.",
+        "Image publishing to GHCR/Docker Hub is not approved.",
+        "Hosted beta remains approved-testers-only.",
+        "Real Stripe test-mode payment and webhook are still open.",
+        "No approved release tag has been run yet.",
+        "No published image is approved yet.",
+        "No license decision is approved",
+        "Public launch remains blocked until the audit is clean",
+    ]
+    for boundary in required_boundaries:
+        assert boundary in evidence
+
+    open_gates = [
+        "Scout license",
+        "Final license expression",
+        "`LICENSE` file",
+        "Public pricing and hosted usage limits",
+        "Registry publishing policy",
+        "Crawl4AI/lxml risk",
+        "Stripe real test-mode smoke",
+        "Final hosted terms/privacy",
+    ]
+    for gate in open_gates:
+        assert gate in evidence
+
+    assert "docs/product/launch-evidence-index-2026-06-29.md" in checklist
+    assert "docs/product/launch-evidence-index-2026-06-29.md" in dashboard
+    assert "docs/product/launch-evidence-index-2026-06-29.md" in burndown
