@@ -276,3 +276,24 @@ def test_license_distribution_decision_brief_keeps_release_gates_open() -> None:
     assert "- [ ] `LICENSE` file added if Scout is open source or source-available." in checklist
     assert "scout-license-distribution-decision-brief-2026-06-29.md" in checklist
     assert "scout-license-distribution-decision-brief-2026-06-29.md" in legal_checklist
+
+
+def test_registry_publishing_policy_blocks_public_registries_until_approved() -> None:
+    policy = _read("docs/product/registry-publishing-policy-2026-06-29.md")
+    checklist = _read("docs/product/release-checklist.md")
+    distribution = _read("docs/product/distribution-package-plan.md")
+
+    assert "Registry Publishing Policy" in policy
+    assert "Policy recommended; approval required before registry publishing." in policy
+    assert "`v*` tags may create a GitHub Release" in policy
+    assert "must **not** publish to PyPI" in policy
+    assert "must **not** push Docker images to GHCR or Docker Hub" in policy
+    assert "twine upload" in policy
+    assert "docker/build-push-action" in policy
+    assert "PyPI first if license/security gates close" in policy
+    assert "GHCR before Docker Hub" in policy
+    assert "Defer Docker Hub until there is user demand" in policy
+    assert "- [ ] Registry publishing policy approved" in checklist
+    assert "- [ ] Docker image publishing policy approved." in checklist
+    assert "docs/product/registry-publishing-policy-2026-06-29.md" in checklist
+    assert "docs/product/registry-publishing-policy-2026-06-29.md" in distribution

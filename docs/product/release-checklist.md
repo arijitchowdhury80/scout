@@ -38,6 +38,8 @@ The legacy app UI is not a launch surface until it is rebuilt and certified.
       registries.
       Decision brief:
       `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`.
+      Registry policy:
+      `docs/product/registry-publishing-policy-2026-06-29.md`.
       Result: no PyPI, Docker Hub, GHCR, or broad public release artifact
       publishing until Scout's own license and package visibility are approved.
 
@@ -60,6 +62,9 @@ No public registry publish should happen until these decisions are closed.
 - [x] Docker runtime smoke for `/`.
 - [x] Docker runtime smoke for `/styles.css`.
 - [ ] Docker image publishing policy approved.
+      Policy brief: `docs/product/registry-publishing-policy-2026-06-29.md`.
+      Recommendation: GHCR before Docker Hub, after image visibility,
+      provenance, and post-publish smoke gates are approved.
 - [ ] Published Docker image smoke-tested if GHCR, Docker Hub, or another
       registry is used.
 

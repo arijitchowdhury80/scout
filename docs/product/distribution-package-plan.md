@@ -105,6 +105,10 @@ Before public package release:
       package/container registry.
 - [ ] Add registry publishing only after license and distribution policy are
       final.
+      Policy brief: `docs/product/registry-publishing-policy-2026-06-29.md`.
+      Current recommendation: private-beta release tags are artifact-only;
+      PyPI is the first public registry after license/security gates; GHCR is
+      the first container registry after image policy gates.
 
 ## GitHub Readiness
 
@@ -137,6 +141,18 @@ Current release automation is intentionally artifact-first:
 This does not publish to PyPI, GHCR, Docker Hub, or any other registry yet.
 That is deliberate until Scout's license, package visibility, and hosted/local
 distribution policy are final.
+
+Registry policy:
+
+- Private beta tags should remain GitHub Release artifact-only.
+- PyPI should be the first public registry if Scout local/core is approved as
+  Apache-2.0, MIT, or another publishable license.
+- GHCR should be the first container registry if container publishing is
+  approved.
+- Docker Hub should be deferred until user demand justifies the extra support
+  surface.
+
+See `docs/product/registry-publishing-policy-2026-06-29.md`.
 
 ## Launch Governance
 

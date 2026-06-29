@@ -55,3 +55,25 @@ def test_release_workflow_smokes_docker_and_uploads_release_assets() -> None:
     assert "curl -fsS http://127.0.0.1:18422/styles.css" in commands
     assert "softprops/action-gh-release" in uses
     assert "actions/upload-artifact" in uses
+
+
+def test_release_workflow_remains_artifact_only_until_registry_policy_is_approved() -> None:
+    workflow = _load_release_workflow()
+    commands = _all_run_commands(workflow)
+    uses = _all_uses(workflow)
+
+    forbidden_commands = [
+        "twine upload",
+        "docker push",
+        "docker login",
+    ]
+    forbidden_actions = [
+        "pypa/gh-action-pypi-publish",
+        "docker/login-action",
+        "docker/build-push-action",
+    ]
+
+    for command in forbidden_commands:
+        assert command not in commands
+    for action in forbidden_actions:
+        assert action not in uses
