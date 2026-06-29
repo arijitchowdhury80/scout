@@ -29,7 +29,7 @@ def test_launch_website_exposes_hosted_beta_checkout_form_without_secrets() -> N
     assert "Run ledger" in html
     assert "Beta operating model" in html
     assert "Local free" in html
-    assert "Hosted finite credits" in html
+    assert "Hosted metered credits" in html
     assert "Artifacts owned by you" in html
     assert "Hosted crawlers return content. Scout returns an evidence trail." in html
     assert "Product data should not be trapped in one destination." in html
@@ -67,8 +67,8 @@ def test_launch_website_states_current_launch_readiness_boundaries() -> None:
     assert "Public launch is blocked" in normalized_html
     assert "Crawl4AI currently resolves lxml 5.4.0" in normalized_html
     assert "Private beta is limited" in normalized_html
-    assert "Hosted finite credits" in normalized_html
-    assert "$22 buys a capped hosted beta pass" in normalized_html
+    assert "Hosted metered credits" in normalized_html
+    assert "Pricing is not approved yet" in normalized_html
     assert "No clean security claim" in normalized_html
     assert "Local install remains the primary path" in normalized_html
     assert "dependency audit is clean" in normalized_html
@@ -139,22 +139,18 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "SCOUT_HOSTED_API_KEY",
             "/v1/hosted/me",
             "/v1/hosted/scrape",
-            "finite credits",
-            "2,000 standard credits",
-            "100 browser credits",
-            "7-day artifact retention",
-            "100 pages per run",
+            "invite-only and metered",
+            "unit economics",
+            "Final credits, retention, and overage",
         ],
         "pricing.html": [
             "Scout Pricing",
             "Free local beta",
-            "$22 hosted beta pass",
-            "finite hosted credits",
-            "2,000 standard credits",
-            "100 browser credits",
-            "7-day artifact retention",
-            "100 pages per run",
-            "1 concurrent hosted run",
+            "Metered",
+            "Hosted private beta",
+            "Pay-as-you-go candidate",
+            "unit economics",
+            "No arbitrary one-time price",
             "No unlimited hosted crawling",
         ],
         "examples.html": [
@@ -207,7 +203,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "legal_implementation: 4",
             "Decision packet for Arijit",
             "License: Apache-2.0 for Scout local/core",
-            "Pricing: keep $22 as a finite-credit hosted beta pass",
+            "Pricing: derive hosted pricing from unit economics",
             "Publishing: artifact-only private-beta v* tag first",
             "Public hosted: do not approve public self-serve hosted launch yet",
             "license-decision",
@@ -237,10 +233,9 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Tester handoff packet",
             "docs/product/private-beta-tester-handoff.md",
             "Hosted beta checkout",
-            "2,000 standard credits",
-            "100 browser credits",
-            "7-day artifact retention",
-            "100 pages per run",
+            "unit economics are",
+            "Final credits, price, retention, and overage rules",
+            "Limited credits, not",
             "/v1/billing/stripe/checkout-session",
             "Private beta is limited",
             "Run the launch readiness checker.",

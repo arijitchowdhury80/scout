@@ -1,6 +1,24 @@
 # Pricing And Payment Recommendation
 
 Date: 2026-06-28
+Updated: 2026-06-29
+
+## 2026-06-29 Pricing Update
+
+The earlier `$22` hosted beta pass and `$9/month` starter concepts are no
+longer recommended prices. Arijit rejected them as arbitrary. They remain in
+this document only as historical examples of finite-credit thinking, not as
+approved pricing.
+
+The active plan is now:
+
+- free local beta;
+- invite-only hosted free allowance for validation;
+- pay-as-you-go or prepaid hosted credits as the first paid model;
+- subscriptions only after usage telemetry supports predictable recurring
+  value;
+- pricing derived from the unit-economics model in
+  `docs/product/unit-economics-and-pricing-model-2026-06-29.md`.
 
 ## Market Pattern
 
@@ -28,13 +46,17 @@ evidence snapshot.
    Hosted fetches, browser minutes, screenshots, LLM calls, storage, and retries
    cost money.
 
-3. **One-time payment can be a beta offer, not unlimited service.**
-   A $22 one-time plan can work only with hard limits.
+3. **One-time payment is not the default recommendation.**
+   If used at all, a one-time beta pack must be finite, capped, and justified by
+   measured costs.
 
 4. **Do not sell "unlimited hard-site scraping."**
    That is operationally and legally risky.
 
-## Recommended Pricing For Private Beta
+## Historical Pricing Sketch For Private Beta
+
+This section is superseded by the 2026-06-29 update above. Do not use these
+numbers on the public website or checkout flow without a new founder approval.
 
 ### Local
 
@@ -132,9 +154,9 @@ Bad scenario:
 The one-time offer should buy **credits/access**, not unlimited hosted
 infrastructure.
 
-## Recommendation After Market Refresh
+## Superseded Recommendation After Market Refresh
 
-Launch with:
+The prior recommendation was:
 
 1. **Local free** as the main distribution path.
 2. **$22 hosted beta pass** as finite credits for early adopters.
@@ -146,16 +168,18 @@ Launch with:
 5. **Separate browser credits** because browser rendering costs materially more
    than simple HTTP acquisition.
 
+Updated recommendation: replace step 2 and the `$9/month` examples with a
+unit-economics-driven pay-as-you-go/prepaid credit model.
+
 ## Decision Boundary For Launch
 
 The launch site can show the private-beta offer, but it should not imply that
 hosted Scout is generally self-serve or unlimited.
 
-Approved beta-safe copy:
+Previous beta-safe copy, now superseded:
 
 ```text
-Hosted beta pass: $22 one-time.
-Includes finite hosted credits for approved testers.
+Hosted beta pass: finite hosted credits for approved testers.
 Local Scout remains free.
 Browser-heavy workflows use separate, smaller credits.
 ```

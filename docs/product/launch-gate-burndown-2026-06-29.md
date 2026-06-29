@@ -50,7 +50,7 @@ Stripe test-mode setup before implementation can safely proceed.
 | License decision | Open | Arijit decision | Arijit | Approve Apache-2.0, MIT, source-available, beta license, or legal review | `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md` |
 | Final license expression | Open | Depends on license decision | Codex | After approval, update `pyproject.toml`, rebuild artifacts, and run `scripts/license_release_gate_check.py` | `docs/legal/license-implementation-runbook-2026-06-29.md` |
 | `LICENSE` file | Open | Depends on license decision | Codex | After approval, add the selected license file and run the license gate helper | `docs/legal/license-implementation-runbook-2026-06-29.md` |
-| Public pricing and hosted usage limits | Open | Arijit decision | Arijit | Approve finite hosted beta pricing or choose subscription/credit model | `docs/product/hosted-economics-and-usage-limits.md` |
+| Public pricing and hosted usage limits | Open | Arijit decision | Arijit | Approve unit-economics-derived pricing; likely free local plus pay-as-you-go/prepaid hosted credits | `docs/product/hosted-economics-and-usage-limits.md`; `docs/product/unit-economics-and-pricing-model-2026-06-29.md` |
 | Registry publishing policy | Open | Arijit decision | Arijit | Approve artifact-only beta tag policy or keep branch installs only | `docs/product/registry-publishing-policy-2026-06-29.md` |
 | GitHub release workflow on real `v*` tag | Open | Depends on registry/tag approval | Codex | After approval, create one private-beta tag and record workflow URL | `docs/product/registry-publishing-policy-2026-06-29.md` |
 | Release artifact download smoke | Open | Depends on `v*` release artifact | Codex | Download wheel/sdist from GitHub Release and run `scripts/release_artifact_smoke.py --dist-dir ... --serve` | `docs/product/registry-publishing-policy-2026-06-29.md` |
@@ -95,7 +95,7 @@ These can be done immediately after the named dependency is satisfied:
 
 1. Choose license.
 2. Choose private-beta posture for the Crawl4AI/lxml blocker.
-3. Confirm whether `$22` finite hosted beta remains the private-beta offer.
+3. Fill and approve the unit-economics model before restoring hosted checkout or public pricing claims.
 4. Approve or defer artifact-only private-beta release tags.
 5. Provide Stripe test-mode setup when payment gate is ready to close.
 

@@ -10,8 +10,6 @@ from pathlib import Path
 import re
 from typing import Any
 
-from scout.core.platform.hosted import HostedPlan, plan_limits
-
 
 @dataclass(frozen=True)
 class EvidenceCheck:
@@ -183,7 +181,10 @@ PUBLIC_BLOCKER_REMEDIATION = {
     },
     "public pricing and hosted usage limits": {
         "owner": "Arijit",
-        "next_action": "Approve public pricing or explicitly keep only the finite private-beta pass.",
+        "next_action": (
+            "Approve a unit-economics-derived pricing structure before restoring "
+            "checkout or public hosted pricing."
+        ),
         "closure_evidence": "Founder decision record and website/pricing docs updated to match the approved policy.",
         "codex_actionable_now": False,
     },
@@ -301,13 +302,11 @@ def _private_beta_checks(root: Path) -> list[EvidenceCheck]:
 
 
 def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
-    """Verify website pages expose the code-aligned hosted beta limits."""
-    limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
+    """Verify website pages expose the current hosted pricing posture."""
     required_markers = [
-        f"{limits.standard_credits:,} standard credits",
-        f"{limits.browser_credits:,} browser credits",
-        f"{limits.artifact_retention_days}-day artifact retention",
-        f"{limits.max_pages_per_run:,} pages per run",
+        "metered",
+        "unit economics",
+        "unlimited",
     ]
     website_pages = [
         "website/pricing.html",
@@ -318,7 +317,7 @@ def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
     missing_pages = [page for page in website_pages if not (root / page).exists()]
     if missing_pages:
         return EvidenceCheck(
-            area="website hosted beta limits",
+            area="website hosted pricing posture",
             status="missing",
             evidence=", ".join(missing_pages),
             note="Website page is missing.",
@@ -326,24 +325,24 @@ def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
 
     missing_markers: list[str] = []
     for page in website_pages:
-        content = " ".join(_read(root / page).split())
+        content = " ".join(_read(root / page).lower().split())
         for marker in required_markers:
             if marker not in content:
                 missing_markers.append(f"{page}: {marker}")
 
     if missing_markers:
         return EvidenceCheck(
-            area="website hosted beta limits",
+            area="website hosted pricing posture",
             status="weak",
             evidence=", ".join(website_pages),
-            note="Missing hosted beta limit markers: " + "; ".join(missing_markers),
+            note="Missing hosted pricing posture markers: " + "; ".join(missing_markers),
         )
 
     return EvidenceCheck(
-        area="website hosted beta limits",
+        area="website hosted pricing posture",
         status="verified",
         evidence=", ".join(website_pages),
-        note="Website exposes code-aligned hosted beta pass limits.",
+        note="Website exposes unit-economics-based hosted pricing posture.",
     )
 
 

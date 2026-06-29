@@ -76,7 +76,7 @@ Do not claim:
 | Scalability and security launch audit | Documented | `docs/product/scalability-security-audit-2026-06-29.md` | Local, Docker, and hosted private-beta scale/security posture is separated from public hosted launch requirements, including queue, object storage, distributed throttling, observability, dependency, and Stripe gates. | Public hosted API remains blocked. |
 | Skill usage docs | Verified | `docs/product/skill-usage-verification-2026-06-29.md` | Clean wheel includes `scout/skill/scout.md`; skill-oriented local Scout usage examples were checked against the package. | Skill docs are verified; this does not certify every user prompt or every target site. |
 | Product exports | Verified | `docs/product/product-export-generalization-verification-2026-06-29.md` | Product records export to JSON, JSONL, CSV, SQLite, and Google Sheets import bundles; Algolia is an adapter, not the only destination. | Direct Google Sheets API push and webhook export remain future work. |
-| Hosted economics | Documented | `docs/product/hosted-economics-and-usage-limits.md`; `docs/competetor-website-knowledge/market-pricing-refresh-2026-06-29.md` | The `$22` beta pass is finite-credit, browser/rendered work is separately metered, unlimited hosted crawling is rejected, and `scout launch-readiness --json` now reports stable id, summary, owner, next action, closure evidence, and Codex actionability for every public blocker. | Final public pricing is not approved. |
+| Hosted economics | Documented | `docs/product/hosted-economics-and-usage-limits.md`; `docs/product/unit-economics-and-pricing-model-2026-06-29.md`; `docs/competetor-website-knowledge/market-pricing-refresh-2026-06-29.md` | Arbitrary `$22`/`$9` pricing is rejected, browser/rendered/LLM work is separately metered, unlimited hosted crawling is rejected, and `scout launch-readiness --json` now reports stable id, summary, owner, next action, closure evidence, and Codex actionability for every public blocker. | Final public pricing is not approved; cost, volume, margin, and break-even assumptions must be filled before checkout/public pricing. |
 | Founder decision draft packet | Prepared | `docs/product/founder-decision-drafts/index.md` | The six current founder, risk, and shared external-smoke launch blockers have generated drafts for review, based on stable blocker IDs. | Drafts are review aids only. They are not launch approvals, not completed decision records, and not public-launch evidence until approved records pass `scout launch-decision-check`. |
 | Stripe deterministic readiness | Partially verified | `docs/product/stripe-test-mode-readiness-2026-06-29.md`; `scripts/stripe_test_mode_smoke.py` | Deterministic checkout, webhook, provisioning, and key-delivery logic has coverage; helper exists for real test-mode smoke. | Real Stripe test-mode payment and webhook are still open. |
 | Release artifact helper | Prepared | `scripts/release_artifact_smoke.py`; `tests/unit/test_release_artifact_smoke.py` | Downloaded GitHub Release artifacts can be smoke-tested once a real approved `v*` tag exists, including installed-server smoke for `/`, `/quickstart`, `/status`, `/styles.css`, and `/health`. | No approved release tag has been run yet. |
@@ -92,7 +92,7 @@ Do not claim:
 | Scout license | Arijit | Approve Apache-2.0, MIT, source-available, temporary beta license, or legal review. |
 | Final license expression | Codex after approval | Add final `pyproject.toml` expression and verify package artifacts. |
 | `LICENSE` file | Codex after approval | Add selected license file and run license release gate helper. |
-| Public pricing and hosted usage limits | Arijit | Approve public pricing, or keep only the finite `$22` private-beta pass. |
+| Public pricing and hosted usage limits | Arijit | Approve a unit-economics-derived pricing structure, likely free local plus pay-as-you-go/prepaid hosted credits. |
 | Registry publishing policy | Arijit | Approve artifact-only private-beta tag, PyPI, GHCR, Docker Hub, or defer all. |
 | Crawl4AI/lxml risk | Arijit/security | Approve limited private-beta exception or block beta expansion until audit is clean. |
 | Stripe real test-mode smoke | Arijit plus Codex | Provide Stripe test keys/webhook, complete test payment, verify hosted key delivery. |
@@ -103,7 +103,7 @@ Do not claim:
 1. Read `docs/product/launch-decision-request-2026-06-29.md`.
 2. Decide Scout local/core license.
 3. Decide Crawl4AI/lxml private-beta risk posture.
-4. Confirm finite `$22` hosted beta offer or choose a different beta model.
+4. Fill and approve the unit-economics model before restoring hosted checkout or public hosted pricing.
 5. Decide whether to approve one artifact-only private-beta release tag.
 6. Provide Stripe test-mode setup when payment verification is ready to close.
 

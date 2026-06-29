@@ -100,9 +100,10 @@ Current action costs:
 | browser render | browser | 5 |
 | browser minute | browser | 10 |
 
-The `$22` hosted beta pass maps only to finite private-beta credits. It must
-not be marketed as unlimited hosted crawling, lifetime API usage, or public
-self-serve scale.
+The previous `$22` hosted beta pass is not approved pricing. Hosted pricing
+must be derived from unit economics before checkout or public pricing claims are
+restored. Hosted Scout must still not be marketed as unlimited hosted crawling,
+lifetime API usage, or public self-serve scale.
 
 ### 5. Store And Retrieve Artifacts
 

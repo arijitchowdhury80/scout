@@ -96,12 +96,11 @@ Additional demo media smoke was run with Playwright Chromium against
   owner summary, blocker summary, and filtered readiness commands.
 - The hosted beta checkout return URLs surface success/cancel states instead
   of dropping testers back onto the site without context.
-- The website now exposes the code-aligned hosted beta pass limits: 2,000
-  standard credits, 100 browser credits, 7-day artifact retention, 100 pages
-  per run, and 1 concurrent hosted run where relevant.
-- The launch readiness checker verifies those hosted beta limit markers against
-  the current `hosted_beta_pass` policy so website copy cannot silently drift
-  back to vague "finite credits" language.
+- 2026-06-29 update: the website no longer exposes `$22`/`$9` as pricing.
+  It now states that hosted beta remains metered while pricing is derived from
+  unit economics.
+- The launch readiness checker now verifies the hosted pricing posture markers:
+  metered usage, unit economics, and no unlimited hosted crawling.
 - The launch website can be rendered by a real browser.
 - Public website copy continues to expose local-first install, finite hosted
   beta, legal/third-party notices, pricing direction, and beta boundaries.

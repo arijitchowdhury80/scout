@@ -44,7 +44,7 @@ risk, publishing, or Stripe setup decisions are approved and recorded.
 | Scout license | Approve Apache-2.0 for local/core package | Arijit | PyPI, public repo confidence, broad commercial launch |
 | Final license expression | Add final SPDX expression to `pyproject.toml` after approval | Codex after Arijit decision | Package publish |
 | `LICENSE` file | Add Apache-2.0 if approved | Codex after Arijit decision | Package publish |
-| Public pricing | Keep `$22` hosted beta finite; do not approve public pricing yet | Arijit | Public hosted launch |
+| Public pricing | Do not approve `$22`/`$9`; build unit economics and likely test free local plus pay-as-you-go hosted credits | Arijit | Public hosted launch |
 | Registry publishing | Private beta tags artifact-only; PyPI first later; GHCR before Docker Hub | Arijit | PyPI/GHCR/Docker Hub publish |
 | Docker image publishing | GHCR first, Docker Hub only if needed | Arijit | Public container image |
 | Crawl4AI/lxml risk | Public launch blocked unless audit clean or formal exception approved | Arijit/security decision | Public launch |
@@ -70,7 +70,7 @@ risk, publishing, or Stripe setup decisions are approved and recorded.
 | Hosted API quickstart verified | `docs/product/hosted-api-quickstart-verification-2026-06-28.md` |
 | Skill usage verified | `docs/product/skill-usage-verification-2026-06-29.md` |
 | Support/onboarding documented | `docs/product/private-beta-onboarding-and-support.md` |
-| Hosted economics documented | `docs/product/hosted-economics-and-usage-limits.md` |
+| Hosted economics documented | `docs/product/hosted-economics-and-usage-limits.md`; `docs/product/unit-economics-and-pricing-model-2026-06-29.md` |
 | Pricing market refreshed | `docs/competetor-website-knowledge/market-pricing-refresh-2026-06-29.md` |
 | Stripe deterministic readiness documented | `docs/product/stripe-test-mode-readiness-2026-06-29.md` |
 | Dependency audit blocker refreshed | `docs/security/dependency-audit-refresh-2026-06-29.md` |
@@ -163,7 +163,7 @@ decision memo.
 
 1. Approve Apache-2.0 for Scout local/core, or choose another license path.
 2. Approve or reject limited private-beta risk acceptance for the Crawl4AI/lxml blocker.
-3. Confirm whether `$22` hosted beta pass remains the private-beta offer with finite credits.
+3. Fill the unit-economics model and approve a pricing structure before restoring checkout or public pricing claims.
 4. Approve artifact-only private beta release tags, or keep using branch installs only.
 5. Provide Stripe test-mode credentials/webhook setup when ready to close the payment gate.
 

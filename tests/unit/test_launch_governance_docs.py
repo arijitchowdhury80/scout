@@ -99,9 +99,8 @@ def test_private_beta_tester_handoff_packet_is_sendable_and_boundary_safe() -> N
     assert "scout launch-readiness" in handoff
     assert "Private beta: `ready_with_limits`" in handoff
     assert "Public launch: `blocked`" in handoff
-    assert "2,000 standard credits" in handoff
-    assert "100 browser credits" in handoff
-    assert "100 pages per run" in handoff
+    assert "unit economics are validated" in handoff
+    assert "Final credits, price,\nretention, and overage rules are not approved yet" in handoff
     assert "No unlimited hosted crawling" in handoff
     assert "No guaranteed hard-site bypass" in handoff
     assert "Do not paste API keys" in handoff
@@ -254,23 +253,22 @@ def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> 
     source_index = _read("docs/competetor-website-knowledge/source-index.md")
 
     assert "Hosted Economics And Usage Limits" in economics
-    assert "$22 one-time hosted beta pass" in economics
-    assert "finite hosted credits" in economics
+    assert "unapproved\nplaceholder pricing" in economics
+    assert "unit-economics-and-pricing-model-2026-06-29.md" in economics
     assert "No unlimited hosted crawling" in economics
-    assert "Standard credits | 2,000" in economics
-    assert "Browser credits | 100" in economics
     assert "Browser render | browser | 5" in economics
     assert "Browser minute | browser | 10" in economics
     assert "Firecrawl" in economics
     assert "Browserbase" in economics
     assert "market-pricing-refresh-2026-06-29.md" in economics
     assert "mature crawler, browser, search, and extraction products meter" in economics
-    assert "Subscriptions can follow after private-beta usage data is measured" in economics
+    assert "pay-as-you-go or prepaid credits are the preferred hypothesis" in economics
     assert "- [ ] Public launch pricing and hosted usage limits approved." in checklist
     assert (
-        "- [x] Hosted economics and usage limits documented against the `$22` beta pass"
+        "- [x] Hosted economics and usage limits documented against finite hosted usage"
         in checklist
     )
+    assert "docs/product/unit-economics-and-pricing-model-2026-06-29.md" in checklist
     assert "docs/product/hosted-economics-and-usage-limits.md" in checklist
     assert "Market Pricing Refresh" in pricing_refresh
     assert "Local Scout should stay free" in pricing_refresh
@@ -278,10 +276,7 @@ def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> 
     assert "ScrapingBee" in pricing_refresh
     assert "Zyte" in pricing_refresh
     assert "Do not approve public pricing yet." in pricing_refresh
-    assert "Approve $22 as a private-beta finite-credit pass." in pricing_refresh
-    assert "Do not approve $22 as a public, unlimited, or lifetime hosted plan." in (
-        pricing_refresh
-    )
+    assert "Do not approve public pricing yet." in pricing_refresh
     assert "market-pricing-refresh-2026-06-29.md" in source_index
 
 
@@ -759,7 +754,10 @@ def test_launch_decision_dashboard_lists_current_open_gates_and_next_decisions()
     assert "Approve Scout for **controlled private beta only**." in request
     assert "License: Apache-2.0 approved for Scout local/core." in request
     assert "Crawl4AI/lxml: limited private-beta exception approved" in request
-    assert "Hosted beta: keep $22 finite-credit one-time beta pass." in request
+    assert (
+        "Hosted beta: keep hosted usage metered; approve pricing only after the unit-economics model is filled."
+        in request
+    )
     assert "Release tag: approve one artifact-only private-beta v* tag" in request
     assert "Docker registry: defer GHCR/Docker Hub." in request
     assert "What Not To Approve Yet" in request
@@ -815,7 +813,7 @@ def test_public_launch_action_packet_groups_executable_blocker_types() -> None:
     assert "`risk_decision`" in action_packet
     assert "`external_smoke`" in action_packet
     assert "Approve Apache-2.0 for Scout local/core" in action_packet
-    assert "Keep $22 as a finite-credit hosted beta pass" in action_packet
+    assert "Derive pricing from unit economics" in action_packet
     assert "Do not approve public self-serve hosted launch yet" in action_packet
     assert "GitHub release workflow run" in action_packet
     assert "Stripe real test-mode smoke" in action_packet

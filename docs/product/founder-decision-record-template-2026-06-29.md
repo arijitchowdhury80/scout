@@ -101,10 +101,11 @@ Use when approving the hosted beta commercial offer.
 Minimum required text:
 
 ```text
-Approved decision: Keep $22 as a finite-credit hosted beta pass.
-Scope and limits: No unlimited hosted crawling; public pricing remains blocked.
-Required Codex follow-up: keep website/pricing copy finite-credit and keep
-readiness public pricing gate open until public pricing is approved.
+Approved decision: [fill with unit-economics-derived pricing decision].
+Scope and limits: No unlimited hosted crawling; public pricing remains blocked
+until cost, volume, margin, and break-even assumptions are approved.
+Required Codex follow-up: keep website/pricing copy metered and keep readiness
+public pricing gate open until public pricing is approved.
 ```
 
 ### Artifact-only private beta tag

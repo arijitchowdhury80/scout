@@ -59,13 +59,9 @@ curl http://127.0.0.1:8421/health
 ### Hosted convenience path
 
 Choose this only after you receive a hosted beta API key. Hosted beta is capped
-and metered. The current pass includes:
-
-- 2,000 standard credits
-- 100 browser credits
-- 100 pages per run
-- 7-day artifact retention
-- 1 concurrent hosted run
+and metered while unit economics are validated. Final credits, price,
+retention, and overage rules are not approved yet. Do not treat hosted beta as
+unlimited crawling or lifetime API access.
 
 ```bash
 export SCOUT_HOSTED_BASE_URL="https://your-hosted-scout.example"
@@ -152,4 +148,3 @@ Tester is onboarded when they can:
 - understand hosted credits are finite,
 - understand public launch remains blocked,
 - file useful feedback without sharing secrets.
-

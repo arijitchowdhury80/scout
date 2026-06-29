@@ -94,7 +94,12 @@ right private-beta boundary.
 
 ## Hosted Launch Economics
 
-The current `$22` hosted beta pass is sustainable only because it is finite:
+The previous `$22` hosted beta pass is no longer approved pricing. Hosted
+pricing must be derived from the unit-economics model in
+`docs/product/unit-economics-and-pricing-model-2026-06-29.md`.
+
+The old finite-credit policy values remain useful as engineering guardrail
+examples, not as approved commercial terms:
 
 | Bucket | Private-beta value |
 |---|---:|
@@ -105,7 +110,7 @@ The current `$22` hosted beta pass is sustainable only because it is finite:
 | Max concurrent hosted runs | 1 |
 
 Public launch must not offer unlimited hosted crawling. Before broader hosted
-launch, Scout needs usage telemetry for:
+launch, Scout needs usage telemetry and cost inputs for:
 
 - standard page cost,
 - browser render cost,

@@ -106,7 +106,7 @@ approving public launch.
 
 ```text
 1. License: Approve Apache-2.0 for Scout local/core.
-2. Pricing: Keep $22 as a finite-credit hosted beta pass.
+2. Pricing: Reject arbitrary $22/$9 pricing; fill the unit-economics model before approving hosted pricing.
 3. Publishing: Approve artifact-only private-beta v* tag after license files land.
 4. Docker publishing: Defer GHCR and Docker Hub image publishing.
 5. Crawl4AI/lxml: Approve limited private-beta exception only, or require clean audit first.
@@ -118,7 +118,7 @@ Recommended answers:
 | Decision | Recommended answer | Why |
 |---|---|---|
 | License | Approve Apache-2.0 for Scout local/core | Aligns with Crawl4AI Apache-2.0 dependency posture and keeps local trust high. |
-| Hosted beta pricing | Keep $22 as a finite-credit hosted beta pass | Avoids unlimited hosted crawling economics and keeps the offer honest. |
+| Hosted beta pricing | Derive pricing from unit economics; likely free local plus pay-as-you-go/prepaid hosted credits | Avoids unlimited hosted crawling economics and avoids arbitrary pricing. |
 | Artifact-only tag | Approve one private-beta `v*` tag after license implementation | Lets testers install from a GitHub Release artifact without PyPI/GHCR. |
 | Docker publishing | Defer GHCR and Docker Hub | Docker-from-source is already verified; public images widen distribution before legal/security gates close. |
 | Crawl4AI/lxml risk | Approve limited private-beta exception only, or keep beta branch install and wait | Public launch should stay blocked while dependency audit is not clean. |
@@ -131,7 +131,7 @@ Recommended answers:
 | Gate | Current recommendation | Next action |
 |---|---|---|
 | License decision | Apache-2.0 for Scout local/core | Arijit approves or chooses another license path. |
-| Public pricing and hosted usage limits | Keep private beta `$22` finite-credit; defer public pricing | Arijit approves beta offer and withholds public hosted launch approval. |
+| Public pricing and hosted usage limits | Keep hosted beta metered; defer public pricing until cost, volume, margin, and break-even assumptions are approved | Arijit approves a unit-economics-derived pricing structure. |
 | Registry publishing policy | Artifact-only private-beta tag first; no PyPI/GHCR/Docker Hub yet | Arijit approves or rejects private-beta release tags. |
 | Docker image publishing policy | Defer public image publishing | Arijit confirms Docker-from-source remains the only beta container path. |
 
