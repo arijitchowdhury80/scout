@@ -30,6 +30,19 @@ def test_launch_readiness_report_marks_private_beta_ready_and_public_blocked() -
     assert "pyproject license expression" in blocker_areas
     assert "LICENSE file" in blocker_areas
 
+    blockers_by_area = {blocker["area"]: blocker for blocker in report["public_launch"]["blockers"]}
+    assert blockers_by_area["license decision"]["blocker_type"] == "founder_decision"
+    assert (
+        blockers_by_area["public pricing and hosted usage limits"]["blocker_type"]
+        == "founder_decision"
+    )
+    assert blockers_by_area["GitHub release workflow run"]["blocker_type"] == "engineering"
+    assert blockers_by_area["Stripe real test-mode smoke"]["blocker_type"] == "external_smoke"
+    assert blockers_by_area["Crawl4AI/lxml risk decision"]["blocker_type"] == "risk_decision"
+    assert (
+        blockers_by_area["pyproject license expression"]["blocker_type"] == "legal_implementation"
+    )
+
 
 def test_launch_readiness_script_outputs_json() -> None:
     result = subprocess.run(
@@ -42,6 +55,7 @@ def test_launch_readiness_script_outputs_json() -> None:
 
     assert payload["private_beta"]["status"] == "ready_with_limits"
     assert payload["public_launch"]["status"] == "blocked"
+    assert all("blocker_type" in blocker for blocker in payload["public_launch"]["blockers"])
 
 
 def test_launch_readiness_script_can_fail_for_public_launch_gate() -> None:
@@ -55,3 +69,4 @@ def test_launch_readiness_script_can_fail_for_public_launch_gate() -> None:
     assert result.returncode == 1
     assert "Private beta: ready_with_limits" in result.stdout
     assert "Public launch: blocked" in result.stdout
+    assert "license decision [founder_decision]" in result.stdout

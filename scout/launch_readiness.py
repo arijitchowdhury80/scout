@@ -15,6 +15,7 @@ class EvidenceCheck:
     status: str
     evidence: str
     note: str
+    blocker_type: str = "evidence"
 
     def as_dict(self) -> dict[str, str]:
         return {
@@ -22,6 +23,7 @@ class EvidenceCheck:
             "status": self.status,
             "evidence": self.evidence,
             "note": self.note,
+            "blocker_type": self.blocker_type,
         }
 
 
@@ -75,37 +77,60 @@ PRIVATE_BETA_EVIDENCE = [
 
 
 PUBLIC_BLOCKER_LINES = [
-    ("license decision", "- [ ] License decision recorded."),
-    ("final license expression", "- [ ] Final license expression added to `pyproject.toml`."),
-    ("LICENSE file", "- [ ] `LICENSE` file added if Scout is open source or source-available."),
+    ("license decision", "founder_decision", "- [ ] License decision recorded."),
+    (
+        "final license expression",
+        "legal_implementation",
+        "- [ ] Final license expression added to `pyproject.toml`.",
+    ),
+    (
+        "LICENSE file",
+        "legal_implementation",
+        "- [ ] `LICENSE` file added if Scout is open source or source-available.",
+    ),
     (
         "public pricing and hosted usage limits",
+        "founder_decision",
         "- [ ] Public launch pricing and hosted usage limits approved.",
     ),
     (
         "registry publishing policy",
+        "founder_decision",
         "- [ ] Registry publishing policy approved for PyPI, GHCR, Docker Hub, or other",
     ),
     (
         "GitHub release workflow run",
+        "engineering",
         "- [ ] GitHub release artifact workflow run against a real `v*` tag.",
     ),
     (
         "release artifact smoke",
+        "engineering",
         "- [ ] Release artifact downloaded from GitHub Release and smoke-tested locally.",
     ),
-    ("Docker image publishing policy", "- [ ] Docker image publishing policy approved."),
+    (
+        "Docker image publishing policy",
+        "founder_decision",
+        "- [ ] Docker image publishing policy approved.",
+    ),
     (
         "published Docker image smoke",
+        "engineering",
         "- [ ] Published Docker image smoke-tested if GHCR, Docker Hub, or another",
     ),
-    ("Crawl4AI/lxml risk decision", "- [ ] Crawl4AI/lxml risk decision approved."),
+    (
+        "Crawl4AI/lxml risk decision",
+        "risk_decision",
+        "- [ ] Crawl4AI/lxml risk decision approved.",
+    ),
     (
         "dependency audit blocking cleanly",
+        "engineering",
         "- [ ] Dependency audit clean and blocking in GitHub CI.",
     ),
     (
         "Stripe real test-mode smoke",
+        "external_smoke",
         "- [ ] Stripe checkout and webhook tested in Stripe test mode.",
     ),
 ]
@@ -180,7 +205,7 @@ def _public_blockers(root: Path) -> list[EvidenceCheck]:
 
     checklist = _read(checklist_path)
     blockers: list[EvidenceCheck] = []
-    for area, marker in PUBLIC_BLOCKER_LINES:
+    for area, blocker_type, marker in PUBLIC_BLOCKER_LINES:
         if marker in checklist:
             blockers.append(
                 EvidenceCheck(
@@ -188,6 +213,7 @@ def _public_blockers(root: Path) -> list[EvidenceCheck]:
                     status="blocked",
                     evidence="docs/product/release-checklist.md",
                     note=f"Unchecked gate remains: {marker}",
+                    blocker_type=blocker_type,
                 )
             )
 
@@ -199,6 +225,7 @@ def _public_blockers(root: Path) -> list[EvidenceCheck]:
                 status="blocked",
                 evidence="pyproject.toml",
                 note="No final project license expression is present.",
+                blocker_type="legal_implementation",
             )
         )
 
@@ -209,6 +236,7 @@ def _public_blockers(root: Path) -> list[EvidenceCheck]:
                 status="blocked",
                 evidence="LICENSE",
                 note="No project LICENSE file is present.",
+                blocker_type="legal_implementation",
             )
         )
 
@@ -253,7 +281,7 @@ def print_text_report(report: dict[str, Any]) -> None:
     print("")
     print(f"Public launch: {public_launch['status']}")
     for blocker in public_launch["blockers"]:
-        print(f"  - {blocker['area']}: {blocker['note']}")
+        print(f"  - {blocker['area']} [{blocker['blocker_type']}]: {blocker['note']}")
 
     if public_launch["status"] == "blocked":
         print("")

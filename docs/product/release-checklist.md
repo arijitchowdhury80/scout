@@ -21,6 +21,17 @@ Executable launch readiness check:
 GitHub CI runs the repository wrapper default and JSON forms as the
 private-beta readiness gate.
 
+Public blockers in the executable readiness report include a `blocker_type`
+field so the burndown separates decision work from implementation work:
+
+| Blocker type | Meaning |
+|---|---|
+| `founder_decision` | Arijit must approve the business, publishing, or pricing direction before engineering closes the gate. |
+| `legal_implementation` | License/legal files or package metadata must be changed after the legal direction is chosen. |
+| `engineering` | Build, release, CI, or infrastructure work can close the gate. |
+| `risk_decision` | A documented security/dependency risk must be accepted, mitigated, or made clean. |
+| `external_smoke` | A live third-party/sandbox flow must be tested with external credentials or services. |
+
 Current decision request memo:
 `docs/product/launch-decision-request-2026-06-29.md`.
 
