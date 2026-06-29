@@ -9,16 +9,19 @@ updated to classify public-launch blockers.
 The readiness JSON now includes a remediation map on every public-launch
 blocker:
 
+- `id`
+- `summary`
 - `owner`
 - `next_action`
 - `closure_evidence`
 - `codex_actionable_now`
 
 That means the action list is machine-readable as well as human-readable; the
-plain-English tables below are a dashboard over the same blocker contract. The
-report now includes both blocker-type and owner summaries, so it is clear
-whether the next bottleneck is a founder decision, Codex implementation, shared
-Stripe smoke, or a risk decision.
+plain-English tables below are a dashboard over the same blocker contract.
+`id` is the stable machine key, while `summary` is the human label. The report
+now includes both blocker-type and owner summaries, so it is clear whether the
+next bottleneck is a founder decision, Codex implementation, shared Stripe
+smoke, or a risk decision.
 
 Useful slices:
 

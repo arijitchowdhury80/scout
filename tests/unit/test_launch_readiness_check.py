@@ -88,6 +88,14 @@ def test_launch_readiness_script_outputs_json() -> None:
     assert payload["public_launch"]["owner_summary"]["Codex"] == 8
     assert all("blocker_type" in blocker for blocker in payload["public_launch"]["blockers"])
     assert all("next_action" in blocker for blocker in payload["public_launch"]["blockers"])
+    assert all("id" in blocker for blocker in payload["public_launch"]["blockers"])
+    assert all("summary" in blocker for blocker in payload["public_launch"]["blockers"])
+
+    blockers_by_area = {
+        blocker["area"]: blocker for blocker in payload["public_launch"]["blockers"]
+    }
+    assert blockers_by_area["license decision"]["id"] == "license-decision"
+    assert blockers_by_area["license decision"]["summary"] == "license decision"
 
 
 def test_launch_readiness_json_can_filter_public_blockers_by_owner() -> None:

@@ -7,6 +7,7 @@ from collections import Counter
 import json
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import Any
 
 from scout.core.platform.hosted import HostedPlan, plan_limits
@@ -26,7 +27,9 @@ class EvidenceCheck:
 
     def as_dict(self) -> dict[str, str | bool]:
         payload: dict[str, str | bool] = {
+            "id": _stable_id(self.area),
             "area": self.area,
+            "summary": self.area,
             "status": self.status,
             "evidence": self.evidence,
             "note": self.note,
@@ -41,6 +44,12 @@ class EvidenceCheck:
         if self.codex_actionable_now is not None:
             payload["codex_actionable_now"] = self.codex_actionable_now
         return payload
+
+
+def _stable_id(value: str) -> str:
+    """Return a stable, readable identifier for readiness checks."""
+    slug = re.sub(r"[^a-z0-9]+", "-", value.casefold()).strip("-")
+    return slug or "check"
 
 
 PRIVATE_BETA_EVIDENCE = [
