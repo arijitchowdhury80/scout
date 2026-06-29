@@ -493,6 +493,35 @@ def test_hosted_operating_contract_documents_private_beta_boundary() -> None:
     assert "This does not approve public self-serve hosted Scout." in evidence
 
 
+def test_scalability_security_audit_separates_private_beta_from_public_hosted_launch() -> None:
+    audit = _read("docs/product/scalability-security-audit-2026-06-29.md")
+    checklist = _read("docs/product/release-checklist.md")
+    evidence = _read("docs/product/launch-evidence-index-2026-06-29.md")
+
+    assert "Scout Scalability And Security Launch Audit" in audit
+    assert "Private-beta scale/security audit" in audit
+    assert "credible for private beta because the user owns compute" in audit
+    assert "credible only for controlled private beta with finite" in audit
+    assert "blocked until production storage" in audit
+    assert "Async queue, worker pools, cancellation, timeouts" in audit
+    assert "Object storage with tenant prefixes, signed URLs, retention jobs" in audit
+    assert "Redis/distributed rate limit and abuse controls" in audit
+    assert "Postgres or managed SQL" in audit
+    assert "Crawl4AI/lxml blocker documented" in audit
+    assert "real Stripe test-mode checkout and webhook smoke" in audit
+    assert "JSONL" in audit
+    assert "Google Sheets import CSV" in audit
+    assert "direct Google Sheets API push" in audit
+    assert "Public hosted API | Blocked" in audit
+    assert "Local package private beta | Acceptable with limits" in audit
+    assert "Hosted API private beta | Acceptable with limits" in audit
+    assert "Load-test hosted run limits against target concurrency" in audit
+    assert "docs/product/scalability-security-audit-2026-06-29.md" in checklist
+    assert "Scalability and security launch audit documented" in checklist
+    assert "docs/product/scalability-security-audit-2026-06-29.md" in evidence
+    assert "Public hosted API remains blocked." in evidence
+
+
 def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> None:
     readiness = _read("docs/product/stripe-test-mode-readiness-2026-06-29.md")
     checklist = _read("docs/product/release-checklist.md")

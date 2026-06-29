@@ -56,6 +56,12 @@ The legacy app UI is not a launch surface until it is rebuilt and certified.
       Result: local-vs-hosted boundary, API-key lifecycle, hosted routes,
       metering, tenant-owned artifact retrieval, and production hosted gaps are
       documented. This does not approve public self-serve hosted Scout.
+- [x] Scalability and security launch audit documented.
+      Evidence: `docs/product/scalability-security-audit-2026-06-29.md`.
+      Result: local/private-beta hosted posture is documented separately from
+      public hosted requirements such as object storage, distributed rate
+      limits, async workers, observability, Stripe smoke, final legal, and
+      dependency-risk closure.
 - [ ] Registry publishing policy approved for PyPI, GHCR, Docker Hub, or other
       registries.
       Decision brief:
