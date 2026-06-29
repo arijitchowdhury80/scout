@@ -8,6 +8,9 @@ This dashboard is the current control panel for launching Scout as a product.
 It summarizes the release checklist, decision briefs, and verification evidence
 into one operating view.
 
+Decision request memo:
+`docs/product/launch-decision-request-2026-06-29.md`.
+
 ## Current Verdict
 
 Scout is not ready for public launch.
@@ -144,6 +147,9 @@ Do not revisit public launch until:
 - lawyer-reviewed terms/privacy are ready if hosted public access is offered.
 
 ## Decisions Needed From Arijit
+
+See `docs/product/launch-decision-request-2026-06-29.md` for the consolidated
+decision memo.
 
 1. Approve Apache-2.0 for Scout local/core, or choose another license path.
 2. Approve or reject limited private-beta risk acceptance for the Crawl4AI/lxml blocker.

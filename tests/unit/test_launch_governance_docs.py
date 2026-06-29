@@ -104,6 +104,7 @@ def test_release_checklist_blocks_public_launch_until_decisions_are_closed() -> 
     assert "PyPI" in checklist
     assert "GHCR" in checklist
     assert "Docker Hub" in checklist
+    assert "docs/product/launch-decision-request-2026-06-29.md" in checklist
 
 
 def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> None:
@@ -380,8 +381,10 @@ def test_registry_publishing_policy_blocks_public_registries_until_approved() ->
 
 def test_launch_decision_dashboard_lists_current_open_gates_and_next_decisions() -> None:
     dashboard = _read("docs/product/launch-decision-dashboard-2026-06-29.md")
+    request = _read("docs/product/launch-decision-request-2026-06-29.md")
 
     assert "Scout Launch Decision Dashboard" in dashboard
+    assert "docs/product/launch-decision-request-2026-06-29.md" in dashboard
     assert "Private beta can continue with limits; public launch is blocked." in dashboard
     assert "Scout is not ready for public launch." in dashboard
     assert "Open Decisions" in dashboard
@@ -397,6 +400,14 @@ def test_launch_decision_dashboard_lists_current_open_gates_and_next_decisions()
     assert "Approve one artifact-only private beta tag" in dashboard
     assert "Do not publish `scout-web` to PyPI." in dashboard
     assert "Do not push Docker images to GHCR or Docker Hub." in dashboard
+    assert "Scout Launch Decision Request" in request
+    assert "Approve Scout for **controlled private beta only**." in request
+    assert "License: Apache-2.0 approved for Scout local/core." in request
+    assert "Crawl4AI/lxml: limited private-beta exception approved" in request
+    assert "Hosted beta: keep $22 finite-credit one-time beta pass." in request
+    assert "Release tag: approve one artifact-only private-beta v* tag" in request
+    assert "Docker registry: defer GHCR/Docker Hub." in request
+    assert "What Not To Approve Yet" in request
 
 
 def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> None:
@@ -404,6 +415,7 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
     checklist = _read("docs/product/release-checklist.md")
 
     assert "Scout Launch Gate Burndown" in burndown
+    assert "docs/product/launch-decision-request-2026-06-29.md" in burndown
     assert "Private beta can continue; public launch remains blocked" in burndown
     assert "Gate Burndown" in burndown
     assert "Blocker type" in burndown

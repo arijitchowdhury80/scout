@@ -9,6 +9,9 @@ This is the execution view of the launch checklist. The release checklist is
 the source of truth for gates; this page turns those gates into owners,
 blocker types, and next actions.
 
+Consolidated decision request:
+`docs/product/launch-decision-request-2026-06-29.md`.
+
 ## Current Verdict
 
 Scout is not public-launch-ready.
