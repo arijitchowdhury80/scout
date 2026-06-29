@@ -7,6 +7,9 @@ This checklist decides whether Scout is ready for a public or wider private
 beta release. Public launch is blocked until every required gate is checked or a
 documented exception exists.
 
+Current decision dashboard:
+`docs/product/launch-decision-dashboard-2026-06-29.md`.
+
 ## Release Scope
 
 Current intended release surfaces:

@@ -310,3 +310,23 @@ def test_registry_publishing_policy_blocks_public_registries_until_approved() ->
     assert "- [ ] Docker image publishing policy approved." in checklist
     assert "docs/product/registry-publishing-policy-2026-06-29.md" in checklist
     assert "docs/product/registry-publishing-policy-2026-06-29.md" in distribution
+
+
+def test_launch_decision_dashboard_lists_current_open_gates_and_next_decisions() -> None:
+    dashboard = _read("docs/product/launch-decision-dashboard-2026-06-29.md")
+    checklist = _read("docs/product/release-checklist.md")
+
+    assert "Scout Launch Decision Dashboard" in dashboard
+    assert "Private beta can continue with limits; public launch is blocked." in dashboard
+    assert "Scout is not ready for public launch." in dashboard
+    assert "Open Decisions" in dashboard
+    assert "Open Verification Gates" in dashboard
+    assert "Evidence Already Closed" in dashboard
+    assert "Recommended Next Order" in dashboard
+    assert "Approve Apache-2.0 for Scout local/core" in dashboard
+    assert "Crawl4AI/lxml blocker" in dashboard
+    assert "Stripe test-mode credentials" in dashboard
+    assert "Approve one artifact-only private beta tag" in dashboard
+    assert "Do not publish `scout-web` to PyPI." in dashboard
+    assert "Do not push Docker images to GHCR or Docker Hub." in dashboard
+    assert "docs/product/launch-decision-dashboard-2026-06-29.md" in checklist
