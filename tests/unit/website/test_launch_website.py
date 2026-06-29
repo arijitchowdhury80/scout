@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from scout.api.main import app
+from scout.launch_readiness import build_report
 
 
 _WEBSITE_INDEX = Path(__file__).resolve().parents[3] / "website" / "index.html"
@@ -237,6 +238,16 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
         assert text in response.text
+
+
+def test_status_page_lists_all_current_unique_launch_blocker_keys() -> None:
+    report = build_report(_REPO_ROOT)
+    blocker_ids = {blocker["id"] for blocker in report["public_launch"]["blockers"]}
+    html = (_WEBSITE_DIR / "status.html").read_text(encoding="utf-8")
+
+    assert f"{len(blocker_ids)} unique public-launch blocker keys" in html
+    for blocker_id in blocker_ids:
+        assert blocker_id in html
 
 
 def test_api_serves_third_party_notices_without_auth() -> None:
