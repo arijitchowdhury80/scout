@@ -166,6 +166,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "scout launch-decision-drafts",
             "scout launch-decision-draft",
             "scout launch-decision-check --check-existing",
+            "scout launch-decision-check --check-drafts",
             "Drafts are not approvals",
             "Review the draft first",
             "Move approved content into",

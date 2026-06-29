@@ -8,6 +8,7 @@ These files are editing aids. They are not launch approvals, not completed decis
 ```bash
 scout launch-decision-check docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md
 scout launch-decision-check --check-existing
+scout launch-decision-check --check-drafts
 ```
 
 ## Drafts To Review
@@ -52,6 +53,7 @@ closed or formally excepted.
    ```bash
    scout launch-decision-check docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md
    scout launch-decision-check --check-existing
+   scout launch-decision-check --check-drafts
    ```
 
 7. Only after validation passes can Codex update the release checklist, evidence

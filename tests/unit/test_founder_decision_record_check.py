@@ -57,6 +57,56 @@ Before public launch.
     )
 
 
+def _write_decision_draft(path: Path, *, status: str = "Deferred") -> None:
+    path.write_text(
+        f"""# Scout Founder Decision Record: License
+
+Decision ID: SCOUT-DEC-20260629-01
+Date: 2026-06-29
+Decision owner: Arijit Chowdhury
+Recorded by: Codex
+Status: {status}
+Related blocker type: founder_decision
+Related release gate: license decision
+Source prompt / meeting / approval note: Pending founder review.
+
+## Approved decision
+
+[Replace this paragraph with the exact decision. Suggested next action: Approve Apache-2.0 for Scout local/core.]
+
+## Rejected alternatives
+
+- [Alternative considered and rejected]
+
+## Scope and limits
+
+- Applies to: [specific launch gate or private-beta scope]
+- Does not apply to: public launch unless explicitly approved by a separate full launch gate.
+- Private beta only? Yes
+- Public launch allowed by this decision? No
+
+## Required Codex follow-up
+
+- [ ] Code/doc change: Approve Apache-2.0 for Scout local/core.
+- [ ] Verification command: scout launch-readiness --blocker-id license-decision
+- [ ] Evidence file to update: docs/product/launch-evidence-index-2026-06-29.md
+- [ ] Release checklist gate to update: license decision
+
+## Expiration or revisit trigger
+
+Before public launch.
+
+## Evidence links
+
+- Release checklist: docs/product/release-checklist.md
+- Decision packet: docs/product/public-launch-action-packet-2026-06-29.md
+- Supporting brief: docs/product/release-checklist.md
+- Verification output: scout launch-readiness --blocker-id license-decision
+""",
+        encoding="utf-8",
+    )
+
+
 def test_founder_decision_record_check_passes_for_complete_record(tmp_path: Path) -> None:
     record = tmp_path / "founder-decision-record-SCOUT-DEC-20260629-01.md"
     _write_decision_record(record)
@@ -126,3 +176,34 @@ def test_founder_decision_record_check_existing_records_validates_matching_recor
     output = capsys.readouterr().out
     assert "1 founder decision records" in output
     assert "SCOUT-DEC-20260629-01" in output
+
+
+def test_founder_decision_draft_check_accepts_safe_existing_drafts(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    draft_dir = tmp_path / "docs" / "product" / "founder-decision-drafts"
+    draft_dir.mkdir(parents=True)
+    _write_decision_draft(draft_dir / "founder-decision-draft-SCOUT-DEC-20260629-01.md")
+
+    assert founder_decision_record_check.main(["--root", str(tmp_path), "--check-drafts"]) == 0
+
+    output = capsys.readouterr().out
+    assert "PASS: 1 founder decision drafts are safe for review." in output
+    assert "SCOUT-DEC-20260629-01: Deferred" in output
+
+
+def test_founder_decision_draft_check_rejects_approval_like_draft(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    draft_dir = tmp_path / "docs" / "product" / "founder-decision-drafts"
+    draft_dir.mkdir(parents=True)
+    _write_decision_draft(
+        draft_dir / "founder-decision-draft-SCOUT-DEC-20260629-01.md",
+        status="Approved",
+    )
+
+    assert founder_decision_record_check.main(["--root", str(tmp_path), "--check-drafts"]) == 2
+
+    assert "Draft records must keep Status: Deferred" in capsys.readouterr().err

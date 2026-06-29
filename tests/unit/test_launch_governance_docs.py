@@ -756,6 +756,7 @@ def test_founder_decision_record_template_captures_launch_gate_approvals() -> No
     assert "python3 scripts/founder_decision_record_check.py" in template
     assert "scout launch-decision-check" in action_packet
     assert "scout launch-decision-drafts" in action_packet
+    assert "scout launch-decision-check --check-drafts" in action_packet
     assert "python3 scripts/founder_decision_record_check.py" in action_packet
     assert "Do not use this template to approve public launch by accident." in template
     assert "docs/product/founder-decision-record-template-2026-06-29.md" in action_packet
@@ -866,6 +867,7 @@ def test_founder_decision_draft_packet_is_explicitly_non_approving() -> None:
     assert "crawl4ai-lxml-risk-decision" in packet
     assert "stripe-real-test-mode-smoke" in packet
     assert "scout launch-decision-check --check-existing" in packet
+    assert "scout launch-decision-check --check-drafts" in packet
     assert "founder-decision-draft-SCOUT-DEC-20260629-01.md" in packet
     assert "founder-decision-draft-SCOUT-DEC-20260629-02.md" in packet
     assert "founder-decision-draft-SCOUT-DEC-20260629-03.md" in packet

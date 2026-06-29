@@ -1724,3 +1724,46 @@ Next gate:
 - Codex must not add a final license expression, `LICENSE` file, release tag,
   public registry publishing, or blocking dependency-audit policy until the
   relevant decision record is approved.
+
+## Founder Decision Draft Safety Checkpoint
+
+Date: 2026-06-29
+
+Built:
+
+- `scout launch-decision-check --check-drafts`
+- script support:
+  `python3 scripts/founder_decision_record_check.py --check-drafts`
+- shared draft safety validator in `scout.launch_decision_record`
+- docs and website references to the new draft-safety command.
+
+Behavior:
+
+- validates generated founder decision drafts under
+  `docs/product/founder-decision-drafts/`,
+- requires draft files to remain `Status: Deferred`,
+- requires `Public launch allowed by this decision? No`,
+- requires founder-review placeholders to remain present,
+- fails if a draft starts to look like an approval before it has been copied
+  into the completed decision-record naming pattern.
+
+Verification:
+
+- RED:
+  `python3 -m pytest tests/unit/test_founder_decision_record_check.py tests/unit/cli/test_run_commands.py::test_launch_decision_check_command_scans_existing_drafts -q`
+  failed because `--check-drafts` was not implemented.
+- GREEN focused suite:
+  `python3 -m pytest tests/unit/test_founder_decision_record_check.py tests/unit/cli/test_run_commands.py::test_launch_decision_check_command_scans_existing_drafts tests/unit/test_launch_governance_docs.py tests/unit/website/test_launch_website.py -q`
+  passed: 44 tests, 2 warnings.
+- Type check:
+  `python3 -m pyright scout/` passed: 0 errors.
+- Lint/format:
+  `ruff check ... && ruff format --check ...` passed for touched Python files.
+- Launch readiness smoke:
+  `python3 scripts/launch_readiness_check.py --json` summarized as
+  `ready_with_limits blocked 14 14`.
+- Full unit suite:
+  `python3 -m pytest tests/unit/ -q` passed: 638 tests, 8 warnings.
+- Real script smoke:
+  `python3 scripts/founder_decision_record_check.py --root . --check-existing --check-drafts`
+  passed with 0 completed records and 6 safe deferred drafts.

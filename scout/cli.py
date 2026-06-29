@@ -40,7 +40,9 @@ from scout.launch_decision_draft import (
 )
 from scout.launch_decision_record import (
     FounderDecisionRecordError,
+    format_draft_validation_success,
     format_validation_success,
+    validate_decision_drafts,
     validate_decision_records,
 )
 from scout.launch_readiness import build_report, default_root, filter_report, print_text_report
@@ -266,6 +268,11 @@ def launch_decision_check(
         "--check-existing",
         help="Validate existing completed founder decision records under docs/product.",
     ),
+    check_drafts: bool = typer.Option(
+        False,
+        "--check-drafts",
+        help="Validate existing founder decision drafts are still non-approving review aids.",
+    ),
 ) -> None:
     """Validate completed founder decision records before launch gates use them."""
     try:
@@ -274,11 +281,18 @@ def launch_decision_check(
             root=Path(root).expanduser().resolve(),
             check_existing=check_existing,
         )
+        draft_results = validate_decision_drafts(
+            [],
+            root=Path(root).expanduser().resolve(),
+            check_existing_drafts=check_drafts,
+        )
     except FounderDecisionRecordError as exc:
         typer.echo(f"FAIL: {exc}", err=True)
         raise typer.Exit(2) from exc
 
     typer.echo(format_validation_success(results))
+    if check_drafts:
+        typer.echo(format_draft_validation_success(draft_results))
 
 
 def _run_high_level_use_case(

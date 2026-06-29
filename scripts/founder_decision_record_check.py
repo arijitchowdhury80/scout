@@ -9,18 +9,26 @@ from pathlib import Path
 
 from scout.launch_decision_record import (
     FounderDecisionRecordError,
+    existing_decision_drafts,
     existing_decision_records,
+    format_draft_validation_success,
     format_validation_success,
     validate_decision_record,
+    validate_decision_draft,
+    validate_decision_drafts,
     validate_decision_records,
 )
 
 
 __all__ = [
     "FounderDecisionRecordError",
+    "existing_decision_drafts",
     "existing_decision_records",
+    "format_draft_validation_success",
     "format_validation_success",
     "validate_decision_record",
+    "validate_decision_draft",
+    "validate_decision_drafts",
     "validate_decision_records",
 ]
 
@@ -35,6 +43,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Validate existing completed founder decision records under docs/product.",
     )
+    parser.add_argument(
+        "--check-drafts",
+        action="store_true",
+        help="Validate existing founder decision drafts are still non-approving review aids.",
+    )
     return parser
 
 
@@ -47,11 +60,18 @@ def main(argv: list[str] | None = None) -> int:
             root=args.root,
             check_existing=bool(args.check_existing),
         )
+        draft_results = validate_decision_drafts(
+            [],
+            root=args.root,
+            check_existing_drafts=bool(args.check_drafts),
+        )
     except FounderDecisionRecordError as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 2
 
     print(format_validation_success(results))
+    if args.check_drafts:
+        print(format_draft_validation_success(draft_results))
     return 0
 
 

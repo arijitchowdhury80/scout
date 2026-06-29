@@ -238,6 +238,18 @@ def test_launch_decision_check_command_scans_existing_records() -> None:
     assert "PASS: 0 founder decision records found." in result.output
 
 
+def test_launch_decision_check_command_scans_existing_drafts() -> None:
+    runner = CliRunner()
+    root = Path(__file__).resolve().parents[3]
+
+    result = runner.invoke(app, ["launch-decision-check", "--root", str(root), "--check-drafts"])
+
+    assert result.exit_code == 0
+    assert "PASS: 6 founder decision drafts are safe for review." in result.output
+    assert "SCOUT-DEC-20260629-01: Deferred" in result.output
+    assert "SCOUT-DEC-20260629-06: Deferred" in result.output
+
+
 def test_product_export_command_writes_requested_formats() -> None:
     runner = CliRunner()
     with runner.isolated_filesystem():
