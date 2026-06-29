@@ -43,6 +43,7 @@ change; verify again before publishing public claims.
 | `market-pricing-refresh-2026-06-29.md` | Follow-up pricing refresh confirming credit/subscription/browser-metering signals and Scout hosted-beta economics |
 | `pricing-and-payment-recommendation.md` | Scout local-free plus finite hosted beta pass payment recommendation |
 | `scout-differentiation.md` | Positioning memo explaining why Scout cannot rely only on "local-owned data" and must lead with evidence-grade records |
+| `website-decision-map.md` | Maps competitor website research to current Scout website sections, implemented files, and blocked public-launch claims |
 
 ## Scout Internal Sources
 

@@ -1888,6 +1888,44 @@ Verification:
   - public launch: `blocked`
   - Codex-actionable now: `0`
 
+## Competitor Website Decision Map Checkpoint
+
+Date: 2026-06-29
+
+Built:
+
+- Added `docs/competetor-website-knowledge/website-decision-map.md`.
+- Registered the map in `docs/competetor-website-knowledge/source-index.md`.
+- Updated launch evidence to reference the decision map as the bridge between
+  competitor research and implemented website sections.
+
+Behavior:
+
+- Maps Firecrawl, Browserbase, Apify, Tavily, and adjacent competitor patterns
+  to Scout website decisions.
+- Records why the site leads with local install, hosted beta, artifacts,
+  evidence, finite credits, and launch status.
+- Preserves blocked claims: no unlimited hosted crawling, no guaranteed
+  hard-site bypass, no certified legacy `/app` UI, and no public self-serve
+  hosted launch.
+- Names the Supadesign IndustrialGray design decision and the current website
+  files it influences.
+
+TDD:
+
+- RED:
+  `python3 -m pytest tests/unit/test_launch_governance_docs.py::test_competitor_website_decision_map_ties_research_to_current_site -q`
+  failed because the decision map did not exist.
+- GREEN:
+  the focused test passed after adding the map and references.
+
+Verification:
+
+- `python3 -m pytest tests/unit/test_launch_governance_docs.py -q` -> `29 passed`.
+- `ruff check tests/unit/test_launch_governance_docs.py` -> `All checks passed!`.
+- `ruff format --check tests/unit/test_launch_governance_docs.py` -> `1 file already formatted`.
+- `python3 -m pytest tests/unit/ -q` -> `642 passed, 8 warnings`.
+
 ## Launch Readiness Actionable Summary Checkpoint
 
 Date: 2026-06-29

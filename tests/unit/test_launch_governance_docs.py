@@ -308,6 +308,33 @@ def test_website_copy_review_records_competitor_alignment_and_boundaries() -> No
     assert "docs/product/website-copy-review-2026-06-28.md" in checklist
 
 
+def test_competitor_website_decision_map_ties_research_to_current_site() -> None:
+    decision_map = _read("docs/competetor-website-knowledge/website-decision-map.md")
+    source_index = _read("docs/competetor-website-knowledge/source-index.md")
+    evidence = _read("docs/product/launch-evidence-index-2026-06-29.md")
+
+    assert "Scout Website Decision Map" in decision_map
+    assert "derived from the competitor research folder" in decision_map
+    assert "Firecrawl" in decision_map
+    assert "Browserbase" in decision_map
+    assert "Apify" in decision_map
+    assert "Tavily" in decision_map
+    assert "Supadesign IndustrialGray" in decision_map
+    assert "website/index.html" in decision_map
+    assert "website/pricing.html" in decision_map
+    assert "website/status.html" in decision_map
+    assert "website/beta.html" in decision_map
+    assert "Install locally" in decision_map
+    assert "Join hosted beta" in decision_map
+    assert "No unlimited hosted crawling" in decision_map
+    assert "No guaranteed hard-site bypass" in decision_map
+    assert "legacy `/app` UI is not the product" in decision_map
+    assert "Website sections now backed by research" in decision_map
+    assert "Public-launch copy still blocked" in decision_map
+    assert "website-decision-map.md" in source_index
+    assert "website-decision-map.md" in evidence
+
+
 def test_website_route_render_verification_records_local_server_smoke() -> None:
     verification = _read("docs/product/website-route-render-verification-2026-06-29.md")
     checklist = _read("docs/product/release-checklist.md")
