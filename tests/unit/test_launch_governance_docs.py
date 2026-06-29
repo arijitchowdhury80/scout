@@ -718,6 +718,30 @@ def test_public_launch_action_packet_groups_executable_blocker_types() -> None:
     )
 
 
+def test_founder_decision_record_template_captures_launch_gate_approvals() -> None:
+    template = _read("docs/product/founder-decision-record-template-2026-06-29.md")
+    action_packet = _read("docs/product/public-launch-action-packet-2026-06-29.md")
+    request = _read("docs/product/launch-decision-request-2026-06-29.md")
+
+    assert "Scout Founder Decision Record Template" in template
+    assert "Decision ID" in template
+    assert "Decision owner" in template
+    assert "Approved decision" in template
+    assert "Rejected alternatives" in template
+    assert "Scope and limits" in template
+    assert "Required Codex follow-up" in template
+    assert "Expiration or revisit trigger" in template
+    assert "License decision" in template
+    assert "Crawl4AI/lxml risk decision" in template
+    assert "Hosted beta pricing" in template
+    assert "Artifact-only private beta tag" in template
+    assert "Docker image publishing policy" in template
+    assert "Stripe real test-mode smoke" in template
+    assert "Do not use this template to approve public launch by accident." in template
+    assert "docs/product/founder-decision-record-template-2026-06-29.md" in action_packet
+    assert "docs/product/founder-decision-record-template-2026-06-29.md" in request
+
+
 def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> None:
     evidence = _read("docs/product/launch-evidence-index-2026-06-29.md")
     checklist = _read("docs/product/release-checklist.md")

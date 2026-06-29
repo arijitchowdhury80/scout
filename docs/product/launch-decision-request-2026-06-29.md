@@ -9,6 +9,9 @@ This memo collects the owner decisions needed to move Scout from controlled
 private beta toward public launch. It does not replace the release checklist;
 it is the shortest path for Arijit to answer the open gates.
 
+Decision record template:
+`docs/product/founder-decision-record-template-2026-06-29.md`.
+
 ## Current Recommendation
 
 Approve Scout for **controlled private beta only**.

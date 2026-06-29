@@ -6,6 +6,9 @@ Status: Public launch blocked; next actions grouped by executable blocker type
 Generated from `scout launch-readiness --json` after the readiness checker was
 updated to classify public-launch blockers.
 
+Founder decision record template:
+`docs/product/founder-decision-record-template-2026-06-29.md`.
+
 ## Current Readiness Truth
 
 Private beta remains `ready_with_limits`.
