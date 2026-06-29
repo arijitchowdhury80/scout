@@ -11,23 +11,18 @@ class AuthMiddleware(BaseHTTPMiddleware):
     Browser-facing public paths are whitelisted and always pass through.
     """
 
-    def __init__(self, app: object, api_key: str) -> None:
+    def __init__(self, app: object, api_key: str, public_hosted_only: bool = False) -> None:
         """Initialise middleware with the expected API key."""
         super().__init__(app)  # type: ignore[arg-type]
         self._api_key = api_key
+        self._public_hosted_only = public_hosted_only
 
     async def dispatch(self, request: Request, call_next: object) -> Response:
         """Pass public routes through; reject other requests without a valid key."""
-        public_paths = {
+        always_public_paths = {
             "/",
-            "/api/config",
-            "/app",
-            "/app/",
-            "/app/live-browser",
             "/beta",
             "/beta.html",
-            "/docs",
-            "/docs/oauth2-redirect",
             "/examples",
             "/examples.html",
             "/assets/scout-mark.svg",
@@ -39,14 +34,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/health",
             "/legal",
             "/legal.html",
-            "/openapi.json",
             "/privacy",
             "/privacy.html",
             "/pricing",
             "/pricing.html",
             "/quickstart",
             "/quickstart.html",
-            "/redoc",
             "/status",
             "/status.html",
             "/styles.css",
@@ -55,13 +48,30 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/third-party-notices",
             "/THIRD_PARTY_NOTICES.md",
         }
-        if request.url.path in public_paths:
+        local_browser_public_paths = {
+            "/api/config",
+            "/app",
+            "/app/",
+            "/app/live-browser",
+            "/docs",
+            "/docs/oauth2-redirect",
+            "/openapi.json",
+            "/redoc",
+        }
+        if request.url.path in always_public_paths:
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/assets/warm-industrial-design-system/"):
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/v1/hosted/"):
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/v1/billing/stripe/"):
+            return await call_next(request)  # type: ignore[misc]
+        if self._public_hosted_only:
+            return JSONResponse(
+                {"detail": "Local Scout API is disabled in hosted-only mode."},
+                status_code=403,
+            )
+        if request.url.path in local_browser_public_paths:
             return await call_next(request)  # type: ignore[misc]
 
         incoming_key = request.headers.get("X-API-Key")

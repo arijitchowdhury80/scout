@@ -102,7 +102,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(title="Scout", lifespan=lifespan)
 
-app.add_middleware(AuthMiddleware, api_key=settings.scout_api_key)
+app.add_middleware(
+    AuthMiddleware,
+    api_key=settings.scout_api_key,
+    public_hosted_only=settings.scout_public_hosted_only,
+)
 
 app.include_router(health.router)
 app.include_router(scrape.router)

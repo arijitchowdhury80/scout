@@ -724,6 +724,58 @@ def hosted_provision(
     )
 
 
+@app.command("hosted-curl")
+def hosted_curl(
+    base_url: str = typer.Option(..., "--base-url", help="Hosted Scout base URL"),
+    endpoint: str = typer.Option(
+        "me",
+        "--endpoint",
+        help="Hosted endpoint example: me, scrape, crawl, products, run",
+    ),
+    url: str = typer.Option("https://example.com", "--url", help="Target URL for work examples"),
+    use_case: str = typer.Option("company", "--use-case", help="Use case for --endpoint run"),
+    max_pages: int = typer.Option(5, "--max-pages", help="Example crawl max_pages"),
+    max_products: int = typer.Option(10, "--max-products", help="Example product max_products"),
+    max_records: int = typer.Option(25, "--max-records", help="Example high-level run max_records"),
+) -> None:
+    """Print a copyable hosted API cURL command using Bearer auth."""
+    normalized_base = base_url.rstrip("/")
+    endpoint_name = endpoint.strip().lower()
+    auth_header = '-H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"'
+    json_header = '-H "Content-Type: application/json"'
+
+    if endpoint_name == "me":
+        typer.echo(f'curl "{normalized_base}/v1/hosted/me" \\')
+        typer.echo(f"  {auth_header}")
+        return
+
+    payloads = {
+        "scrape": (
+            "/v1/hosted/scrape",
+            {"url": url, "formats": ["markdown"], "timeout_ms": 30000},
+        ),
+        "crawl": ("/v1/hosted/crawl", {"url": url, "max_pages": max_pages}),
+        "products": (
+            "/v1/hosted/products",
+            {"start_url": url, "max_products": max_products},
+        ),
+        "run": (
+            f"/v1/hosted/run/{use_case}",
+            {"query": url, "mode": "auto", "max_records": max_records},
+        ),
+    }
+    if endpoint_name not in payloads:
+        typer.echo("Unsupported endpoint. Use one of: me, scrape, crawl, products, run.", err=True)
+        raise typer.Exit(2)
+
+    path, payload = payloads[endpoint_name]
+    body = json.dumps(payload, separators=(",", ":"))
+    typer.echo(f'curl -X POST "{normalized_base}{path}" \\')
+    typer.echo(f"  {auth_header} \\")
+    typer.echo(f"  {json_header} \\")
+    typer.echo(f"  -d '{body}'")
+
+
 @app.command()
 def certify_generate(
     evidence_dir: str = typer.Option(

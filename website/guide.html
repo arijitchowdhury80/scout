@@ -69,6 +69,8 @@ curl -H "X-API-Key: dev-key" http://127.0.0.1:8421/health</code></pre>
               <p>Best for approved testers who need a convenience endpoint with finite hosted credits.</p>
               <pre><code>curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"</code></pre>
+              <pre><code>scout hosted-curl --base-url "$SCOUT_HOSTED_BASE_URL" \
+  --endpoint scrape --url https://example.com</code></pre>
             </article>
             <article>
               <h3>Claude/Codex skill backend</h3>
@@ -98,7 +100,7 @@ curl -H "X-API-Key: dev-key" http://127.0.0.1:8421/health</code></pre>
             </article>
             <article>
               <h3>Authorization: Bearer</h3>
-              <p>Hosted beta routes use Bearer tokens. Hosted keys are finite-credit credentials, not unlimited access.</p>
+              <p>Hosted beta routes use Bearer tokens. Hosted keys are finite-credit credentials, not unlimited access. Public hosted deployments should enable <code>SCOUT_PUBLIC_HOSTED_ONLY=true</code> so consumers only call <code>/v1/hosted/*</code>.</p>
               <pre><code>curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"</code></pre>
             </article>

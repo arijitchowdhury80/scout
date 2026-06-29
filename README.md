@@ -781,6 +781,8 @@ scout screenshot https://example.com --output screenshot.png
 scout run company --query stripe.com --mode auto
 scout run prism --query "Nike" --mode auto --output-dir ./scout-runs/nike
 scout run jobs --profile examples/job-hunter/job-profile.yaml
+scout hosted-provision --email tester@example.com --db /data/hosted_accounts.sqlite
+scout hosted-curl --base-url https://your-scout-domain.example --endpoint scrape --url https://example.com
 ```
 
 Execution modes: `auto`, `crawl4ai`, `webfetch`, `websearch`, `browser`, `user-browser`, `saved`, `api`.
@@ -794,6 +796,19 @@ cp .env.example .env
 docker compose -f docker/docker-compose.yml up --build
 curl http://localhost:8421/health
 ```
+
+For an internet-facing hosted/private-beta API, set:
+
+```bash
+SCOUT_PUBLIC_HOSTED_ONLY=true
+HOSTED_ACCOUNT_DB_PATH=/data/hosted_accounts.sqlite
+SCOUT_API_KEY=<strong-admin-key-not-dev-key>
+```
+
+Then give consuming apps hosted Bearer keys created with
+`scout hosted-provision`. Public consumers should call `/v1/hosted/*` with
+`Authorization: Bearer scout_live_...`; do not expose the local `X-API-Key`
+surface as the public SaaS API.
 
 The Docker setup includes:
 - **Dockerfile** — Python 3.11 + Crawl4AI + Playwright Chromium

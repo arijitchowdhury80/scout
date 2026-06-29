@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     hosted_key_delivery_smtp_use_tls: bool = True
     hosted_rate_limit_max_requests: int = 60
     hosted_rate_limit_window_seconds: int = 60
+    scout_public_hosted_only: bool = False
     host: str = "0.0.0.0"
     port: int = 8421
 

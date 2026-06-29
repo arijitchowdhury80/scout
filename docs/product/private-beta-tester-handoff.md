@@ -71,6 +71,29 @@ curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
 ```
 
+Operators can create the hosted key with:
+
+```bash
+scout hosted-provision \
+  --email tester@example.com \
+  --db /data/hosted_accounts.sqlite \
+  --key-name "Private beta key"
+```
+
+Developers can generate copyable cURL calls with:
+
+```bash
+scout hosted-curl \
+  --base-url "$SCOUT_HOSTED_BASE_URL" \
+  --endpoint scrape \
+  --url https://example.com
+```
+
+For public hosted deployments, Scout should run with
+`SCOUT_PUBLIC_HOSTED_ONLY=true` so consumers use `/v1/hosted/*` Bearer auth
+instead of local `X-API-Key` routes. See
+`docs/product/hosted-saas-api-guide.md`.
+
 ### Skill/agent path
 
 Choose this if you want Claude, Codex, or another agent to call Scout through

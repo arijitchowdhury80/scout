@@ -41,6 +41,7 @@ DB_PATH=
 HOSTED_ACCOUNT_DB_PATH=
 HOSTED_RATE_LIMIT_MAX_REQUESTS=60
 HOSTED_RATE_LIMIT_WINDOW_SECONDS=60
+SCOUT_PUBLIC_HOSTED_ONLY=false
 HOST=0.0.0.0
 PORT=8421
 ```
@@ -84,6 +85,20 @@ HOSTED_RATE_LIMIT_MAX_REQUESTS=60
 HOSTED_RATE_LIMIT_WINDOW_SECONDS=60
 ```
 
+For an internet-facing VPS or hosted SaaS-style deployment, enable the public
+hosted guard:
+
+```text
+SCOUT_PUBLIC_HOSTED_ONLY=true
+```
+
+This keeps the website, `/health`, `/v1/hosted/*`, and Stripe billing routes
+available while blocking local/admin routes such as `/scrape`, `/crawl`,
+`/products`, `/run/*`, `/app`, `/api/config`, `/docs`, `/openapi.json`, and
+`/redoc` even if a caller knows `X-API-Key`. Consuming apps such as PRISM
+should use hosted Bearer keys, not the local `X-API-Key`, when Scout is exposed
+on the public web. See `docs/product/hosted-saas-api-guide.md`.
+
 `/v1/hosted/*` requests that exceed the configured window return `429` with a
 `Retry-After` header and do not spend hosted credits. The current limiter is
 in-memory and process-local. It is enough for a single-node private beta, but a
@@ -126,6 +141,15 @@ curl http://localhost:8421/v1/hosted/me \
 The response includes tenant/key IDs, plan, account status, remaining standard
 and browser credits, max pages per run, max concurrent runs, and retention days.
 It does not return the raw API key.
+
+Operators can print copyable cURL examples for consumers:
+
+```bash
+scout hosted-curl --base-url https://your-domain.example --endpoint me
+scout hosted-curl --base-url https://your-domain.example --endpoint scrape --url https://example.com
+scout hosted-curl --base-url https://your-domain.example --endpoint products --url https://shop.example.com/products
+scout hosted-curl --base-url https://your-domain.example --endpoint run --use-case company --url https://www.adobe.com
+```
 
 Hosted beta work endpoints currently include:
 

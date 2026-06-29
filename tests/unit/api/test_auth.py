@@ -6,10 +6,14 @@ from fastapi.testclient import TestClient
 from scout.api.middleware.auth import AuthMiddleware
 
 
-def _make_app(api_key: str = "test-key") -> FastAPI:
+def _make_app(api_key: str = "test-key", public_hosted_only: bool = False) -> FastAPI:
     """Build a minimal FastAPI app with AuthMiddleware for testing."""
     test_app = FastAPI()
-    test_app.add_middleware(AuthMiddleware, api_key=api_key)
+    test_app.add_middleware(
+        AuthMiddleware,
+        api_key=api_key,
+        public_hosted_only=public_hosted_only,
+    )
 
     @test_app.get("/health")
     async def health() -> dict:
@@ -125,3 +129,43 @@ def test_stripe_webhook_bypasses_static_local_key_middleware() -> None:
 
     assert resp.status_code == 200
     assert resp.json()["billing"] is True
+
+
+def test_public_hosted_only_blocks_local_routes_even_with_static_key() -> None:
+    """Public hosted deployments must not expose local/admin API routes."""
+    client = TestClient(_make_app(api_key="test-key", public_hosted_only=True))
+
+    resp = client.post("/scrape", headers={"X-API-Key": "test-key"})
+
+    assert resp.status_code == 403
+    assert resp.json()["detail"] == "Local Scout API is disabled in hosted-only mode."
+
+
+def test_public_hosted_only_blocks_docs_and_frontend_key_config() -> None:
+    """Hosted-only mode must not expose public docs or browser key config."""
+    client = TestClient(_make_app(api_key="test-key", public_hosted_only=True))
+
+    docs_resp = client.get("/docs")
+    openapi_resp = client.get("/openapi.json")
+    app_resp = client.get("/app")
+    config_resp = client.get("/api/config")
+    health_resp = client.get("/health")
+
+    assert docs_resp.status_code == 403
+    assert openapi_resp.status_code == 403
+    assert app_resp.status_code == 403
+    assert config_resp.status_code == 403
+    assert health_resp.status_code == 200
+
+
+def test_public_hosted_only_keeps_hosted_and_billing_routes_available() -> None:
+    """Hosted SaaS routes must still reach their own Bearer/signature auth layers."""
+    client = TestClient(_make_app(api_key="test-key", public_hosted_only=True))
+
+    hosted_resp = client.post("/v1/hosted/scrape")
+    billing_resp = client.post("/v1/billing/stripe/webhook")
+
+    assert hosted_resp.status_code == 200
+    assert hosted_resp.json()["hosted"] is True
+    assert billing_resp.status_code == 200
+    assert billing_resp.json()["billing"] is True
