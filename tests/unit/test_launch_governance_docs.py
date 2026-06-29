@@ -342,7 +342,7 @@ def test_website_route_render_verification_records_local_server_smoke() -> None:
     assert "Website Route And Render Verification" in verification
     assert "Launch website route/render smoke passed locally" in verification
     assert "python3 -m pytest tests/unit/website/test_launch_website.py -q" in verification
-    assert "10 passed, 2 warnings" in verification
+    assert "12 passed, 2 warnings" in verification
     assert "python3 -m scout.cli serve --host 127.0.0.1 --port 18423" in verification
     assert "`/quickstart`" in verification
     assert "`/pricing`" in verification
@@ -911,7 +911,7 @@ def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> 
         assert proof_file in evidence
 
     required_boundaries = [
-        "Does not certify the legacy `/app` UI.",
+        "Does not certify the legacy `/app` UI",
         "This is a branch/private-beta install path, not PyPI.",
         "Image publishing to GHCR/Docker Hub is not approved.",
         "Hosted beta remains approved-testers-only.",

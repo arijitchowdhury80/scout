@@ -22,6 +22,7 @@ not a generic crawler replacement.
 Public website paths served by `scout serve`:
 
 - `/` - launch homepage.
+- `/assets/scout-product-demo.gif` - beta-safe product demo GIF used by the homepage.
 - `/quickstart` - local install, Docker, workdir, and first-run guidance.
 - `/examples` - beta-safe workflow examples and artifact expectations.
 - `/pricing` - local-free and hosted-metered pricing posture.
@@ -48,6 +49,6 @@ Next website tasks:
 - [x] Add beta-safe examples page.
 - [x] Add legal/third-party notices website page.
 - [x] Add private beta support and onboarding guidance.
-- [ ] Add a short product demo GIF/video.
+- [x] Add a short product demo GIF/video.
 - [ ] Add a separate docs-site if/when Swagger `/docs` is not enough.
 - [x] Validate responsive layout in browser.

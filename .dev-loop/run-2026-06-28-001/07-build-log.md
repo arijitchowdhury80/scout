@@ -154,6 +154,47 @@ Verification:
 - Launch-readiness smoke -> private beta `ready_with_limits`, public launch
   `blocked`, Codex-actionable now `0`.
 
+## Follow-Up Checkpoint - Launch Website Demo GIF
+
+Date: 2026-06-29
+
+Built:
+
+- `website/assets/scout-product-demo.gif`
+- `scripts/generate_product_demo_gif.py`
+- homepage demo section showing URL -> evidence -> records -> exports
+- public `/assets/scout-product-demo.gif` launch-site route
+- auth allowlist entry for the demo media asset
+- website README update marking the short demo GIF task complete
+- frontend-builder workspace notes for the demo GIF
+
+Behavior:
+
+- The homepage now shows a beta-safe product flow demo without relying on the
+  legacy `/app` UI.
+- The demo uses fictional data, no secrets, and explicitly states no hard-site
+  bypass guarantee.
+- The static media path is served without API auth through the Scout HTTP
+  service.
+
+TDD:
+
+- RED: focused website tests failed because the homepage lacked demo copy, the
+  demo GIF was missing, and `/assets/scout-product-demo.gif` returned `403`.
+- GREEN: focused website tests passed after adding the generated GIF, homepage
+  section, public route, and auth allowlist entry.
+
+Verification:
+
+- `python3 -m pytest tests/unit/website/test_launch_website.py::test_launch_website_exposes_hosted_beta_checkout_form_without_secrets tests/unit/website/test_launch_website.py::test_api_serves_launch_website_static_assets_without_auth tests/unit/website/test_launch_website.py::test_launch_website_demo_gif_is_real_beta_safe_media -q` -> `3 passed, 2 warnings`.
+- `python3 -m pytest tests/unit/website/test_launch_website.py -q` -> `12 passed, 2 warnings`.
+- `python3 -m pytest tests/unit/ -q` -> `643 passed, 8 warnings`.
+- `python3 -m pyright scout/` -> `0 errors, 0 warnings, 0 informations`.
+- `ruff check scout/ tests/ scripts/generate_product_demo_gif.py && ruff format --check scout/ tests/ scripts/generate_product_demo_gif.py` -> `All checks passed!`, `228 files already formatted`.
+- Playwright Chromium against `scout serve --host 127.0.0.1 --port 8768` -> desktop and mobile loaded the demo headline and `/assets/scout-product-demo.gif`; image natural size was `1280x720`; console messages list was empty.
+- Launch-readiness smoke -> private beta `ready_with_limits`, public launch
+  `blocked`, Codex-actionable now `0`.
+
 ## Follow-Up Checkpoint - Hosted Admission Service
 
 Date: 2026-06-28

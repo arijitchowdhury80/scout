@@ -218,11 +218,13 @@ No public registry publish should happen until these decisions are closed.
 - [x] Launch website exists.
 - [x] Launch website routes and browser render smoke verified locally.
       Evidence: `docs/product/website-route-render-verification-2026-06-29.md`.
-      Result: `/`, `/quickstart`, `/pricing`, `/beta`, `/legal`, `/terms`,
-      `/privacy`, `/third-party-notices`, `/styles.css`, and `/health` served
-      from the Scout HTTP service on a local port; Playwright screenshots were
-      captured for home, quickstart, pricing, and beta. This does not certify
-      the legacy `/app` UI.
+      Result: `/`, `/quickstart`, `/examples`, `/pricing`, `/beta`, `/legal`,
+      `/terms`, `/privacy`, `/third-party-notices`, `/styles.css`,
+      `/assets/scout-product-demo.gif`, and `/health` served from the Scout
+      HTTP service on a local port; Playwright screenshots were captured for
+      home, quickstart, pricing, and beta, and the homepage demo GIF was
+      checked on desktop and mobile. This does not certify the legacy `/app`
+      UI.
 - [x] Website copy reviewed against competitor research.
       Evidence: `docs/product/website-copy-review-2026-06-28.md`.
       Result: current website follows the competitor-informed spine for private

@@ -37,6 +37,10 @@ def test_launch_website_exposes_hosted_beta_checkout_form_without_secrets() -> N
     assert "checkout_url" in html
     assert "window.location.assign" in html
     assert "Hosted beta is not configured yet" in html
+    assert "Scout beta demo" in html
+    assert "URL to evidence to records in under a minute." in html
+    assert "/assets/scout-product-demo.gif" in html
+    assert "No hard-site bypass guarantee." in html
     assert "STRIPE_SECRET_KEY" not in html
     assert "sk_live_" not in html
     assert "sk_test_" not in html
@@ -94,6 +98,7 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
 
     styles = client.get("/styles.css")
     design_system = client.get("/assets/warm-industrial-design-system/warm-industrial.css")
+    demo_gif = client.get("/assets/scout-product-demo.gif")
 
     assert styles.status_code == 200
     assert "text/css" in styles.headers["content-type"]
@@ -101,6 +106,20 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert design_system.status_code == 200
     assert "text/css" in design_system.headers["content-type"]
     assert ".wi-grid-bg" in design_system.text
+    assert demo_gif.status_code == 200
+    assert demo_gif.headers["content-type"] == "image/gif"
+    assert demo_gif.content.startswith((b"GIF87a", b"GIF89a"))
+
+
+def test_launch_website_demo_gif_is_real_beta_safe_media() -> None:
+    demo_gif = _WEBSITE_DIR / "assets" / "scout-product-demo.gif"
+
+    data = demo_gif.read_bytes()
+
+    assert data.startswith((b"GIF87a", b"GIF89a"))
+    assert len(data) > 20_000
+    assert b"sk_live_" not in data
+    assert b"sk_test_" not in data
 
 
 def test_launch_website_has_beta_onboarding_pages() -> None:

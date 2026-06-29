@@ -19,7 +19,7 @@ python3 -m pytest tests/unit/website/test_launch_website.py -q
 Result:
 
 ```text
-10 passed, 2 warnings in 1.30s
+12 passed, 2 warnings
 ```
 
 Warnings were Crawl4AI/Pydantic deprecation warnings from the installed
@@ -42,6 +42,7 @@ python3 -m scout.cli serve --host 127.0.0.1 --port 18423
 | `/?checkout=success` | Stripe checkout return status for successful hosted beta payment | Pass |
 | `/?checkout=cancelled` | Stripe checkout return status for cancelled hosted beta checkout | Pass |
 | `/quickstart` | `Scout Quickstart - Local-first web acquisition` | Pass |
+| `/examples` | `Scout Examples - Beta-safe workflows` | Pass |
 | `/pricing` | `Scout Pricing - Free local, metered hosted beta` | Pass |
 | `/status` | `Scout Launch Status - Private beta readiness` | Pass |
 | `/beta` | `Scout Private Beta - Local install or hosted pass` | Pass |
@@ -52,6 +53,7 @@ python3 -m scout.cli serve --host 127.0.0.1 --port 18423
 | `/privacy` | `Scout Beta Privacy Placeholder` | Pass |
 | `/third-party-notices` | `Third-Party Notices` markdown content | Pass |
 | `/styles.css` | public stylesheet content | Pass |
+| `/assets/scout-product-demo.gif` | `image/gif`, real `GIF89a`, `1280 x 720` | Pass |
 | `/health` | JSON status response | Pass |
 
 Observed `/health` response:
@@ -70,10 +72,22 @@ local Scout server:
 - `docs/product/screenshots/website-2026-06-29/pricing.png`
 - `docs/product/screenshots/website-2026-06-29/beta.png`
 
+Additional demo media smoke was run with Playwright Chromium against
+`scout serve --host 127.0.0.1 --port 8768`:
+
+- desktop viewport `1440x1000`
+- mobile viewport `390x844`
+- homepage demo headline visible
+- `/assets/scout-product-demo.gif` visible and complete
+- natural image size `1280x720`
+- no browser console messages
+
 ## What This Proves
 
 - The static launch website files exist and are covered by unit tests.
 - The Scout HTTP service serves the public website routes without API auth.
+- The homepage includes a beta-safe product demo GIF that shows URL ->
+  evidence -> records -> exports without claiming hard-site bypass.
 - The `/status` page exposes the current private-beta/public-launch verdict,
   owner summary, blocker summary, and filtered readiness commands.
 - The hosted beta checkout return URLs surface success/cancel states instead

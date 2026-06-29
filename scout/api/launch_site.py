@@ -38,12 +38,26 @@ async def launch_site_design_system_asset(asset_name: str) -> FileResponse:
     )
 
 
+@router.get("/assets/{asset_name}")
+async def launch_site_asset(asset_name: str) -> FileResponse:
+    """Serve allowlisted launch-site media assets."""
+    allowed_assets = {"scout-product-demo.gif"}
+    if asset_name not in allowed_assets:
+        raise HTTPException(status_code=404, detail="Launch site asset not found.")
+    return FileResponse(
+        _WEBSITE_DIR / "assets" / asset_name,
+        media_type=_asset_media_type(asset_name),
+    )
+
+
 def _asset_media_type(asset_name: str) -> str:
     """Return a conservative media type for static launch assets."""
     if asset_name.endswith(".css"):
         return "text/css"
     if asset_name.endswith(".html"):
         return "text/html"
+    if asset_name.endswith(".gif"):
+        return "image/gif"
     return "text/plain"
 
 

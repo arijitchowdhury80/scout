@@ -30,6 +30,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/docs/oauth2-redirect",
             "/examples",
             "/examples.html",
+            "/assets/scout-product-demo.gif",
             "/favicon.ico",
             "/health",
             "/legal",
