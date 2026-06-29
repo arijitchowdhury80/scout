@@ -253,3 +253,26 @@ def test_dependency_audit_refresh_keeps_lxml_gate_open_until_clean() -> None:
     assert "docs/security/dependency-audit-refresh-2026-06-29.md" in checklist
     assert "- [ ] Crawl4AI/lxml risk decision approved." in checklist
     assert "- [ ] Dependency audit clean and blocking in GitHub CI." in checklist
+
+
+def test_license_distribution_decision_brief_keeps_release_gates_open() -> None:
+    brief = _read("docs/legal/scout-license-distribution-decision-brief-2026-06-29.md")
+    checklist = _read("docs/product/release-checklist.md")
+    legal_checklist = _read("docs/legal/legal-readiness-checklist.md")
+
+    assert "Scout License And Distribution Decision Brief" in brief
+    assert "Decision required before public registry publishing." in brief
+    assert "Recommended path" in brief
+    assert "Apache-2.0 for Scout's local/core package" in brief
+    assert "Crawl4AI license" in brief
+    assert "https://github.com/unclecode/crawl4ai/blob/main/LICENSE" in brief
+    assert "Using Crawl4AI internally is not blocked by a royalty requirement" in brief
+    assert "Do not publish to PyPI" in brief
+    assert "Do not publish Docker images to Docker Hub or GHCR" in brief
+    assert "Decision Needed" in brief
+    assert "- [ ] Approve Apache-2.0 for Scout local/core." in brief
+    assert "- [ ] License decision recorded." in checklist
+    assert "- [ ] Final license expression added to `pyproject.toml`." in checklist
+    assert "- [ ] `LICENSE` file added if Scout is open source or source-available." in checklist
+    assert "scout-license-distribution-decision-brief-2026-06-29.md" in checklist
+    assert "scout-license-distribution-decision-brief-2026-06-29.md" in legal_checklist

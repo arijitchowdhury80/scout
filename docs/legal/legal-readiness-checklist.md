@@ -18,6 +18,10 @@ Status: Draft for private beta planning
 - [ ] Pin and audit dependency versions before release.
 - [ ] Review whether Scout will be released as open source, source-available,
   commercial/proprietary, or dual-license.
+  Evidence brief:
+  `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`.
+  Current recommendation is Apache-2.0 local/core plus hosted/service
+  monetization, but Arijit approval is still required.
 
 ## Scraping And Acquisition Risk
 

@@ -21,6 +21,10 @@ The legacy app UI is not a launch surface until it is rebuilt and certified.
 ## Blocking Decisions
 
 - [ ] License decision recorded.
+      Decision brief:
+      `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`.
+      Recommendation is Apache-2.0 for Scout local/core plus hosted/service
+      monetization, but this is not approved yet.
 - [ ] Final license expression added to `pyproject.toml`.
 - [ ] `LICENSE` file added if Scout is open source or source-available.
 - [ ] Public launch pricing and hosted usage limits approved.
@@ -32,6 +36,10 @@ The legacy app UI is not a launch surface until it is rebuilt and certified.
       crawling should be sold. Final public pricing approval remains open.
 - [ ] Registry publishing policy approved for PyPI, GHCR, Docker Hub, or other
       registries.
+      Decision brief:
+      `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`.
+      Result: no PyPI, Docker Hub, GHCR, or broad public release artifact
+      publishing until Scout's own license and package visibility are approved.
 
 No public registry publish should happen until these decisions are closed.
 
