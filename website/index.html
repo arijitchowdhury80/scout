@@ -8,10 +8,7 @@
       name="description"
       content="Scout turns messy web pages into citable, downstream-ready records with local-first acquisition, browser evidence, and artifact folders."
     />
-    <link
-      rel="icon"
-      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%2318181b"/><text x="32" y="42" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" font-weight="900" fill="%23ebebe8">S</text></svg>'
-    />
+    <link rel="icon" href="/assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/warm-industrial-design-system/warm-industrial.css" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -37,23 +34,26 @@
     <div class="site-shell">
       <header class="site-header">
         <a class="brand" href="#top" aria-label="Scout home">
-          <span class="brand-mark">S</span>
-          <span>
-            <strong>Scout</strong>
-            <small>Evidence-grade acquisition</small>
-          </span>
+          <img class="brand-logo" src="/assets/scout-wordmark.svg" alt="Scout" width="172" height="64" />
         </a>
-        <nav class="site-nav" aria-label="Primary navigation">
-          <a href="#ledger">Ledger</a>
-          <a href="#why">Why different</a>
-          <a href="/quickstart">Quickstart</a>
-          <a href="/guide">Guide</a>
-          <a href="/examples">Examples</a>
-          <a href="/pricing">Pricing</a>
-          <a href="/status">Status</a>
-          <a href="/legal">Legal</a>
-          <a href="/docs">API docs</a>
-        </nav>
+        <div class="site-nav-wrap">
+          <nav class="site-nav" aria-label="Homepage sections">
+            <a href="#top" data-section-link="top" aria-current="true">Overview</a>
+            <a href="#demo" data-section-link="demo">Demo</a>
+            <a href="#ledger" data-section-link="ledger">Ledger</a>
+            <a href="#modes" data-section-link="modes">Modes</a>
+            <a href="#evidence" data-section-link="evidence">Evidence</a>
+            <a href="#use-cases" data-section-link="use-cases">Use cases</a>
+            <a href="#pricing" data-section-link="pricing">Pricing</a>
+            <a href="#beta" data-section-link="beta">Beta</a>
+          </nav>
+          <nav class="site-nav site-nav--utility" aria-label="Utility navigation">
+            <a href="/quickstart">Quickstart</a>
+            <a href="/guide">Guide</a>
+            <a href="/examples">Examples</a>
+            <a href="/docs">API docs</a>
+          </nav>
+        </div>
         <a class="wi-pill nav-cta" href="/beta">Join beta</a>
       </header>
 
@@ -122,7 +122,7 @@
           <span>Citations</span>
         </section>
 
-        <section class="section demo-section" aria-labelledby="demo-title">
+        <section class="section demo-section" id="demo" aria-labelledby="demo-title">
           <div class="demo-copy">
             <p class="wi-label wi-label--accent">Scout beta demo</p>
             <h2 id="demo-title">URL to evidence to records in under a minute.</h2>
@@ -153,7 +153,7 @@
           </figure>
         </section>
 
-        <section class="operating-model" aria-labelledby="operating-model-title">
+        <section class="operating-model" id="operating" aria-labelledby="operating-model-title">
           <div class="operating-model__intro">
             <p class="wi-label wi-label--accent">Beta operating model</p>
             <h2 id="operating-model-title">Free local utility. Metered hosted convenience.</h2>
@@ -220,7 +220,7 @@
           </div>
         </section>
 
-        <section class="section ladder" aria-labelledby="ladder-title">
+        <section class="section ladder" id="modes" aria-labelledby="ladder-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Acquisition ladder</p>
             <h2 id="ladder-title">Choose the least expensive mode that works.</h2>
@@ -280,7 +280,7 @@
           </div>
         </section>
 
-        <section class="section export-section" aria-labelledby="export-title">
+        <section class="section export-section" id="exports" aria-labelledby="export-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Exports beyond Algolia</p>
             <h2 id="export-title">Product data should not be trapped in one destination.</h2>
@@ -301,7 +301,7 @@
           </div>
         </section>
 
-        <section class="section local-hosted" aria-labelledby="local-hosted-title">
+        <section class="section local-hosted" id="distribution" aria-labelledby="local-hosted-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Distribution model</p>
             <h2 id="local-hosted-title">Local first. Hosted optional.</h2>
@@ -328,7 +328,7 @@
           </div>
         </section>
 
-        <section class="section launch-status" aria-labelledby="launch-status-title">
+        <section class="section launch-status" id="launch-status" aria-labelledby="launch-status-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Launch status</p>
             <h2 id="launch-status-title">Private beta can move. Public launch still has a security gate.</h2>
@@ -365,7 +365,7 @@
           </div>
         </section>
 
-        <section class="section use-cases" aria-labelledby="use-cases-title">
+        <section class="section use-cases" id="use-cases" aria-labelledby="use-cases-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">What people use it for</p>
             <h2 id="use-cases-title">Acquisition primitives for real workflows.</h2>
@@ -513,6 +513,47 @@ scout serve</code></pre>
       </footer>
     </div>
     <script>
+      const sectionLinks = Array.from(document.querySelectorAll("[data-section-link]"));
+      const trackedSections = sectionLinks
+        .map((link) => document.getElementById(link.dataset.sectionLink || ""))
+        .filter(Boolean);
+
+      function setActiveSection(sectionId) {
+        sectionLinks.forEach((link) => {
+          const isActive = link.dataset.sectionLink === sectionId;
+          if (isActive) {
+            link.setAttribute("aria-current", "true");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      }
+
+      if (trackedSections.length && "IntersectionObserver" in window) {
+        const sectionObserver = new IntersectionObserver(
+          (entries) => {
+            const visibleEntry = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (visibleEntry?.target?.id) {
+              setActiveSection(visibleEntry.target.id);
+            }
+          },
+          {
+            rootMargin: "-28% 0px -58% 0px",
+            threshold: [0.08, 0.2, 0.36, 0.5],
+          },
+        );
+        trackedSections.forEach((section) => sectionObserver.observe(section));
+      }
+
+      sectionLinks.forEach((link) => {
+        link.addEventListener("click", () => {
+          const sectionId = link.dataset.sectionLink;
+          if (sectionId) setActiveSection(sectionId);
+        });
+      });
+
       const checkoutForm = document.getElementById("hostedBetaCheckout");
       const checkoutStatus = document.getElementById("hostedBetaStatus");
       const checkoutButton = checkoutForm?.querySelector("button[type='submit']");

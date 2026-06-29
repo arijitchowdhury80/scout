@@ -99,16 +99,49 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     styles = client.get("/styles.css")
     design_system = client.get("/assets/warm-industrial-design-system/warm-industrial.css")
     demo_gif = client.get("/assets/scout-product-demo.gif")
+    logo = client.get("/assets/scout-wordmark.svg")
+    mark = client.get("/assets/scout-mark.svg")
 
     assert styles.status_code == 200
     assert "text/css" in styles.headers["content-type"]
     assert ".beta-form" in styles.text
+    assert ".brand-logo" in styles.text
+    assert "aria-current" in styles.text
     assert design_system.status_code == 200
     assert "text/css" in design_system.headers["content-type"]
     assert ".wi-grid-bg" in design_system.text
     assert demo_gif.status_code == 200
     assert demo_gif.headers["content-type"] == "image/gif"
     assert demo_gif.content.startswith((b"GIF87a", b"GIF89a"))
+    assert logo.status_code == 200
+    assert logo.headers["content-type"] in {"image/svg+xml", "image/svg+xml; charset=utf-8"}
+    assert "SCOUT" in logo.text
+    assert mark.status_code == 200
+    assert mark.headers["content-type"] in {"image/svg+xml", "image/svg+xml; charset=utf-8"}
+    assert "Scout mark" in mark.text
+
+
+def test_homepage_has_section_aware_nav_and_scrollspy() -> None:
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+
+    for section_id in (
+        "top",
+        "demo",
+        "ledger",
+        "modes",
+        "evidence",
+        "use-cases",
+        "pricing",
+        "beta",
+    ):
+        assert f'data-section-link="{section_id}"' in html
+        assert f'id="{section_id}"' in html
+
+    assert 'aria-current="true"' in html
+    assert "IntersectionObserver" in html
+    assert "setActiveSection" in html
+    assert 'src="/assets/scout-wordmark.svg"' in html
+    assert 'href="/assets/scout-mark.svg"' in html
 
 
 def test_launch_website_demo_gif_is_real_beta_safe_media() -> None:

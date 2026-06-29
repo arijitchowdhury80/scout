@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Scout mark</title>
+  <desc id="desc">A stylized S path inside a square field with a compass point.</desc>
+  <rect width="64" height="64" rx="10" fill="#18181b"/>
+  <path d="M43.5 17.5H25.8c-6.1 0-10.3 3.8-10.3 9.1 0 5.2 3.9 8.1 10.1 8.1h12.8c3 0 4.9 1.4 4.9 3.8 0 2.5-2 4-5.2 4H18.8" fill="none" stroke="#ebebe8" stroke-width="6" stroke-linecap="square" stroke-linejoin="round"/>
+  <path d="M42.5 14.5l7 7-7 7" fill="none" stroke="#bc8a2e" stroke-width="4" stroke-linecap="square" stroke-linejoin="round"/>
+  <circle cx="19" cy="43" r="3.5" fill="#bc8a2e"/>
+</svg>
