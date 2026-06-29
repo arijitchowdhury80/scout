@@ -306,6 +306,100 @@ def test_product_export_generalization_verification_records_non_algolia_exports(
     assert "Direct Google Sheets API push and webhook export remain future work." in checklist
 
 
+def test_distribution_package_plan_reflects_verified_beta_paths_and_blocks_registries() -> None:
+    distribution = _read("docs/product/distribution-package-plan.md")
+
+    assert (
+        "Controlled private beta distribution plan; public registry publishing blocked"
+        in distribution
+    )
+    assert "docs/product/launch-evidence-index-2026-06-29.md" in distribution
+    assert "docs/product/registry-publishing-policy-2026-06-29.md" in distribution
+    assert "docs/legal/scout-license-distribution-decision-brief-2026-06-29.md" in distribution
+    assert "docs/legal/license-implementation-runbook-2026-06-29.md" in distribution
+    assert "The beta strategy is local-first." in distribution
+
+    beta_surfaces = [
+        "Local Python package from GitHub branch",
+        "CLI",
+        "HTTP service",
+        "Docker from source",
+        "Hosted API",
+        "Skill docs",
+    ]
+    for surface in beta_surfaces:
+        assert surface in distribution
+
+    evidence_files = [
+        "docs/product/local-install-verification-2026-06-28.md",
+        "docs/product/docker-install-verification-2026-06-28.md",
+        "docs/product/hosted-api-quickstart-verification-2026-06-28.md",
+        "docs/product/skill-usage-verification-2026-06-29.md",
+        "docs/product/website-route-render-verification-2026-06-29.md",
+    ]
+    for evidence_file in evidence_files:
+        assert evidence_file in distribution
+
+    assert (
+        'pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"'
+        in distribution
+    )
+    assert "playwright install chromium" in distribution
+    assert "SCOUT_API_KEY=dev-key SCOUT_WORKDIR=/tmp/scout-runs scout serve" in distribution
+    assert "docker compose -f docker/docker-compose.yml up --build -d" in distribution
+    assert "python3 scripts/release_artifact_smoke.py --dist-dir" in distribution
+    assert "python3 scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG" in distribution
+
+    package_facts = [
+        "`pyproject.toml` defines package name `scout-web`",
+        "installed CLI command remains `scout`",
+        "Python requirement is `>=3.11`",
+        "Hatch wheel packaging includes `THIRD_PARTY_NOTICES.md`",
+        "Docker runtime uses `DB_PATH=/data/scout.db`",
+    ]
+    for fact in package_facts:
+        assert fact in distribution
+
+    open_gates = [
+        "license decision",
+        "final license expression in `pyproject.toml`",
+        "`LICENSE` file",
+        "release artifact workflow run against an approved real `v*` tag",
+        "downloaded GitHub Release artifact smoke",
+        "public registry publishing approval",
+    ]
+    for gate in open_gates:
+        assert gate in distribution
+
+    prohibited_claims = [
+        "PyPI availability",
+        "GHCR or Docker Hub image availability",
+        "Public self-serve hosted signup",
+        "Public launch readiness",
+        "Security-clean dependency audit",
+        "Certified legacy `/app` UI",
+        "Unlimited hosted crawling",
+    ]
+    for claim in prohibited_claims:
+        assert claim in distribution
+
+    stale_open_items = [
+        "- [ ] Python version requirements.",
+        "- [ ] Playwright browser install.",
+        "- [ ] `.env.local` setup.",
+        "- [ ] `SCOUT_API_KEY`.",
+        "- [ ] `SCOUT_WORKDIR`.",
+        "- [ ] quick health check.",
+        "- [ ] quick scrape example.",
+        "- [ ] where artifacts are written.",
+        "- [ ] Clean generated local residue.",
+        "- [ ] Run dependency CVE scan and record result.",
+        "- [ ] Run secret scan and record result.",
+    ]
+    for stale_item in stale_open_items:
+        assert stale_item not in distribution
+
+
 def test_docker_install_verification_records_docs_only_smoke() -> None:
     verification = _read("docs/product/docker-install-verification-2026-06-28.md")
     checklist = _read("docs/product/release-checklist.md")

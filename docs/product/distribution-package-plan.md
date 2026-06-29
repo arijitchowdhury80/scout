@@ -1,7 +1,17 @@
 # Scout Distribution Package Plan
 
-Date: 2026-06-27
-Status: Draft
+Date: 2026-06-29
+Status: Controlled private beta distribution plan; public registry publishing blocked
+
+## Source Of Truth
+
+Use this plan with:
+
+- Release checklist: `docs/product/release-checklist.md`
+- Launch evidence index: `docs/product/launch-evidence-index-2026-06-29.md`
+- Registry policy: `docs/product/registry-publishing-policy-2026-06-29.md`
+- License decision brief: `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`
+- License implementation runbook: `docs/legal/license-implementation-runbook-2026-06-29.md`
 
 ## Distribution Goals
 
@@ -10,122 +20,106 @@ Scout should be usable in four ways:
 1. local Python package,
 2. CLI,
 3. HTTP/Docker service,
-4. agent/tool backend through skill or future MCP server.
+4. agent/tool backend through the Claude/Codex skill, and later an MCP server.
 
-## Local Install
+The beta strategy is local-first. Hosted Scout is optional, finite-credit, and
+approved-testers-only.
 
-Target command:
+## Current Private-Beta Distribution Surfaces
+
+| Surface | Status | Install Or Access Path | Evidence | Boundary |
+|---|---|---|---|---|
+| Local Python package from GitHub branch | Verified | `pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"` | `docs/product/local-install-verification-2026-06-28.md` | Branch-qualified beta path only; no PyPI claim. |
+| CLI | Verified through package smoke | installed command: `scout` | `docs/product/local-install-verification-2026-06-28.md`; `docs/product/skill-usage-verification-2026-06-29.md` | CLI supports beta workflows; not every live target is certified. |
+| HTTP service | Verified through `scout serve` | `scout serve --host 127.0.0.1 --port 8421` | `docs/product/local-install-verification-2026-06-28.md`; `docs/product/website-route-render-verification-2026-06-29.md` | Legacy `/app` UI is not certified. |
+| Docker from source | Verified | `docker compose -f docker/docker-compose.yml up --build -d` | `docs/product/docker-install-verification-2026-06-28.md` | No published GHCR/Docker Hub image yet. |
+| Hosted API | Verified quickstart | provisioned beta API key, `/v1/hosted/*` | `docs/product/hosted-api-quickstart-verification-2026-06-28.md` | Approved testers only; finite credits; no public self-serve. |
+| Skill docs | Verified | bundled `scout/skill/scout.md` | `docs/product/skill-usage-verification-2026-06-29.md` | Skill documentation is verified; broad prompt behavior remains beta. |
+
+## Local Install Command
+
+Current private-beta command:
 
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
 playwright install chromium
-scout serve
+SCOUT_API_KEY=dev-key SCOUT_WORKDIR=/tmp/scout-runs scout serve
 ```
 
-Future package-registry command after release approval:
+Smoke:
+
+```bash
+curl http://127.0.0.1:8421/health
+curl -X POST http://127.0.0.1:8421/scrape \
+  -H "X-API-Key: dev-key" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","persist":true,"output_dir":"/tmp/scout-runs/example"}'
+```
+
+Future package-registry command after approval:
 
 ```bash
 pip install scout-web
 ```
 
-Required docs:
+Do not publish or document `pip install scout-web` as available until the
+license, registry, release, and dependency gates close.
 
-- [ ] Python version requirements.
-- [ ] Playwright browser install.
-- [ ] `.env.local` setup.
-- [ ] `SCOUT_API_KEY`.
-- [ ] `SCOUT_WORKDIR`.
-- [ ] quick health check.
-- [ ] quick scrape example.
-- [ ] where artifacts are written.
+## Docker Install Command
 
-## Docker Install
-
-Target command:
+Current private-beta Docker path:
 
 ```bash
-docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml up --build -d
 curl http://localhost:8421/health
 ```
 
-Required docs:
+The Docker path is source-build only for beta. Published image smoke is prepared
+but blocked until image publishing is approved:
 
-- [x] environment variables,
-- [x] volume mounts for `scout-runs`,
-- [x] exposed ports,
-- [x] API key configuration,
-- [x] Playwright/browser dependencies,
-- [x] production reverse proxy notes.
-
-Latest Docker smoke:
-
-- `docker build -f docker/Dockerfile -t scout:launch-smoke .` passed.
-- Container smoke passed for `/health`, `/`, and `/styles.css` on port `18421`.
-- GitHub CI now includes Docker image build plus container route smoke for
-  `/health`, `/`, and `/styles.css`.
+```bash
+python3 scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG
+```
 
 ## Package Readiness
 
 Current package state:
 
-- `pyproject.toml` defines package name `scout-web`; the installed CLI command
-  remains `scout`.
+- `pyproject.toml` defines package name `scout-web`; installed CLI command remains `scout`.
 - CLI entrypoint exists: `scout = scout.cli:app`.
 - Version is currently `0.1.0`.
-- Crawl4AI, Playwright, FastAPI, Algolia, SQLite, Typer dependencies are present.
-- Runtime dependency metadata includes `email-validator` for Pydantic email
-  models used by hosted account, payment, and key-delivery flows.
+- Python requirement is `>=3.11`.
 - Hatch wheel packaging explicitly ships the `scout` module even though the
   distribution package name is `scout-web`.
 - Hatch wheel packaging includes the launch website assets required by `/`.
-- Hatch wheel packaging includes `THIRD_PARTY_NOTICES.md`; the Docker build
-  context and Dockerfile copy it before `pip install .`.
+- Hatch wheel packaging includes `THIRD_PARTY_NOTICES.md`.
 - Docker packaging copies `README.md`, `THIRD_PARTY_NOTICES.md`, `scout/`, and
   `website/` before `pip install .`.
 - Docker runtime uses `DB_PATH=/data/scout.db`, matching Scout settings.
 
-Before public package release:
+Verified package gates:
 
-- [ ] Decide Scout's own license.
-- [ ] Add `LICENSE` if open/source-available.
-- [x] Add `THIRD_PARTY_NOTICES.md`.
-- [x] Generate runtime dependency license inventory.
-- [x] Add classifiers to `pyproject.toml`.
-- [x] Add package metadata: authors, URLs, readme.
-- [ ] Decide and add final license expression.
-- [ ] Verify package includes `scout/skill` if intended.
-- [x] Build wheel/sdist.
-- [x] Install from built wheel in a clean venv.
-- [x] Run quick smoke after install.
-- [x] Verify launch website is served from a clean wheel install.
-- [x] Add GitHub CI package build and installed CLI smoke gate.
-- [x] Add tag-driven GitHub release artifact workflow.
-- [x] Add release workflow smoke for built wheel and Docker image.
-- [ ] Decide whether release tags create GitHub releases only or publish to a
-      package/container registry.
-- [ ] Add registry publishing only after license and distribution policy are
-      final.
-      Policy brief: `docs/product/registry-publishing-policy-2026-06-29.md`.
-      Current recommendation: private-beta release tags are artifact-only;
-      PyPI is the first public registry after license/security gates; GHCR is
-      the first container registry after image policy gates.
+- package metadata added for `scout-web`,
+- clean wheel install smoke,
+- installed `import scout` smoke,
+- installed `scout --help` smoke,
+- launch website served from a clean wheel install,
+- GitHub CI package build and installed CLI smoke gate,
+- tag-driven GitHub release artifact workflow,
+- release workflow smoke for built wheel and Docker image.
 
-## GitHub Readiness
+Open package gates:
 
-- [ ] Clean generated local residue.
-- [ ] Remove accidental run artifacts from tracked status.
-- [ ] Keep `.env` and `.env.local` ignored.
-- [x] Add website/docs paths intentionally.
-- [x] Add release checklist.
-- [x] Add package build smoke to GitHub CI.
-- [x] Add Docker build and route smoke to GitHub CI.
-- [x] Add tag-triggered release artifact build and upload workflow.
-- [x] Add issue templates for beta feedback.
-- [x] Add security policy before public launch.
-- [ ] Run dependency CVE scan and record result.
-- [ ] Run secret scan and record result.
+- license decision,
+- final license expression in `pyproject.toml`,
+- `LICENSE` file if Scout is open source or source-available,
+- release artifact workflow run against an approved real `v*` tag,
+- downloaded GitHub Release artifact smoke,
+- public registry publishing approval.
 
-## Release Workflow
+## GitHub Release Workflow
 
 Current release automation is intentionally artifact-first:
 
@@ -142,48 +136,74 @@ This does not publish to PyPI, GHCR, Docker Hub, or any other registry yet.
 That is deliberate until Scout's license, package visibility, and hosted/local
 distribution policy are final.
 
-Registry policy:
+After artifact-only release tag approval:
 
-- Private beta tags should remain GitHub Release artifact-only.
-- PyPI should be the first public registry if Scout local/core is approved as
-  Apache-2.0, MIT, or another publishable license.
+```bash
+python3 scripts/release_artifact_smoke.py --dist-dir /path/to/downloaded/dist --serve
+```
+
+## Registry Policy
+
+Current recommendation:
+
+- private beta tags should remain GitHub Release artifact-only,
+- PyPI should be the first public package registry if Scout local/core is
+  approved as Apache-2.0, MIT, or another publishable license,
 - GHCR should be the first container registry if container publishing is
-  approved.
+  approved,
 - Docker Hub should be deferred until user demand justifies the extra support
   surface.
 
 See `docs/product/registry-publishing-policy-2026-06-29.md`.
 
-## Launch Governance
+## GitHub Hygiene
 
-Current governance files:
+Current expected state before every beta checkpoint:
 
-- `SECURITY.md` defines private beta security reporting, supported surfaces,
-  hosted/local boundaries, and the security review checklist.
-- `.github/ISSUE_TEMPLATE/private_beta_bug.yml` captures beta bug reports with
-  surface, version, reproduction steps, and non-sensitive evidence.
-- `.github/ISSUE_TEMPLATE/private_beta_feature.yml` captures workflow-oriented
-  beta feature requests.
-- `docs/product/release-checklist.md` is the launch gate. It explicitly blocks
-  public launch and public registry publishing until license, pricing/usage,
-  security, legal, and release artifact checks are closed.
+- generated local residue removed,
+- accidental run artifacts not tracked,
+- `.env` and `.env.local` ignored,
+- website/docs paths tracked intentionally,
+- release checklist and evidence index current,
+- package build, Docker build, route smoke, secret scan, and dependency audit
+  workflows visible in CI.
+
+## Security And Legal Distribution Boundaries
+
+Do not distribute broadly until:
+
+- Scout license is approved and expressed,
+- required license file is added,
+- third-party notices remain included in wheel/sdist and Docker context,
+- dependency audit blocker is resolved or formally excepted,
+- final hosted terms/privacy are reviewed for broad hosted access,
+- registry publishing policy is approved.
 
 ## Hosted Scout
 
-If Scout is hosted as a service, usage changes:
+Hosted Scout is a convenience path, not the primary beta distribution path.
 
-- users do not install locally,
-- browser/user-session capture becomes harder,
-- data residency and customer isolation become product requirements,
-- infrastructure costs and abuse prevention become central,
-- terms of service become mandatory.
+Hosted beta constraints:
 
-Hosted Scout should probably be a later phase. The first public path should be
-local/Docker/private beta.
+- approved testers only,
+- generated API keys,
+- finite credits,
+- separate metering for browser/rendered work,
+- no unlimited hosted crawling,
+- no public self-serve signup until Stripe and legal gates close.
+
+Hosted production still needs:
+
+- async jobs,
+- object storage or signed artifact URLs,
+- production retention policy,
+- production egress policy,
+- operational dashboards,
+- final legal terms and privacy policy.
 
 ## MCP Server
 
-MCP is a strong next distribution surface because agents can call Scout as a
+MCP is a strong future distribution surface because agents can call Scout as a
 tool. Candidate MCP tools:
 
 - `scrape_page`
@@ -202,3 +222,13 @@ tool. Candidate MCP tools:
 - `get_run_artifacts`
 
 MCP should come after the local API contract is stable and documented.
+
+## Do Not Claim Yet
+
+- PyPI availability.
+- GHCR or Docker Hub image availability.
+- Public self-serve hosted signup.
+- Public launch readiness.
+- Security-clean dependency audit.
+- Certified legacy `/app` UI.
+- Unlimited hosted crawling.
