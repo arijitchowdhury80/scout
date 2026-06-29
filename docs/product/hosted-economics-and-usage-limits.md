@@ -53,7 +53,15 @@ Reviewed market references:
 Detailed market notes live in:
 
 - `docs/competetor-website-knowledge/market-pricing-snapshot-2026-06-28.md`
+- `docs/competetor-website-knowledge/market-pricing-refresh-2026-06-29.md`
 - `docs/competetor-website-knowledge/pricing-and-payment-recommendation.md`
+
+The 2026-06-29 refresh checked current public pricing signals for Firecrawl,
+Browserbase, Apify, Tavily, Exa, ScrapingBee, ScraperAPI, and Zyte. The same
+conclusion held: mature crawler, browser, search, and extraction products meter
+usage through credits, subscriptions, overage, or enterprise plans. None of the
+reviewed vendors support the idea that `$22` should buy unlimited hosted
+crawling.
 
 ## Private Beta Hosted Pass
 
@@ -155,4 +163,3 @@ any subscription alternative.
 
 It does **not** approve final public launch pricing. That remains a separate
 business decision.
-

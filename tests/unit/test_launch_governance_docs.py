@@ -109,6 +109,10 @@ def test_release_checklist_blocks_public_launch_until_decisions_are_closed() -> 
 def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> None:
     economics = _read("docs/product/hosted-economics-and-usage-limits.md")
     checklist = _read("docs/product/release-checklist.md")
+    pricing_refresh = _read(
+        "docs/competetor-website-knowledge/market-pricing-refresh-2026-06-29.md"
+    )
+    source_index = _read("docs/competetor-website-knowledge/source-index.md")
 
     assert "Hosted Economics And Usage Limits" in economics
     assert "$22 one-time hosted beta pass" in economics
@@ -120,6 +124,8 @@ def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> 
     assert "Browser minute | browser | 10" in economics
     assert "Firecrawl" in economics
     assert "Browserbase" in economics
+    assert "market-pricing-refresh-2026-06-29.md" in economics
+    assert "mature crawler, browser, search, and extraction products meter" in economics
     assert "Subscriptions can follow after private-beta usage data is measured" in economics
     assert "- [ ] Public launch pricing and hosted usage limits approved." in checklist
     assert (
@@ -127,6 +133,13 @@ def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> 
         in checklist
     )
     assert "docs/product/hosted-economics-and-usage-limits.md" in checklist
+    assert "Market Pricing Refresh" in pricing_refresh
+    assert "Local Scout should stay free" in pricing_refresh
+    assert "Browserbase" in pricing_refresh
+    assert "ScrapingBee" in pricing_refresh
+    assert "Zyte" in pricing_refresh
+    assert "Do not approve public pricing yet." in pricing_refresh
+    assert "market-pricing-refresh-2026-06-29.md" in source_index
 
 
 def test_website_copy_review_records_competitor_alignment_and_boundaries() -> None:

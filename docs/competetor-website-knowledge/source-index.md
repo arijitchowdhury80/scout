@@ -40,6 +40,8 @@ change; verify again before publishing public claims.
 | Internal File | Purpose |
 |---|---|
 | `market-pricing-snapshot-2026-06-28.md` | Current public pricing/economics snapshot across crawler, browser, AI search, and extraction competitors |
+| `market-pricing-refresh-2026-06-29.md` | Follow-up pricing refresh confirming credit/subscription/browser-metering signals and Scout hosted-beta economics |
+| `pricing-and-payment-recommendation.md` | Scout local-free plus finite hosted beta pass payment recommendation |
 | `scout-differentiation.md` | Positioning memo explaining why Scout cannot rely only on "local-owned data" and must lead with evidence-grade records |
 
 ## Scout Internal Sources
