@@ -72,7 +72,7 @@ python3 scripts/release_artifact_smoke.py --dist-dir /path/to/downloaded/dist --
 
 This verifies the downloaded wheel in a fresh virtual environment and can also
 start the installed `scout serve` command to smoke `/health`, `/`,
-`/styles.css`, and `/quickstart`.
+`/styles.css`, `/quickstart`, and `/status`.
 
 ### Phase 1: PyPI first, if local/core is open source
 

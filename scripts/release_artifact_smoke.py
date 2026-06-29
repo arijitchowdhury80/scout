@@ -123,7 +123,7 @@ def smoke_installed_server(scout: Path, port: int) -> None:
     try:
         base = f"http://127.0.0.1:{port}"
         wait_for_route(f"{base}/health")
-        for route in ["/", "/styles.css", "/quickstart"]:
+        for route in public_server_smoke_routes():
             wait_for_route(f"{base}{route}")
     finally:
         process.terminate()
@@ -131,6 +131,11 @@ def smoke_installed_server(scout: Path, port: int) -> None:
             process.wait(timeout=10)
         except subprocess.TimeoutExpired:
             process.kill()
+
+
+def public_server_smoke_routes() -> list[str]:
+    """Return public routes that release artifact server smoke must verify."""
+    return ["/", "/styles.css", "/quickstart", "/status"]
 
 
 def wait_for_route(url: str, timeout_seconds: float = 30.0) -> None:

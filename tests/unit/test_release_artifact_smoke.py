@@ -69,6 +69,10 @@ def test_release_artifact_smoke_can_request_server_smoke(
     assert server_ports == [18455]
 
 
+def test_release_artifact_server_smoke_includes_launch_status_route() -> None:
+    assert "/status" in release_artifact_smoke.public_server_smoke_routes()
+
+
 def test_release_artifact_smoke_main_reports_success(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
