@@ -83,6 +83,83 @@ def test_private_beta_support_and_onboarding_playbook_closes_beta_ops_gates() ->
     assert "private beta issue templates" in launch_plan
 
 
+def test_private_beta_launch_plan_reflects_current_evidence_and_boundaries() -> None:
+    launch_plan = _read("docs/product/private-beta-launch-plan.md")
+
+    assert "Controlled private beta plan; public launch remains blocked" in launch_plan
+    assert "docs/product/launch-evidence-index-2026-06-29.md" in launch_plan
+    assert "docs/product/launch-decision-dashboard-2026-06-29.md" in launch_plan
+    assert "docs/product/launch-gate-burndown-2026-06-29.md" in launch_plan
+    assert "docs/product/launch-decision-request-2026-06-29.md" in launch_plan
+    assert (
+        "URL or captured page -> evidence ledger -> typed records -> portable artifacts"
+        in launch_plan
+    )
+    assert 'The beta promise is not "scrape anything."' in launch_plan
+
+    verified_surfaces = [
+        "Local branch-qualified install",
+        "Docker built from source",
+        "Hosted API for approved testers",
+        "Claude/Codex skill docs",
+        "Launch website",
+    ]
+    for surface in verified_surfaces:
+        assert surface in launch_plan
+
+    current_evidence = [
+        "docs/product/local-install-verification-2026-06-28.md",
+        "docs/product/docker-install-verification-2026-06-28.md",
+        "docs/product/hosted-api-quickstart-verification-2026-06-28.md",
+        "docs/product/skill-usage-verification-2026-06-29.md",
+        "docs/product/website-route-render-verification-2026-06-29.md",
+        "docs/product/website-copy-review-2026-06-28.md",
+        "docs/product/feature-list.md",
+        "docs/product/differentiation.md",
+        "docs/legal/legal-readiness-checklist.md",
+        "docs/legal/dependency-license-inventory-2026-06-28.md",
+        "docs/product/private-beta-onboarding-and-support.md",
+    ]
+    for evidence_file in current_evidence:
+        assert evidence_file in launch_plan
+
+    public_preview_blockers = [
+        "Publish package to PyPI",
+        "Publish Docker image to GHCR or Docker Hub",
+        "Run GitHub Release workflow against real `v*` tag",
+        "Smoke downloaded GitHub Release artifacts",
+        "Certify public hosted checkout",
+        "Replace beta legal placeholders",
+        "Claim clean dependency security posture",
+    ]
+    for blocker in public_preview_blockers:
+        assert blocker in launch_plan
+
+    prohibited_claims = [
+        "PyPI availability",
+        "GHCR or Docker Hub image availability",
+        "Public self-serve hosted signup",
+        "Unlimited hosted crawling",
+        "Certified legacy `/app` UI",
+        "Guaranteed hard-site bypass",
+        "Security-clean dependency audit",
+    ]
+    for claim in prohibited_claims:
+        assert claim in launch_plan
+
+    stale_open_items = [
+        "- [ ] Fix current Ruff failure in `tests/e2e_real_websites.py`.",
+        "- [ ] Add feature list, differentiation, legal readiness, and third-party notices.",
+        "- [ ] Add a private-beta website page.",
+        "- [ ] Publish polished README.",
+        "- [ ] Add installation and Docker guide.",
+        "- [ ] Add API examples.",
+        "- [ ] Add dependency/license inventory.",
+    ]
+    for stale_item in stale_open_items:
+        assert stale_item not in launch_plan
+
+
 def test_release_checklist_blocks_public_launch_until_decisions_are_closed() -> None:
     checklist = _read("docs/product/release-checklist.md")
 
