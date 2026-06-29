@@ -854,6 +854,17 @@ def test_founder_decision_draft_packet_is_explicitly_non_approving() -> None:
     assert "not launch approvals" in packet
     assert "not completed decision records" in packet
     assert "not release evidence" in packet
+    assert "## Review Workflow" in packet
+    assert "Do not edit the release checklist from a draft alone." in packet
+    assert "Copy the approved draft into the completed record naming pattern" in packet
+    assert "Source prompt / meeting / approval note" in packet
+    assert "## Completion Checklist" in packet
+    assert "license-decision" in packet
+    assert "public-pricing-and-hosted-usage-limits" in packet
+    assert "registry-publishing-policy" in packet
+    assert "docker-image-publishing-policy" in packet
+    assert "crawl4ai-lxml-risk-decision" in packet
+    assert "stripe-real-test-mode-smoke" in packet
     assert "scout launch-decision-check --check-existing" in packet
     assert "founder-decision-draft-SCOUT-DEC-20260629-01.md" in packet
     assert "founder-decision-draft-SCOUT-DEC-20260629-02.md" in packet

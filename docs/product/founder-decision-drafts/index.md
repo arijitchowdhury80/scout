@@ -30,3 +30,41 @@ Every generated draft currently says:
 
 Public launch remains blocked until the release checklist gates are actually
 closed or formally excepted.
+
+## Review Workflow
+
+1. Open one draft and decide whether the recommendation is approved, rejected,
+   or still deferred.
+2. Do not edit the release checklist from a draft alone.
+3. Copy the approved draft into the completed record naming pattern:
+   `docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md`.
+4. Replace every placeholder, especially:
+   - `Status: Deferred`,
+   - `Source prompt / meeting / approval note`,
+   - `Approved decision`,
+   - `Rejected alternatives`,
+   - `Scope and limits`,
+   - `Required Codex follow-up`.
+5. Keep `Public launch allowed by this decision? No` unless Arijit explicitly
+   approves public launch in that same completed decision record.
+6. Validate the completed record:
+
+   ```bash
+   scout launch-decision-check docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md
+   scout launch-decision-check --check-existing
+   ```
+
+7. Only after validation passes can Codex update the release checklist, evidence
+   index, license files, package metadata, release tags, or payment smoke
+   evidence tied to that decision.
+
+## Completion Checklist
+
+Use this as the founder review queue:
+
+- [ ] `license-decision`
+- [ ] `public-pricing-and-hosted-usage-limits`
+- [ ] `registry-publishing-policy`
+- [ ] `docker-image-publishing-policy`
+- [ ] `crawl4ai-lxml-risk-decision`
+- [ ] `stripe-real-test-mode-smoke`
