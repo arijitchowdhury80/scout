@@ -61,6 +61,13 @@ async def launch_site_pricing() -> FileResponse:
     return _launch_site_page("pricing.html")
 
 
+@router.get("/status")
+@router.get("/status.html")
+async def launch_site_status() -> FileResponse:
+    """Serve the Scout launch readiness status page."""
+    return _launch_site_page("status.html")
+
+
 @router.get("/beta")
 @router.get("/beta.html")
 async def launch_site_beta() -> FileResponse:

@@ -40,6 +40,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/quickstart",
             "/quickstart.html",
             "/redoc",
+            "/status",
+            "/status.html",
             "/styles.css",
             "/terms",
             "/terms.html",

@@ -19,7 +19,7 @@ python3 -m pytest tests/unit/website/test_launch_website.py -q
 Result:
 
 ```text
-10 passed, 2 warnings in 1.45s
+10 passed, 2 warnings in 1.30s
 ```
 
 Warnings were Crawl4AI/Pydantic deprecation warnings from the installed
@@ -43,6 +43,7 @@ python3 -m scout.cli serve --host 127.0.0.1 --port 18423
 | `/?checkout=cancelled` | Stripe checkout return status for cancelled hosted beta checkout | Pass |
 | `/quickstart` | `Scout Quickstart - Local-first web acquisition` | Pass |
 | `/pricing` | `Scout Pricing - Free local, metered hosted beta` | Pass |
+| `/status` | `Scout Launch Status - Private beta readiness` | Pass |
 | `/beta` | `Scout Private Beta - Local install or hosted pass` | Pass |
 | `/beta?checkout=success` | Stripe checkout return status for successful hosted beta payment | Pass |
 | `/beta?checkout=cancelled` | Stripe checkout return status for cancelled hosted beta checkout | Pass |
@@ -73,6 +74,8 @@ local Scout server:
 
 - The static launch website files exist and are covered by unit tests.
 - The Scout HTTP service serves the public website routes without API auth.
+- The `/status` page exposes the current private-beta/public-launch verdict,
+  owner summary, blocker summary, and filtered readiness commands.
 - The hosted beta checkout return URLs surface success/cancel states instead
   of dropping testers back onto the site without context.
 - The website now exposes the code-aligned hosted beta pass limits: 2,000

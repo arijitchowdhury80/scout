@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scout Launch Status - Private beta readiness</title>
+    <meta
+      name="description"
+      content="Scout launch readiness status, private beta boundaries, public launch blockers, and readiness commands."
+    />
+    <link
+      rel="icon"
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%2318181b"/><text x="32" y="42" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" font-weight="900" fill="%23ebebe8">S</text></svg>'
+    />
+    <link rel="stylesheet" href="./assets/warm-industrial-design-system/warm-industrial.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="wi">
+    <div class="wi-grid-bg" aria-hidden="true"><div class="wi-grid-bg__inner"></div></div>
+    <div class="wi-noise" aria-hidden="true"></div>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Scout home">
+          <span class="brand-mark">S</span>
+          <span><strong>Scout</strong><small>Evidence-grade acquisition</small></span>
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="/quickstart">Quickstart</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/status">Status</a>
+          <a href="/beta">Private beta</a>
+          <a href="/legal">Legal</a>
+          <a href="/docs">API docs</a>
+        </nav>
+        <a class="wi-pill nav-cta" href="/beta">Join beta</a>
+      </header>
+
+      <main>
+        <section class="page-hero">
+          <p class="wi-label wi-label--accent">Scout Launch Status</p>
+          <h1>Private beta is usable with limits. Public launch is still blocked.</h1>
+          <p>
+            This page mirrors the launch readiness contract in plain language.
+            It exists so beta testers and operators can see what is verified,
+            what is blocked, and which commands produce the current evidence.
+          </p>
+        </section>
+
+        <section class="section launch-status" aria-labelledby="status-verdict-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Current verdict</p>
+            <h2 id="status-verdict-title">Readiness is intentionally split.</h2>
+          </div>
+          <div class="status-grid">
+            <article>
+              <span class="status-tag status-tag--primary">Beta</span>
+              <h3>Private beta: ready_with_limits</h3>
+              <p>Controlled beta can continue for approved testers using local install, Docker-from-source, skill usage, and approved hosted beta keys.</p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--blocker">Public</span>
+              <h3>Public launch: blocked</h3>
+              <p>Public launch remains blocked by license, legal, dependency audit, release artifact, Docker publishing, and real Stripe smoke gates.</p>
+            </article>
+            <article>
+              <span class="status-tag status-tag--limited">Boundary</span>
+              <h3>No certified legacy /app UI claim</h3>
+              <p>Scout's launch surface is the CLI, HTTP API, Docker path, skill docs, hosted beta API, and this static website. No unlimited hosted crawling.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section step-section" aria-labelledby="owner-summary-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Owner summary</p>
+            <h2 id="owner-summary-title">Who owns the remaining blockers?</h2>
+          </div>
+          <div class="note-grid">
+            <article>
+              <h3>Arijit: 5</h3>
+              <p>Founder and risk decisions: license, pricing, publishing, Docker publishing, and Crawl4AI/lxml risk posture.</p>
+            </article>
+            <article>
+              <h3>Codex: 8</h3>
+              <p>Implementation and engineering gates that become actionable after approval or after release artifacts exist.</p>
+            </article>
+            <article>
+              <h3>Codex + Arijit: 1</h3>
+              <p>Stripe real test-mode smoke requires configured test credentials, webhook delivery, and hosted key verification.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section step-section" aria-labelledby="blocker-summary-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Blocker summary</p>
+            <h2 id="blocker-summary-title">What kind of work remains?</h2>
+          </div>
+          <div class="note-grid">
+            <article>
+              <h3>founder_decision: 4</h3>
+              <p>License, public pricing, registry publishing, and Docker image publishing decisions.</p>
+            </article>
+            <article>
+              <h3>engineering: 4</h3>
+              <p>Release workflow run, release artifact smoke, published Docker image smoke, and blocking dependency audit.</p>
+            </article>
+            <article>
+              <h3>legal_implementation: 4</h3>
+              <p>Final license metadata and license file implementation after legal/founder approval.</p>
+            </article>
+            <article>
+              <h3>risk_decision: 1</h3>
+              <p>Crawl4AI/lxml risk decision remains a public launch gate.</p>
+            </article>
+            <article>
+              <h3>external_smoke: 1</h3>
+              <p>Stripe checkout, webhook, and hosted key delivery must be tested against real Stripe test-mode infrastructure.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section step-section" aria-labelledby="status-commands-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Executable evidence</p>
+            <h2 id="status-commands-title">Run the readiness checker locally.</h2>
+          </div>
+          <pre><code>scout launch-readiness
+scout launch-readiness --json
+scout launch-readiness --owner Arijit
+scout launch-readiness --blocker-type engineering
+scout launch-readiness --require-public</code></pre>
+          <div class="note-grid">
+            <article>
+              <h3>Filtered reports</h3>
+              <p>`--owner` and `--blocker-type` change the displayed blocker list only. They do not change the underlying public launch verdict.</p>
+            </article>
+            <article>
+              <h3>Public gate</h3>
+              <p>`--require-public` is expected to fail until the public blockers close. That failure is a protection, not a bug.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
