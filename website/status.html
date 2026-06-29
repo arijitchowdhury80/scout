@@ -120,6 +120,27 @@
           </div>
         </section>
 
+        <section class="section step-section" aria-labelledby="blocker-keys-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Blocker keys</p>
+            <h2 id="blocker-keys-title">Use the same IDs as the readiness report.</h2>
+          </div>
+          <div class="note-grid">
+            <article>
+              <h3>Founder / risk decisions</h3>
+              <p><code>license-decision</code>, <code>public-pricing-and-hosted-usage-limits</code>, <code>registry-publishing-policy</code>, <code>docker-image-publishing-policy</code>, <code>crawl4ai-lxml-risk-decision</code></p>
+            </article>
+            <article>
+              <h3>Codex implementation gates</h3>
+              <p><code>final-license-expression</code>, <code>license-file</code>, <code>pyproject-license-expression</code>, <code>github-release-workflow-run</code>, <code>release-artifact-smoke</code>, <code>published-docker-image-smoke</code>, <code>dependency-audit-blocking-cleanly</code></p>
+            </article>
+            <article>
+              <h3>External smoke</h3>
+              <p><code>stripe-real-test-mode-smoke</code> requires Stripe test keys, webhook delivery, hosted key delivery, and a verified hosted API call.</p>
+            </article>
+          </div>
+        </section>
+
         <section class="section step-section" aria-labelledby="status-commands-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Executable evidence</p>
