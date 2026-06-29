@@ -41,6 +41,19 @@ def test_launch_website_exposes_hosted_beta_checkout_form_without_secrets() -> N
     assert "sk_test_" not in html
 
 
+def test_launch_website_handles_stripe_checkout_return_states_without_secrets() -> None:
+    for page_name in ("index.html", "beta.html"):
+        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
+
+        assert "checkout=success" in html
+        assert "checkout=cancelled" in html
+        assert "Stripe payment completed. Scout will email your hosted API key" in html
+        assert "Stripe checkout was cancelled." in html
+        assert "handleCheckoutReturnState" in html
+        assert "sk_live_" not in html
+        assert "sk_test_" not in html
+
+
 def test_launch_website_states_current_launch_readiness_boundaries() -> None:
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())

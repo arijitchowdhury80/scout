@@ -411,6 +411,17 @@ scout serve</code></pre>
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted beta checkout">
+            <p
+              id="hostedBetaReturnStatus"
+              class="beta-status checkout-return-status"
+              role="status"
+              aria-live="polite"
+              data-success-query="checkout=success"
+              data-cancel-query="checkout=cancelled"
+              hidden
+            >
+              Stripe checkout return status appears here.
+            </p>
             <form
               id="hostedBetaCheckout"
               class="beta-form"
@@ -469,6 +480,23 @@ scout serve</code></pre>
       const checkoutForm = document.getElementById("hostedBetaCheckout");
       const checkoutStatus = document.getElementById("hostedBetaStatus");
       const checkoutButton = checkoutForm?.querySelector("button[type='submit']");
+      const checkoutReturnStatus = document.getElementById("hostedBetaReturnStatus");
+
+      function handleCheckoutReturnState() {
+        if (!checkoutReturnStatus) return;
+        const checkoutState = new URLSearchParams(window.location.search).get("checkout");
+        if (checkoutState === "success") {
+          checkoutReturnStatus.hidden = false;
+          checkoutReturnStatus.dataset.state = "success";
+          checkoutReturnStatus.textContent =
+            "Stripe payment completed. Scout will email your hosted API key after the signed webhook provisions access.";
+        } else if (checkoutState === "cancelled") {
+          checkoutReturnStatus.hidden = false;
+          checkoutReturnStatus.dataset.state = "error";
+          checkoutReturnStatus.textContent =
+            "Stripe checkout was cancelled. No hosted credits were provisioned; local Scout remains available.";
+        }
+      }
 
       async function loadCheckoutReadiness() {
         if (!checkoutForm || !checkoutStatus || !checkoutButton) return;
@@ -530,6 +558,7 @@ scout serve</code></pre>
         }
       });
 
+      handleCheckoutReturnState();
       loadCheckoutReadiness();
     </script>
   </body>
