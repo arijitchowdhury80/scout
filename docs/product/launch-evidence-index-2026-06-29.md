@@ -16,6 +16,7 @@ truth for launch gates:
 - `docs/product/launch-decision-dashboard-2026-06-29.md`
 - `docs/product/launch-gate-burndown-2026-06-29.md`
 - `docs/product/launch-decision-request-2026-06-29.md`
+- `docs/product/public-launch-action-packet-2026-06-29.md`
 
 Executable readiness check:
 

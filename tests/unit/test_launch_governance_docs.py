@@ -689,6 +689,35 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
     assert "docs/product/launch-decision-dashboard-2026-06-29.md" in checklist
 
 
+def test_public_launch_action_packet_groups_executable_blocker_types() -> None:
+    action_packet = _read("docs/product/public-launch-action-packet-2026-06-29.md")
+    checklist = _read("docs/product/release-checklist.md")
+    dashboard = _read("docs/product/launch-decision-dashboard-2026-06-29.md")
+    burndown = _read("docs/product/launch-gate-burndown-2026-06-29.md")
+
+    assert "Scout Public Launch Action Packet" in action_packet
+    assert "Generated from `scout launch-readiness --json`" in action_packet
+    assert "Private beta remains `ready_with_limits`." in action_packet
+    assert "Public launch remains `blocked`." in action_packet
+    assert "`founder_decision`" in action_packet
+    assert "`legal_implementation`" in action_packet
+    assert "`engineering`" in action_packet
+    assert "`risk_decision`" in action_packet
+    assert "`external_smoke`" in action_packet
+    assert "Approve Apache-2.0 for Scout local/core" in action_packet
+    assert "Keep $22 as a finite-credit hosted beta pass" in action_packet
+    assert "Do not approve public self-serve hosted launch yet" in action_packet
+    assert "GitHub release workflow run" in action_packet
+    assert "Stripe real test-mode smoke" in action_packet
+    assert "Crawl4AI/lxml risk decision" in action_packet
+    assert "docs/product/public-launch-action-packet-2026-06-29.md" in checklist
+    assert "docs/product/public-launch-action-packet-2026-06-29.md" in dashboard
+    assert "docs/product/public-launch-action-packet-2026-06-29.md" in burndown
+    assert "docs/product/public-launch-action-packet-2026-06-29.md" in _read(
+        "docs/product/launch-evidence-index-2026-06-29.md"
+    )
+
+
 def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> None:
     evidence = _read("docs/product/launch-evidence-index-2026-06-29.md")
     checklist = _read("docs/product/release-checklist.md")

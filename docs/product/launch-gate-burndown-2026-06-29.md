@@ -12,6 +12,9 @@ blocker types, and next actions.
 Consolidated decision request:
 `docs/product/launch-decision-request-2026-06-29.md`.
 
+Public launch action packet:
+`docs/product/public-launch-action-packet-2026-06-29.md`.
+
 Launch evidence index:
 `docs/product/launch-evidence-index-2026-06-29.md`.
 

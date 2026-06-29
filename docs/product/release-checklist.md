@@ -35,6 +35,9 @@ field so the burndown separates decision work from implementation work:
 Current decision request memo:
 `docs/product/launch-decision-request-2026-06-29.md`.
 
+Current public launch action packet:
+`docs/product/public-launch-action-packet-2026-06-29.md`.
+
 ## Release Scope
 
 Current intended release surfaces:
