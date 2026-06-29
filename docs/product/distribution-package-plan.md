@@ -13,6 +13,12 @@ Use this plan with:
 - License decision brief: `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`
 - License implementation runbook: `docs/legal/license-implementation-runbook-2026-06-29.md`
 
+Quick status command:
+
+```bash
+python3 scripts/launch_readiness_check.py
+```
+
 ## Distribution Goals
 
 Scout should be usable in four ways:
@@ -141,6 +147,14 @@ After artifact-only release tag approval:
 ```bash
 python3 scripts/release_artifact_smoke.py --dist-dir /path/to/downloaded/dist --serve
 ```
+
+To enforce that a public release is actually ready, run:
+
+```bash
+python3 scripts/launch_readiness_check.py --require-public
+```
+
+This command must fail until public-launch blockers are closed.
 
 ## Registry Policy
 

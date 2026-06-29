@@ -17,6 +17,17 @@ truth for launch gates:
 - `docs/product/launch-gate-burndown-2026-06-29.md`
 - `docs/product/launch-decision-request-2026-06-29.md`
 
+Executable readiness check:
+
+```bash
+python3 scripts/launch_readiness_check.py
+python3 scripts/launch_readiness_check.py --json
+python3 scripts/launch_readiness_check.py --require-public
+```
+
+`--require-public` intentionally exits nonzero while public launch blockers are
+open.
+
 ## Current Verdict
 
 Scout is credible for controlled private beta with limits.

@@ -16,6 +16,9 @@ Current launch gate burndown:
 Current launch evidence index:
 `docs/product/launch-evidence-index-2026-06-29.md`.
 
+Executable launch readiness check:
+`scripts/launch_readiness_check.py`.
+
 Current decision request memo:
 `docs/product/launch-decision-request-2026-06-29.md`.
 
