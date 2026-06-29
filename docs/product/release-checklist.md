@@ -157,7 +157,13 @@ No public registry publish should happen until these decisions are closed.
       ran `/v1/hosted/scrape` against `https://example.com`, returned provider
       `crawl4ai`, quality score `1.0`, and debited standard credits from
       `2000` to `1999`. Raw key was masked in evidence.
-- [ ] Skill usage docs tested from current package.
+- [x] Skill usage docs tested from current package.
+      Evidence: `docs/product/skill-usage-verification-2026-06-29.md`.
+      Result: clean wheel install includes `scout/skill/scout.md` and
+      `scout/skill/README.md`; installed CLI exposes `run`, `products`,
+      `hosted-provision`, and `serve`; skill CLI examples for company,
+      careers, and PRISM wrote artifact contracts with citations; installed
+      HTTP `/run/company` example passed. Stale skill docs were corrected.
 
 ## Explicit Non-Goals For Current Release
 

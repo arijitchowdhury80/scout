@@ -42,7 +42,12 @@ If not running:
 scout serve
 ```
 
-All HTTP endpoints except `/` and `/health` require:
+Public launch/docs routes are intentionally unauthenticated: `/`, `/health`,
+`/quickstart`, `/pricing`, `/beta`, `/legal`, `/terms`, `/privacy`, `/docs`,
+`/redoc`, `/openapi.json`, `/styles.css`, and `/third-party-notices`.
+
+Local API routes such as `/scrape`, `/crawl`, `/products`, `/run/{use_case}`,
+`/runs/{run_id}`, `/app/runs`, and `/algolia/preview` require:
 
 ```text
 X-API-Key: dev-key
@@ -132,19 +137,15 @@ curl -s -X POST http://localhost:8421/run/company \
 
 ## Frontend
 
-When the user wants to run Scout visually, open:
+The legacy local app route exists at:
 
 ```text
 http://localhost:8421/app
 ```
 
-The frontend includes a self-education architecture screen, execution-mode
-tabs, working directory selection, Product Workbench, Algolia preparation
-preview, Records Explorer, and Evidence Browser. The architecture screen maps
-front doors, RunRequest, provider modes, normalized evidence, vertical
-processors, typed records, downstream consumers, and cross-cutting concerns.
-Algolia keys entered in the UI are session-only and must not be written to
-artifacts or repo files.
+The app UI is not a launch-certified product surface. Use it only when the user
+explicitly asks for the local visual/status surface. Prefer CLI, HTTP, Docker,
+or hosted API examples for beta launch guidance.
 
 ## Use Cases
 
