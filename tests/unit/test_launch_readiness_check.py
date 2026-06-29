@@ -17,6 +17,16 @@ def test_launch_readiness_report_marks_private_beta_ready_and_public_blocked() -
 
     assert report["private_beta"]["status"] == "ready_with_limits"
     assert report["public_launch"]["status"] == "blocked"
+    assert report["public_launch"]["blocker_summary"] == {
+        "total": 14,
+        "by_type": {
+            "engineering": 4,
+            "external_smoke": 1,
+            "founder_decision": 4,
+            "legal_implementation": 4,
+            "risk_decision": 1,
+        },
+    }
     private_beta_areas = {check["area"] for check in report["private_beta"]["checks"]}
     assert len(report["private_beta"]["checks"]) >= 9
     assert "hosted operating contract" in private_beta_areas
@@ -55,6 +65,8 @@ def test_launch_readiness_script_outputs_json() -> None:
 
     assert payload["private_beta"]["status"] == "ready_with_limits"
     assert payload["public_launch"]["status"] == "blocked"
+    assert payload["public_launch"]["blocker_summary"]["total"] == 14
+    assert payload["public_launch"]["blocker_summary"]["by_type"]["founder_decision"] == 4
     assert all("blocker_type" in blocker for blocker in payload["public_launch"]["blockers"])
 
 
@@ -69,4 +81,6 @@ def test_launch_readiness_script_can_fail_for_public_launch_gate() -> None:
     assert result.returncode == 1
     assert "Private beta: ready_with_limits" in result.stdout
     assert "Public launch: blocked" in result.stdout
+    assert "Blocker summary: 14 total" in result.stdout
+    assert "founder_decision: 4" in result.stdout
     assert "license decision [founder_decision]" in result.stdout

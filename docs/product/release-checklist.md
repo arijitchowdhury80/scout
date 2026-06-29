@@ -22,7 +22,8 @@ GitHub CI runs the repository wrapper default and JSON forms as the
 private-beta readiness gate.
 
 Public blockers in the executable readiness report include a `blocker_type`
-field so the burndown separates decision work from implementation work:
+field and a `blocker_summary` count so the burndown separates decision work
+from implementation work:
 
 | Blocker type | Meaning |
 |---|---|

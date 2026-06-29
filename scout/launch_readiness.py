@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -243,6 +244,14 @@ def _public_blockers(root: Path) -> list[EvidenceCheck]:
     return blockers
 
 
+def _blocker_summary(blockers: list[EvidenceCheck]) -> dict[str, Any]:
+    by_type = Counter(blocker.blocker_type for blocker in blockers)
+    return {
+        "total": len(blockers),
+        "by_type": dict(sorted(by_type.items())),
+    }
+
+
 def build_report(root: Path) -> dict[str, Any]:
     private_beta = _private_beta_checks(root)
     public_blockers = _public_blockers(root)
@@ -265,6 +274,7 @@ def build_report(root: Path) -> dict[str, Any]:
         },
         "public_launch": {
             "status": "ready" if public_ready else "blocked",
+            "blocker_summary": _blocker_summary(public_blockers),
             "blockers": [blocker.as_dict() for blocker in public_blockers],
         },
     }
@@ -280,6 +290,10 @@ def print_text_report(report: dict[str, Any]) -> None:
 
     print("")
     print(f"Public launch: {public_launch['status']}")
+    blocker_summary = public_launch["blocker_summary"]
+    print(f"Blocker summary: {blocker_summary['total']} total")
+    for blocker_type, count in blocker_summary["by_type"].items():
+        print(f"  - {blocker_type}: {count}")
     for blocker in public_launch["blockers"]:
         print(f"  - {blocker['area']} [{blocker['blocker_type']}]: {blocker['note']}")
 
