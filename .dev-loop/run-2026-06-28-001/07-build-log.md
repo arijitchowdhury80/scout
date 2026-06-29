@@ -1677,3 +1677,50 @@ Verification:
 - Lint/format:
   `ruff check scout/ tests/ && ruff format --check scout/ tests/` passed:
   all checks passed, 214 files already formatted.
+
+## Founder Decision Draft Packet And Launch Evidence Checkpoint
+
+Date: 2026-06-29
+
+Built:
+
+- generated founder decision draft packet under
+  `docs/product/founder-decision-drafts/`,
+- `docs/product/founder-decision-drafts/index.md`,
+- launch action packet references to the generated draft packet,
+- launch evidence index row for the founder decision draft packet,
+- governance tests that prevent draft packets from being treated as launch
+  approvals.
+
+Boundary:
+
+- Drafts are review aids only.
+- No founder decision records are approved.
+- Private beta remains `ready_with_limits`.
+- Public launch remains `blocked`.
+- The latest readiness check reports 14 public-launch blockers with 14 stable,
+  unique blocker IDs.
+
+Verification:
+
+- Focused launch governance docs:
+  `python3 -m pytest tests/unit/test_launch_governance_docs.py -q` passed:
+  25 tests.
+- Touched test file lint/format:
+  `ruff check tests/unit/test_launch_governance_docs.py && ruff format --check tests/unit/test_launch_governance_docs.py`
+  passed.
+- Launch readiness smoke:
+  `python3 scripts/launch_readiness_check.py --json` summarized as
+  `ready_with_limits blocked 14 14`.
+- Founder decision record check:
+  `python3 -m scout.cli launch-decision-check --root . --check-existing`
+  passed with `PASS: 0 founder decision records found.`
+- Full unit suite:
+  `python3 -m pytest tests/unit/ -q` passed: 635 tests, 8 warnings.
+
+Next gate:
+
+- Arijit reviews and approves or changes the six generated decision drafts.
+- Codex must not add a final license expression, `LICENSE` file, release tag,
+  public registry publishing, or blocking dependency-audit policy until the
+  relevant decision record is approved.
