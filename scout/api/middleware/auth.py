@@ -28,6 +28,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/beta.html",
             "/docs",
             "/docs/oauth2-redirect",
+            "/examples",
+            "/examples.html",
             "/favicon.ico",
             "/health",
             "/legal",

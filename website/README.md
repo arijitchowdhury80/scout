@@ -23,6 +23,7 @@ Public website paths served by `scout serve`:
 
 - `/` - launch homepage.
 - `/quickstart` - local install, Docker, workdir, and first-run guidance.
+- `/examples` - beta-safe workflow examples and artifact expectations.
 - `/pricing` - local-free and hosted-metered pricing posture.
 - `/beta` - local-vs-hosted beta path and hosted checkout form.
 - `/legal` - third-party notices, attribution, legal-readiness boundaries, and
@@ -44,6 +45,7 @@ Next website tasks:
 
 - [x] Replace static hosted-beta CTA with checkout-session form.
 - [x] Add quickstart, pricing, and private beta onboarding pages.
+- [x] Add beta-safe examples page.
 - [x] Add legal/third-party notices website page.
 - [x] Add private beta support and onboarding guidance.
 - [ ] Add a short product demo GIF/video.

@@ -115,6 +115,45 @@ Verification:
 - `ruff check scout/ tests/` -> `All checks passed!`.
 - `ruff format --check scout/ tests/` -> `182 files already formatted`.
 
+## Follow-Up Checkpoint - Launch Website Examples Page
+
+Date: 2026-06-29
+
+Built:
+
+- `website/examples.html`
+- public `/examples` and `/examples.html` launch-site routes
+- public auth allowlist entries for the new examples routes
+- launch-site navigation links to Examples
+- website README route entry and task checklist update
+- frontend-builder workspace notes for the examples page
+
+Behavior:
+
+- Provides beta-safe workflows for page-to-markdown, product category records,
+  company intelligence packets, and saved/captured HTML extraction.
+- Documents the artifact contract: `records.json`, `source_pages.json`,
+  `blocked_pages.json`, and `extraction_report.md`.
+- States current launch boundaries: no guaranteed hard-site bypass and no
+  certified legacy `/app` UI claim.
+
+TDD:
+
+- RED: targeted website test failed because `website/examples.html` did not
+  exist and `/examples` returned `403`.
+- GREEN: targeted website test passed after adding the page, route, and auth
+  allowlist.
+
+Verification:
+
+- `python3 -m pytest tests/unit/website/test_launch_website.py::test_launch_website_has_beta_onboarding_pages tests/unit/website/test_launch_website.py::test_api_serves_launch_website_beta_onboarding_pages_without_auth -q` -> `2 passed, 2 warnings`.
+- `python3 -m pytest tests/unit/website/test_launch_website.py -q` -> `11 passed, 2 warnings`.
+- `python3 -m pytest tests/unit/ -q` -> `642 passed, 8 warnings`.
+- `python3 -m pyright scout/` -> `0 errors, 0 warnings, 0 informations`.
+- `ruff check scout/ tests/ && ruff format --check scout/ tests/` -> `All checks passed!`, `227 files already formatted`.
+- Launch-readiness smoke -> private beta `ready_with_limits`, public launch
+  `blocked`, Codex-actionable now `0`.
+
 ## Follow-Up Checkpoint - Hosted Admission Service
 
 Date: 2026-06-28
