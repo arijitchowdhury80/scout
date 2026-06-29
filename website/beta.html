@@ -60,6 +60,11 @@
               <h3>Hosted beta checkout</h3>
               <p>Creates a Stripe checkout session for a limited hosted beta pass when payment is configured.</p>
               <p class="beta-note">Hosted beta is capped and metered. It is not unlimited crawling.</p>
+              <p>
+                Current beta pass limits: 2,000 standard credits, 100 browser
+                credits, 7-day artifact retention, 100 pages per run, and 1
+                concurrent hosted run.
+              </p>
             </article>
           </div>
         </section>
@@ -129,7 +134,8 @@ scout launch-readiness --require-public</code></pre>
                 <button class="wi-btn" type="submit">Create hosted beta checkout</button>
               </div>
               <p id="hostedBetaStatus" class="beta-status" role="status" aria-live="polite">
-                One-time $22 beta pass. Limited hosted credits, not unlimited crawling.
+                One-time $22 beta pass: 2,000 standard credits, 100 browser credits,
+                7-day artifact retention, 100 pages per run. Not unlimited crawling.
               </p>
               <p class="beta-note">
                 By requesting hosted access, you acknowledge the
