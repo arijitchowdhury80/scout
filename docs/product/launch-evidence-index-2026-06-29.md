@@ -52,7 +52,7 @@ Do not claim:
 
 | Area | Status | Proof | What It Proves | Boundary |
 |---|---|---|---|---|
-| Launch website | Verified | `docs/product/website-route-render-verification-2026-06-29.md` | `/`, `/quickstart`, `/pricing`, `/beta`, `/legal`, `/terms`, `/privacy`, `/third-party-notices`, `/styles.css`, and `/health` render locally through the Scout HTTP service. | Does not certify the legacy `/app` UI. |
+| Launch website | Verified | `docs/product/website-route-render-verification-2026-06-29.md` | `/`, hosted checkout return URLs, `/quickstart`, `/pricing`, `/beta`, `/legal`, `/terms`, `/privacy`, `/third-party-notices`, `/styles.css`, and `/health` render locally through the Scout HTTP service. | Does not certify the legacy `/app` UI. |
 | Website positioning | Verified | `docs/product/website-copy-review-2026-06-28.md`; `docs/competetor-website-knowledge/` | Website copy is grounded in competitor research and avoids unsupported hard-site or unlimited hosted claims. | Public launch copy still depends on final license, pricing, legal, and security decisions. |
 | Local install | Verified | `docs/product/local-install-verification-2026-06-28.md` | Branch-qualified GitHub install, `import scout`, `scout --help`, Playwright Chromium install, `scout serve`, `/health`, website routes, `/docs`, and authenticated `/scrape` passed in a clean environment. | This is a branch/private-beta install path, not PyPI. |
 | Docker from source | Verified | `docs/product/docker-install-verification-2026-06-28.md` | Documented compose build serves `/health`, website routes, OpenAPI, authenticated `/scrape`, and writable `/data` volume. | Image publishing to GHCR/Docker Hub is not approved. |

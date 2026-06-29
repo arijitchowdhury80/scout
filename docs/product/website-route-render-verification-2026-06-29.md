@@ -19,7 +19,7 @@ python3 -m pytest tests/unit/website/test_launch_website.py -q
 Result:
 
 ```text
-9 passed, 2 warnings in 1.10s
+10 passed, 2 warnings in 1.45s
 ```
 
 Warnings were Crawl4AI/Pydantic deprecation warnings from the installed
@@ -39,9 +39,13 @@ python3 -m scout.cli serve --host 127.0.0.1 --port 18423
 | Route | Expected signal | Result |
 |---|---|---|
 | `/` | `Scout - Evidence-grade web acquisition for AI workflows` | Pass |
+| `/?checkout=success` | Stripe checkout return status for successful hosted beta payment | Pass |
+| `/?checkout=cancelled` | Stripe checkout return status for cancelled hosted beta checkout | Pass |
 | `/quickstart` | `Scout Quickstart - Local-first web acquisition` | Pass |
 | `/pricing` | `Scout Pricing - Free local, metered hosted beta` | Pass |
 | `/beta` | `Scout Private Beta - Local install or hosted pass` | Pass |
+| `/beta?checkout=success` | Stripe checkout return status for successful hosted beta payment | Pass |
+| `/beta?checkout=cancelled` | Stripe checkout return status for cancelled hosted beta checkout | Pass |
 | `/legal` | `Scout Legal And Third-Party Notices` | Pass |
 | `/terms` | `Scout Beta Terms Placeholder` | Pass |
 | `/privacy` | `Scout Beta Privacy Placeholder` | Pass |
@@ -69,6 +73,8 @@ local Scout server:
 
 - The static launch website files exist and are covered by unit tests.
 - The Scout HTTP service serves the public website routes without API auth.
+- The hosted beta checkout return URLs surface success/cancel states instead
+  of dropping testers back onto the site without context.
 - The launch website can be rendered by a real browser.
 - Public website copy continues to expose local-first install, finite hosted
   beta, legal/third-party notices, pricing direction, and beta boundaries.

@@ -254,11 +254,16 @@ def test_website_route_render_verification_records_local_server_smoke() -> None:
     assert "Website Route And Render Verification" in verification
     assert "Launch website route/render smoke passed locally" in verification
     assert "python3 -m pytest tests/unit/website/test_launch_website.py -q" in verification
-    assert "9 passed, 2 warnings" in verification
+    assert "10 passed, 2 warnings" in verification
     assert "python3 -m scout.cli serve --host 127.0.0.1 --port 18423" in verification
     assert "`/quickstart`" in verification
     assert "`/pricing`" in verification
     assert "`/beta`" in verification
+    assert "`/?checkout=success`" in verification
+    assert "`/?checkout=cancelled`" in verification
+    assert "`/beta?checkout=success`" in verification
+    assert "`/beta?checkout=cancelled`" in verification
+    assert "Stripe checkout return status" in verification
     assert "`/third-party-notices`" in verification
     assert "docs/product/screenshots/website-2026-06-29/home.png" in verification
     assert "docs/product/screenshots/website-2026-06-29/quickstart.png" in verification
