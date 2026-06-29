@@ -26,6 +26,10 @@ def test_launch_website_exposes_hosted_beta_checkout_form_without_secrets() -> N
     assert "Hosted beta payment is not configured yet" in html
     assert "Hosted beta payment is configured" in html
     assert "Run ledger" in html
+    assert "Beta operating model" in html
+    assert "Local free" in html
+    assert "Hosted finite credits" in html
+    assert "Artifacts owned by you" in html
     assert "Hosted crawlers return content. Scout returns an evidence trail." in html
     assert "Product data should not be trapped in one destination." in html
     assert "JSONL / CSV / SQLite / Google Sheets / Algolia" in html
@@ -45,6 +49,8 @@ def test_launch_website_states_current_launch_readiness_boundaries() -> None:
     assert "Public launch is blocked" in normalized_html
     assert "Crawl4AI currently resolves lxml 5.4.0" in normalized_html
     assert "Private beta is limited" in normalized_html
+    assert "Hosted finite credits" in normalized_html
+    assert "$22 buys a capped hosted beta pass" in normalized_html
     assert "No clean security claim" in normalized_html
     assert "Local install remains the primary path" in normalized_html
     assert "dependency audit is clean" in normalized_html
