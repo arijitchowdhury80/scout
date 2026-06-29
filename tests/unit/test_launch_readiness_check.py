@@ -42,7 +42,18 @@ def test_launch_readiness_report_marks_private_beta_ready_and_public_blocked() -
     assert "LICENSE file" in blocker_areas
 
     blockers_by_area = {blocker["area"]: blocker for blocker in report["public_launch"]["blockers"]}
+    assert all("owner" in blocker for blocker in report["public_launch"]["blockers"])
+    assert all("next_action" in blocker for blocker in report["public_launch"]["blockers"])
+    assert all("closure_evidence" in blocker for blocker in report["public_launch"]["blockers"])
+    assert all("codex_actionable_now" in blocker for blocker in report["public_launch"]["blockers"])
     assert blockers_by_area["license decision"]["blocker_type"] == "founder_decision"
+    assert blockers_by_area["license decision"]["owner"] == "Arijit"
+    assert blockers_by_area["license decision"]["codex_actionable_now"] is False
+    assert blockers_by_area["final license expression"]["codex_actionable_now"] is False
+    assert blockers_by_area["GitHub release workflow run"]["owner"] == "Codex"
+    assert blockers_by_area["GitHub release workflow run"]["codex_actionable_now"] is False
+    assert blockers_by_area["dependency audit blocking cleanly"]["owner"] == "Codex"
+    assert blockers_by_area["Stripe real test-mode smoke"]["owner"] == "Codex + Arijit"
     assert (
         blockers_by_area["public pricing and hosted usage limits"]["blocker_type"]
         == "founder_decision"
@@ -69,6 +80,7 @@ def test_launch_readiness_script_outputs_json() -> None:
     assert payload["public_launch"]["blocker_summary"]["total"] == 14
     assert payload["public_launch"]["blocker_summary"]["by_type"]["founder_decision"] == 4
     assert all("blocker_type" in blocker for blocker in payload["public_launch"]["blockers"])
+    assert all("next_action" in blocker for blocker in payload["public_launch"]["blockers"])
 
 
 def test_launch_readiness_script_can_fail_for_public_launch_gate() -> None:

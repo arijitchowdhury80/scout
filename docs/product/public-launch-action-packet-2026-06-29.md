@@ -6,6 +6,17 @@ Status: Public launch blocked; next actions grouped by executable blocker type
 Generated from `scout launch-readiness --json` after the readiness checker was
 updated to classify public-launch blockers.
 
+The readiness JSON now includes a remediation map on every public-launch
+blocker:
+
+- `owner`
+- `next_action`
+- `closure_evidence`
+- `codex_actionable_now`
+
+That means the action list is machine-readable as well as human-readable; the
+plain-English tables below are a dashboard over the same blocker contract.
+
 Founder decision record template:
 `docs/product/founder-decision-record-template-2026-06-29.md`.
 

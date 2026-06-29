@@ -19,15 +19,28 @@ class EvidenceCheck:
     evidence: str
     note: str
     blocker_type: str = "evidence"
+    owner: str = ""
+    next_action: str = ""
+    closure_evidence: str = ""
+    codex_actionable_now: bool | None = None
 
-    def as_dict(self) -> dict[str, str]:
-        return {
+    def as_dict(self) -> dict[str, str | bool]:
+        payload: dict[str, str | bool] = {
             "area": self.area,
             "status": self.status,
             "evidence": self.evidence,
             "note": self.note,
             "blocker_type": self.blocker_type,
         }
+        if self.owner:
+            payload["owner"] = self.owner
+        if self.next_action:
+            payload["next_action"] = self.next_action
+        if self.closure_evidence:
+            payload["closure_evidence"] = self.closure_evidence
+        if self.codex_actionable_now is not None:
+            payload["codex_actionable_now"] = self.codex_actionable_now
+        return payload
 
 
 PRIVATE_BETA_EVIDENCE = [
@@ -139,6 +152,88 @@ PUBLIC_BLOCKER_LINES = [
 ]
 
 
+PUBLIC_BLOCKER_REMEDIATION = {
+    "license decision": {
+        "owner": "Arijit",
+        "next_action": "Approve Apache-2.0 for Scout local/core or choose another license path.",
+        "closure_evidence": "Signed founder decision record plus updated release checklist.",
+        "codex_actionable_now": False,
+    },
+    "final license expression": {
+        "owner": "Codex",
+        "next_action": "Add the approved SPDX license expression to pyproject.toml after license approval.",
+        "closure_evidence": "pyproject.toml contains the approved license expression and package metadata tests pass.",
+        "codex_actionable_now": False,
+    },
+    "LICENSE file": {
+        "owner": "Codex",
+        "next_action": "Add the approved LICENSE file after license approval.",
+        "closure_evidence": "LICENSE exists and wheel/sdist include license and third-party notices.",
+        "codex_actionable_now": False,
+    },
+    "public pricing and hosted usage limits": {
+        "owner": "Arijit",
+        "next_action": "Approve public pricing or explicitly keep only the finite private-beta pass.",
+        "closure_evidence": "Founder decision record and website/pricing docs updated to match the approved policy.",
+        "codex_actionable_now": False,
+    },
+    "registry publishing policy": {
+        "owner": "Arijit",
+        "next_action": "Approve artifact-only beta tags, PyPI, GHCR, Docker Hub, or another publishing path.",
+        "closure_evidence": "Founder decision record and release checklist publishing gates updated.",
+        "codex_actionable_now": False,
+    },
+    "GitHub release workflow run": {
+        "owner": "Codex",
+        "next_action": "After approval and license implementation, push an approved v* tag and record the workflow URL.",
+        "closure_evidence": "GitHub release workflow URL and successful run summary.",
+        "codex_actionable_now": False,
+    },
+    "release artifact smoke": {
+        "owner": "Codex",
+        "next_action": "Download release artifacts from the approved tag and run scripts/release_artifact_smoke.py.",
+        "closure_evidence": "Smoke output proving installed release artifacts serve /health, website routes, and CLI help.",
+        "codex_actionable_now": False,
+    },
+    "Docker image publishing policy": {
+        "owner": "Arijit",
+        "next_action": "Approve or defer GHCR/Docker Hub publishing.",
+        "closure_evidence": "Founder decision record and release checklist Docker publishing gate updated.",
+        "codex_actionable_now": False,
+    },
+    "published Docker image smoke": {
+        "owner": "Codex",
+        "next_action": "After image publishing approval, pull the published image and run scripts/docker_image_smoke.py.",
+        "closure_evidence": "Fresh published image smoke output for /health, website, and authenticated scrape.",
+        "codex_actionable_now": False,
+    },
+    "Crawl4AI/lxml risk decision": {
+        "owner": "Arijit",
+        "next_action": "Accept a formal private-beta exception, wait for a clean upstream path, or approve dependency replacement.",
+        "closure_evidence": "Risk decision packet signed and dependency audit posture reflected in release checklist.",
+        "codex_actionable_now": False,
+    },
+    "dependency audit blocking cleanly": {
+        "owner": "Codex",
+        "next_action": "Make CI dependency audit blocking after the clean dependency path or formal exception is approved.",
+        "closure_evidence": "GitHub CI dependency audit is blocking and passes, or blocks with an approved exception gate.",
+        "codex_actionable_now": False,
+    },
+    "Stripe real test-mode smoke": {
+        "owner": "Codex + Arijit",
+        "next_action": "Configure Stripe test keys/webhook secret, complete a test checkout, deliver webhook, and verify hosted key access.",
+        "closure_evidence": "Stripe test-mode smoke report with checkout, webhook, hosted key delivery, and /v1/hosted/me verification.",
+        "codex_actionable_now": False,
+    },
+    "pyproject license expression": {
+        "owner": "Codex",
+        "next_action": "Add approved license expression to pyproject.toml after founder/legal approval.",
+        "closure_evidence": "pyproject.toml contains final approved license expression and metadata tests pass.",
+        "codex_actionable_now": False,
+    },
+}
+
+
 def default_root() -> Path:
     """Return the best root containing Scout launch evidence."""
     package_root = Path(__file__).resolve().parents[1]
@@ -242,6 +337,22 @@ def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
     )
 
 
+def _with_remediation(check: EvidenceCheck) -> EvidenceCheck:
+    """Attach public-launch remediation metadata when known."""
+    remediation = PUBLIC_BLOCKER_REMEDIATION.get(check.area, {})
+    return EvidenceCheck(
+        area=check.area,
+        status=check.status,
+        evidence=check.evidence,
+        note=check.note,
+        blocker_type=check.blocker_type,
+        owner=str(remediation.get("owner", "")),
+        next_action=str(remediation.get("next_action", "")),
+        closure_evidence=str(remediation.get("closure_evidence", "")),
+        codex_actionable_now=remediation.get("codex_actionable_now"),
+    )
+
+
 def _public_blockers(root: Path) -> list[EvidenceCheck]:
     checklist_path = root / "docs/product/release-checklist.md"
     if not checklist_path.exists():
@@ -259,35 +370,41 @@ def _public_blockers(root: Path) -> list[EvidenceCheck]:
     for area, blocker_type, marker in PUBLIC_BLOCKER_LINES:
         if marker in checklist:
             blockers.append(
-                EvidenceCheck(
-                    area=area,
-                    status="blocked",
-                    evidence="docs/product/release-checklist.md",
-                    note=f"Unchecked gate remains: {marker}",
-                    blocker_type=blocker_type,
+                _with_remediation(
+                    EvidenceCheck(
+                        area=area,
+                        status="blocked",
+                        evidence="docs/product/release-checklist.md",
+                        note=f"Unchecked gate remains: {marker}",
+                        blocker_type=blocker_type,
+                    )
                 )
             )
 
     pyproject = _read(root / "pyproject.toml") if (root / "pyproject.toml").exists() else ""
     if 'license = "' not in pyproject:
         blockers.append(
-            EvidenceCheck(
-                area="pyproject license expression",
-                status="blocked",
-                evidence="pyproject.toml",
-                note="No final project license expression is present.",
-                blocker_type="legal_implementation",
+            _with_remediation(
+                EvidenceCheck(
+                    area="pyproject license expression",
+                    status="blocked",
+                    evidence="pyproject.toml",
+                    note="No final project license expression is present.",
+                    blocker_type="legal_implementation",
+                )
             )
         )
 
     if not (root / "LICENSE").exists():
         blockers.append(
-            EvidenceCheck(
-                area="LICENSE file",
-                status="blocked",
-                evidence="LICENSE",
-                note="No project LICENSE file is present.",
-                blocker_type="legal_implementation",
+            _with_remediation(
+                EvidenceCheck(
+                    area="LICENSE file",
+                    status="blocked",
+                    evidence="LICENSE",
+                    note="No project LICENSE file is present.",
+                    blocker_type="legal_implementation",
+                )
             )
         )
 
