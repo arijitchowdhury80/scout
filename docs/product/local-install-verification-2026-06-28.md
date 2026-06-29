@@ -82,6 +82,68 @@ Observed evidence:
 - installed distribution version `0.1.0`
 - `scout --help` listed the expected commands.
 
+## Local Editable Install Remediation
+
+Date: 2026-06-29
+
+During launch-readiness verification on the development machine, the global
+`scout` console command initially failed because an old editable install pointed
+to `/Users/arijitchowdhury/AI-Development/Scout`, a sparse leftover directory,
+instead of the current repository checkout:
+`/Users/arijitchowdhury/Dropbox/AI-Development/Scout`.
+
+Observed stale state:
+
+```text
+Name: scout
+Version: 0.1.0
+Editable project location: /Users/arijitchowdhury/AI-Development/Scout
+ModuleNotFoundError: No module named 'scout'
+```
+
+Remediation command:
+
+```bash
+python3 -m pip uninstall -y scout scout-web
+python3 -m pip install -e '.[dev]'
+```
+
+Post-remediation evidence:
+
+```text
+Name: scout-web
+Version: 0.1.0
+Editable project location: /Users/arijitchowdhury/Dropbox/AI-Development/Scout
+```
+
+Verification commands:
+
+```bash
+python3 - <<'PY'
+import scout
+import scout.api.main
+import importlib.metadata as m
+print("module", scout.__file__)
+print("dist", m.version("scout-web"))
+PY
+
+scout --help
+scout launch-readiness
+```
+
+Observed evidence:
+
+- `import scout` and `import scout.api.main` succeeded from the current checkout.
+- `importlib.metadata.version("scout-web")` returned `0.1.0`.
+- `scout --help` listed the expected CLI commands.
+- `scout launch-readiness` returned `Private beta: ready_with_limits` and
+  `Public launch: blocked`.
+
+Operational note: if a beta tester previously installed an older Scout checkout
+editable, they should uninstall both possible distribution names and reinstall
+from the current branch-qualified command. Fresh virtual environments remain the
+recommended verification path.
+
 ## Passing Installed Server Check
 
 Server command:
