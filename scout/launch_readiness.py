@@ -532,7 +532,10 @@ def print_text_report(report: dict[str, Any]) -> None:
         for owner, count in owner_summary.items():
             print(f"  - {owner}: {count}")
     for blocker in public_launch["blockers"]:
-        print(f"  - {blocker['area']} [{blocker['blocker_type']}]: {blocker['note']}")
+        print(
+            f"  - {blocker['id']}: {blocker['summary']} "
+            f"[{blocker['blocker_type']}]: {blocker['note']}"
+        )
         if "owner" in blocker:
             print(f"      owner: {blocker['owner']}")
         if "next_action" in blocker:

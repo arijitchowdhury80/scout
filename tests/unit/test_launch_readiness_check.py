@@ -144,9 +144,15 @@ def test_launch_readiness_text_can_filter_public_blockers_by_type() -> None:
     assert "Public launch: blocked" in result.stdout
     assert "Blocker summary: 4 total" in result.stdout
     assert "founder_decision: 4" in result.stdout
-    assert "license decision [founder_decision]" in result.stdout
-    assert "GitHub release workflow run [engineering]" not in result.stdout
-    assert "Crawl4AI/lxml risk decision [risk_decision]" not in result.stdout
+    assert "license-decision: license decision [founder_decision]" in result.stdout
+    assert (
+        "github-release-workflow-run: GitHub release workflow run [engineering]"
+        not in result.stdout
+    )
+    assert (
+        "crawl4ai-lxml-risk-decision: Crawl4AI/lxml risk decision [risk_decision]"
+        not in result.stdout
+    )
 
 
 def test_launch_readiness_script_can_fail_for_public_launch_gate() -> None:
@@ -165,7 +171,7 @@ def test_launch_readiness_script_can_fail_for_public_launch_gate() -> None:
     assert "Arijit: 5" in result.stdout
     assert "Codex: 8" in result.stdout
     assert "founder_decision: 4" in result.stdout
-    assert "license decision [founder_decision]" in result.stdout
+    assert "license-decision: license decision [founder_decision]" in result.stdout
     assert "owner: Arijit" in result.stdout
     assert "next action: Approve Apache-2.0 for Scout local/core" in result.stdout
     assert (

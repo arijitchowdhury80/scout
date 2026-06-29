@@ -43,7 +43,8 @@ prerequisites exist. The readiness report summarizes blockers by both blocker
 type and owner so the next bottleneck is visible without opening the JSON.
 Every readiness item also emits a stable `id` and human `summary` so status
 pages, scripts, and handoff notes can reference blockers without fragile
-field-name guessing.
+field-name guessing. The text report prints blockers as
+`id: summary [blocker_type]` for the same reason.
 
 ## Current Verdict
 
