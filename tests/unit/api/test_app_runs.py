@@ -350,8 +350,22 @@ def test_app_run_user_browser_mode_opens_chrome_and_waits_for_capture(
 
 
 def test_app_run_user_browser_capture_ingests_dom_and_extracts_product_records(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    async def fake_open_browser(req: UserBrowserOpenRequest):
+        return UserBrowserSessionState(
+            connected=True,
+            status="opened",
+            debugging_port=49321,
+            profile_dir="/tmp/scout-chrome-profile",
+            chrome_pid=1234,
+            active_url=req.url,
+            title="",
+            error="",
+        )
+
+    monkeypatch.setattr(app_runs.browser_service, "open_browser", fake_open_browser)
+
     with TestClient(app) as client:
         create_resp = client.post(
             "/app/runs",
