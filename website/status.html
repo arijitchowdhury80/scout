@@ -91,6 +91,36 @@
           </div>
         </section>
 
+        <section class="section step-section" aria-labelledby="decision-packet-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Decision packet for Arijit</p>
+            <h2 id="decision-packet-title">Recommended answers for the fastest private-beta path.</h2>
+            <p>These decisions unlock packaging work without approving public launch.</p>
+          </div>
+          <div class="note-grid">
+            <article>
+              <h3>License: Apache-2.0 for Scout local/core</h3>
+              <p>Aligns with Crawl4AI's Apache-2.0 posture and keeps local adoption straightforward.</p>
+            </article>
+            <article>
+              <h3>Pricing: keep $22 as a finite-credit hosted beta pass</h3>
+              <p>Protects hosted economics and avoids any unlimited hosted crawling promise.</p>
+            </article>
+            <article>
+              <h3>Publishing: artifact-only private-beta v* tag first</h3>
+              <p>Ship downloadable GitHub Release artifacts after license files land; defer PyPI, GHCR, and Docker Hub.</p>
+            </article>
+            <article>
+              <h3>Crawl4AI/lxml: private-beta exception only</h3>
+              <p>Keep public launch blocked until the dependency audit is clean or a formal risk path is approved.</p>
+            </article>
+            <article>
+              <h3>Public hosted: do not approve public self-serve hosted launch yet</h3>
+              <p>Hosted beta can continue with approved testers, finite credits, and Stripe test-mode verification.</p>
+            </article>
+          </div>
+        </section>
+
         <section class="section step-section" aria-labelledby="blocker-summary-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Blocker summary</p>
