@@ -63,6 +63,15 @@ Drafts are written under `docs/product/founder-decision-drafts/` so they do not
 count as completed launch evidence until reviewed, moved into the completed
 record naming pattern, and validated.
 
+Generated founder decision draft packet:
+`docs/product/founder-decision-drafts/index.md`.
+
+Draft packet is not approval evidence. It is the review queue for the six
+founder, risk, and shared external-smoke decisions that currently block public
+launch. Each draft remains `Status: Deferred` and keeps
+`Public launch allowed by this decision? No` until Arijit reviews and approves a
+completed decision record.
+
 Validate completed founder decision records before using them as launch
 evidence:
 

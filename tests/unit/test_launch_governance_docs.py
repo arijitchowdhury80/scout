@@ -718,6 +718,9 @@ def test_public_launch_action_packet_groups_executable_blocker_types() -> None:
     assert "scout launch-decision-draft" in action_packet
     assert "python3 scripts/founder_decision_record_draft.py" in action_packet
     assert "--blocker-id license-decision" in action_packet
+    assert "Generated founder decision draft packet" in action_packet
+    assert "docs/product/founder-decision-drafts/index.md" in action_packet
+    assert "Draft packet is not approval evidence." in action_packet
     assert "docs/product/public-launch-action-packet-2026-06-29.md" in checklist
     assert "docs/product/public-launch-action-packet-2026-06-29.md" in dashboard
     assert "docs/product/public-launch-action-packet-2026-06-29.md" in burndown
@@ -832,9 +835,30 @@ def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> 
     assert "docs/product/launch-evidence-index-2026-06-29.md" in dashboard
     assert "docs/product/launch-evidence-index-2026-06-29.md" in burndown
     assert "scout launch-readiness" in checklist
+    assert "Founder decision draft packet" in evidence
+    assert "docs/product/founder-decision-drafts/index.md" in evidence
+    assert "Drafts are review aids only." in evidence
     assert (
         "GitHub CI runs the repository wrapper, `python3 scripts/launch_readiness_check.py`"
         in evidence
     )
     assert "GitHub CI runs the repository wrapper default and JSON forms" in checklist
     assert "scout launch-readiness --require-public" in evidence
+
+
+def test_founder_decision_draft_packet_is_explicitly_non_approving() -> None:
+    packet = _read("docs/product/founder-decision-drafts/index.md")
+
+    assert "Founder Decision Draft Packet" in packet
+    assert "Status: Draft packet for founder/risk/shared launch decisions" in packet
+    assert "not launch approvals" in packet
+    assert "not completed decision records" in packet
+    assert "not release evidence" in packet
+    assert "scout launch-decision-check --check-existing" in packet
+    assert "founder-decision-draft-SCOUT-DEC-20260629-01.md" in packet
+    assert "founder-decision-draft-SCOUT-DEC-20260629-02.md" in packet
+    assert "founder-decision-draft-SCOUT-DEC-20260629-03.md" in packet
+    assert "founder-decision-draft-SCOUT-DEC-20260629-04.md" in packet
+    assert "founder-decision-draft-SCOUT-DEC-20260629-05.md" in packet
+    assert "founder-decision-draft-SCOUT-DEC-20260629-06.md" in packet
+    assert "`Public launch allowed by this decision? No`" in packet

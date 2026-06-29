@@ -3,10 +3,7 @@
 Date generated: 2026-06-29
 Status: Draft packet for founder/risk/shared launch decisions
 
-These files are editing aids. They are not launch approvals, not completed
-decision records, and not release evidence until Arijit reviews them, moves the
-approved content into the completed decision record naming pattern, and the
-record passes:
+These files are editing aids. They are not launch approvals, not completed decision records, and not release evidence until Arijit reviews them, moves the approved content into the completed decision record naming pattern, and the record passes:
 
 ```bash
 scout launch-decision-check docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md
