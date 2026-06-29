@@ -58,6 +58,16 @@ No public registry publish should happen until these decisions are closed.
 - [ ] GitHub release artifact workflow run against a real `v*` tag.
 - [ ] Release artifact downloaded from GitHub Release and smoke-tested locally.
 
+## Product Capability Gates
+
+- [x] Product records export beyond Algolia.
+      Evidence:
+      `docs/product/product-export-generalization-verification-2026-06-29.md`.
+      Result: `scout product-export` writes JSON, JSONL, CSV, SQLite, and
+      Google Sheets import bundles from the same product records. Algolia
+      preview/push remains a supported adapter, not the only product data path.
+      Direct Google Sheets API push and webhook export remain future work.
+
 ## Docker Gates
 
 - [x] Docker image builds.

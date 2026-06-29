@@ -184,6 +184,27 @@ def test_local_install_verification_records_verified_beta_branch_path() -> None:
     assert "branch-qualified" in checklist
 
 
+def test_product_export_generalization_verification_records_non_algolia_exports() -> None:
+    verification = _read("docs/product/product-export-generalization-verification-2026-06-29.md")
+    checklist = _read("docs/product/release-checklist.md")
+
+    assert "Product Export Generalization Verification" in verification
+    assert "Verified for private beta." in verification
+    assert "Scout's product workflow is no longer Algolia-only." in verification
+    assert "ProductExportFormat.JSON" in verification
+    assert "ProductExportFormat.JSONL" in verification
+    assert "ProductExportFormat.CSV" in verification
+    assert "ProductExportFormat.SQLITE" in verification
+    assert "ProductExportFormat.GOOGLE_SHEETS" in verification
+    assert "scout product-export" in verification
+    assert "24 passed, 8 warnings" in verification
+    assert "google_sheets_csv_exists True" in verification
+    assert "Direct Google Sheets API push is intentionally not enabled" in verification
+    assert "- [x] Product records export beyond Algolia." in checklist
+    assert "docs/product/product-export-generalization-verification-2026-06-29.md" in checklist
+    assert "Direct Google Sheets API push and webhook export remain future work." in checklist
+
+
 def test_docker_install_verification_records_docs_only_smoke() -> None:
     verification = _read("docs/product/docker-install-verification-2026-06-28.md")
     checklist = _read("docs/product/release-checklist.md")
