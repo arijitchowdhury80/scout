@@ -25,6 +25,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/beta.html",
             "/examples",
             "/examples.html",
+            "/assets/copy-code.js",
             "/assets/scout-mark.svg",
             "/assets/scout-product-demo.gif",
             "/assets/scout-wordmark.svg",

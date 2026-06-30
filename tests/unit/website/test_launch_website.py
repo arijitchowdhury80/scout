@@ -104,12 +104,14 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     demo_gif = client.get("/assets/scout-product-demo.gif")
     logo = client.get("/assets/scout-wordmark.svg")
     mark = client.get("/assets/scout-mark.svg")
+    copy_code = client.get("/assets/copy-code.js")
 
     assert styles.status_code == 200
     assert "text/css" in styles.headers["content-type"]
     assert ".beta-form" in styles.text
     assert ".brand-logo" in styles.text
     assert "aria-current" in styles.text
+    assert ".code-copy__button" in styles.text
     assert design_system.status_code == 200
     assert "text/css" in design_system.headers["content-type"]
     assert ".wi-grid-bg" in design_system.text
@@ -122,6 +124,10 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert mark.status_code == 200
     assert mark.headers["content-type"] in {"image/svg+xml", "image/svg+xml; charset=utf-8"}
     assert "Scout mark" in mark.text
+    assert copy_code.status_code == 200
+    assert "javascript" in copy_code.headers["content-type"]
+    assert "navigator.clipboard.writeText" in copy_code.text
+    assert "Copy code sample" in copy_code.text
 
 
 def test_homepage_has_section_aware_nav_and_scrollspy() -> None:
@@ -342,6 +348,15 @@ def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
     assert hosted_index < localhost_index
     assert "Do not use localhost for hosted calls." in html
     assert "Only after `scout serve` is running locally" in html
+    assert 'src="/assets/copy-code.js"' in html
+
+
+def test_command_docs_include_copy_code_behavior() -> None:
+    for page_name in ("quickstart.html", "guide.html", "examples.html", "status.html", "beta.html"):
+        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
+
+        assert "<pre><code>" in html
+        assert 'src="/assets/copy-code.js"' in html
 
 
 def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
