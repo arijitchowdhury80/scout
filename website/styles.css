@@ -240,12 +240,6 @@ a {
   font-size: 12px;
 }
 
-.site-nav-wrap {
-  display: grid;
-  gap: 6px;
-  justify-items: center;
-}
-
 .site-nav {
   display: flex;
   justify-content: center;
@@ -291,20 +285,6 @@ a {
 .site-nav a[aria-current="true"]::after {
   opacity: 1;
   transform: scaleX(1);
-}
-
-.site-nav--utility {
-  gap: 16px;
-}
-
-.site-nav--utility a {
-  min-height: 20px;
-  color: var(--wi-muted);
-  font-size: 10px;
-}
-
-.site-nav--utility a::after {
-  display: none;
 }
 
 .site-nav a:focus-visible,
@@ -781,7 +761,8 @@ li {
 .check-grid,
 .use-case-grid,
 .pricing-grid,
-.export-grid {
+.export-grid,
+.endpoint-table {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid var(--wi-border);
@@ -799,7 +780,8 @@ li {
 .status-grid,
 .note-grid,
 .check-grid,
-.export-grid {
+.export-grid,
+.endpoint-table {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -826,6 +808,37 @@ li {
 .step-section .note-grid p {
   font-size: 15px;
   line-height: 1.45;
+}
+
+.endpoint-table {
+  margin-top: 24px;
+  grid-template-columns: 1fr;
+}
+
+.endpoint-table > div {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.35fr);
+  border-right: 1px solid var(--wi-border);
+  border-bottom: 1px solid var(--wi-border);
+  background: rgba(244, 244, 245, 0.72);
+}
+
+.endpoint-table strong,
+.endpoint-table span {
+  padding: 18px 20px;
+}
+
+.endpoint-table strong {
+  border-right: 1px solid var(--wi-border);
+  font-family: var(--wi-font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.endpoint-table span {
+  color: var(--wi-muted);
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 article,
@@ -1090,14 +1103,6 @@ ul {
     grid-template-columns: 1fr auto;
   }
 
-  .site-nav-wrap {
-    grid-column: 1 / -1;
-    justify-items: start;
-    overflow-x: auto;
-    width: 100%;
-    padding-bottom: 12px;
-  }
-
   .site-nav {
     grid-column: 1 / -1;
     justify-content: flex-start;
@@ -1145,7 +1150,8 @@ ul {
   .status-grid,
   .note-grid,
   .check-grid,
-  .export-grid {
+  .export-grid,
+  .endpoint-table {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1215,9 +1221,19 @@ ul {
   .note-grid,
   .check-grid,
   .export-grid,
+  .endpoint-table,
   .pricing-grid,
   .site-footer {
     grid-template-columns: 1fr;
+  }
+
+  .endpoint-table > div {
+    grid-template-columns: 1fr;
+  }
+
+  .endpoint-table strong {
+    border-right: 0;
+    border-bottom: 1px solid var(--wi-border);
   }
 
   .step-section .note-grid {

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout Quickstart - Hosted and local web acquisition</title>
+    <title>Scout Docs - Hosted API, local install, and examples</title>
     <meta
       name="description"
       content="Use hosted Scout with an API key or install Scout locally to produce citable acquisition artifacts."
@@ -22,26 +22,25 @@
           <img class="brand-logo" src="/assets/scout-wordmark.svg" alt="Scout" width="172" height="64" />
         </a>
         <nav class="site-nav" aria-label="Primary navigation">
-          <a href="/quickstart">Quickstart</a>
-          <a href="/guide">Guide</a>
-          <a href="/examples">Examples</a>
+          <a href="/">Overview</a>
+          <a href="/#demo">Demo</a>
+          <a href="/#use-cases">Use Cases</a>
+          <a href="/quickstart" aria-current="true">Docs</a>
           <a href="/pricing">Pricing</a>
-          <a href="/status">Status</a>
-          <a href="/beta">Private beta</a>
-          <a href="/legal">Legal</a>
-          <a href="/guide">API guide</a>
+          <a href="/beta">Beta</a>
         </nav>
         <a class="wi-pill nav-cta" href="/beta">Join beta</a>
       </header>
 
       <main>
         <section class="page-hero">
-          <p class="wi-label wi-label--accent">Scout Quickstart</p>
-          <h1>Use hosted Scout with an API key, or run it locally.</h1>
+          <p class="wi-label wi-label--accent">Scout Docs</p>
+          <h1>One page for hosted API, local install, examples, and artifacts.</h1>
           <p>
-            If you are using this website, start with the hosted API examples
-            below. Install locally when you want your own workdir, local
-            artifacts, or browser/session capture on your machine.
+            This replaces separate Quickstart, Guide, Examples, and API Guide
+            pages. Start with hosted API calls when you have a beta key. Install
+            locally when you want your own workdir, local artifacts, or
+            browser/session capture on your machine.
           </p>
         </section>
 
@@ -80,6 +79,39 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
           </div>
         </section>
 
+        <section class="section step-section" aria-labelledby="api-reference-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">API reference</p>
+            <h2 id="api-reference-title">The endpoints testers actually need.</h2>
+          </div>
+          <div class="endpoint-table" role="table" aria-label="Scout beta API endpoints">
+            <div role="row">
+              <strong role="cell">GET /v1/hosted/me</strong>
+              <span role="cell">Check hosted beta plan, credits, limits, and retention.</span>
+            </div>
+            <div role="row">
+              <strong role="cell">POST /v1/hosted/scrape</strong>
+              <span role="cell">Acquire one public URL and return content plus evidence metadata.</span>
+            </div>
+            <div role="row">
+              <strong role="cell">GET /health</strong>
+              <span role="cell">Verify a local or hosted Scout service is alive.</span>
+            </div>
+            <div role="row">
+              <strong role="cell">POST /scrape</strong>
+              <span role="cell">Local authenticated scrape route for agent and workflow integrations.</span>
+            </div>
+            <div role="row">
+              <strong role="cell">POST /products</strong>
+              <span role="cell">Local product acquisition route that writes product artifacts.</span>
+            </div>
+            <div role="row">
+              <strong role="cell">POST /run/{use_case}</strong>
+              <span role="cell">Local intelligence runner for company, PRISM, investor, careers, jobs, news, research, docs, social, locations, and website-quality workflows.</span>
+            </div>
+          </div>
+        </section>
+
         <section class="section step-section" aria-labelledby="python-install-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Path 02 · Local install</p>
@@ -97,8 +129,8 @@ scout serve</code></pre>
               <p>`SCOUT_WORKDIR` is where local Scout writes records, source pages, blocked pages, validation, reports, raw evidence, and screenshots.</p>
             </article>
             <article>
-              <h3>Local health check</h3>
-              <p>Only after `scout serve` is running locally, open `http://127.0.0.1:8421/health` or `http://127.0.0.1:8421/docs` on the same machine.</p>
+              <h3>Local-only health check</h3>
+              <p>Only after `scout serve` is running on your own machine, open the local health or Swagger page from that same machine.</p>
             </article>
             <article>
               <h3>Package release</h3>
@@ -113,7 +145,7 @@ scout serve</code></pre>
             <h2 id="docker-title">Use Docker when you want a clean local service boundary.</h2>
           </div>
           <pre><code>docker compose -f docker/docker-compose.yml up -d
-curl http://127.0.0.1:8421/health</code></pre>
+curl http://localhost:8421/health</code></pre>
           <div class="note-grid">
             <article>
               <h3>Persistence</h3>
@@ -135,6 +167,51 @@ curl http://127.0.0.1:8421/health</code></pre>
             <article><h3>1. Pick a target</h3><p>Start with a public page you are allowed to access.</p></article>
             <article><h3>2. Run Scout</h3><p>Use CLI or HTTP API. Keep live hard-site testing small and intentional.</p></article>
             <article><h3>3. Inspect evidence</h3><p>Open `records.json`, `source_pages.json`, `blocked_pages.json`, and `extraction_report.md`.</p></article>
+          </div>
+        </section>
+
+        <section class="section step-section" aria-labelledby="examples-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Examples</p>
+            <h2 id="examples-title">Run small, inspectable jobs first.</h2>
+          </div>
+          <div class="note-grid">
+            <article>
+              <h3>Page to markdown</h3>
+              <p>Capture one public page as readable text with source metadata.</p>
+              <pre><code>mkdir -p ./scout-runs/example-page
+scout scrape https://example.com \
+  > ./scout-runs/example-page/scrape.json</code></pre>
+            </article>
+            <article>
+              <h3>Product category to records</h3>
+              <p>Create product records plus blocked-page evidence for a small listing run.</p>
+              <pre><code>scout products books \
+  --site books.toscrape.com \
+  --start-url https://books.toscrape.com/ \
+  --output-dir ./scout-runs/books-products</code></pre>
+            </article>
+            <article>
+              <h3>Company intelligence packet</h3>
+              <p>Produce a compact company packet with overview, key URLs, and citable source pages.</p>
+              <pre><code>scout run company \
+  --query Adobe \
+  --mode auto \
+  --workdir ./scout-runs/adobe-company</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="section step-section" aria-labelledby="artifact-contract-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Artifact contract</p>
+            <h2 id="artifact-contract-title">Every useful run should leave evidence behind.</h2>
+          </div>
+          <div class="check-grid">
+            <article><h3>records.json</h3><p>Structured records created from the run.</p></article>
+            <article><h3>source_pages.json</h3><p>Source registry with URLs, providers, timestamps, and hashes.</p></article>
+            <article><h3>blocked_pages.json</h3><p>Blocked, sparse, or failed pages with provider attempts and reasons where available.</p></article>
+            <article><h3>extraction_report.md</h3><p>A human-readable summary of what worked, what failed, and what should be reviewed next.</p></article>
           </div>
         </section>
 

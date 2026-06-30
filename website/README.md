@@ -35,10 +35,10 @@ Public website paths served by `scout serve`:
 - `/assets/scout-product-demo.gif` - beta-safe product demo GIF used by the homepage.
 - `/assets/flux-design-system/fonts.css` - Flux font imports.
 - `/assets/flux-design-system/tokens.css` - Flux tokens and primitives.
-- `/quickstart` - local install, Docker, workdir, and first-run guidance.
-- `/guide` - human developer guide for choosing local, hosted, HTTP, CLI, and
-  skill usage before opening Swagger.
-- `/examples` - beta-safe workflow examples and artifact expectations.
+- `/quickstart` - consolidated Docs page covering hosted API, local install,
+  Docker, examples, artifacts, workdir, and first-run guidance.
+- `/guide` and `/examples` - compatibility aliases that serve the consolidated
+  Docs page. Do not reintroduce them as primary navigation items.
 - `/pricing` - local-free and hosted-metered pricing posture.
 - `/beta` - local-vs-hosted beta path and hosted checkout form.
 - `/legal` - third-party notices, attribution, legal-readiness boundaries, and
@@ -61,8 +61,8 @@ Next website tasks:
 
 - [x] Replace static hosted-beta CTA with checkout-session form.
 - [x] Add quickstart, pricing, and private beta onboarding pages.
-- [x] Add human developer guide while keeping `/docs` as Swagger.
-- [x] Add beta-safe examples page.
+- [x] Consolidate quickstart, guide, examples, and API-guide content into one
+      Docs page while keeping `/docs` as Swagger.
 - [x] Add legal/third-party notices website page.
 - [x] Add private beta support and onboarding guidance.
 - [x] Add a short product demo GIF/video.

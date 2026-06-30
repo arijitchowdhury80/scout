@@ -146,20 +146,58 @@ def test_launch_website_uses_flux_not_warm_industrial() -> None:
         assert "warm-industrial-design-system" not in html
 
 
-def test_homepage_has_section_aware_nav_and_scrollspy() -> None:
+def test_public_pages_share_streamlined_header_ia() -> None:
+    expected_nav = (
+        ">Overview</a>",
+        ">Demo</a>",
+        ">Use Cases</a>",
+        ">Docs</a>",
+        ">Pricing</a>",
+        ">Beta</a>",
+    )
+
+    for page in _WEBSITE_DIR.glob("*.html"):
+        html = page.read_text(encoding="utf-8")
+        header = html.split('<header class="site-header">', 1)[1].split("</header>", 1)[0]
+        normalized_header = " ".join(header.split())
+
+        assert '<nav class="site-nav" aria-label="Primary navigation">' in normalized_header
+        for nav_item in expected_nav:
+            assert nav_item in normalized_header
+        assert ">Quickstart</a>" not in normalized_header
+        assert ">Examples</a>" not in normalized_header
+        assert ">Guide</a>" not in normalized_header
+        assert "API guide" not in normalized_header
+        assert ">Status</a>" not in normalized_header
+        assert ">Legal</a>" not in normalized_header
+        assert "site-nav--utility" not in normalized_header
+
+
+def test_homepage_has_streamlined_primary_nav_and_scrollspy() -> None:
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
 
-    for section_id in (
-        "top",
-        "demo",
-        "features",
-        "use-cases",
-        "pricing",
-        "beta",
-    ):
-        assert f'data-section-link="{section_id}"' in html
-        assert f'id="{section_id}"' in html
+    normalized_html = " ".join(html.split())
 
+    for nav_item in (
+        ">Overview</a>",
+        ">Demo</a>",
+        ">Use Cases</a>",
+        ">Docs</a>",
+        ">Pricing</a>",
+        ">Beta</a>",
+    ):
+        assert nav_item in normalized_html
+
+    assert ">Quickstart</a>" not in normalized_html
+    assert ">Examples</a>" not in normalized_html
+    assert ">Guide</a>" not in normalized_html
+    assert "API guide" not in normalized_html
+    assert '<nav class="site-nav" aria-label="Primary navigation">' in normalized_html
+    assert "site-nav--utility" not in normalized_html
+    assert 'data-section-link="top"' in html
+    assert 'data-section-link="demo"' in html
+    assert 'data-section-link="use-cases"' in html
+    assert 'id="top"' in html
     assert 'aria-current="true"' in html
     assert "IntersectionObserver" in html
     assert "setActiveSection" in html
@@ -210,9 +248,14 @@ def test_homepage_hero_evidence_card_is_not_bottom_aligned() -> None:
 def test_launch_website_has_beta_onboarding_pages() -> None:
     pages = {
         "quickstart.html": [
-            "Scout Quickstart",
-            "Use hosted Scout with an API key, or run it locally.",
+            "Scout Docs",
+            "One page for hosted API, local install, examples, and artifacts.",
+            "This replaces separate Quickstart, Guide, Examples, and API Guide pages.",
             "Call the live Scout API.",
+            "API reference",
+            "The endpoints testers actually need.",
+            "POST /products",
+            "POST /run/{use_case}",
             "https://scout.chowmes.com",
             "Do not use localhost for hosted calls.",
             "codex/scout-platform-foundation",
@@ -228,6 +271,15 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "/v1/hosted/me",
             "/v1/hosted/scrape",
             "invite-only and metered",
+            "Examples",
+            "Page to markdown",
+            "Product category to records",
+            "Company intelligence packet",
+            "Artifact contract",
+            "records.json",
+            "source_pages.json",
+            "blocked_pages.json",
+            "extraction_report.md",
         ],
         "pricing.html": [
             "Scout Pricing",
@@ -238,41 +290,6 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "unit economics",
             "No arbitrary one-time price",
             "No unlimited hosted crawling",
-        ],
-        "examples.html": [
-            "Scout Examples",
-            "Beta-safe workflows you can run today.",
-            "Page to markdown",
-            "Product category to records",
-            "Company intelligence packet",
-            "Captured HTML to records",
-            "Product records to JSONL, CSV, SQLite, Google Sheets, and Algolia",
-            "records.json",
-            "source_pages.json",
-            "blocked_pages.json",
-            "extraction_report.md",
-            "No guaranteed hard-site bypass",
-            "No app UI claim",
-        ],
-        "guide.html": [
-            "Scout Developer Guide",
-            "Choose the right Scout surface before you run.",
-            "Local CLI",
-            "Local HTTP service",
-            "Hosted beta API",
-            "Claude/Codex skill backend",
-            "SCOUT_WORKDIR",
-            "X-API-Key",
-            "Authorization: Bearer",
-            "/v1/hosted/me",
-            "/v1/hosted/scrape",
-            "records.json",
-            "source_pages.json",
-            "blocked_pages.json",
-            "extraction_report.md",
-            "Hosted API examples live in this guide; local Swagger docs remain available only when running Scout locally",
-            "No unlimited hosted crawling",
-            "No app UI surface",
         ],
         "status.html": [
             "Scout Launch Status",
@@ -368,16 +385,17 @@ def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
 
     hosted_index = html.index("https://scout.chowmes.com")
-    localhost_index = html.index("http://127.0.0.1:8421")
+    localhost_index = html.index("http://localhost:8421")
 
     assert hosted_index < localhost_index
     assert "Do not use localhost for hosted calls." in html
-    assert "Only after `scout serve` is running locally" in html
+    assert "Only after `scout serve` is running on your own machine" in html
+    assert "http://127.0.0.1:8421" not in html
     assert 'src="/assets/copy-code.js"' in html
 
 
 def test_command_docs_include_copy_code_behavior() -> None:
-    for page_name in ("quickstart.html", "guide.html", "examples.html", "status.html", "beta.html"):
+    for page_name in ("quickstart.html", "status.html", "beta.html"):
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
 
         assert "<pre><code>" in html
@@ -388,19 +406,19 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
     client = TestClient(app)
 
     expected = {
-        "/quickstart": "Scout Quickstart",
-        "/guide": "Scout Developer Guide",
+        "/quickstart": "Scout Docs",
+        "/guide": "Scout Docs",
         "/pricing": "Scout Pricing",
-        "/examples": "Scout Examples",
+        "/examples": "Scout Docs",
         "/status": "Scout Launch Status",
         "/beta": "Scout Private Beta",
         "/legal": "Scout Legal And Third-Party Notices",
         "/terms": "Scout Beta Terms Placeholder",
         "/privacy": "Scout Beta Privacy Placeholder",
-        "/quickstart.html": "Scout Quickstart",
-        "/guide.html": "Scout Developer Guide",
+        "/quickstart.html": "Scout Docs",
+        "/guide.html": "Scout Docs",
         "/pricing.html": "Scout Pricing",
-        "/examples.html": "Scout Examples",
+        "/examples.html": "Scout Docs",
         "/status.html": "Scout Launch Status",
         "/beta.html": "Scout Private Beta",
         "/legal.html": "Scout Legal And Third-Party Notices",

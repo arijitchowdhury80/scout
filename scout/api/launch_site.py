@@ -73,15 +73,15 @@ def _asset_media_type(asset_name: str) -> str:
 @router.get("/quickstart")
 @router.get("/quickstart.html")
 async def launch_site_quickstart() -> FileResponse:
-    """Serve the Scout local-install quickstart page."""
+    """Serve the consolidated Scout docs page."""
     return _launch_site_page("quickstart.html")
 
 
 @router.get("/guide")
 @router.get("/guide.html")
 async def launch_site_guide() -> FileResponse:
-    """Serve the Scout developer guide page."""
-    return _launch_site_page("guide.html")
+    """Keep old guide links working by serving the consolidated docs page."""
+    return _launch_site_page("quickstart.html")
 
 
 @router.get("/pricing")
@@ -94,8 +94,8 @@ async def launch_site_pricing() -> FileResponse:
 @router.get("/examples")
 @router.get("/examples.html")
 async def launch_site_examples() -> FileResponse:
-    """Serve the Scout beta examples page."""
-    return _launch_site_page("examples.html")
+    """Keep old examples links working by serving the consolidated docs page."""
+    return _launch_site_page("quickstart.html")
 
 
 @router.get("/status")
