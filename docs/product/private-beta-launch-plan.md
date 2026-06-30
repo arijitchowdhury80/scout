@@ -1,7 +1,7 @@
 # Scout Private Beta Launch Plan
 
 Date: 2026-06-29
-Status: Controlled private beta plan; public launch remains blocked
+Status: Controlled private beta plan; current release ready
 
 ## Source Of Truth
 

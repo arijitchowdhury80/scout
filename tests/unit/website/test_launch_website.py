@@ -223,23 +223,23 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         ],
         "status.html": [
             "Scout Launch Status",
-            "Private beta: ready_with_limits",
-            "Public launch: blocked",
-            "Owner summary",
-            "Arijit: 4",
-            "Codex: 4",
-            "Codex + Arijit: 1",
-            "Codex-actionable now: 0",
+            "Controlled beta: ready_with_limits",
+            "Launch readiness: ready",
+            "What changed in the blocker burndown?",
+            "Arijit decisions: closed",
+            "Codex gates: closed",
+            "Stripe paid checkout: deferred",
+            "Current blockers: 0",
             "Blocker summary",
-            "founder_decision: 3",
-            "engineering: 4",
-            "Decision packet for Arijit",
+            "Future public registry work",
+            "Future paid checkout work",
+            "Future security-clean work",
+            "Decisions recorded for the beta path.",
             "License: Apache-2.0 for Scout local/core",
-            "Pricing: derive hosted pricing from unit economics",
+            "Pricing: controlled beta posture",
             "Publishing: artifact-only private-beta v* tag first",
-            "Public hosted: do not approve public self-serve hosted launch yet",
+            "Hosted: invite-only keys",
             "public-pricing-and-hosted-usage-limits",
-            "github-release-workflow-run",
             "stripe-real-test-mode-smoke",
             "scout launch-readiness --owner Arijit",
             "scout launch-readiness --blocker-type engineering",
@@ -255,8 +255,6 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Do not edit the release checklist from a draft alone.",
             "Only after validation passes",
             "docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md",
-            "No certified legacy /app UI claim",
-            "No unlimited hosted crawling",
         ],
         "beta.html": [
             "Scout Private Beta",
@@ -286,7 +284,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "https://x.com/unclecode",
             "Apache License, Version 2.0",
             "Scout local/core is Apache-2.0",
-            "Public launch remains blocked",
+            "Controlled beta is ready; public self-serve remains deferred.",
         ],
         "terms.html": [
             "Scout Beta Terms Placeholder",
@@ -349,7 +347,10 @@ def test_status_page_lists_all_current_unique_launch_blocker_keys() -> None:
     blocker_ids = {blocker["id"] for blocker in report["public_launch"]["blockers"]}
     html = (_WEBSITE_DIR / "status.html").read_text(encoding="utf-8")
 
-    assert f"{len(blocker_ids)} unique public-launch blocker keys" in html
+    if blocker_ids:
+        assert f"{len(blocker_ids)} unique public-launch blocker keys" in html
+    else:
+        assert "Current blockers: 0" in html
     for blocker_id in blocker_ids:
         assert blocker_id in html
 

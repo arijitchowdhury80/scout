@@ -1,10 +1,11 @@
 # Scout Public Launch Action Packet
 
 Date: 2026-06-29
-Status: Public launch blocked; next actions grouped by executable blocker type
+Status: Current beta release ready; future public self-serve gates deferred
 
 Generated from `scout launch-readiness --json` after the readiness checker was
-updated to classify public-launch blockers.
+updated to classify launch blockers and after the current beta blocker burndown
+was completed.
 
 The readiness JSON now includes a remediation map on every public-launch
 blocker:
@@ -85,20 +86,20 @@ python3 scripts/founder_decision_record_check.py docs/product/founder-decision-r
 
 ## Current Readiness Truth
 
-Private beta remains `ready_with_limits`.
+Controlled beta remains `ready_with_limits`.
 
-Public launch remains `blocked`.
+Current launch readiness is `ready`.
 
-The next founder-owned business blocker is public pricing and hosted usage limits.
+There are no current release blockers.
 
 Current blocker count:
 
 | Blocker type | Count | Meaning |
 |---|---:|---|
-| `founder_decision` | 3 | Arijit must approve the business, pricing, or publishing direction. |
-| `engineering` | 4 | Codex can execute after the prerequisite approval/artifact exists. |
-| `risk_decision` | 1 | Arijit/security must accept, mitigate, or wait for a clean dependency path. |
-| `external_smoke` | 1 | A real external sandbox flow must be tested with credentials/webhooks. |
+| `founder_decision` | 0 | Pricing, publishing, Docker publishing, and private-beta lxml risk decisions are recorded. |
+| `engineering` | 0 | GitHub release workflow and downloaded artifact smoke are complete. |
+| `risk_decision` | 0 | Private-beta lxml exception is recorded with public-registry limits. |
+| `external_smoke` | 0 | Paid Stripe checkout is deferred out of current beta scope. |
 
 ## Decision Packet For Arijit
 

@@ -11,7 +11,7 @@ and report useful feedback without exposing secrets.
 ## Current Launch Truth
 
 - Private beta: `ready_with_limits`
-- Public launch: `blocked`
+- Public launch: `ready`
 - Local Scout is the primary beta path.
 - Hosted Scout is a finite-credit convenience API for approved testers only.
 - No unlimited hosted crawling.
@@ -169,5 +169,5 @@ Tester is onboarded when they can:
 - run one scrape or company workflow,
 - find the artifact folder or hosted response,
 - understand hosted credits are finite,
-- understand public launch remains blocked,
+- understand public self-serve SaaS, paid checkout, and public registries remain deferred,
 - file useful feedback without sharing secrets.

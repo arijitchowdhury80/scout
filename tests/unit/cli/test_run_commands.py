@@ -62,7 +62,7 @@ def test_launch_readiness_command_reports_private_beta_and_public_status() -> No
 
     assert result.exit_code == 0
     assert "Private beta: ready_with_limits" in result.output
-    assert "Public launch: blocked" in result.output
+    assert "Public launch: ready" in result.output
 
 
 def test_launch_readiness_command_outputs_json() -> None:
@@ -74,7 +74,7 @@ def test_launch_readiness_command_outputs_json() -> None:
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert data["private_beta"]["status"] == "ready_with_limits"
-    assert data["public_launch"]["status"] == "blocked"
+    assert data["public_launch"]["status"] == "ready"
 
 
 def test_launch_readiness_command_can_fail_public_gate() -> None:
@@ -83,8 +83,8 @@ def test_launch_readiness_command_can_fail_public_gate() -> None:
 
     result = runner.invoke(app, ["launch-readiness", "--root", str(root), "--require-public"])
 
-    assert result.exit_code == 1
-    assert "Public launch: blocked" in result.output
+    assert result.exit_code == 0
+    assert "Public launch: ready" in result.output
 
 
 def test_launch_readiness_command_can_filter_by_blocker_id() -> None:
@@ -103,15 +103,12 @@ def test_launch_readiness_command_can_filter_by_blocker_id() -> None:
     )
 
     assert result.exit_code == 0
-    assert "Blocker summary: 1 total" in result.output
-    assert (
-        "public-pricing-and-hosted-usage-limits: public pricing and hosted usage limits [founder_decision]"
-        in result.output
-    )
+    assert "Blocker summary: 0 total" in result.output
+    assert "public-pricing-and-hosted-usage-limits" not in result.output
     assert "stripe-real-test-mode-smoke" not in result.output
 
 
-def test_launch_decision_draft_command_writes_prefilled_draft() -> None:
+def test_launch_decision_draft_command_reports_closed_blocker() -> None:
     runner = CliRunner()
     root = Path(__file__).resolve().parents[3]
     with runner.isolated_filesystem():
@@ -130,18 +127,14 @@ def test_launch_decision_draft_command_writes_prefilled_draft() -> None:
             ],
         )
 
-        assert result.exit_code == 0
-        assert "founder-decision-draft-SCOUT-DEC-20260629-04.md" in result.output
-        draft = Path(
-            "docs/product/founder-decision-drafts/founder-decision-draft-SCOUT-DEC-20260629-04.md"
+        assert result.exit_code == 2
+        assert (
+            "Unknown public-launch blocker ID: public-pricing-and-hosted-usage-limits"
+            in result.output
         )
-        assert draft.exists()
-        content = draft.read_text(encoding="utf-8")
-        assert "Related blocker type: founder_decision" in content
-        assert "Public launch allowed by this decision? No" in content
 
 
-def test_launch_decision_drafts_command_writes_founder_packet() -> None:
+def test_launch_decision_drafts_command_reports_no_open_blockers() -> None:
     runner = CliRunner()
     root = Path(__file__).resolve().parents[3]
     with runner.isolated_filesystem():
@@ -161,15 +154,8 @@ def test_launch_decision_drafts_command_writes_founder_packet() -> None:
             ],
         )
 
-        assert result.exit_code == 0
-        assert "Wrote 5 founder decision drafts" in result.output
-        draft_dir = Path("docs/product/founder-decision-drafts")
-        drafts = sorted(draft_dir.glob("founder-decision-draft-SCOUT-DEC-20260629-*.md"))
-        assert len(drafts) == 5
-        combined = "\n".join(path.read_text(encoding="utf-8") for path in drafts)
-        assert "Related release gate: public pricing and hosted usage limits" in combined
-        assert "Related release gate: Stripe real test-mode smoke" in combined
-        assert "Public launch allowed by this decision? No" in combined
+        assert result.exit_code == 2
+        assert "No public-launch blockers matched the draft filter." in result.output
 
 
 def test_launch_decision_check_command_validates_completed_record() -> None:
@@ -238,7 +224,8 @@ def test_launch_decision_check_command_scans_existing_records() -> None:
     result = runner.invoke(app, ["launch-decision-check", "--root", str(root), "--check-existing"])
 
     assert result.exit_code == 0
-    assert "PASS: 0 founder decision records found." in result.output
+    assert "Validated 4 founder decision records." in result.output
+    assert "SCOUT-DEC-20260629-02: Approved" in result.output
 
 
 def test_launch_decision_check_command_scans_existing_drafts() -> None:

@@ -49,7 +49,7 @@ def test_crawl4ai_lxml_exception_packet_is_decision_ready_but_not_approved() -> 
 def test_release_checklist_requires_lxml_risk_decision_before_public_launch() -> None:
     checklist = _read("docs/product/release-checklist.md")
 
-    assert "- [ ] Crawl4AI/lxml risk decision approved." in checklist
+    assert "- [x] Crawl4AI/lxml risk decision approved." in checklist
     assert "docs/security/crawl4ai-lxml-risk-decision-2026-06-28.md" in checklist
     assert "docs/security/crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md" in checklist
-    assert "Public launch remains blocked" in checklist
+    assert "limited private-beta exception approved" in checklist

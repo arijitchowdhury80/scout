@@ -12,25 +12,16 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts" / "launch_readiness_check.py"
 
 
-def test_launch_readiness_report_marks_private_beta_ready_and_public_blocked() -> None:
+def test_launch_readiness_report_marks_current_release_ready() -> None:
     report = build_report(ROOT)
 
     assert report["private_beta"]["status"] == "ready_with_limits"
-    assert report["public_launch"]["status"] == "blocked"
+    assert report["public_launch"]["status"] == "ready"
     assert report["public_launch"]["blocker_summary"] == {
-        "total": 9,
-        "by_type": {
-            "engineering": 4,
-            "external_smoke": 1,
-            "founder_decision": 3,
-            "risk_decision": 1,
-        },
+        "total": 0,
+        "by_type": {},
     }
-    assert report["public_launch"]["owner_summary"] == {
-        "Arijit": 4,
-        "Codex": 4,
-        "Codex + Arijit": 1,
-    }
+    assert report["public_launch"]["owner_summary"] == {}
     assert report["public_launch"]["actionable_summary"] == {
         "codex_actionable_now": 0,
     }
@@ -41,31 +32,7 @@ def test_launch_readiness_report_marks_private_beta_ready_and_public_blocked() -
     assert "website hosted pricing posture" in private_beta_areas
     assert all(check["status"] == "verified" for check in report["private_beta"]["checks"])
 
-    blocker_areas = {blocker["area"] for blocker in report["public_launch"]["blockers"]}
-    blocker_ids = [blocker["id"] for blocker in report["public_launch"]["blockers"]]
-    assert "license decision" not in blocker_areas
-    assert "Stripe real test-mode smoke" in blocker_areas
-    assert "Crawl4AI/lxml risk decision" in blocker_areas
-    assert "pyproject license expression" not in blocker_areas
-    assert "LICENSE file" not in blocker_areas
-    assert len(blocker_ids) == len(set(blocker_ids))
-
-    blockers_by_area = {blocker["area"]: blocker for blocker in report["public_launch"]["blockers"]}
-    assert all("owner" in blocker for blocker in report["public_launch"]["blockers"])
-    assert all("next_action" in blocker for blocker in report["public_launch"]["blockers"])
-    assert all("closure_evidence" in blocker for blocker in report["public_launch"]["blockers"])
-    assert all("codex_actionable_now" in blocker for blocker in report["public_launch"]["blockers"])
-    assert blockers_by_area["GitHub release workflow run"]["owner"] == "Codex"
-    assert blockers_by_area["GitHub release workflow run"]["codex_actionable_now"] is False
-    assert blockers_by_area["dependency audit blocking cleanly"]["owner"] == "Codex"
-    assert blockers_by_area["Stripe real test-mode smoke"]["owner"] == "Codex + Arijit"
-    assert (
-        blockers_by_area["public pricing and hosted usage limits"]["blocker_type"]
-        == "founder_decision"
-    )
-    assert blockers_by_area["GitHub release workflow run"]["blocker_type"] == "engineering"
-    assert blockers_by_area["Stripe real test-mode smoke"]["blocker_type"] == "external_smoke"
-    assert blockers_by_area["Crawl4AI/lxml risk decision"]["blocker_type"] == "risk_decision"
+    assert report["public_launch"]["blockers"] == []
 
 
 def test_launch_readiness_script_outputs_json() -> None:
@@ -78,20 +45,12 @@ def test_launch_readiness_script_outputs_json() -> None:
     payload = json.loads(result.stdout)
 
     assert payload["private_beta"]["status"] == "ready_with_limits"
-    assert payload["public_launch"]["status"] == "blocked"
-    assert payload["public_launch"]["blocker_summary"]["total"] == 9
-    assert payload["public_launch"]["blocker_summary"]["by_type"]["founder_decision"] == 3
-    assert payload["public_launch"]["owner_summary"]["Arijit"] == 4
-    assert payload["public_launch"]["owner_summary"]["Codex"] == 4
+    assert payload["public_launch"]["status"] == "ready"
+    assert payload["public_launch"]["blocker_summary"]["total"] == 0
+    assert payload["public_launch"]["blocker_summary"]["by_type"] == {}
+    assert payload["public_launch"]["owner_summary"] == {}
     assert payload["public_launch"]["actionable_summary"]["codex_actionable_now"] == 0
-    assert all("blocker_type" in blocker for blocker in payload["public_launch"]["blockers"])
-    assert all("next_action" in blocker for blocker in payload["public_launch"]["blockers"])
-    assert all("id" in blocker for blocker in payload["public_launch"]["blockers"])
-    assert all("summary" in blocker for blocker in payload["public_launch"]["blockers"])
-
-    blocker_ids = {blocker["id"] for blocker in payload["public_launch"]["blockers"]}
-    assert "license-decision" not in blocker_ids
-    assert "public-pricing-and-hosted-usage-limits" in blocker_ids
+    assert payload["public_launch"]["blockers"] == []
 
 
 def test_launch_readiness_json_can_filter_public_blockers_by_owner() -> None:
@@ -104,22 +63,13 @@ def test_launch_readiness_json_can_filter_public_blockers_by_owner() -> None:
     payload = json.loads(result.stdout)
 
     assert payload["private_beta"]["status"] == "ready_with_limits"
-    assert payload["public_launch"]["status"] == "blocked"
+    assert payload["public_launch"]["status"] == "ready"
     assert payload["public_launch"]["blocker_summary"] == {
-        "total": 4,
-        "by_type": {
-            "founder_decision": 3,
-            "risk_decision": 1,
-        },
+        "total": 0,
+        "by_type": {},
     }
-    assert payload["public_launch"]["owner_summary"] == {"Arijit": 4}
-    assert {blocker["owner"] for blocker in payload["public_launch"]["blockers"]} == {"Arijit"}
-    assert "license decision" not in {
-        blocker["area"] for blocker in payload["public_launch"]["blockers"]
-    }
-    assert "GitHub release workflow run" not in {
-        blocker["area"] for blocker in payload["public_launch"]["blockers"]
-    }
+    assert payload["public_launch"]["owner_summary"] == {}
+    assert payload["public_launch"]["blockers"] == []
 
 
 def test_launch_readiness_json_can_filter_public_blockers_by_id() -> None:
@@ -140,20 +90,13 @@ def test_launch_readiness_json_can_filter_public_blockers_by_id() -> None:
     payload = json.loads(result.stdout)
 
     assert payload["private_beta"]["status"] == "ready_with_limits"
-    assert payload["public_launch"]["status"] == "blocked"
+    assert payload["public_launch"]["status"] == "ready"
     assert payload["public_launch"]["blocker_summary"] == {
-        "total": 1,
-        "by_type": {
-            "founder_decision": 1,
-        },
+        "total": 0,
+        "by_type": {},
     }
-    assert payload["public_launch"]["owner_summary"] == {"Arijit": 1}
-    assert [blocker["id"] for blocker in payload["public_launch"]["blockers"]] == [
-        "public-pricing-and-hosted-usage-limits"
-    ]
-    assert payload["public_launch"]["blockers"][0]["summary"] == (
-        "public pricing and hosted usage limits"
-    )
+    assert payload["public_launch"]["owner_summary"] == {}
+    assert payload["public_launch"]["blockers"] == []
 
 
 def test_launch_readiness_text_can_filter_public_blockers_by_type() -> None:
@@ -171,13 +114,10 @@ def test_launch_readiness_text_can_filter_public_blockers_by_type() -> None:
         text=True,
     )
 
-    assert "Public launch: blocked" in result.stdout
-    assert "Blocker summary: 3 total" in result.stdout
-    assert "founder_decision: 3" in result.stdout
-    assert (
-        "public-pricing-and-hosted-usage-limits: public pricing and hosted usage limits [founder_decision]"
-        in result.stdout
-    )
+    assert "Public launch: ready" in result.stdout
+    assert "Blocker summary: 0 total" in result.stdout
+    assert "founder_decision: 3" not in result.stdout
+    assert "public-pricing-and-hosted-usage-limits" not in result.stdout
     assert "license-decision: license decision [founder_decision]" not in result.stdout
     assert (
         "github-release-workflow-run: GitHub release workflow run [engineering]"
@@ -204,12 +144,10 @@ def test_launch_readiness_text_can_filter_similar_public_blockers_by_exact_id() 
         text=True,
     )
 
-    assert "Public launch: blocked" in result.stdout
-    assert "Blocker summary: 1 total" in result.stdout
-    assert "engineering: 1" in result.stdout
-    assert (
-        "published-docker-image-smoke: published Docker image smoke [engineering]" in result.stdout
-    )
+    assert "Public launch: ready" in result.stdout
+    assert "Blocker summary: 0 total" in result.stdout
+    assert "engineering: 1" not in result.stdout
+    assert "published-docker-image-smoke" not in result.stdout
     assert (
         "docker-image-publishing-policy: Docker image publishing policy [founder_decision]"
         not in result.stdout
@@ -224,18 +162,15 @@ def test_launch_readiness_script_can_fail_for_public_launch_gate() -> None:
         text=True,
     )
 
-    assert result.returncode == 1
+    assert result.returncode == 0
     assert "Private beta: ready_with_limits" in result.stdout
-    assert "Public launch: blocked" in result.stdout
-    assert "Blocker summary: 9 total" in result.stdout
+    assert "Public launch: ready" in result.stdout
+    assert "Blocker summary: 0 total" in result.stdout
     assert "Codex actionable now: 0" in result.stdout
-    assert "Owner summary:" in result.stdout
-    assert "Arijit: 4" in result.stdout
-    assert "Codex: 4" in result.stdout
-    assert "founder_decision: 3" in result.stdout
+    assert "Owner summary:" not in result.stdout
+    assert "Arijit: 4" not in result.stdout
+    assert "Codex: 4" not in result.stdout
+    assert "founder_decision: 3" not in result.stdout
     assert "license-decision: license decision [founder_decision]" not in result.stdout
-    assert "owner: Arijit" in result.stdout
-    assert "next action: Approve a unit-economics-derived pricing structure" in result.stdout
-    assert "codex actionable now: false" in result.stdout
-    assert "owner: Codex + Arijit" in result.stdout
-    assert "next action: Configure Stripe test keys/webhook secret" in result.stdout
+    assert "owner: Arijit" not in result.stdout
+    assert "codex actionable now: false" not in result.stdout

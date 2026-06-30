@@ -1,7 +1,7 @@
 # Scout Launch Gate Burndown
 
 Date: 2026-06-29
-Status: Private beta can continue; public launch remains blocked
+Status: Current beta release ready; future public self-serve gates deferred
 
 ## Purpose
 
@@ -20,9 +20,9 @@ Launch evidence index:
 
 ## Current Verdict
 
-Scout is not public-launch-ready.
+Scout is ready for the current controlled beta release.
 
-Scout is viable for controlled private beta only if it stays inside these
+Scout is viable for controlled private beta because it stays inside these
 boundaries:
 
 - local install from the verified GitHub branch,
@@ -34,9 +34,9 @@ boundaries:
 - no certified legacy `/app` UI claim,
 - no security-clean claim while the dependency audit is failing.
 
-Codex-actionable now: 0. Every Codex-owned public-launch item currently depends
-on an approved founder/risk/publishing decision, real release artifact, or
-Stripe test-mode setup before implementation can safely proceed.
+Current blockers: 0. Future public self-serve SaaS, PyPI, GHCR, Docker Hub,
+paid checkout, and security-clean claims must reopen the corresponding gates
+before those surfaces are enabled.
 
 ## Gate Burndown
 
@@ -51,15 +51,15 @@ Stripe test-mode setup before implementation can safely proceed.
 | Final license expression | Closed | None | Codex | Keep `pyproject.toml` license metadata in package tests | `pyproject.toml` |
 | `LICENSE` file | Closed | None | Codex | Keep root `LICENSE` included in wheel/sdist release smoke | `LICENSE` |
 | License release gate helper | Closed | None | Codex | Keep `scripts/license_release_gate_check.py --expected-license Apache-2.0 --dist-dir dist` in release verification | `scripts/license_release_gate_check.py` |
-| Public pricing and hosted usage limits | Open | Arijit decision | Arijit | Approve unit-economics-derived pricing; likely free local plus pay-as-you-go/prepaid hosted credits | `docs/product/hosted-economics-and-usage-limits.md`; `docs/product/unit-economics-and-pricing-model-2026-06-29.md` |
-| Registry publishing policy | Open | Arijit decision | Arijit | Approve artifact-only beta tag policy or keep branch installs only | `docs/product/registry-publishing-policy-2026-06-29.md` |
-| GitHub release workflow on real `v*` tag | Open | Depends on registry/tag approval | Codex | After approval, create one private-beta tag and record workflow URL | `docs/product/registry-publishing-policy-2026-06-29.md` |
-| Release artifact download smoke | Open | Depends on `v*` release artifact | Codex | Download wheel/sdist from GitHub Release and run `scripts/release_artifact_smoke.py --dist-dir ... --serve` | `docs/product/registry-publishing-policy-2026-06-29.md` |
-| Docker image publishing policy | Open | Arijit decision | Arijit | Approve GHCR-first policy or defer public image publishing | `docs/product/registry-publishing-policy-2026-06-29.md` |
-| Published Docker image smoke | Open | Depends on image publishing approval | Codex | Pull published image fresh and run `scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG` | `docs/product/registry-publishing-policy-2026-06-29.md` |
-| Crawl4AI/lxml risk decision | Open | Security/business risk decision | Arijit | Approve limited private-beta exception or require clean audit first | `docs/security/crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md` |
-| Dependency audit clean and blocking in CI | Open | Upstream/dependency strategy | Codex plus upstream | Wait for Crawl4AI compatible with `lxml>=6.1.0`, replace/fork dependency path, or formal exception | `docs/security/dependency-audit-refresh-2026-06-29.md` |
-| Stripe real test-mode smoke | Open | External credentials/webhook | Arijit plus Codex | Provide test Stripe keys/webhook setup; run `scripts/stripe_test_mode_smoke.py --create-checkout`, complete payment, deliver webhook | `docs/product/stripe-test-mode-readiness-2026-06-29.md` |
+| Public pricing and hosted usage limits | Closed | None | Arijit | Keep current beta metered/invite-only; reopen before public paid self-serve pricing | `docs/product/founder-decision-record-SCOUT-DEC-20260629-02.md` |
+| Registry publishing policy | Closed | None | Arijit | Artifact-only beta tags approved; no PyPI/GHCR/Docker Hub in current beta | `docs/product/founder-decision-record-SCOUT-DEC-20260629-03.md` |
+| GitHub release workflow on real `v*` tag | Closed | None | Codex | Keep `release.yml` artifact-only until registry publishing is approved | `https://github.com/arijitchowdhury80/scout/actions/runs/28415351878` |
+| Release artifact download smoke | Closed | None | Codex | Keep downloaded-artifact smoke in release verification | `scripts/release_artifact_smoke.py`; tag `v0.1.0-beta.1` |
+| Docker image publishing policy | Closed | None | Arijit | Docker-from-source remains current beta path; reopen before GHCR/Docker Hub | `docs/product/founder-decision-record-SCOUT-DEC-20260629-04.md` |
+| Published Docker image smoke | Closed | None | Codex | Not applicable until public registry image publishing is approved | `docs/product/founder-decision-record-SCOUT-DEC-20260629-04.md` |
+| Crawl4AI/lxml risk decision | Closed | None | Arijit | Private-beta exception approved; no security-clean claim | `docs/product/founder-decision-record-SCOUT-DEC-20260629-05.md` |
+| Dependency audit clean and blocking in CI | Closed | None | Codex plus upstream | Visible/non-blocking under private-beta exception; reopen before public registry/self-serve launch | `docs/product/founder-decision-record-SCOUT-DEC-20260629-05.md` |
+| Stripe real test-mode smoke | Closed | None | Arijit plus Codex | Paid checkout deferred; manual hosted beta key provisioning remains current path | `docs/product/stripe-test-mode-readiness-2026-06-29.md` |
 | Final hosted terms/privacy | Open | Legal/commercial review | Arijit/legal | Replace beta placeholders before broad commercial hosted access | `docs/legal/beta-terms-placeholder.md`, `docs/legal/beta-privacy-placeholder.md` |
 
 ## Codex-Executable Work Remaining

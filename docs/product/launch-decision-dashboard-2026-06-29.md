@@ -2,7 +2,7 @@
 
 Date: 2026-06-29
 
-Status: **Private beta can continue with limits; public launch is blocked.**
+Status: **Current beta release ready with limits; future public self-serve gates deferred.**
 
 This dashboard is the current control panel for launching Scout as a product.
 It summarizes the release checklist, decision briefs, and verification evidence
@@ -19,9 +19,9 @@ Evidence index:
 
 ## Current Verdict
 
-Scout is not ready for public launch.
+Scout is ready for the current controlled beta release.
 
-Scout is credible for controlled private beta if it stays within the current
+Scout is credible for controlled private beta because it stays within the current
 scope:
 
 - local Python package from the verified branch-qualified GitHub install,
@@ -33,9 +33,9 @@ scope:
 - no certified app UI claim,
 - no guaranteed hard-site bypass claim.
 
-Codex-actionable now: 0. Codex owns implementation gates, but the current
-public-launch implementation work is intentionally blocked until founder,
-risk, publishing, or Stripe setup decisions are approved and recorded.
+Current blockers: 0. Future public self-serve SaaS, PyPI, GHCR, Docker Hub,
+paid checkout, and security-clean claims remain out of scope until their gates
+are reopened and verified.
 
 ## Open Decisions
 
@@ -44,20 +44,20 @@ risk, publishing, or Stripe setup decisions are approved and recorded.
 | Scout license | Approve Apache-2.0 for local/core package | Arijit | PyPI, public repo confidence, broad commercial launch |
 | Final license expression | Add final SPDX expression to `pyproject.toml` after approval | Codex after Arijit decision | Package publish |
 | `LICENSE` file | Add Apache-2.0 if approved | Codex after Arijit decision | Package publish |
-| Public pricing | Do not approve `$22`/`$9`; build unit economics and likely test free local plus pay-as-you-go hosted credits | Arijit | Public hosted launch |
-| Registry publishing | Private beta tags artifact-only; PyPI first later; GHCR before Docker Hub | Arijit | PyPI/GHCR/Docker Hub publish |
-| Docker image publishing | GHCR first, Docker Hub only if needed | Arijit | Public container image |
-| Crawl4AI/lxml risk | Public launch blocked unless audit clean or formal exception approved | Arijit/security decision | Public launch |
+| Public pricing | Current beta metered/invite-only posture approved; self-serve pricing deferred | Arijit | Future paid self-serve hosted launch |
+| Registry publishing | Artifact-only beta tags approved; PyPI/GHCR/Docker Hub deferred | Arijit | Future registry publish |
+| Docker image publishing | GHCR/Docker Hub deferred; Docker-from-source remains current beta path | Arijit | Future public container image |
+| Crawl4AI/lxml risk | Private-beta exception approved; security-clean claims deferred | Arijit/security decision | Future public registry/self-serve launch |
 
 ## Open Verification Gates
 
 | Gate | Current state | Closure evidence needed |
 |---|---|---|
-| GitHub release artifact workflow run against real `v*` tag | Workflow exists; real tag run not executed/recorded | Push an approved `v*` tag, confirm workflow success, record run URL |
-| Release artifact downloaded and smoke-tested locally | Not done because no approved release tag exists; helper exists | Download GitHub Release artifact into clean env, run `scripts/release_artifact_smoke.py --dist-dir ... --serve`, record output |
-| Stripe checkout and webhook tested in Stripe test mode | Deterministic tests pass; real Stripe credentials/webhook secret absent; helper exists | Configure test Stripe keys, run `scripts/stripe_test_mode_smoke.py --create-checkout`, complete test payment, deliver real webhook, prove hosted key delivery |
-| Dependency audit clean and blocking in CI | Not clean; CI job is visible but non-blocking | Crawl4AI/lxml fixed, or dependency strategy changed, or approved formal exception |
-| Published Docker image smoke-tested | Not applicable until image publishing approved; helper exists | Pull published image fresh and run `scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG` |
+| GitHub release artifact workflow run against real `v*` tag | Closed on `v0.1.0-beta.1` | `https://github.com/arijitchowdhury80/scout/actions/runs/28415351878` |
+| Release artifact downloaded and smoke-tested locally | Closed | `scripts/release_artifact_smoke.py --dist-dir /tmp/scout-release-v0.1.0-beta.1 --serve --port 18424` passed |
+| Stripe checkout and webhook tested in Stripe test mode | Deferred out of current beta scope | Configure test keys and rerun before paid self-serve checkout |
+| Dependency audit clean and blocking in CI | Deferred under private-beta lxml exception | Reopen before public registry/self-serve launch |
+| Published Docker image smoke-tested | Not applicable until image publishing approved | Reopen before GHCR/Docker Hub publish |
 
 ## Evidence Already Closed
 

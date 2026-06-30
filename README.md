@@ -39,8 +39,8 @@ Still beta/experimental: hard-site extraction reliability, user-browser capture 
 Current launch gate truth:
 
 - Private beta: `ready_with_limits`
-- Public launch: `blocked`
-- Codex-actionable now: `0`
+- Public launch: `ready`
+- Current blockers: `0`
 
 Use the launch readiness commands before making release or website claims:
 

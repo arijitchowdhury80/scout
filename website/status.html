@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout Launch Status - Private beta readiness</title>
+    <title>Scout Launch Status - Beta release ready</title>
     <meta
       name="description"
-      content="Scout launch readiness status, private beta boundaries, public launch blockers, and readiness commands."
+      content="Scout launch readiness status, beta boundaries, public self-serve limits, and readiness commands."
     />
     <link rel="icon" href="/assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/warm-industrial-design-system/warm-industrial.css" />
@@ -36,11 +36,12 @@
       <main>
         <section class="page-hero">
           <p class="wi-label wi-label--accent">Scout Launch Status</p>
-          <h1>Private beta is usable with limits. Public launch is still blocked.</h1>
+          <h1>Scout beta release is ready with limits.</h1>
           <p>
             This page mirrors the launch readiness contract in plain language.
             It exists so beta testers and operators can see what is verified,
-            what is blocked, and which commands produce the current evidence.
+            which release gates are closed, and which future public self-serve
+            capabilities remain intentionally deferred.
           </p>
         </section>
 
@@ -52,18 +53,18 @@
           <div class="status-grid">
             <article>
               <span class="status-tag status-tag--primary">Beta</span>
-              <h3>Private beta: ready_with_limits</h3>
+              <h3>Controlled beta: ready_with_limits</h3>
               <p>Controlled beta can continue for approved testers using local install, Docker-from-source, skill usage, and approved hosted beta keys.</p>
             </article>
             <article>
-              <span class="status-tag status-tag--blocker">Public</span>
-              <h3>Public launch: blocked</h3>
-              <p>Public launch remains blocked by pricing, publishing, dependency audit, release artifact, Docker publishing, and real Stripe smoke gates.</p>
+              <span class="status-tag status-tag--primary">Release</span>
+              <h3>Launch readiness: ready</h3>
+              <p>The release checklist has no current blockers after the artifact-only beta tag and downloaded-artifact smoke.</p>
             </article>
             <article>
               <span class="status-tag status-tag--limited">Boundary</span>
-              <h3>No certified legacy /app UI claim</h3>
-              <p>Scout's launch surface is the CLI, HTTP API, Docker path, skill docs, hosted beta API, and this static website. No unlimited hosted crawling.</p>
+              <h3>Public self-serve is deferred</h3>
+              <p>PyPI, GHCR, Docker Hub, paid checkout, security-clean claims, and unlimited hosted crawling are not part of this beta release.</p>
             </article>
           </div>
         </section>
@@ -71,24 +72,24 @@
         <section class="section step-section" aria-labelledby="owner-summary-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Owner summary</p>
-            <h2 id="owner-summary-title">Who owns the remaining blockers?</h2>
+            <h2 id="owner-summary-title">What changed in the blocker burndown?</h2>
           </div>
           <div class="note-grid">
             <article>
-              <h3>Arijit: 4</h3>
-              <p>Founder and risk decisions: pricing, publishing, Docker publishing, and Crawl4AI/lxml risk posture.</p>
+              <h3>Arijit decisions: closed</h3>
+              <p>Pricing posture, artifact-only publishing, Docker publishing deferral, and Crawl4AI/lxml private-beta exception are recorded.</p>
             </article>
             <article>
-              <h3>Codex: 4</h3>
-              <p>Implementation and engineering gates that become actionable after approval or after release artifacts exist.</p>
+              <h3>Codex gates: closed</h3>
+              <p>The real `v0.1.0-beta.1` release workflow passed and the downloaded artifacts were smoke-tested locally.</p>
             </article>
             <article>
-              <h3>Codex + Arijit: 1</h3>
-              <p>Stripe real test-mode smoke requires configured test credentials, webhook delivery, and hosted key verification.</p>
+              <h3>Stripe paid checkout: deferred</h3>
+              <p>Manual hosted beta key provisioning remains the current path. Paid checkout must reopen before self-serve billing is enabled.</p>
             </article>
             <article>
-              <h3>Codex-actionable now: 0</h3>
-              <p>Codex owns implementation gates, but none are executable until the required founder, risk, publishing, or Stripe setup decisions are made.</p>
+              <h3>Current blockers: 0</h3>
+              <p>`scout launch-readiness --json` reports no current release blockers.</p>
             </article>
           </div>
         </section>
@@ -96,8 +97,8 @@
         <section class="section step-section" aria-labelledby="decision-packet-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Decision packet for Arijit</p>
-            <h2 id="decision-packet-title">Recommended answers for the fastest private-beta path.</h2>
-            <p>These decisions unlock packaging work without approving public launch.</p>
+            <h2 id="decision-packet-title">Decisions recorded for the beta path.</h2>
+            <p>These decisions unlock packaging work without approving public self-serve SaaS claims.</p>
           </div>
           <div class="note-grid">
             <article>
@@ -105,8 +106,8 @@
               <p>Closed. Aligns with Crawl4AI's Apache-2.0 posture and keeps local adoption straightforward.</p>
             </article>
             <article>
-              <h3>Pricing: derive hosted pricing from unit economics</h3>
-              <p>Rejects arbitrary placeholder pricing, keeps hosted beta metered, and requires cost/volume/margin modeling before launch.</p>
+              <h3>Pricing: controlled beta posture</h3>
+              <p>Rejects arbitrary placeholder pricing, keeps hosted beta metered, and requires cost/volume/margin modeling before self-serve paid launch.</p>
             </article>
             <article>
               <h3>Publishing: artifact-only private-beta v* tag first</h3>
@@ -114,11 +115,11 @@
             </article>
             <article>
               <h3>Crawl4AI/lxml: private-beta exception only</h3>
-              <p>Keep public launch blocked until the dependency audit is clean or a formal risk path is approved.</p>
+              <p>Private-beta exception approved; public registry and security-clean claims still require a clean audit or separate exception.</p>
             </article>
             <article>
-              <h3>Public hosted: do not approve public self-serve hosted launch yet</h3>
-              <p>Hosted beta can continue with approved testers, finite credits, and Stripe test-mode verification.</p>
+              <h3>Hosted: invite-only keys</h3>
+              <p>Hosted beta can continue with approved testers and finite credits; paid self-serve checkout is deferred.</p>
             </article>
           </div>
         </section>
@@ -130,20 +131,20 @@
           </div>
           <div class="note-grid">
             <article>
-              <h3>founder_decision: 3</h3>
-              <p>Public pricing, registry publishing, and Docker image publishing decisions.</p>
+              <h3>Current blockers: 0</h3>
+              <p>The executable readiness checker has no remaining current beta release blockers.</p>
             </article>
             <article>
-              <h3>engineering: 4</h3>
-              <p>Release workflow run, release artifact smoke, published Docker image smoke, and blocking dependency audit.</p>
+              <h3>Future public registry work</h3>
+              <p>PyPI, GHCR, and Docker Hub remain future decisions, not current beta blockers.</p>
             </article>
             <article>
-              <h3>risk_decision: 1</h3>
-              <p>Crawl4AI/lxml risk decision remains a public launch gate.</p>
+              <h3>Future paid checkout work</h3>
+              <p>Real Stripe test-mode checkout and webhook smoke must happen before paid self-serve checkout is enabled.</p>
             </article>
             <article>
-              <h3>external_smoke: 1</h3>
-              <p>Stripe checkout, webhook, and hosted key delivery must be tested against real Stripe test-mode infrastructure.</p>
+              <h3>Future security-clean work</h3>
+              <p>The dependency audit remains visible; public security-clean claims require an upstream fix, replacement path, or separate public exception.</p>
             </article>
           </div>
         </section>
@@ -152,20 +153,20 @@
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Blocker keys</p>
             <h2 id="blocker-keys-title">Use the same IDs as the readiness report.</h2>
-            <p>There are 9 unique public-launch blocker keys today. Each open blocker row has a stable ID that can be quoted in decisions, docs, and handoffs.</p>
+            <p>The prior blocker keys are now closed or explicitly deferred out of the controlled beta release scope.</p>
           </div>
           <div class="note-grid">
             <article>
               <h3>Founder / risk decisions</h3>
-              <p><code>public-pricing-and-hosted-usage-limits</code>, <code>registry-publishing-policy</code>, <code>docker-image-publishing-policy</code>, <code>crawl4ai-lxml-risk-decision</code></p>
+              <p><code>public-pricing-and-hosted-usage-limits</code>, <code>registry-publishing-policy</code>, <code>docker-image-publishing-policy</code>, and <code>crawl4ai-lxml-risk-decision</code> are recorded as completed decision records.</p>
             </article>
             <article>
               <h3>Codex implementation gates</h3>
-              <p><code>github-release-workflow-run</code>, <code>release-artifact-smoke</code>, <code>published-docker-image-smoke</code>, <code>dependency-audit-blocking-cleanly</code></p>
+              <p><code>github-release-workflow-run</code> and <code>release-artifact-smoke</code> are closed by the `v0.1.0-beta.1` release evidence.</p>
             </article>
             <article>
               <h3>External smoke</h3>
-              <p><code>stripe-real-test-mode-smoke</code> requires Stripe test keys, webhook delivery, hosted key delivery, and a verified hosted API call.</p>
+              <p><code>stripe-real-test-mode-smoke</code> is deferred until paid self-serve checkout enters scope.</p>
             </article>
           </div>
         </section>
@@ -187,8 +188,8 @@ scout launch-readiness --require-public</code></pre>
               <p>`--owner`, `--blocker-type`, and `--blocker-id` change the displayed blocker list only. They do not change the underlying public launch verdict.</p>
             </article>
             <article>
-              <h3>Public gate</h3>
-              <p>`--require-public` is expected to fail until the public blockers close. That failure is a protection, not a bug.</p>
+              <h3>Release gate</h3>
+              <p>`--require-public` is expected to pass for the current controlled beta release after the blocker burndown.</p>
             </article>
           </div>
         </section>

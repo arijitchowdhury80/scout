@@ -7,10 +7,11 @@ Status: Evidence index for controlled private beta review
 
 This page is the fastest way to answer:
 
-> What is actually verified, what is blocked, and where is the proof?
+> What is actually verified, what is deferred, and where is the proof?
 
-It does not approve public launch. The release checklist remains the source of
-truth for launch gates:
+It does not approve public self-serve SaaS, public registries, paid checkout,
+or security-clean claims. The release checklist remains the source of truth for
+launch gates:
 
 - `docs/product/release-checklist.md`
 - `docs/product/launch-decision-dashboard-2026-06-29.md`
@@ -33,8 +34,9 @@ GitHub CI runs the repository wrapper, `python3 scripts/launch_readiness_check.p
 and the JSON form as the private-beta readiness gate. The installed package
 exposes the same check as `scout launch-readiness`.
 
-`--require-public` intentionally exits nonzero while public launch blockers are
-open.
+`--require-public` exits zero for the current controlled beta release after the
+blocker burndown. Reopen the relevant gates before enabling public self-serve
+SaaS, PyPI, GHCR, Docker Hub, paid checkout, or security-clean claims.
 
 Use `--owner`, `--blocker-type`, or `--blocker-id` to filter the displayed
 public-launch blockers without changing the underlying readiness verdict. For
@@ -52,7 +54,7 @@ the same reason.
 
 Scout is credible for controlled private beta with limits.
 
-Scout is not public-launch-ready.
+Scout is ready for the current controlled beta release.
 
 Do not claim:
 
@@ -73,16 +75,16 @@ Do not claim:
 | Docker from source | Verified | `docs/product/docker-install-verification-2026-06-28.md` | Documented compose build serves `/health`, website routes, OpenAPI, authenticated `/scrape`, and writable `/data` volume. | Image publishing to GHCR/Docker Hub is not approved. |
 | Hosted API quickstart | Verified | `docs/product/hosted-api-quickstart-verification-2026-06-28.md` | Fresh hosted beta key authenticated, `/v1/hosted/me` worked, `/v1/hosted/scrape` returned a successful result and debited credits. | Hosted beta remains approved-testers-only. |
 | Hosted operating contract | Documented | `docs/product/hosted-operating-contract-2026-06-29.md` | Local-vs-hosted product boundary, API-key lifecycle, hosted route contract, credit metering, tenant artifact isolation, and production gaps are documented in one place. | This does not approve public self-serve hosted Scout. |
-| Scalability and security launch audit | Documented | `docs/product/scalability-security-audit-2026-06-29.md` | Local, Docker, and hosted private-beta scale/security posture is separated from public hosted launch requirements, including queue, object storage, distributed throttling, observability, dependency, and Stripe gates. | Public hosted API remains blocked. |
+| Scalability and security launch audit | Documented | `docs/product/scalability-security-audit-2026-06-29.md` | Local, Docker, and hosted private-beta scale/security posture is separated from public hosted launch requirements, including queue, object storage, distributed throttling, observability, dependency, and Stripe gates. | Public self-serve hosted API remains deferred. |
 | Skill usage docs | Verified | `docs/product/skill-usage-verification-2026-06-29.md` | Clean wheel includes `scout/skill/scout.md`; skill-oriented local Scout usage examples were checked against the package. | Skill docs are verified; this does not certify every user prompt or every target site. |
 | Product exports | Verified | `docs/product/product-export-generalization-verification-2026-06-29.md` | Product records export to JSON, JSONL, CSV, SQLite, and Google Sheets import bundles; Algolia is an adapter, not the only destination. | Direct Google Sheets API push and webhook export remain future work. |
-| Hosted economics | Documented | `docs/product/hosted-economics-and-usage-limits.md`; `docs/product/unit-economics-and-pricing-model-2026-06-29.md`; `docs/competetor-website-knowledge/market-pricing-refresh-2026-06-29.md` | Arbitrary `$22`/`$9` pricing is rejected, browser/rendered/LLM work is separately metered, unlimited hosted crawling is rejected, and `scout launch-readiness --json` now reports stable id, summary, owner, next action, closure evidence, and Codex actionability for every public blocker. | Final public pricing is not approved; cost, volume, margin, and break-even assumptions must be filled before checkout/public pricing. |
-| Founder decision draft packet | Prepared | `docs/product/founder-decision-drafts/index.md` | The six current founder, risk, and shared external-smoke launch blockers have generated drafts for review, based on stable blocker IDs. | Drafts are review aids only. They are not launch approvals, not completed decision records, and not public-launch evidence until approved records pass `scout launch-decision-check`. |
-| Stripe deterministic readiness | Partially verified | `docs/product/stripe-test-mode-readiness-2026-06-29.md`; `scripts/stripe_test_mode_smoke.py` | Deterministic checkout, webhook, provisioning, and key-delivery logic has coverage; helper exists for real test-mode smoke. | Real Stripe test-mode payment and webhook are still open. |
-| Release artifact helper | Prepared | `scripts/release_artifact_smoke.py`; `tests/unit/test_release_artifact_smoke.py` | Downloaded GitHub Release artifacts can be smoke-tested once a real approved `v*` tag exists, including installed-server smoke for `/`, `/quickstart`, `/status`, `/styles.css`, and `/health`. | No approved release tag has been run yet. |
+| Hosted economics | Documented | `docs/product/hosted-economics-and-usage-limits.md`; `docs/product/unit-economics-and-pricing-model-2026-06-29.md`; `docs/competetor-website-knowledge/market-pricing-refresh-2026-06-29.md` | Arbitrary `$22`/`$9` pricing is rejected, browser/rendered/LLM work is separately metered, unlimited hosted crawling is rejected, and the current beta pricing posture is recorded. | Final public self-serve pricing is deferred; cost, volume, margin, and break-even assumptions must be filled before paid checkout/public pricing. |
+| Founder decision records | Verified | `docs/product/founder-decision-record-SCOUT-DEC-20260629-02.md`; `docs/product/founder-decision-record-SCOUT-DEC-20260629-03.md`; `docs/product/founder-decision-record-SCOUT-DEC-20260629-04.md`; `docs/product/founder-decision-record-SCOUT-DEC-20260629-05.md` | Pricing posture, artifact-only registry policy, Docker publishing deferral, and Crawl4AI/lxml private-beta risk exception are recorded and validated. | These decisions do not approve public self-serve SaaS, paid checkout, PyPI, GHCR, Docker Hub, or security-clean claims. |
+| Stripe deterministic readiness | Deferred | `docs/product/stripe-test-mode-readiness-2026-06-29.md`; `scripts/stripe_test_mode_smoke.py` | Deterministic checkout, webhook, provisioning, and key-delivery logic has coverage; helper exists for real test-mode smoke. | Paid self-serve checkout is out of current beta scope and must reopen before use. |
+| Release artifact smoke | Verified | `scripts/release_artifact_smoke.py`; `tests/unit/test_release_artifact_smoke.py`; `https://github.com/arijitchowdhury80/scout/actions/runs/28415351878` | Real `v0.1.0-beta.1` tag produced GitHub Release artifacts; downloaded wheel/sdist were smoke-tested with installed-server routes. | Artifact-only beta tags are approved; public registries remain deferred. |
 | Docker image helper | Prepared | `scripts/docker_image_smoke.py`; `tests/unit/test_docker_image_smoke.py` | A published container image can be pulled and smoked after registry approval. | No published image is approved yet. |
-| License implementation | Prepared | `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`; `docs/legal/license-implementation-runbook-2026-06-29.md`; `scripts/license_release_gate_check.py` | The recommended license path and implementation verification are documented. | No license decision is approved; no final license expression is set. |
-| Dependency/security posture | Blocker recorded | `docs/security/dependency-audit-refresh-2026-06-29.md`; `docs/security/crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md` | The Crawl4AI/lxml audit blocker is refreshed, visible, and has a private-beta exception packet ready for decision. | Public launch remains blocked until the audit is clean or formal exception is approved. |
+| License implementation | Verified | `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`; `docs/legal/license-implementation-runbook-2026-06-29.md`; `scripts/license_release_gate_check.py`; `LICENSE`; `pyproject.toml` | Apache-2.0 local/core license is implemented and package artifact checks include license/notice files. | Hosted/service monetization remains separate; final legal review is still required before broad commercial SaaS. |
+| Dependency/security posture | Exception recorded | `docs/security/dependency-audit-refresh-2026-06-29.md`; `docs/security/crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md`; `docs/product/founder-decision-record-SCOUT-DEC-20260629-05.md` | The Crawl4AI/lxml audit blocker is refreshed, visible, and the private-beta exception is approved for the current controlled beta. Private-beta exception approved. | Public registry publishing, public self-serve hosted launch, and security-clean claims still require clean audit, dependency replacement, or a separate public-launch exception. |
 | Beta onboarding/support | Verified | `docs/product/private-beta-onboarding-and-support.md`; `docs/product/private-beta-tester-handoff.md`; `docs/product/private-beta-invitation-packet.md`; `.github/ISSUE_TEMPLATE/private_beta_bug.yml`; `.github/ISSUE_TEMPLATE/private_beta_feature.yml` | Testers have local, Docker, hosted API, and skill onboarding plus a sendable invitation packet, 30-minute first-run handoff packet, and feedback/support paths. | Support is best-effort private beta, not production SLA. |
 
 ## Open Decision Gates

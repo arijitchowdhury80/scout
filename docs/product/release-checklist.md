@@ -3,9 +3,11 @@
 Date: 2026-06-28
 Status: Private beta release gate
 
-This checklist decides whether Scout is ready for a public or wider private
-beta release. Public launch is blocked until every required gate is checked or a
-documented exception exists.
+This checklist decides whether Scout is ready for the current controlled beta
+release. The current beta release is ready once every required gate is checked
+or a scoped exception is recorded. Public self-serve SaaS, PyPI, GHCR,
+Docker Hub, paid checkout, and security-clean claims are future gates that must
+reopen before those surfaces are enabled.
 
 Current decision dashboard:
 `docs/product/launch-decision-dashboard-2026-06-29.md`.
@@ -21,9 +23,9 @@ Executable launch readiness check:
 GitHub CI runs the repository wrapper default and JSON forms as the
 private-beta readiness gate.
 
-Public blockers in the executable readiness report include a `blocker_type`
-field and a `blocker_summary` count so the burndown separates decision work
-from implementation work:
+Public/beta blockers in the executable readiness report include a
+`blocker_type` field and a `blocker_summary` count so the burndown separates
+decision work from implementation work:
 
 | Blocker type | Meaning |
 |---|---|
@@ -105,9 +107,17 @@ No public registry publish should happen until these decisions are closed.
 - [x] Installed `import scout` smoke.
 - [x] Installed `scout --help` smoke.
 - [x] GitHub release artifact workflow added.
-- [ ] GitHub release artifact workflow run against a real `v*` tag.
-- [ ] Release artifact downloaded from GitHub Release and smoke-tested locally.
+- [x] GitHub release artifact workflow run against a real `v*` tag.
+      Evidence:
+      `https://github.com/arijitchowdhury80/scout/actions/runs/28415351878`;
+      tag `v0.1.0-beta.1`.
+- [x] Release artifact downloaded from GitHub Release and smoke-tested locally.
       Helper: `scripts/release_artifact_smoke.py`.
+      Evidence: `gh release download v0.1.0-beta.1 --dir /tmp/scout-release-v0.1.0-beta.1 --pattern 'scout_web-*'`;
+      `python3 scripts/release_artifact_smoke.py --dist-dir /tmp/scout-release-v0.1.0-beta.1 --serve --port 18424`.
+      Result: downloaded wheel/sdist smoke passed; installed wheel imported
+      Scout, ran `scout --help`, served `/health`, `/`, `/styles.css`,
+      `/quickstart`, and `/status`.
 
 ## Product Capability Gates
 

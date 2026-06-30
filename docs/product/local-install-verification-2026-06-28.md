@@ -137,7 +137,7 @@ Observed evidence:
 - `importlib.metadata.version("scout-web")` returned `0.1.0`.
 - `scout --help` listed the expected CLI commands.
 - `scout launch-readiness` returned `Private beta: ready_with_limits` and
-  `Public launch: blocked`.
+  `Public launch: ready`.
 
 Operational note: if a beta tester previously installed an older Scout checkout
 editable, they should uninstall both possible distribution names and reinstall

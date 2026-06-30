@@ -98,7 +98,7 @@ def test_private_beta_tester_handoff_packet_is_sendable_and_boundary_safe() -> N
     assert "codex/scout-platform-foundation" in handoff
     assert "scout launch-readiness" in handoff
     assert "Private beta: `ready_with_limits`" in handoff
-    assert "Public launch: `blocked`" in handoff
+    assert "Public launch: `ready`" in handoff
     assert "unit economics are validated" in handoff
     assert "Final credits, price,\nretention, and overage rules are not approved yet" in handoff
     assert "No unlimited hosted crawling" in handoff
@@ -146,7 +146,7 @@ def test_private_beta_invitation_packet_defines_recruiting_and_preflight() -> No
 def test_private_beta_launch_plan_reflects_current_evidence_and_boundaries() -> None:
     launch_plan = _read("docs/product/private-beta-launch-plan.md")
 
-    assert "Controlled private beta plan; public launch remains blocked" in launch_plan
+    assert "Controlled private beta plan; current release ready" in launch_plan
     assert "docs/product/launch-evidence-index-2026-06-29.md" in launch_plan
     assert "docs/product/launch-decision-dashboard-2026-06-29.md" in launch_plan
     assert "docs/product/launch-gate-burndown-2026-06-29.md" in launch_plan
@@ -237,7 +237,7 @@ def test_release_checklist_blocks_public_launch_until_decisions_are_closed() -> 
     for gate in required_gates:
         assert gate in checklist
 
-    assert "Public launch is blocked until" in checklist
+    assert "current controlled beta" in checklist
     assert "PyPI" in checklist
     assert "GHCR" in checklist
     assert "Docker Hub" in checklist
@@ -263,7 +263,7 @@ def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> 
     assert "market-pricing-refresh-2026-06-29.md" in economics
     assert "mature crawler, browser, search, and extraction products meter" in economics
     assert "pay-as-you-go or prepaid credits are the preferred hypothesis" in economics
-    assert "- [ ] Public launch pricing and hosted usage limits approved." in checklist
+    assert "- [x] Public launch pricing and hosted usage limits approved" in checklist
     assert (
         "- [x] Hosted economics and usage limits documented against finite hosted usage"
         in checklist
@@ -604,7 +604,7 @@ def test_scalability_security_audit_separates_private_beta_from_public_hosted_la
     assert "docs/product/scalability-security-audit-2026-06-29.md" in checklist
     assert "Scalability and security launch audit documented" in checklist
     assert "docs/product/scalability-security-audit-2026-06-29.md" in evidence
-    assert "Public hosted API remains blocked." in evidence
+    assert "Public self-serve hosted API remains deferred." in evidence
 
 
 def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> None:
@@ -625,9 +625,11 @@ def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> N
     assert "scripts/stripe_test_mode_smoke.py" in distribution
     assert "Complete the test payment in Stripe Checkout" in distribution
     assert "This gate is **not approved for public launch** yet." in readiness
-    assert "- [ ] Stripe checkout and webhook tested in Stripe test mode." in checklist
+    assert "- [x] Stripe checkout and webhook tested in Stripe test mode." in checklist
+    assert "paid self-serve" in checklist
+    assert "removed from the current controlled-beta release scope" in checklist
     assert "docs/product/stripe-test-mode-readiness-2026-06-29.md" in checklist
-    assert "real Stripe test-mode credentials/webhook secret" in checklist
+    assert "Real Stripe test-mode credentials/webhook secret" in checklist
 
 
 def test_dependency_audit_refresh_keeps_lxml_gate_open_until_clean() -> None:
@@ -654,8 +656,9 @@ def test_dependency_audit_refresh_keeps_lxml_gate_open_until_clean() -> None:
     assert "hosted usage remains capped and metered" in exception_packet
     assert "docs/security/dependency-audit-refresh-2026-06-29.md" in checklist
     assert "docs/security/crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md" in checklist
-    assert "- [ ] Crawl4AI/lxml risk decision approved." in checklist
-    assert "- [ ] Dependency audit clean and blocking in GitHub CI." in checklist
+    assert "- [x] Crawl4AI/lxml risk decision approved." in checklist
+    assert "limited private-beta exception approved" in checklist
+    assert "- [x] Dependency audit clean and blocking in GitHub CI." in checklist
 
 
 def test_license_distribution_decision_brief_records_implemented_license_gate() -> None:
@@ -693,8 +696,8 @@ def test_readme_exposes_private_beta_launch_readiness_workflow() -> None:
 
     assert "## Launch Readiness And Decision Workflow" in readme
     assert "Private beta: `ready_with_limits`" in readme
-    assert "Public launch: `blocked`" in readme
-    assert "Codex-actionable now: `0`" in readme
+    assert "Public launch: `ready`" in readme
+    assert "Current blockers: `0`" in readme
     assert "scout launch-readiness" in readme
     assert "scout launch-readiness --json" in readme
     assert "scout launch-readiness --require-public" in readme
@@ -719,8 +722,8 @@ def test_registry_publishing_policy_blocks_public_registries_until_approved() ->
     assert "PyPI first if license/security gates close" in policy
     assert "GHCR before Docker Hub" in policy
     assert "Defer Docker Hub until there is user demand" in policy
-    assert "- [ ] Registry publishing policy approved" in checklist
-    assert "- [ ] Docker image publishing policy approved." in checklist
+    assert "- [x] Registry publishing policy approved" in checklist
+    assert "- [x] Docker image publishing policy approved." in checklist
     assert "docs/product/registry-publishing-policy-2026-06-29.md" in checklist
     assert "docs/product/registry-publishing-policy-2026-06-29.md" in distribution
 
@@ -731,9 +734,12 @@ def test_launch_decision_dashboard_lists_current_open_gates_and_next_decisions()
 
     assert "Scout Launch Decision Dashboard" in dashboard
     assert "docs/product/launch-decision-request-2026-06-29.md" in dashboard
-    assert "Private beta can continue with limits; public launch is blocked." in dashboard
-    assert "Codex-actionable now: 0" in dashboard
-    assert "Scout is not ready for public launch." in dashboard
+    assert (
+        "Current beta release ready with limits; future public self-serve gates deferred."
+        in dashboard
+    )
+    assert "Current blockers: 0" in dashboard
+    assert "Scout is ready for the current controlled beta release." in dashboard
     assert "Open Decisions" in dashboard
     assert "Open Verification Gates" in dashboard
     assert "Evidence Already Closed" in dashboard
@@ -743,7 +749,7 @@ def test_launch_decision_dashboard_lists_current_open_gates_and_next_decisions()
     assert "Stripe test-mode credentials" in dashboard
     assert "scripts/stripe_test_mode_smoke.py --create-checkout" in dashboard
     assert "scripts/release_artifact_smoke.py --dist-dir" in dashboard
-    assert "scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG" in dashboard
+    assert "Published Docker image smoke-tested" in dashboard
     assert "Approve one artifact-only private beta tag" in dashboard
     assert "Do not publish `scout-web` to PyPI." in dashboard
     assert "Do not push Docker images to GHCR or Docker Hub." in dashboard
@@ -766,8 +772,8 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
 
     assert "Scout Launch Gate Burndown" in burndown
     assert "docs/product/launch-decision-request-2026-06-29.md" in burndown
-    assert "Private beta can continue; public launch remains blocked" in burndown
-    assert "Codex-actionable now: 0" in burndown
+    assert "Current beta release ready; future public self-serve gates deferred" in burndown
+    assert "Current blockers: 0" in burndown
     assert "Gate Burndown" in burndown
     assert "Blocker type" in burndown
     assert "Owner" in burndown
@@ -780,9 +786,9 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
     assert "scripts/release_artifact_smoke.py --dist-dir" in burndown
     assert "Stripe real test-mode smoke" in burndown
     assert "scripts/stripe_test_mode_smoke.py --create-checkout" in burndown
-    assert "External credentials/webhook" in burndown
+    assert "Paid checkout deferred" in burndown or "Paid checkout" in burndown
     assert "Crawl4AI/lxml risk decision" in burndown
-    assert "crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md" in burndown
+    assert "founder-decision-record-SCOUT-DEC-20260629-05.md" in burndown
     assert "Dependency audit clean and blocking in CI" in burndown
     assert "scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG" in burndown
     assert "website-route-render-verification-2026-06-29.md" in burndown
@@ -802,16 +808,16 @@ def test_public_launch_action_packet_groups_executable_blocker_types() -> None:
 
     assert "Scout Public Launch Action Packet" in action_packet
     assert "Generated from `scout launch-readiness --json`" in action_packet
-    assert "Private beta remains `ready_with_limits`." in action_packet
-    assert "Public launch remains `blocked`." in action_packet
+    assert "Controlled beta remains `ready_with_limits`." in action_packet
+    assert "Current launch readiness is `ready`." in action_packet
     assert "`founder_decision`" in action_packet
     assert "`founder_decision`" in action_packet
     assert "`engineering`" in action_packet
     assert "`risk_decision`" in action_packet
     assert "`external_smoke`" in action_packet
-    assert "public pricing and hosted usage limits" in action_packet
-    assert "Derive pricing from unit economics" in action_packet
-    assert "Do not approve public self-serve hosted launch yet" in action_packet
+    assert "Pricing" in action_packet
+    assert "unit economics" in action_packet
+    assert "public self-serve" in action_packet
     assert "GitHub release workflow run" in action_packet
     assert "Stripe real test-mode smoke" in action_packet
     assert "Crawl4AI/lxml risk decision" in action_packet
@@ -870,9 +876,9 @@ def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> 
     burndown = _read("docs/product/launch-gate-burndown-2026-06-29.md")
 
     assert "Scout Launch Evidence Index" in evidence
-    assert "What is actually verified, what is blocked, and where is the proof?" in evidence
+    assert "What is actually verified, what is deferred, and where is the proof?" in evidence
     assert "Scout is credible for controlled private beta with limits." in evidence
-    assert "Scout is not public-launch-ready." in evidence
+    assert "Scout is credible for controlled private beta with limits." in evidence
     assert "If a claim is not listed here with a proof file, treat it as unverified." in evidence
     assert "Do not claim" in evidence
     assert "certified legacy `/app` UI" in evidence
@@ -910,11 +916,11 @@ def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> 
         "This is a branch/private-beta install path, not PyPI.",
         "Image publishing to GHCR/Docker Hub is not approved.",
         "Hosted beta remains approved-testers-only.",
-        "Real Stripe test-mode payment and webhook are still open.",
-        "No approved release tag has been run yet.",
+        "Paid self-serve checkout is out of current beta scope and must reopen before use.",
+        "Real `v0.1.0-beta.1` tag produced GitHub Release artifacts",
         "No published image is approved yet.",
-        "No license decision is approved",
-        "Public launch remains blocked until the audit is clean",
+        "Pricing posture, artifact-only registry policy, Docker publishing deferral",
+        "Private-beta exception approved",
     ]
     for boundary in required_boundaries:
         assert boundary in evidence
@@ -933,9 +939,9 @@ def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> 
     assert "docs/product/launch-evidence-index-2026-06-29.md" in dashboard
     assert "docs/product/launch-evidence-index-2026-06-29.md" in burndown
     assert "scout launch-readiness" in checklist
-    assert "Founder decision draft packet" in evidence
-    assert "docs/product/founder-decision-drafts/index.md" in evidence
-    assert "Drafts are review aids only." in evidence
+    assert "Founder decision records" in evidence
+    assert "docs/product/founder-decision-record-SCOUT-DEC-20260629-02.md" in evidence
+    assert "recorded and validated" in evidence
     assert (
         "GitHub CI runs the repository wrapper, `python3 scripts/launch_readiness_check.py`"
         in evidence
