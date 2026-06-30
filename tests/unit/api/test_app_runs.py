@@ -103,6 +103,7 @@ def test_app_run_auto_mode_does_not_open_user_browser(
                     "mode": "auto",
                     "url": "https://shop.example.com",
                     "output_dir": str(tmp_path / "auto-products"),
+                    "browser_fallback": False,
                 },
             )
             run_id = create_resp.json()["run_id"]

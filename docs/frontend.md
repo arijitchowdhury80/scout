@@ -1,87 +1,37 @@
-# Scout Frontend
+# Scout Frontend Boundary
 
-Scout's standalone HTTP app includes a self-educating frontend at `/app`.
+Scout no longer ships the experimental `/app` UI as a supported product
+surface.
 
-## Product Direction
+## Current Product Surfaces
 
-The frontend is an operator console for Scout's multi-use-case intelligence
-engine. It is not a marketing page and not a thin Swagger replacement.
+- Public launch website: `/`, `/quickstart`, `/guide`, `/examples`,
+  `/pricing`, `/status`, `/beta`, `/legal`, `/terms`, and `/privacy`.
+- Local HTTP API and Swagger docs.
+- Hosted beta API under `/v1/hosted/*`.
+- CLI.
+- Docker-from-source.
+- Claude/Codex skill wrapper.
 
-The first production UI includes:
+## Removed Surface
 
-- How to use me
-- Run Console
-- Product Workbench
-- Algolia Preparation
-- Run Monitor
-- Evidence Browser
-- Records Explorer
-- Settings
+The previous static `/app` operator console was removed because it looked like a
+product app but did not consistently deliver a full end-to-end workflow. Keeping
+it visible created confusion and diluted the stronger product story: Scout is an
+evidence-preserving acquisition utility/service.
 
-## Architecture Home
+## Future UI Rule
 
-The How to use me screen is the first polished frontend slice. It mirrors the
-Generated Image 1 architecture concept and teaches Scout as a flow:
+Any future UI must be designed and certified as a real product surface before it
+is exposed. It should not be added back as a static mock or partial dashboard.
 
-```text
-Front Doors -> RunRequest -> Execution Mode Router -> Provider Modes
--> Normalized Source Evidence -> Vertical Processors -> Typed Records
--> Downstream Consumers
-```
+If Scout later needs a visual workbench, it should be scoped as a separate
+product feature with:
 
-Each stage is clickable and updates a detail panel with what the stage does,
-when to use it, and a concrete command or artifact example. The cross-cutting
-rail covers security, throttling, observability, retry policy, metrics, storage,
-and configuration.
-
-## Working Directory UX
-
-The frontend uses a hybrid working-directory model:
-
-- supported browsers can use a folder picker for local selection,
-- unsupported browsers use a manual server-local path,
-- the resolved output directory is shown before a run starts.
-
-The browser cannot freely browse the server filesystem in every environment, so
-manual path entry remains the reliable fallback.
-
-## Product Workbench
-
-The Product Workbench is designed for ecommerce workflows such as:
-
-```text
-Use Scout to get top skincare products from esteelauder.com and prepare
-Algolia-ready records.
-```
-
-It supports product crawl inputs, record preview, JSON preview, completeness
-signals, blocked-page status, and Algolia preparation hooks.
-
-Real Algolia ingestion is intentionally deferred. Production V1 includes a
-preview/stub endpoint that validates required fields and credential presence
-without writing records to Algolia.
-
-## Secret Handling
-
-Algolia App ID and API key values entered in the UI are session-only request
-inputs. Scout validates whether they are present, but never echoes the API key
-in responses and must not write it to artifacts, logs, `.env.local`, or browser
-storage.
-
-## Design Concept
-
-The generated concept board covers three screens:
-
-1. Scout Command Center
-2. Scout Product Workbench
-3. Scout Evidence Browser
-
-Generated concept images:
-
-- `docs/design/scout-command-center-concept.png`
-- `docs/design/scout-product-workbench-concept.png`
-- `docs/design/scout-evidence-browser-concept.png`
-
-Visual direction: light enterprise operator console, dense but readable panels,
-execution-mode tabs, restrained teal/indigo accents, 8px radius, and strong
-record/evidence inspection affordances.
+- working navigation,
+- live run status,
+- persisted run history,
+- browser/session capture that is truthful about what it can and cannot do,
+- full E2E browser tests,
+- no exposed local API key,
+- and a documented launch gate.

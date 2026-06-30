@@ -94,7 +94,7 @@ SCOUT_PUBLIC_HOSTED_ONLY=true
 
 This keeps the website, `/health`, `/v1/hosted/*`, and Stripe billing routes
 available while blocking local/admin routes such as `/scrape`, `/crawl`,
-`/products`, `/run/*`, `/app`, `/api/config`, `/docs`, `/openapi.json`, and
+`/products`, `/run/*`, `/docs`, `/openapi.json`, and
 `/redoc` even if a caller knows `X-API-Key`. Consuming apps such as PRISM
 should use hosted Bearer keys, not the local `X-API-Key`, when Scout is exposed
 on the public web. See `docs/product/hosted-saas-api-guide.md`.
@@ -373,15 +373,11 @@ curl -s -X POST http://localhost:8421/run/prism \
 If `output_dir` is omitted, the HTTP app derives a timestamped folder under
 `SCOUT_WORKDIR`.
 
-The standalone web UI is available at:
-
-```text
-http://localhost:8421/app
-```
-
-It provides the Run Console, execution mode tabs, Product Workbench, evidence
-inspection, record preview, and Algolia preparation hooks. Algolia ingestion is
-preview-only in Production V1; real indexing is a future extension.
+Scout is shipped as a utility/service, not a dashboard app. The supported
+surfaces are CLI, local HTTP API, hosted beta API, Docker-from-source, and
+Claude/Codex skill usage. The previous experimental `/app` UI has been removed
+from the supported product surface; use the launch website, quickstart, API
+docs, CLI examples, and artifact outputs instead.
 
 Execution modes are stable package API values:
 

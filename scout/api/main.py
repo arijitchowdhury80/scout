@@ -4,12 +4,11 @@ from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import Response
 
 from scout.api.config import settings
 from scout.api.deps import get_crawler
 from scout.api.middleware.auth import AuthMiddleware
-from scout.api.frontend import scout_app_html
 from scout.api import launch_site
 from scout.api.routers import (
     algolia,
@@ -20,7 +19,6 @@ from scout.api.routers import (
     extract,
     harvest,
     health,
-    live_browser,
     products,
     run,
     runs,
@@ -120,25 +118,12 @@ app.include_router(runs.router)
 app.include_router(algolia.router)
 app.include_router(app_browser.router)
 app.include_router(app_runs.router)
-app.include_router(live_browser.router)
 app.include_router(map_router.router)
 app.include_router(screenshot.router)
 app.include_router(workdir.router)
 app.include_router(hosted.router)
 app.include_router(billing.router)
 app.include_router(launch_site.router)
-
-
-@app.get("/api/config", include_in_schema=False)
-async def api_config() -> dict[str, str]:
-    """Return non-secret config the frontend needs (the API key is already known to the browser)."""
-    return {"api_key": settings.scout_api_key}
-
-
-@app.get("/app", response_class=HTMLResponse, include_in_schema=False)
-async def scout_app() -> str:
-    """Return the Scout self-educating frontend app."""
-    return scout_app_html()
 
 
 @app.get("/favicon.ico", include_in_schema=False)

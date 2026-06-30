@@ -94,14 +94,13 @@ deep research agents.
 - Screenshot/DOM/text/link artifacts where browser evidence is captured.
 - Citations/source evidence on generated records where available.
 
-## App And Operations
+## Service Operations
 
-- Local `/app` UI.
-- Run setup, live execution, records, sources, blocked pages, artifacts.
+- CLI, local HTTP API, hosted beta API, Docker-from-source, and skill usage.
+- Run manifests, records, sources, blocked pages, artifacts, and reports.
 - SQLite run persistence.
-- SSE/event streaming.
-- Workdir selection.
-- Run history.
+- Protected browser-capture backend routes for future user-browser workflows.
+- Configurable `SCOUT_WORKDIR` for local and hosted artifact storage.
 - Docker deployment files.
 - API key authentication.
 

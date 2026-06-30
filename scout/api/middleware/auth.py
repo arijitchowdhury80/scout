@@ -49,10 +49,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/THIRD_PARTY_NOTICES.md",
         }
         local_browser_public_paths = {
-            "/api/config",
-            "/app",
-            "/app/",
-            "/app/live-browser",
             "/docs",
             "/docs/oauth2-redirect",
             "/openapi.json",

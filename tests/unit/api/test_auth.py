@@ -20,11 +20,6 @@ def _make_app(api_key: str = "test-key", public_hosted_only: bool = False) -> Fa
         """Health check endpoint — no auth."""
         return {"status": "ok"}
 
-    @test_app.get("/app")
-    async def scout_app() -> dict:
-        """Frontend endpoint — no auth."""
-        return {"app": "ok"}
-
     @test_app.get("/favicon.ico")
     async def favicon() -> dict:
         """Browser favicon probe — no auth."""
@@ -39,11 +34,6 @@ def _make_app(api_key: str = "test-key", public_hosted_only: bool = False) -> Fa
     async def openapi() -> dict:
         """OpenAPI schema endpoint — no auth."""
         return {"openapi": "ok"}
-
-    @test_app.get("/api/config")
-    async def api_config() -> dict:
-        """Frontend config endpoint — no auth."""
-        return {"api_key": "test-key"}
 
     @test_app.post("/scrape")
     async def scrape() -> dict:
@@ -71,20 +61,16 @@ def test_health_requires_no_auth() -> None:
     assert resp.json()["status"] == "ok"
 
 
-def test_frontend_routes_require_no_auth() -> None:
-    """Browser-facing frontend routes must not show Unauthorized pages."""
+def test_public_docs_routes_require_no_auth() -> None:
+    """Browser-facing public docs routes must not show Unauthorized pages."""
     client = TestClient(_make_app())
-    app_resp = client.get("/app")
     favicon_resp = client.get("/favicon.ico")
     docs_resp = client.get("/docs")
     openapi_resp = client.get("/openapi.json")
-    config_resp = client.get("/api/config")
 
-    assert app_resp.status_code == 200
     assert favicon_resp.status_code == 200
     assert docs_resp.status_code == 200
     assert openapi_resp.status_code == 200
-    assert config_resp.status_code == 200
 
 
 def test_scrape_without_key_returns_403() -> None:
@@ -141,20 +127,16 @@ def test_public_hosted_only_blocks_local_routes_even_with_static_key() -> None:
     assert resp.json()["detail"] == "Local Scout API is disabled in hosted-only mode."
 
 
-def test_public_hosted_only_blocks_docs_and_frontend_key_config() -> None:
-    """Hosted-only mode must not expose public docs or browser key config."""
+def test_public_hosted_only_blocks_docs() -> None:
+    """Hosted-only mode must not expose local developer docs."""
     client = TestClient(_make_app(api_key="test-key", public_hosted_only=True))
 
     docs_resp = client.get("/docs")
     openapi_resp = client.get("/openapi.json")
-    app_resp = client.get("/app")
-    config_resp = client.get("/api/config")
     health_resp = client.get("/health")
 
     assert docs_resp.status_code == 403
     assert openapi_resp.status_code == 403
-    assert app_resp.status_code == 403
-    assert config_resp.status_code == 403
     assert health_resp.status_code == 200
 
 

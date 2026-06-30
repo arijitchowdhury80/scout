@@ -35,11 +35,12 @@ def test_skill_playbook_matches_current_launch_surface_and_auth_boundary() -> No
         "/third-party-notices",
     ]:
         assert path in skill
-    for path in ["/scrape", "/crawl", "/products", "/run/{use_case}", "/app/runs"]:
+    for path in ["/scrape", "/crawl", "/products", "/run/{use_case}", "/runs/{run_id}"]:
         assert path in skill
-    assert "The app UI is not a launch-certified product surface" in skill
-    assert "Prefer CLI, HTTP, Docker," in skill
-    assert "hosted API examples" in skill
+    assert "previous experimental local" in skill
+    assert "removed from the supported product surface" in skill
+    assert "hosted API, and artifact examples" in skill
+    assert "hosted API" in skill
     assert "All HTTP endpoints except `/` and `/health` require" not in skill
 
 

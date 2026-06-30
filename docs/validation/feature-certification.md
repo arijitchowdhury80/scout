@@ -5,9 +5,9 @@ Feature certification requires expected-vs-actual evidence for every public
 surface: Skill contract, CLI, HTTP API, browser/CDP capture capability,
 artifacts, and intelligence modules.
 
-Scout is a utility/service, not a dashboard product. The `/app` route may exist
-as a local landing/status page, but a full app UI is no longer part of the
-feature certification gate.
+Scout is a utility/service, not a dashboard product. The previous `/app` UI is
+not a supported product surface and is not part of the feature certification
+gate.
 
 ## Certification Command
 
@@ -61,8 +61,7 @@ The matrix covers:
 - Zero records pass only with complete blocked/fallback evidence.
 - Blocked evidence must include URL, provider attempts when available, reason,
   source evidence, and artifact path.
-- The local `/app` page is not a core feature. If present, it should be treated
-  as a minimal service/status page, not as a product UI claim.
+- The local `/app` UI is not a core feature or a launch surface.
 - Browser/CDP validation must capture real screenshot/DOM/text evidence or
   preserve complete blocked evidence; a placeholder panel is not enough.
 - Docs cannot claim stale test counts or unsupported features.

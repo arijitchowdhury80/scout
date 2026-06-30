@@ -5,9 +5,6 @@ auth is enforced in-handler (Starlette middleware doesn't cover websockets).
 
 import asyncio
 
-from fastapi.testclient import TestClient
-
-from scout.api.main import app
 from scout.api.routers.live_browser import handle_client_message
 
 
@@ -59,11 +56,3 @@ def test_unknown_kind_returns_error() -> None:
     s = FakeSession()
     resp = _run(handle_client_message(s, {"kind": "frobnicate"}))
     assert resp["kind"] == "error"
-
-
-def test_ws_rejects_missing_or_wrong_key() -> None:
-    client = TestClient(app)
-    with client.websocket_connect("/app/live?key=wrong&url=about:blank") as ws:
-        data = ws.receive_json()
-    assert data["kind"] == "error"
-    assert "unauthor" in data["message"].lower()

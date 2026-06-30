@@ -15,28 +15,22 @@ _WEBSITE_DIR = _WEBSITE_INDEX.parent
 _REPO_ROOT = _WEBSITE_DIR.parent
 
 
-def test_launch_website_exposes_hosted_beta_checkout_form_without_secrets() -> None:
+def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
 
-    assert 'id="hostedBetaCheckout"' in html
-    assert 'id="hostedBetaEmail"' in html
-    assert 'type="email"' in html
-    assert "Create hosted beta checkout" in html
-    assert "/v1/billing/stripe/checkout-session" in html
-    assert "/v1/billing/stripe/status" in html
-    assert "Hosted beta payment is not configured yet" in html
-    assert "Hosted beta payment is configured" in html
-    assert "Run ledger" in html
-    assert "Beta operating model" in html
-    assert "Local free" in html
-    assert "Hosted metered credits" in html
-    assert "Artifacts owned by you" in html
-    assert "Hosted crawlers return content. Scout returns an evidence trail." in html
-    assert "Product data should not be trapped in one destination." in html
-    assert "JSONL / CSV / SQLite / Google Sheets / Algolia" in html
-    assert "checkout_url" in html
-    assert "window.location.assign" in html
-    assert "Hosted beta is not configured yet" in html
+    assert "What you get back" in html
+    assert "Records plus proof." in html
+    assert "The crawler is only the first step." in html
+    assert "Citation-grade evidence" in html
+    assert "Typed records" in html
+    assert "Algolia-ready exports" in html
+    assert "Demo and search builds" in html
+    assert "Request hosted access" in html
+    assert 'href="/beta"' in html
+    assert 'id="hostedBetaCheckout"' not in html
+    assert "/v1/billing/stripe/checkout-session" not in html
+    assert "checkout_url" not in html
+    assert "window.location.assign" not in html
     assert "Scout beta demo" in html
     assert "URL to evidence to records in under a minute." in html
     assert "/assets/scout-product-demo.gif" in html
@@ -47,7 +41,7 @@ def test_launch_website_exposes_hosted_beta_checkout_form_without_secrets() -> N
 
 
 def test_launch_website_handles_stripe_checkout_return_states_without_secrets() -> None:
-    for page_name in ("index.html", "beta.html"):
+    for page_name in ("beta.html",):
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
 
         assert "checkout=success" in html
@@ -63,15 +57,15 @@ def test_launch_website_states_current_launch_readiness_boundaries() -> None:
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
-    assert "Launch status" in normalized_html
-    assert "Public launch is blocked" in normalized_html
-    assert "Crawl4AI currently resolves lxml 5.4.0" in normalized_html
-    assert "Private beta is limited" in normalized_html
-    assert "Hosted metered credits" in normalized_html
-    assert "Pricing is not approved yet" in normalized_html
-    assert "No clean security claim" in normalized_html
-    assert "Local install remains the primary path" in normalized_html
-    assert "dependency audit is clean" in normalized_html
+    assert "The crawler is only the first step." in normalized_html
+    assert "Acquisition ladder" in normalized_html
+    assert "Citation-grade evidence" in normalized_html
+    assert "Typed records" in normalized_html
+    assert "Portable artifacts" in normalized_html
+    assert "Hosted beta" in normalized_html
+    assert "Local beta" in normalized_html
+    assert "Pay-as-you-go candidate" in normalized_html
+    assert "Launch status" not in normalized_html
     assert "Production-ready multi-tenant SaaS" not in html
     assert "Unlimited hosted scraping" not in html
 
@@ -84,13 +78,21 @@ def test_api_root_serves_launch_website_from_same_origin() -> None:
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "Turn messy web pages into citable, downstream-ready records." in response.text
-    assert "Run ledger" in response.text
-    assert "Hosted crawlers return content. Scout returns an evidence trail." in response.text
-    assert "Public launch is blocked" in response.text
-    assert "Private beta is limited" in response.text
-    assert 'id="hostedBetaCheckout"' in response.text
-    assert "/v1/billing/stripe/checkout-session" in response.text
+    assert "Records plus proof." in response.text
+    assert "The crawler is only the first step." in response.text
+    assert "Demo and search builds" in response.text
+    assert 'id="hostedBetaCheckout"' not in response.text
+    assert "/v1/billing/stripe/checkout-session" not in response.text
     assert "Scout app" not in response.text
+
+
+def test_removed_app_ui_routes_are_not_public_product_surfaces() -> None:
+    client = TestClient(app)
+
+    for path in ("/app", "/api/config", "/app/live-browser"):
+        response = client.get(path)
+        assert response.status_code == 403
+        assert "text/html" not in response.headers.get("content-type", "")
 
 
 def test_api_serves_launch_website_static_assets_without_auth() -> None:
@@ -127,9 +129,7 @@ def test_homepage_has_section_aware_nav_and_scrollspy() -> None:
     for section_id in (
         "top",
         "demo",
-        "ledger",
-        "modes",
-        "evidence",
+        "features",
         "use-cases",
         "pricing",
         "beta",
@@ -199,7 +199,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "blocked_pages.json",
             "extraction_report.md",
             "No guaranteed hard-site bypass",
-            "No certified legacy /app UI claim",
+            "No app UI claim",
         ],
         "guide.html": [
             "Scout Developer Guide",
@@ -219,7 +219,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "extraction_report.md",
             "Hosted API examples live in this guide; local Swagger docs remain available only when running Scout locally",
             "No unlimited hosted crawling",
-            "No certified legacy /app UI claim",
+            "No app UI surface",
         ],
         "status.html": [
             "Scout Launch Status",

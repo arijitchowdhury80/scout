@@ -746,9 +746,7 @@ Push validated records to an Algolia index. Supports batching.
 | Endpoint | Auth | Description |
 |----------|------|-------------|
 | `GET /health` | No | Service liveness — returns `{"status": "ok", "scout_version": "...", "crawl4ai_version": "..."}` |
-| `GET /api/config` | Yes | Returns non-secret config (API key for frontend) |
 | `GET /` | No | Landing page |
-| `GET /app` | No | Scout frontend application |
 
 ---
 
@@ -867,7 +865,6 @@ scout/
 │   ├── main.py             # App factory, lifespan, middleware
 │   ├── config.py           # Settings (env vars)
 │   ├── deps.py             # DI helpers (get_crawler, get_run_db)
-│   ├── frontend.py         # Self-contained frontend HTML
 │   ├── db.py               # RunDB — async SQLite persistence
 │   └── routers/            # One file per endpoint group
 │       ├── scrape.py       # POST /scrape
@@ -882,9 +879,9 @@ scout/
 │       ├── runs.py         # GET /runs/{run_id}/*
 │       ├── algolia.py      # POST /algolia/preview, /algolia/push
 │       ├── health.py       # GET /health
-│       ├── app_runs.py     # App-first run sessions + SSE
+│       ├── app_runs.py     # Service run sessions + SSE
 │       ├── app_browser.py  # User browser CDP bridge
-│       └── live_browser.py # WebSocket embedded browser
+│       └── live_browser.py # Browser message handlers
 ├── core/
 │   ├── types.py            # All Pydantic contracts
 │   ├── crawler.py          # ScoutCrawler wrapper around Crawl4AI

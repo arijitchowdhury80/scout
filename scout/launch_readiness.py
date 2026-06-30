@@ -460,7 +460,7 @@ def build_report(root: Path) -> dict[str, Any]:
                 "branch-qualified local install",
                 "Docker built from source",
                 "hosted API finite credits",
-                "no certified legacy /app UI claim",
+                "no app UI product surface",
                 "no hard-site bypass guarantee",
             ],
         },

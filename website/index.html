@@ -40,9 +40,7 @@
           <nav class="site-nav" aria-label="Homepage sections">
             <a href="#top" data-section-link="top" aria-current="true">Overview</a>
             <a href="#demo" data-section-link="demo">Demo</a>
-            <a href="#ledger" data-section-link="ledger">Ledger</a>
-            <a href="#modes" data-section-link="modes">Modes</a>
-            <a href="#evidence" data-section-link="evidence">Evidence</a>
+            <a href="#features" data-section-link="features">Features</a>
             <a href="#use-cases" data-section-link="use-cases">Use cases</a>
             <a href="#pricing" data-section-link="pricing">Pricing</a>
             <a href="#beta" data-section-link="beta">Beta</a>
@@ -80,33 +78,22 @@
                 <a class="wi-btn wi-btn--ghost" href="/beta">Join hosted beta</a>
               </div>
             </div>
-            <aside class="evidence-ledger" aria-label="Scout evidence ledger">
-              <div class="ledger-header">
-                <span class="wi-label wi-label--accent">Run ledger</span>
-                <span class="wi-readout">auditable by default</span>
+            <aside class="hero-proof" aria-label="Scout proof summary">
+              <p class="wi-label wi-label--accent">What you get back</p>
+              <h2>Records plus proof.</h2>
+              <div class="hero-proof__grid">
+                <span>records.jsonl</span>
+                <span>source_pages.json</span>
+                <span>blocked_pages.json</span>
+                <span>screenshots</span>
+                <span>citations</span>
+                <span>exports</span>
               </div>
-              <ol class="ledger-steps">
-                <li>
-                  <strong>Target</strong>
-                  <span>https://brand.com/category</span>
-                </li>
-                <li>
-                  <strong>Acquire</strong>
-                  <span>crawl4ai -> scout browser -> saved evidence</span>
-                </li>
-                <li>
-                  <strong>Preserve</strong>
-                  <span>source_pages + blocked_pages + screenshots</span>
-                </li>
-                <li>
-                  <strong>Extract</strong>
-                  <span>product.v1 / company.v1 / investor_asset.v1</span>
-                </li>
-                <li>
-                  <strong>Export</strong>
-                  <span>JSONL / CSV / SQLite / Google Sheets / Algolia</span>
-                </li>
-              </ol>
+              <p>
+                Scout is built for workflows where the answer is not enough;
+                agents and teams need to inspect where every useful field came
+                from.
+              </p>
             </aside>
           </div>
         </section>
@@ -153,214 +140,45 @@
           </figure>
         </section>
 
-        <section class="operating-model" id="operating" aria-labelledby="operating-model-title">
-          <div class="operating-model__intro">
-            <p class="wi-label wi-label--accent">Beta operating model</p>
-            <h2 id="operating-model-title">Free local utility. Metered hosted convenience.</h2>
-          </div>
-          <div class="operating-model__grid">
-            <article>
-              <span class="wi-readout">01 / LOCAL</span>
-              <h3>Local free</h3>
-              <p>Run Scout on your machine with CLI, HTTP, Docker, or skill usage. You bring compute, browser, storage, and optional keys.</p>
-            </article>
-            <article>
-              <span class="wi-readout">02 / HOSTED</span>
-              <h3>Hosted metered credits</h3>
-              <p>Hosted beta is invite-only and capped while unit economics are validated. It is not unlimited crawling, lifetime API usage, or public self-serve scale.</p>
-            </article>
-            <article>
-              <span class="wi-readout">03 / EVIDENCE</span>
-              <h3>Artifacts owned by you</h3>
-              <p>Every run writes records, source pages, blocked-page evidence, validation, and reports so downstream workflows can inspect the proof.</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section proof-strip" id="ledger" aria-labelledby="ledger-title">
+        <section class="section feature-section" id="features" aria-labelledby="features-title">
           <div class="section-heading">
-            <p class="wi-label wi-label--accent">What Scout produces</p>
-            <h2 id="ledger-title">A run is not done until the evidence is reusable.</h2>
-          </div>
-          <div class="proof-grid">
-            <article>
-              <span class="proof-index">01</span>
-              <h3>Source registry</h3>
-              <p>Every fetched, rendered, saved, blocked, or API-provided source gets a stable identity, URL, provider, status, timestamp, and hash.</p>
-            </article>
-            <article>
-              <span class="proof-index">02</span>
-              <h3>Cited records</h3>
-              <p>Records carry citations back to source evidence. Missing citations become validation warnings instead of hidden risk.</p>
-            </article>
-            <article>
-              <span class="proof-index">03</span>
-              <h3>Portable artifacts</h3>
-              <p>Outputs are files you can inspect, version, export, hand to agents, load into search, or replay without re-crawling.</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section two-col" id="why">
-          <div>
-            <p class="wi-label wi-label--accent">Why not just another crawler?</p>
-            <h2>Hosted crawlers return content. Scout returns an evidence trail.</h2>
-          </div>
-          <div class="body-copy">
+            <p class="wi-label wi-label--accent">Features</p>
+            <h2 id="features-title">The crawler is only the first step.</h2>
             <p>
-              Firecrawl-style APIs are excellent when you need hosted markdown
-              from a URL. Scout is for the next step: turning acquisition into
-              records that can be audited, exported, and reused.
-            </p>
-            <p>
-              Use Scout when the question is not only "can I fetch this page?"
-              but "can I prove where this field came from, explain what was
-              blocked, and ship the result into a downstream workflow?"
+              Scout wraps acquisition with the pieces downstream AI, search,
+              research, and demo workflows actually need.
             </p>
           </div>
-        </section>
-
-        <section class="section ladder" id="modes" aria-labelledby="ladder-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Acquisition ladder</p>
-            <h2 id="ladder-title">Choose the least expensive mode that works.</h2>
-          </div>
-          <div class="ladder-grid">
+          <div class="feature-grid">
             <article>
               <span>01</span>
-              <h3>Direct / Crawl4AI</h3>
-              <p>Default local acquisition for normal pages, sitemaps, crawls, and screenshots.</p>
+              <h3>Acquisition ladder</h3>
+              <p>Crawl4AI, direct fetch, scout-browser, user-browser capture, saved evidence, and API adapters under one contract.</p>
             </article>
             <article>
               <span>02</span>
-              <h3>Scout browser</h3>
-              <p>Launch a controlled browser, capture screenshots, DOM, links, and source evidence.</p>
+              <h3>Citation-grade evidence</h3>
+              <p>Source registry, hashes, provider status, snippets, blocked pages, screenshots, and field-level citations.</p>
             </article>
             <article>
               <span>03</span>
-              <h3>User browser</h3>
-              <p>When your browser can see the page, capture authorized session evidence locally.</p>
+              <h3>Typed records</h3>
+              <p>Product, company, investor, career, job, news, docs, research, social, location, and website-quality records.</p>
             </article>
             <article>
               <span>04</span>
-              <h3>Saved evidence</h3>
-              <p>Replay saved HTML, DOM, markdown, and artifacts without refetching the website.</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section evidence-section" id="evidence">
-          <div class="artifact-card">
-            <p class="wi-label wi-label--accent">Artifact contract</p>
-            <h2>Every run leaves a trail.</h2>
-            <pre><code>run/
-  manifest.json
-  records.json
-  records.jsonl
-  source_pages.json
-  blocked_pages.json
-  validation.json
-  extraction_report.md
-  raw/
-  screenshots/</code></pre>
-          </div>
-          <div class="record-card">
-            <p class="wi-label wi-label--accent">Typed outputs</p>
-            <h2>Records, not blobs.</h2>
-            <div class="record-tags" aria-label="Scout record types">
-              <span>product.v1</span>
-              <span>company.v1</span>
-              <span>investor_asset.v1</span>
-              <span>career_site.v1</span>
-              <span>job_posting.v1</span>
-              <span>news_signal.v1</span>
-              <span>research_record.v1</span>
-              <span>website_quality.v1</span>
-            </div>
-          </div>
-        </section>
-
-        <section class="section export-section" id="exports" aria-labelledby="export-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Exports beyond Algolia</p>
-            <h2 id="export-title">Product data should not be trapped in one destination.</h2>
-          </div>
-          <div class="export-grid">
-            <article>
-              <h3>Search-ready</h3>
-              <p>Prepare object IDs, names, prices, categories, URLs, images, variants, citations, and completeness warnings for search indexes.</p>
+              <h3>Algolia-ready exports</h3>
+              <p>Prepare object IDs, names, prices, URLs, images, categories, variants, warnings, and export files.</p>
             </article>
             <article>
-              <h3>Spreadsheet-ready</h3>
-              <p>Export product and intelligence records to CSV or Google Sheets workflows for review, enrichment, and lightweight operations.</p>
+              <span>05</span>
+              <h3>Local and hosted</h3>
+              <p>Run locally through CLI/HTTP/Docker/skill, or use hosted beta keys when you want managed convenience.</p>
             </article>
             <article>
-              <h3>Database-ready</h3>
-              <p>Keep local SQLite/JSONL datasets for repeatable research, diffing, replay, and agent consumption.</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section local-hosted" id="distribution" aria-labelledby="local-hosted-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Distribution model</p>
-            <h2 id="local-hosted-title">Local first. Hosted optional.</h2>
-          </div>
-          <div class="compare-grid">
-            <article>
-              <h3>Local Scout</h3>
-              <p>Free for beta users. Run on your machine, choose a workdir, keep artifacts locally, and bring your own optional keys.</p>
-              <ul>
-                <li>CLI, HTTP API, Docker, and skill usage</li>
-                <li>No hosted dependency for normal runs</li>
-                <li>Best for private workflows and browser capture</li>
-              </ul>
-            </article>
-            <article>
-              <h3>Hosted Scout</h3>
-              <p>Convenience API for teams that want managed workers and API keys. Hosted usage must be metered.</p>
-              <ul>
-                <li>API key generation and usage credits</li>
-                <li>Rate limits, retention limits, and tenant isolation</li>
-                <li>Beta pass before full subscription plans</li>
-              </ul>
-            </article>
-          </div>
-        </section>
-
-        <section class="section launch-status" id="launch-status" aria-labelledby="launch-status-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Launch status</p>
-            <h2 id="launch-status-title">Private beta can move. Public launch still has a security gate.</h2>
-          </div>
-          <div class="status-grid">
-            <article>
-              <span class="status-tag status-tag--blocker">Blocked</span>
-              <h3>Public launch is blocked</h3>
-              <p>
-                Crawl4AI currently resolves lxml 5.4.0, and the dependency audit
-                reports a known vulnerability fixed in lxml 6.1.0. Scout will not
-                claim public production readiness until the dependency audit is
-                clean, or a formal exception is approved.
-              </p>
-            </article>
-            <article>
-              <span class="status-tag status-tag--limited">Limited</span>
-              <h3>Private beta is limited</h3>
-              <p>
-                Hosted beta access is capped, approved-tester only, and metered.
-                Pricing is not approved yet; hosted access is limited credits,
-                not unlimited hosted scraping or lifetime API usage.
-              </p>
-            </article>
-            <article>
-              <span class="status-tag status-tag--primary">Primary path</span>
-              <h3>Local install remains the primary path</h3>
-              <p>
-                Scout is safest to test locally: your machine, your workdir, your
-                artifacts, your optional keys. No clean security claim is made for
-                hosted production until the remaining launch gates close.
-              </p>
+              <span>06</span>
+              <h3>Portable artifacts</h3>
+              <p>JSON, JSONL, CSV, SQLite, source pages, blocked evidence, validation, and reports for replay and audit.</p>
             </article>
           </div>
         </section>
@@ -382,6 +200,18 @@
             <article>
               <h3>Agent tools</h3>
               <p>Give local agents a controlled acquisition layer with provenance instead of raw, untraceable fetches.</p>
+            </article>
+            <article>
+              <h3>Demo and search builds</h3>
+              <p>Turn a prospect or customer website into inspectable product records that can feed Algolia demos or evaluation indexes.</p>
+            </article>
+            <article>
+              <h3>Research archives</h3>
+              <p>Save the raw evidence, normalized records, and extraction report so future runs can compare what changed.</p>
+            </article>
+            <article>
+              <h3>Browser-assisted capture</h3>
+              <p>Use captured DOM and screenshots when normal crawlers are blocked, without pretending every site can be bypassed.</p>
             </article>
           </div>
         </section>
@@ -410,80 +240,33 @@
           </div>
         </section>
 
-        <section class="section quickstart" id="quickstart">
-          <div>
-            <p class="wi-label wi-label--accent">Quickstart</p>
-            <h2>Try Scout locally first.</h2>
-            <p>
-              Local Scout is the cleanest beta path because you own the machine,
-              browser, artifacts, and keys. Hosted Scout comes after tenancy,
-              quotas, and payment are production-ready.
-            </p>
-          </div>
-<pre><code>git clone https://github.com/arijitchowdhury80/scout.git
-cd scout
-git checkout codex/scout-platform-foundation
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-playwright install chromium
-scout serve</code></pre>
-        </section>
-
         <section class="section beta" id="beta">
           <div>
             <p class="wi-label wi-label--accent">Private beta</p>
-            <h2>Bring one website you currently research or scrape by hand.</h2>
+            <h2>Start with one website you already research by hand.</h2>
             <p>
               The first beta should test whether Scout makes acquisition more
               inspectable, reusable, and trustworthy. Not whether it can promise
               infinite hosted crawling.
             </p>
             <p class="beta-note">
-              Local Scout stays free. Hosted beta creates a metered convenience
-              API key after Stripe confirms payment.
+              Local Scout is free for beta. Hosted access is invite-only while
+              pricing, billing, credits, retention, and support are finalized.
             </p>
           </div>
-          <div class="beta-panel" aria-label="Hosted beta checkout">
-            <p
-              id="hostedBetaReturnStatus"
-              class="beta-status checkout-return-status"
-              role="status"
-              aria-live="polite"
-              data-success-query="checkout=success"
-              data-cancel-query="checkout=cancelled"
-              hidden
-            >
-              Stripe checkout return status appears here.
-            </p>
-            <form
-              id="hostedBetaCheckout"
-              class="beta-form"
-              data-endpoint="/v1/billing/stripe/checkout-session"
-              data-status-endpoint="/v1/billing/stripe/status"
-            >
-              <label for="hostedBetaEmail">Email for hosted API key delivery</label>
-              <div class="beta-form-row">
-                <input
-                  id="hostedBetaEmail"
-                  name="email"
-                  type="email"
-                  autocomplete="email"
-                  placeholder="you@example.com"
-                  required
-                />
-                <button class="wi-btn" type="submit">Create hosted beta checkout</button>
-              </div>
-              <p id="hostedBetaStatus" class="beta-status" role="status" aria-live="polite">
-                Hosted beta pricing is being validated from unit economics. Limited credits, not unlimited crawling.
-              </p>
-            </form>
+          <div class="beta-panel beta-panel--cards" aria-label="Private beta actions">
+            <article>
+              <h3>Install locally</h3>
+              <p>Best path for first testers: your machine, your browser, your artifacts.</p>
+              <a class="wi-btn" href="/quickstart">Open quickstart</a>
+            </article>
+            <article>
+              <h3>Request hosted access</h3>
+              <p>Use the beta page when you need a managed API key and finite hosted credits.</p>
+              <a class="wi-btn wi-btn--ghost" href="/beta">Open beta page</a>
+            </article>
             <a class="wi-btn" href="https://github.com/arijitchowdhury80/scout">View GitHub <span>↗</span></a>
-            <a
-              class="wi-btn wi-btn--ghost"
-              href="/pricing"
-              >View pricing</a
-            >
+            <a class="wi-btn wi-btn--ghost" href="/pricing">View pricing</a>
           </div>
         </section>
       </main>
@@ -554,89 +337,6 @@ scout serve</code></pre>
         });
       });
 
-      const checkoutForm = document.getElementById("hostedBetaCheckout");
-      const checkoutStatus = document.getElementById("hostedBetaStatus");
-      const checkoutButton = checkoutForm?.querySelector("button[type='submit']");
-      const checkoutReturnStatus = document.getElementById("hostedBetaReturnStatus");
-
-      function handleCheckoutReturnState() {
-        if (!checkoutReturnStatus) return;
-        const checkoutState = new URLSearchParams(window.location.search).get("checkout");
-        if (checkoutState === "success") {
-          checkoutReturnStatus.hidden = false;
-          checkoutReturnStatus.dataset.state = "success";
-          checkoutReturnStatus.textContent =
-            "Stripe payment completed. Scout will email your hosted API key after the signed webhook provisions access.";
-        } else if (checkoutState === "cancelled") {
-          checkoutReturnStatus.hidden = false;
-          checkoutReturnStatus.dataset.state = "error";
-          checkoutReturnStatus.textContent =
-            "Stripe checkout was cancelled. No hosted credits were provisioned; local Scout remains available.";
-        }
-      }
-
-      async function loadCheckoutReadiness() {
-        if (!checkoutForm || !checkoutStatus || !checkoutButton) return;
-        const endpoint = checkoutForm.dataset.statusEndpoint || "/v1/billing/stripe/status";
-        try {
-          const response = await fetch(endpoint);
-          const status = await response.json();
-          if (status.checkout_configured) {
-            checkoutStatus.textContent =
-              status.ready_for_paid_key_delivery
-                ? "Hosted beta payment is configured. Stripe will confirm payment before Scout emails your API key."
-                : "Hosted beta payment is configured, but key delivery is still being finalized.";
-            checkoutStatus.dataset.state = "success";
-            checkoutButton.disabled = false;
-            return;
-          }
-        } catch (_error) {
-          checkoutStatus.textContent = "Hosted beta payment status is temporarily unavailable.";
-          checkoutStatus.dataset.state = "error";
-          checkoutButton.disabled = true;
-          return;
-        }
-        checkoutStatus.textContent =
-          "Hosted beta payment is not configured yet. Install locally today or check back for hosted access.";
-        checkoutStatus.dataset.state = "error";
-        checkoutButton.disabled = true;
-      }
-
-      checkoutForm?.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const submitButton = checkoutButton;
-        if (!submitButton) return;
-        const email = document.getElementById("hostedBetaEmail")?.value.trim() || "";
-        const endpoint = checkoutForm.dataset.endpoint || "/v1/billing/stripe/checkout-session";
-        checkoutStatus.textContent = "Creating Stripe Checkout Session...";
-        checkoutStatus.dataset.state = "loading";
-        submitButton.disabled = true;
-        try {
-          const response = await fetch(endpoint, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ email }),
-          });
-          const payload = await response.json().catch(() => ({}));
-          if (!response.ok) {
-            throw new Error(payload.detail || "Hosted beta is not configured yet.");
-          }
-          if (!payload.checkout_url) {
-            throw new Error("Stripe did not return a checkout URL.");
-          }
-          checkoutStatus.textContent = "Redirecting to Stripe Checkout...";
-          checkoutStatus.dataset.state = "success";
-          window.location.assign(payload.checkout_url);
-        } catch (error) {
-          checkoutStatus.textContent =
-            error instanceof Error ? error.message : "Hosted beta is not configured yet.";
-          checkoutStatus.dataset.state = "error";
-          submitButton.disabled = false;
-        }
-      });
-
-      handleCheckoutReturnState();
-      loadCheckoutReadiness();
     </script>
   </body>
 </html>

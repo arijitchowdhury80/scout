@@ -16,10 +16,6 @@ import contextlib
 from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
-
-from scout.api.config import settings
-from scout.api.live_browser_page import live_browser_page_html
 from scout.core.blocking import detect_block
 from scout.core.live_browser import LiveBrowserSession
 
@@ -46,15 +42,6 @@ async def _watch_for_blocks(session: Any, websocket: WebSocket, interval: float 
             )
             with contextlib.suppress(Exception):
                 await websocket.send_json(payload)
-
-
-@router.get("/app/live-browser", response_class=HTMLResponse, include_in_schema=False)
-async def live_browser_console() -> HTMLResponse:
-    """The embedded-browser console page (canvas streamed from /app/live)."""
-    return HTMLResponse(
-        live_browser_page_html(settings.scout_api_key),
-        headers={"Cache-Control": "no-store, must-revalidate"},
-    )
 
 
 # Embedded browser runs headless and is streamed into the UI (no popup window).
@@ -93,6 +80,8 @@ async def handle_client_message(session: Any, msg: dict[str, Any]) -> dict[str, 
 @router.websocket("/app/live")
 async def live_browser_ws(websocket: WebSocket, key: str = "", url: str = "") -> None:
     """Embedded-browser bridge: frames out, input in, over one WebSocket."""
+    from scout.api.config import settings
+
     await websocket.accept()
 
     if key != settings.scout_api_key:

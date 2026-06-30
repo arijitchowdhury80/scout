@@ -47,7 +47,7 @@ Public launch/docs routes are intentionally unauthenticated: `/`, `/health`,
 `/redoc`, `/openapi.json`, `/styles.css`, and `/third-party-notices`.
 
 Local API routes such as `/scrape`, `/crawl`, `/products`, `/run/{use_case}`,
-`/runs/{run_id}`, `/app/runs`, and `/algolia/preview` require:
+`/runs/{run_id}`, and `/algolia/preview` require:
 
 ```text
 X-API-Key: dev-key
@@ -135,17 +135,11 @@ curl -s -X POST http://localhost:8421/run/company \
   }'
 ```
 
-## Frontend
+## Product Surface Boundary
 
-The legacy local app route exists at:
-
-```text
-http://localhost:8421/app
-```
-
-The app UI is not a launch-certified product surface. Use it only when the user
-explicitly asks for the local visual/status surface. Prefer CLI, HTTP, Docker,
-or hosted API examples for beta launch guidance.
+Scout is a CLI/HTTP/Docker/skill utility. The previous experimental local
+`/app` UI has been removed from the supported product surface. Prefer CLI,
+HTTP, Docker, hosted API, and artifact examples for beta launch guidance.
 
 ## Use Cases
 
