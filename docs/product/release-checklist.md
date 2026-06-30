@@ -52,13 +52,13 @@ The legacy app UI is not a launch surface until it is rebuilt and certified.
 
 ## Blocking Decisions
 
-- [ ] License decision recorded.
+- [x] License decision recorded.
       Decision brief:
       `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`.
-      Recommendation is Apache-2.0 for Scout local/core plus hosted/service
-      monetization, but this is not approved yet.
-- [ ] Final license expression added to `pyproject.toml`.
-- [ ] `LICENSE` file added if Scout is open source or source-available.
+      Decision: Apache-2.0 for Scout local/core plus hosted/service
+      monetization as a separate commercial surface.
+- [x] Final license expression added to `pyproject.toml`.
+- [x] `LICENSE` file added if Scout is open source or source-available.
 - [ ] Public launch pricing and hosted usage limits approved.
 - [x] Hosted economics and usage limits documented against finite hosted usage
       and pay-as-you-go/subscription alternatives.

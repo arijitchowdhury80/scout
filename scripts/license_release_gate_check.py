@@ -46,6 +46,28 @@ def require_contains(path: Path, needle: str) -> None:
         raise LicenseGateError(f"{path} does not contain expected text: {needle}")
 
 
+def require_license_file(path: Path, expected_license: str) -> None:
+    """Require LICENSE to match the approved license expression.
+
+    Canonical Apache license files usually contain the full license title and
+    version rather than the SPDX expression. Accept that canonical text while
+    keeping literal SPDX checks for other license choices.
+    """
+    if not path.exists():
+        raise LicenseGateError(f"Required file is missing: {path}")
+    content = path.read_text(encoding="utf-8", errors="replace")
+    if expected_license == "Apache-2.0":
+        has_spdx = expected_license in content
+        has_canonical_apache_text = (
+            "Apache License" in content and "Version 2.0, January 2004" in content
+        )
+        if has_spdx or has_canonical_apache_text:
+            return
+    elif expected_license in content:
+        return
+    raise LicenseGateError(f"{path} does not contain expected license: {expected_license}")
+
+
 def verify_source_tree(root: Path, expected_license: str) -> None:
     """Verify source-tree license files and user-facing references."""
     pyproject = root / "pyproject.toml"
@@ -56,7 +78,7 @@ def verify_source_tree(root: Path, expected_license: str) -> None:
         raise LicenseGateError(
             f"Expected project license {expected_license!r}, found {actual_license!r}."
         )
-    require_contains(root / "LICENSE", expected_license)
+    require_license_file(root / "LICENSE", expected_license)
     require_contains(root / "README.md", expected_license)
     require_contains(root / "website" / "legal.html", expected_license)
     require_contains(root / "THIRD_PARTY_NOTICES.md", "Crawl4AI")

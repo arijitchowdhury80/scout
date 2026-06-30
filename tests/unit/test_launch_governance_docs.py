@@ -460,9 +460,6 @@ def test_distribution_package_plan_reflects_verified_beta_paths_and_blocks_regis
         assert fact in distribution
 
     open_gates = [
-        "license decision",
-        "final license expression in `pyproject.toml`",
-        "`LICENSE` file",
         "release artifact workflow run against an approved real `v*` tag",
         "downloaded GitHub Release artifact smoke",
         "public registry publishing approval",
@@ -661,14 +658,14 @@ def test_dependency_audit_refresh_keeps_lxml_gate_open_until_clean() -> None:
     assert "- [ ] Dependency audit clean and blocking in GitHub CI." in checklist
 
 
-def test_license_distribution_decision_brief_keeps_release_gates_open() -> None:
+def test_license_distribution_decision_brief_records_implemented_license_gate() -> None:
     brief = _read("docs/legal/scout-license-distribution-decision-brief-2026-06-29.md")
     checklist = _read("docs/product/release-checklist.md")
     legal_checklist = _read("docs/legal/legal-readiness-checklist.md")
     runbook = _read("docs/legal/license-implementation-runbook-2026-06-29.md")
 
     assert "Scout License And Distribution Decision Brief" in brief
-    assert "Decision required before public registry publishing." in brief
+    assert "Apache-2.0 implemented for local/core package" in brief
     assert "Recommended path" in brief
     assert "Apache-2.0 for Scout's local/core package" in brief
     assert "Crawl4AI license" in brief
@@ -676,16 +673,16 @@ def test_license_distribution_decision_brief_keeps_release_gates_open() -> None:
     assert "Using Crawl4AI internally is not blocked by a royalty requirement" in brief
     assert "Do not publish to PyPI" in brief
     assert "Do not publish Docker images to Docker Hub or GHCR" in brief
-    assert "Decision Needed" in brief
+    assert "Decision Recorded" in brief
     assert "license-implementation-runbook-2026-06-29.md" in brief
     assert "scripts/license_release_gate_check.py" in brief
     assert "Scout License Implementation Runbook" in runbook
-    assert "waiting for license decision" in runbook
+    assert "Apache-2.0 implemented" in runbook
     assert "python3 scripts/license_release_gate_check.py" in runbook
-    assert "- [ ] Approve Apache-2.0 for Scout local/core." in brief
-    assert "- [ ] License decision recorded." in checklist
-    assert "- [ ] Final license expression added to `pyproject.toml`." in checklist
-    assert "- [ ] `LICENSE` file added if Scout is open source or source-available." in checklist
+    assert "- [x] Approve Apache-2.0 for Scout local/core." in brief
+    assert "- [x] License decision recorded." in checklist
+    assert "- [x] Final license expression added to `pyproject.toml`." in checklist
+    assert "- [x] `LICENSE` file added if Scout is open source or source-available." in checklist
     assert "scout-license-distribution-decision-brief-2026-06-29.md" in checklist
     assert "scout-license-distribution-decision-brief-2026-06-29.md" in legal_checklist
     assert "license-implementation-runbook-2026-06-29.md" in legal_checklist
@@ -776,7 +773,7 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
     assert "Owner" in burndown
     assert "Codex-Executable Work Remaining" in burndown
     assert "License decision" in burndown
-    assert "Arijit decision" in burndown
+    assert "Closed" in burndown
     assert "Final license expression" in burndown
     assert "scripts/license_release_gate_check.py" in burndown
     assert "GitHub release workflow on real `v*` tag" in burndown
@@ -808,11 +805,11 @@ def test_public_launch_action_packet_groups_executable_blocker_types() -> None:
     assert "Private beta remains `ready_with_limits`." in action_packet
     assert "Public launch remains `blocked`." in action_packet
     assert "`founder_decision`" in action_packet
-    assert "`legal_implementation`" in action_packet
+    assert "`founder_decision`" in action_packet
     assert "`engineering`" in action_packet
     assert "`risk_decision`" in action_packet
     assert "`external_smoke`" in action_packet
-    assert "Approve Apache-2.0 for Scout local/core" in action_packet
+    assert "public pricing and hosted usage limits" in action_packet
     assert "Derive pricing from unit economics" in action_packet
     assert "Do not approve public self-serve hosted launch yet" in action_packet
     assert "GitHub release workflow run" in action_packet
@@ -820,7 +817,7 @@ def test_public_launch_action_packet_groups_executable_blocker_types() -> None:
     assert "Crawl4AI/lxml risk decision" in action_packet
     assert "scout launch-decision-draft" in action_packet
     assert "python3 scripts/founder_decision_record_draft.py" in action_packet
-    assert "--blocker-id license-decision" in action_packet
+    assert "--blocker-id public-pricing-and-hosted-usage-limits" in action_packet
     assert "Generated founder decision draft packet" in action_packet
     assert "docs/product/founder-decision-drafts/index.md" in action_packet
     assert "Draft packet is not approval evidence." in action_packet
@@ -923,9 +920,6 @@ def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> 
         assert boundary in evidence
 
     open_gates = [
-        "Scout license",
-        "Final license expression",
-        "`LICENSE` file",
         "Public pricing and hosted usage limits",
         "Registry publishing policy",
         "Crawl4AI/lxml risk",

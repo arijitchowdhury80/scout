@@ -58,7 +58,7 @@
             <article>
               <span class="status-tag status-tag--blocker">Public</span>
               <h3>Public launch: blocked</h3>
-              <p>Public launch remains blocked by license, legal, dependency audit, release artifact, Docker publishing, and real Stripe smoke gates.</p>
+              <p>Public launch remains blocked by pricing, publishing, dependency audit, release artifact, Docker publishing, and real Stripe smoke gates.</p>
             </article>
             <article>
               <span class="status-tag status-tag--limited">Boundary</span>
@@ -75,11 +75,11 @@
           </div>
           <div class="note-grid">
             <article>
-              <h3>Arijit: 5</h3>
-              <p>Founder and risk decisions: license, pricing, publishing, Docker publishing, and Crawl4AI/lxml risk posture.</p>
+              <h3>Arijit: 4</h3>
+              <p>Founder and risk decisions: pricing, publishing, Docker publishing, and Crawl4AI/lxml risk posture.</p>
             </article>
             <article>
-              <h3>Codex: 8</h3>
+              <h3>Codex: 4</h3>
               <p>Implementation and engineering gates that become actionable after approval or after release artifacts exist.</p>
             </article>
             <article>
@@ -102,7 +102,7 @@
           <div class="note-grid">
             <article>
               <h3>License: Apache-2.0 for Scout local/core</h3>
-              <p>Aligns with Crawl4AI's Apache-2.0 posture and keeps local adoption straightforward.</p>
+              <p>Closed. Aligns with Crawl4AI's Apache-2.0 posture and keeps local adoption straightforward.</p>
             </article>
             <article>
               <h3>Pricing: derive hosted pricing from unit economics</h3>
@@ -130,16 +130,12 @@
           </div>
           <div class="note-grid">
             <article>
-              <h3>founder_decision: 4</h3>
-              <p>License, public pricing, registry publishing, and Docker image publishing decisions.</p>
+              <h3>founder_decision: 3</h3>
+              <p>Public pricing, registry publishing, and Docker image publishing decisions.</p>
             </article>
             <article>
               <h3>engineering: 4</h3>
               <p>Release workflow run, release artifact smoke, published Docker image smoke, and blocking dependency audit.</p>
-            </article>
-            <article>
-              <h3>legal_implementation: 4</h3>
-              <p>Final license metadata and license file implementation after legal/founder approval.</p>
             </article>
             <article>
               <h3>risk_decision: 1</h3>
@@ -156,16 +152,16 @@
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Blocker keys</p>
             <h2 id="blocker-keys-title">Use the same IDs as the readiness report.</h2>
-            <p>There are 14 unique public-launch blocker keys today. Each open blocker row has a stable ID that can be quoted in decisions, docs, and handoffs.</p>
+            <p>There are 9 unique public-launch blocker keys today. Each open blocker row has a stable ID that can be quoted in decisions, docs, and handoffs.</p>
           </div>
           <div class="note-grid">
             <article>
               <h3>Founder / risk decisions</h3>
-              <p><code>license-decision</code>, <code>public-pricing-and-hosted-usage-limits</code>, <code>registry-publishing-policy</code>, <code>docker-image-publishing-policy</code>, <code>crawl4ai-lxml-risk-decision</code></p>
+              <p><code>public-pricing-and-hosted-usage-limits</code>, <code>registry-publishing-policy</code>, <code>docker-image-publishing-policy</code>, <code>crawl4ai-lxml-risk-decision</code></p>
             </article>
             <article>
               <h3>Codex implementation gates</h3>
-              <p><code>final-license-expression</code>, <code>license-file</code>, <code>license-file-missing</code>, <code>pyproject-license-expression</code>, <code>github-release-workflow-run</code>, <code>release-artifact-smoke</code>, <code>published-docker-image-smoke</code>, <code>dependency-audit-blocking-cleanly</code></p>
+              <p><code>github-release-workflow-run</code>, <code>release-artifact-smoke</code>, <code>published-docker-image-smoke</code>, <code>dependency-audit-blocking-cleanly</code></p>
             </article>
             <article>
               <h3>External smoke</h3>
@@ -183,7 +179,7 @@
 scout launch-readiness --json
 scout launch-readiness --owner Arijit
 scout launch-readiness --blocker-type engineering
-scout launch-readiness --blocker-id license-decision
+scout launch-readiness --blocker-id public-pricing-and-hosted-usage-limits
 scout launch-readiness --require-public</code></pre>
           <div class="note-grid">
             <article>
@@ -209,7 +205,7 @@ scout launch-readiness --require-public</code></pre>
   --decision-date YYYYMMDD
 
 scout launch-decision-draft \
-  --blocker-id license-decision \
+  --blocker-id public-pricing-and-hosted-usage-limits \
   --decision-id SCOUT-DEC-YYYYMMDD-NN
 
 scout launch-decision-check --check-existing

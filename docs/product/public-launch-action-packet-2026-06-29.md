@@ -30,7 +30,7 @@ scout launch-readiness --owner Arijit
 scout launch-readiness --owner Codex
 scout launch-readiness --blocker-type founder_decision
 scout launch-readiness --blocker-type engineering
-scout launch-readiness --blocker-id license-decision
+scout launch-readiness --blocker-id public-pricing-and-hosted-usage-limits
 scout launch-readiness --json --owner Arijit
 ```
 
@@ -51,11 +51,11 @@ scout launch-decision-drafts \
   --decision-date YYYYMMDD
 
 scout launch-decision-draft \
-  --blocker-id license-decision \
+  --blocker-id public-pricing-and-hosted-usage-limits \
   --decision-id SCOUT-DEC-YYYYMMDD-NN
 
 python3 scripts/founder_decision_record_draft.py \
-  --blocker-id license-decision \
+  --blocker-id public-pricing-and-hosted-usage-limits \
   --decision-id SCOUT-DEC-YYYYMMDD-NN
 ```
 
@@ -66,7 +66,7 @@ record naming pattern, and validated.
 Generated founder decision draft packet:
 `docs/product/founder-decision-drafts/index.md`.
 
-Draft packet is not approval evidence. It is the review queue for the six
+Draft packet is not approval evidence. It is the review queue for the remaining
 founder, risk, and shared external-smoke decisions that currently block public
 launch. Each draft remains `Status: Deferred` and keeps
 `Public launch allowed by this decision? No` until Arijit reviews and approves a
@@ -89,12 +89,13 @@ Private beta remains `ready_with_limits`.
 
 Public launch remains `blocked`.
 
+The next founder-owned business blocker is public pricing and hosted usage limits.
+
 Current blocker count:
 
 | Blocker type | Count | Meaning |
 |---|---:|---|
-| `founder_decision` | 4 | Arijit must approve the business, pricing, or publishing direction. |
-| `legal_implementation` | 4 | Codex can implement after the license/legal direction is approved. |
+| `founder_decision` | 3 | Arijit must approve the business, pricing, or publishing direction. |
 | `engineering` | 4 | Codex can execute after the prerequisite approval/artifact exists. |
 | `risk_decision` | 1 | Arijit/security must accept, mitigate, or wait for a clean dependency path. |
 | `external_smoke` | 1 | A real external sandbox flow must be tested with credentials/webhooks. |
@@ -105,19 +106,18 @@ These answers are enough to unlock the next private-beta packaging steps without
 approving public launch.
 
 ```text
-1. License: Approve Apache-2.0 for Scout local/core.
-2. Pricing: Reject arbitrary $22/$9 pricing; fill the unit-economics model before approving hosted pricing.
-3. Publishing: Approve artifact-only private-beta v* tag after license files land.
-4. Docker publishing: Defer GHCR and Docker Hub image publishing.
-5. Crawl4AI/lxml: Approve limited private-beta exception only, or require clean audit first.
-6. Public hosted: Do not approve public self-serve hosted launch yet.
+1. Pricing: Reject arbitrary $22/$9 pricing; fill the unit-economics model before approving hosted pricing.
+2. Publishing: Approve artifact-only private-beta v* tag after license files land.
+3. Docker publishing: Defer GHCR and Docker Hub image publishing.
+4. Crawl4AI/lxml: Approve limited private-beta exception only, or require clean audit first.
+5. Public hosted: Do not approve public self-serve hosted launch yet.
 ```
 
 Recommended answers:
 
 | Decision | Recommended answer | Why |
 |---|---|---|
-| License | Approve Apache-2.0 for Scout local/core | Aligns with Crawl4AI Apache-2.0 dependency posture and keeps local trust high. |
+| License | Closed: Apache-2.0 for Scout local/core | Aligns with Crawl4AI Apache-2.0 dependency posture and keeps local trust high. |
 | Hosted beta pricing | Derive pricing from unit economics; likely free local plus pay-as-you-go/prepaid hosted credits | Avoids unlimited hosted crawling economics and avoids arbitrary pricing. |
 | Artifact-only tag | Approve one private-beta `v*` tag after license implementation | Lets testers install from a GitHub Release artifact without PyPI/GHCR. |
 | Docker publishing | Defer GHCR and Docker Hub | Docker-from-source is already verified; public images widen distribution before legal/security gates close. |
@@ -130,19 +130,18 @@ Recommended answers:
 
 | Gate | Current recommendation | Next action |
 |---|---|---|
-| License decision | Apache-2.0 for Scout local/core | Arijit approves or chooses another license path. |
 | Public pricing and hosted usage limits | Keep hosted beta metered; defer public pricing until cost, volume, margin, and break-even assumptions are approved | Arijit approves a unit-economics-derived pricing structure. |
 | Registry publishing policy | Artifact-only private-beta tag first; no PyPI/GHCR/Docker Hub yet | Arijit approves or rejects private-beta release tags. |
 | Docker image publishing policy | Defer public image publishing | Arijit confirms Docker-from-source remains the only beta container path. |
 
-### `legal_implementation`
+### Closed since the prior action packet
 
-| Gate | Dependency | Codex action after approval |
-|---|---|---|
-| Final license expression | License decision | Add final SPDX expression to `pyproject.toml`. |
-| `LICENSE` file | License decision | Add the approved license file. |
-| Pyproject license expression | License decision | Keep package metadata aligned with the approved license. |
-| License file existence | License decision | Verify wheel/sdist contain license and third-party notices. |
+| Gate | Closure evidence |
+|---|---|
+| License decision | Apache-2.0 local/core approved and recorded. |
+| Final license expression | `pyproject.toml` declares `license = "Apache-2.0"`. |
+| `LICENSE` file | Root `LICENSE` contains canonical Apache License 2.0 text. |
+| License file existence | `scripts/license_release_gate_check.py --expected-license Apache-2.0 --dist-dir dist` verifies source and package artifacts. |
 
 ### `engineering`
 
@@ -166,15 +165,6 @@ Recommended answers:
 | Stripe real test-mode smoke | `STRIPE_SECRET_KEY`, `STRIPE_BETA_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`, test recipient/key delivery setup | Run `scripts/stripe_test_mode_smoke.py --create-checkout`, complete test payment, deliver webhook, verify hosted key works. |
 
 ## What Codex Can Do Immediately After Approval
-
-### If license is approved
-
-1. Add `LICENSE`.
-2. Add `license = "Apache-2.0"` or approved equivalent to `pyproject.toml`.
-3. Update README/legal website copy.
-4. Rebuild wheel/sdist.
-5. Run `scripts/license_release_gate_check.py --expected-license Apache-2.0 --dist-dir dist`.
-6. Run package metadata, launch readiness, unit, Pyright, Ruff, and artifact-inspection checks.
 
 ### If artifact-only tag is approved
 

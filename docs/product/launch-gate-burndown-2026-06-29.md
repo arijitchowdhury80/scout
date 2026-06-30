@@ -47,9 +47,10 @@ Stripe test-mode setup before implementation can safely proceed.
 | Docker-from-source path | Closed | None | Codex | Keep source-build Docker docs; do not publish image yet | `docs/product/docker-install-verification-2026-06-28.md` |
 | Hosted API quickstart | Closed | None | Codex | Keep hosted beta limited to approved testers | `docs/product/hosted-api-quickstart-verification-2026-06-28.md` |
 | Product export beyond Algolia | Closed | None | Codex | Treat Algolia as one adapter, not the product's only output | `docs/product/product-export-generalization-verification-2026-06-29.md` |
-| License decision | Open | Arijit decision | Arijit | Approve Apache-2.0, MIT, source-available, beta license, or legal review | `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md` |
-| Final license expression | Open | Depends on license decision | Codex | After approval, update `pyproject.toml`, rebuild artifacts, and run `scripts/license_release_gate_check.py` | `docs/legal/license-implementation-runbook-2026-06-29.md` |
-| `LICENSE` file | Open | Depends on license decision | Codex | After approval, add the selected license file and run the license gate helper | `docs/legal/license-implementation-runbook-2026-06-29.md` |
+| License decision | Closed | None | Arijit | Apache-2.0 local/core approved by "ok do it"; hosted/service monetization remains separate | `LICENSE`; `pyproject.toml`; `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md` |
+| Final license expression | Closed | None | Codex | Keep `pyproject.toml` license metadata in package tests | `pyproject.toml` |
+| `LICENSE` file | Closed | None | Codex | Keep root `LICENSE` included in wheel/sdist release smoke | `LICENSE` |
+| License release gate helper | Closed | None | Codex | Keep `scripts/license_release_gate_check.py --expected-license Apache-2.0 --dist-dir dist` in release verification | `scripts/license_release_gate_check.py` |
 | Public pricing and hosted usage limits | Open | Arijit decision | Arijit | Approve unit-economics-derived pricing; likely free local plus pay-as-you-go/prepaid hosted credits | `docs/product/hosted-economics-and-usage-limits.md`; `docs/product/unit-economics-and-pricing-model-2026-06-29.md` |
 | Registry publishing policy | Open | Arijit decision | Arijit | Approve artifact-only beta tag policy or keep branch installs only | `docs/product/registry-publishing-policy-2026-06-29.md` |
 | GitHub release workflow on real `v*` tag | Open | Depends on registry/tag approval | Codex | After approval, create one private-beta tag and record workflow URL | `docs/product/registry-publishing-policy-2026-06-29.md` |
@@ -65,39 +66,31 @@ Stripe test-mode setup before implementation can safely proceed.
 
 These can be done immediately after the named dependency is satisfied:
 
-1. **After license approval**
-   - add `LICENSE`,
-   - update `pyproject.toml`,
-   - update README/legal website copy,
-   - rebuild wheel/sdist,
-   - verify license files and third-party notices ship in artifacts.
-
-2. **After artifact-only release tag approval**
+1. **After artifact-only release tag approval**
    - create one private-beta `v*` tag,
    - wait for GitHub release artifact workflow,
    - record workflow URL,
    - download artifacts from GitHub Release,
    - run `scripts/release_artifact_smoke.py --dist-dir ... --serve`.
 
-3. **After Stripe test credentials are available**
+2. **After Stripe test credentials are available**
    - start Scout locally with Stripe test settings,
    - run `scripts/stripe_test_mode_smoke.py --create-checkout`,
    - complete test payment,
    - deliver webhook,
    - prove hosted key delivery and no secret leakage.
 
-4. **After Docker publishing approval**
+3. **After Docker publishing approval**
    - add approved registry publishing workflow,
    - publish one image,
    - run `scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG`.
 
 ## Recommended Decision Order
 
-1. Choose license.
-2. Choose private-beta posture for the Crawl4AI/lxml blocker.
-3. Fill and approve the unit-economics model before restoring hosted checkout or public pricing claims.
-4. Approve or defer artifact-only private-beta release tags.
-5. Provide Stripe test-mode setup when payment gate is ready to close.
+1. Choose private-beta posture for the Crawl4AI/lxml blocker.
+2. Fill and approve the unit-economics model before restoring hosted checkout or public pricing claims.
+3. Approve or defer artifact-only private-beta release tags.
+4. Provide Stripe test-mode setup when payment gate is ready to close.
 
 ## Do Not Claim Yet
 

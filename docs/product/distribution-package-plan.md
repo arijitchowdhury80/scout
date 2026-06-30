@@ -121,9 +121,6 @@ Verified package gates:
 
 Open package gates:
 
-- license decision,
-- final license expression in `pyproject.toml`,
-- `LICENSE` file if Scout is open source or source-available,
 - release artifact workflow run against an approved real `v*` tag,
 - downloaded GitHub Release artifact smoke,
 - public registry publishing approval.
@@ -189,8 +186,6 @@ Current expected state before every beta checkpoint:
 
 Do not distribute broadly until:
 
-- Scout license is approved and expressed,
-- required license file is added,
 - third-party notices remain included in wheel/sdist and Docker context,
 - dependency audit blocker is resolved or formally excepted,
 - final hosted terms/privacy are reviewed for broad hosted access,

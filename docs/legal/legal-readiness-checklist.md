@@ -9,21 +9,22 @@ Status: Draft for private beta planning
 - [ ] Keep Crawl4AI attribution in app Settings/About if the app UI becomes a
   launch surface.
 - [x] Include `THIRD_PARTY_NOTICES.md` in source.
-- [ ] Confirm `THIRD_PARTY_NOTICES.md` is included in all final package
+- [x] Confirm `THIRD_PARTY_NOTICES.md` is included in all final package
   artifacts before public publishing.
 - [x] Generate a dependency license inventory before public launch.
   Evidence: `docs/legal/dependency-license-inventory-2026-06-28.md`.
   This is a metadata-derived inventory and still requires manual review for
   packages with missing license metadata.
 - [ ] Pin and audit dependency versions before release.
-- [ ] Review whether Scout will be released as open source, source-available,
+- [x] Review whether Scout will be released as open source, source-available,
   commercial/proprietary, or dual-license.
   Evidence brief:
   `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`.
   Implementation runbook:
   `docs/legal/license-implementation-runbook-2026-06-29.md`.
-  Current recommendation is Apache-2.0 local/core plus hosted/service
-  monetization, but Arijit approval is still required.
+  Decision implemented: Apache-2.0 local/core plus hosted/service
+  monetization as a separate commercial surface. Root `LICENSE` and
+  `pyproject.toml` license metadata were added in the release-hardening pass.
 
 ## Scraping And Acquisition Risk
 
@@ -52,8 +53,8 @@ Status: Draft for private beta planning
 
 ## Public Beta Readiness
 
-- [ ] Add "Beta" status language to website and README.
-- [ ] Add known limitations for hard sites and bot walls.
-- [ ] Add supported/unsupported use cases.
+- [x] Add "Beta" status language to website and README.
+- [x] Add known limitations for hard sites and bot walls.
+- [x] Add supported/unsupported use cases.
 - [x] Add "not legal advice" note where acquisition workflows are discussed on
   the website legal page.

@@ -1,20 +1,21 @@
 # Scout License Implementation Runbook
 
 Date: 2026-06-29
-Status: Prepared; waiting for license decision
+Status: Apache-2.0 implemented; verification required on every release artifact
 
 ## Purpose
 
-This runbook makes the license gate executable after Arijit chooses Scout's
-license path. It does not choose or apply a license.
+This runbook records the implemented Apache-2.0 license path and the recurring
+release verification steps.
 
 Current recommendation remains Apache-2.0 for the local/core package, with
 hosted/service monetization kept separate.
 
 ## Preconditions
 
-Do not run this as a completion checklist until one of these decisions is
-recorded:
+The license decision is recorded in
+`docs/product/founder-decision-records/2026-06-29-apache-2-license.md`.
+Before each release, rerun the verification steps below against fresh artifacts.
 
 - Apache-2.0 approved,
 - MIT approved,
@@ -23,7 +24,7 @@ recorded:
 
 ## Apache-2.0 Implementation Steps
 
-If Apache-2.0 is approved:
+Apache-2.0 implemented:
 
 1. Add `LICENSE` with Apache License 2.0 text.
 2. Add the final SPDX expression to `pyproject.toml`:
@@ -71,11 +72,14 @@ If MIT, source-available, proprietary, beta-only, or dual-license is approved:
   expression only if the package metadata is meant to expose a single SPDX
   expression.
 
-## Non-Closure
+## Current Closure
 
-Until this runbook is executed against the approved license and built artifacts:
+These gates are closed in the release-hardening pass:
 
-- `License decision recorded` remains open,
-- `Final license expression added to pyproject.toml` remains open,
-- `LICENSE file added if Scout is open source or source-available` remains open,
+- `License decision recorded`,
+- `Final license expression added to pyproject.toml`,
+- `LICENSE file added if Scout is open source or source-available`.
+
+These gates remain open:
+
 - public package/container publishing remains blocked.

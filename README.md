@@ -107,6 +107,15 @@ X-API-Key: dev-key
 
 Set `SCOUT_API_KEY` in `.env.local` before exposing Scout beyond local development.
 
+## License
+
+Scout's local/core package and source distribution are licensed under the
+Apache License, Version 2.0 (`Apache-2.0`). Hosted Scout, paid service access,
+support, private beta admission, and any future enterprise terms remain
+separate service and commercial arrangements.
+
+See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 ## Attribution
 
 Scout includes software developed by UncleCode as part of the Crawl4AI project:

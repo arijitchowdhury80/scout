@@ -2,7 +2,7 @@
 
 Date: 2026-06-29
 
-Status: **Decision required before public registry publishing.**
+Status: **Apache-2.0 implemented for local/core package; public registry publishing still requires approval.**
 
 This document is not legal advice. It is a product/legal decision brief for the
 Scout launch path.
@@ -14,8 +14,9 @@ Recommended path:
 1. **Private beta now:** keep Scout distribution controlled through GitHub branch
    install, Docker-from-source, and hosted beta keys. Do not publish to PyPI,
    Docker Hub, or GHCR yet.
-2. **Before public launch:** choose **Apache-2.0 for Scout's local/core package**
-   unless there is a strong business reason to keep the code proprietary.
+2. **Implemented:** Scout's local/core package uses **Apache-2.0**.
+   In plain terms: Apache-2.0 for Scout's local/core package is now the
+   recorded license decision.
 3. **Commercial model:** monetize hosted Scout, managed browser capacity,
    enterprise support, integrations, and private deployment help rather than
    charging for the local package.
@@ -30,8 +31,8 @@ Why Apache-2.0 is the default recommendation:
 - It keeps hosted Scout differentiated by convenience, metering, managed
   infrastructure, and support rather than by hiding the local utility.
 
-This recommendation does **not** close the gate. Arijit must approve or revise
-the license choice.
+The license decision gate is closed. This does **not** approve PyPI, GHCR,
+Docker Hub, public self-serve hosted access, or public launch.
 
 ## Key Upstream License Facts Checked
 
@@ -167,7 +168,7 @@ Recommended long-term model if Scout grows beyond private beta.
 
 ## Distribution Policy Recommendation
 
-Until Arijit approves the license:
+Until registry and release-tag policy are approved:
 
 - Do not publish to PyPI.
 - Do not publish Docker images to Docker Hub or GHCR.
@@ -210,11 +211,13 @@ If a proprietary/source-available path is approved:
 - Keep `pyproject.toml` license metadata consistent with that decision.
 - Review whether public GitHub visibility still makes sense.
 
-## Decision Needed
+## Decision Recorded
 
-Arijit needs to choose one:
+Arijit approved the recommended Apache-2.0 local/core license path during the
+release-hardening pass. The durable decision record is:
+`docs/product/founder-decision-records/2026-06-29-apache-2-license.md`.
 
-- [ ] Approve Apache-2.0 for Scout local/core.
+- [x] Approve Apache-2.0 for Scout local/core.
 - [ ] Approve MIT for Scout local/core.
 - [ ] Keep Scout proprietary/source-available for now.
 - [ ] Use a temporary beta license and revisit before public launch.
@@ -222,11 +225,14 @@ Arijit needs to choose one:
 
 ## Launch Gate Impact
 
-This brief supports but does not close these release checklist items:
+This brief now closes these release checklist items:
 
 - `License decision recorded`
 - `Final license expression added to pyproject.toml`
 - `LICENSE file added if Scout is open source or source-available`
+
+This brief supports but does not close:
+
 - `Registry publishing policy approved`
 
 Public package/container publishing remains blocked until the decision is made.

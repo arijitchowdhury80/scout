@@ -30,6 +30,17 @@ def test_license_gate_passes_for_source_tree_with_expected_license(tmp_path: Pat
     assert result.dist_checked is False
 
 
+def test_license_gate_accepts_canonical_apache_license_file(tmp_path: Path) -> None:
+    _write_source_tree(tmp_path)
+    (tmp_path / "LICENSE").write_text(
+        "Apache License\nVersion 2.0, January 2004\n", encoding="utf-8"
+    )
+
+    result = license_release_gate_check.run_license_gate(tmp_path, "Apache-2.0")
+
+    assert result.expected_license == "Apache-2.0"
+
+
 def test_license_gate_fails_when_pyproject_license_is_missing(tmp_path: Path) -> None:
     _write_source_tree(tmp_path)
     (tmp_path / "pyproject.toml").write_text('[project]\nname = "scout-web"\n', encoding="utf-8")

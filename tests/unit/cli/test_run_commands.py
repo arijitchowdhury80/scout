@@ -98,13 +98,16 @@ def test_launch_readiness_command_can_filter_by_blocker_id() -> None:
             "--root",
             str(root),
             "--blocker-id",
-            "license-decision",
+            "public-pricing-and-hosted-usage-limits",
         ],
     )
 
     assert result.exit_code == 0
     assert "Blocker summary: 1 total" in result.output
-    assert "license-decision: license decision [founder_decision]" in result.output
+    assert (
+        "public-pricing-and-hosted-usage-limits: public pricing and hosted usage limits [founder_decision]"
+        in result.output
+    )
     assert "stripe-real-test-mode-smoke" not in result.output
 
 
@@ -119,7 +122,7 @@ def test_launch_decision_draft_command_writes_prefilled_draft() -> None:
                 "--root",
                 str(root),
                 "--blocker-id",
-                "license-decision",
+                "public-pricing-and-hosted-usage-limits",
                 "--decision-id",
                 "SCOUT-DEC-20260629-04",
                 "--date",
@@ -159,12 +162,12 @@ def test_launch_decision_drafts_command_writes_founder_packet() -> None:
         )
 
         assert result.exit_code == 0
-        assert "Wrote 6 founder decision drafts" in result.output
+        assert "Wrote 5 founder decision drafts" in result.output
         draft_dir = Path("docs/product/founder-decision-drafts")
         drafts = sorted(draft_dir.glob("founder-decision-draft-SCOUT-DEC-20260629-*.md"))
-        assert len(drafts) == 6
+        assert len(drafts) == 5
         combined = "\n".join(path.read_text(encoding="utf-8") for path in drafts)
-        assert "Related release gate: license decision" in combined
+        assert "Related release gate: public pricing and hosted usage limits" in combined
         assert "Related release gate: Stripe real test-mode smoke" in combined
         assert "Public launch allowed by this decision? No" in combined
 
