@@ -327,6 +327,7 @@ async def _run_crawl_playground(
         summary={
             "record_count": len(records),
             "page_count": len(records),
+            "blocked_count": 0,
             "duration_ms": response.duration_ms,
             "capped": True,
         },
