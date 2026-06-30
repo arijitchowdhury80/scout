@@ -34,7 +34,7 @@ def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
     assert "window.location.assign" not in html
     assert "Scout beta demo" in html
     assert "URL to evidence to records in under a minute." in html
-    assert "/assets/scout-product-demo.gif" in html
+    assert "/assets/scout-product-demo.gif?v=20260630-slow-readable" in html
     assert "No hard-site bypass guarantee." in html
     assert "STRIPE_SECRET_KEY" not in html
     assert "sk_live_" not in html
@@ -170,6 +170,15 @@ def test_launch_website_demo_gif_is_slow_enough_to_read() -> None:
 
     assert len(durations) >= 3
     assert min(durations) >= 10_000
+
+
+def test_quickstart_support_notes_are_compact_not_empty_card_grid() -> None:
+    css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
+
+    assert ".step-section .note-grid" in css
+    assert "grid-template-columns: repeat(3, minmax(0, 1fr));" in css
+    assert ".step-section .note-grid article" in css
+    assert "min-height: auto;" in css
 
 
 def test_homepage_hero_evidence_card_is_not_bottom_aligned() -> None:
