@@ -48,6 +48,45 @@ def _text(
     draw.text(xy, text, fill=fill, font=_font(size, bold=bold))
 
 
+def _wrap_lines(
+    text: str, font: ImageFont.FreeTypeFont | ImageFont.ImageFont, max_width: int
+) -> list[str]:
+    words = text.split()
+    lines: list[str] = []
+    current = ""
+    probe = Image.new("RGB", (1, 1))
+    probe_draw = ImageDraw.Draw(probe)
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        bbox = probe_draw.textbbox((0, 0), candidate, font=font)
+        if bbox[2] - bbox[0] <= max_width or not current:
+            current = candidate
+            continue
+        lines.append(current)
+        current = word
+    if current:
+        lines.append(current)
+    return lines
+
+
+def _wrapped_text(
+    draw: ImageDraw.ImageDraw,
+    xy: tuple[int, int],
+    text: str,
+    size: int,
+    max_width: int,
+    fill: str = INK,
+    bold: bool = False,
+    line_gap: int = 5,
+) -> None:
+    font = _font(size, bold=bold)
+    x, y = xy
+    for line in _wrap_lines(text, font, max_width):
+        draw.text((x, y), line, fill=fill, font=font)
+        bbox = draw.textbbox((x, y), line, font=font)
+        y += bbox[3] - bbox[1] + line_gap
+
+
 def _round(
     draw: ImageDraw.ImageDraw,
     box: tuple[int, int, int, int],
@@ -126,7 +165,7 @@ def _frame_two() -> Image.Image:
     for title, body, color in cards:
         _round(draw, (x, 250, x + 245, 475), "#ffffff", outline=color, width=4, radius=14)
         _pill(draw, x + 22, 278, title, color)
-        _text(draw, (x + 24, 335), body, 23, fill=INK, bold=True)
+        _wrapped_text(draw, (x + 24, 335), body, 21, max_width=198, fill=INK, bold=True)
         _text(draw, (x + 24, 395), "Citable, inspectable,\nportable.", 20, fill=MUTED)
         x += 275
     _text(
@@ -188,7 +227,7 @@ def main() -> None:
         OUTPUT,
         save_all=True,
         append_images=frames[1:],
-        duration=[1300, 1500, 1700],
+        duration=[12_000, 12_000, 12_000],
         loop=0,
         optimize=False,
     )

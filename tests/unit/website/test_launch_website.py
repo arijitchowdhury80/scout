@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from PIL import Image, ImageSequence
 
 from scout.api.main import app
 from scout.launch_readiness import build_report
@@ -153,6 +154,26 @@ def test_launch_website_demo_gif_is_real_beta_safe_media() -> None:
     assert len(data) > 20_000
     assert b"sk_live_" not in data
     assert b"sk_test_" not in data
+
+
+def test_launch_website_demo_gif_is_slow_enough_to_read() -> None:
+    demo_gif = _WEBSITE_DIR / "assets" / "scout-product-demo.gif"
+
+    with Image.open(demo_gif) as image:
+        durations = [frame.info.get("duration", 0) for frame in ImageSequence.Iterator(image)]
+
+    assert len(durations) >= 3
+    assert min(durations) >= 10_000
+
+
+def test_homepage_hero_evidence_card_is_not_bottom_aligned() -> None:
+    css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
+
+    assert ".hero-grid" in css
+    assert ".hero-evidence-card" in css
+    assert "align-items: start;" in css
+    assert "align-self: start;" in css
+    assert "align-self: end;" not in css
 
 
 def test_launch_website_has_beta_onboarding_pages() -> None:

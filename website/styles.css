@@ -186,7 +186,7 @@ a {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.72fr);
   gap: 50px;
-  align-items: end;
+  align-items: start;
   max-width: 1500px;
   margin: 0 auto;
 }
@@ -274,7 +274,8 @@ code {
 }
 
 .hero-evidence-card {
-  align-self: end;
+  align-self: start;
+  margin-top: clamp(20px, 3vw, 52px);
   padding: 28px;
 }
 
