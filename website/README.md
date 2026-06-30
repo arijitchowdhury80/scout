@@ -19,10 +19,22 @@ open http://127.0.0.1:8421/
 The page intentionally positions Scout as an acquisition-to-record workbench,
 not a generic crawler replacement.
 
+Design system:
+
+- Active system: Flux (`/assets/flux-design-system/fonts.css` and
+  `/assets/flux-design-system/tokens.css`).
+- `styles.css` contains a small compatibility bridge for existing `wi-*`
+  markup, but the active tokens, fonts, accent, grid, and component direction
+  are Flux.
+- Do not reintroduce `warm-industrial-design-system` links; the old system was
+  too heavy for the launch/docs pages.
+
 Public website paths served by `scout serve`:
 
 - `/` - launch homepage.
 - `/assets/scout-product-demo.gif` - beta-safe product demo GIF used by the homepage.
+- `/assets/flux-design-system/fonts.css` - Flux font imports.
+- `/assets/flux-design-system/tokens.css` - Flux tokens and primitives.
 - `/quickstart` - local install, Docker, workdir, and first-run guidance.
 - `/guide` - human developer guide for choosing local, hosted, HTTP, CLI, and
   skill usage before opening Swagger.

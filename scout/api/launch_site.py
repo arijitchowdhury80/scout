@@ -26,14 +26,14 @@ async def launch_site_styles() -> FileResponse:
     return FileResponse(_WEBSITE_DIR / "styles.css", media_type="text/css")
 
 
-@router.get("/assets/warm-industrial-design-system/{asset_name}")
+@router.get("/assets/flux-design-system/{asset_name}")
 async def launch_site_design_system_asset(asset_name: str) -> FileResponse:
-    """Serve the bundled launch-site design-system assets."""
-    allowed_assets = {"warm-industrial.css", "README.md", "index.html"}
+    """Serve the bundled Flux launch-site design-system assets."""
+    allowed_assets = {"fonts.css", "README.md", "tokens.css"}
     if asset_name not in allowed_assets:
         raise HTTPException(status_code=404, detail="Launch site asset not found.")
     return FileResponse(
-        _WEBSITE_DIR / "assets" / "warm-industrial-design-system" / asset_name,
+        _WEBSITE_DIR / "assets" / "flux-design-system" / asset_name,
         media_type=_asset_media_type(asset_name),
     )
 

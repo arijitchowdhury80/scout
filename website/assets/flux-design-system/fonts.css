@@ -1,0 +1,19 @@
+/* ============================================================
+   FLUX DESIGN SYSTEM — Font imports
+   Drop this <link>/@import into any page that uses the system.
+   ============================================================ */
+
+/* Anton — display (Google Fonts) */
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+/* Satoshi — body (Fontshare, weights 400/500/700) */
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap');
+
+/* JetBrains Mono — code / hex labels (optional) */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* --- Or, equivalent <head> links ---------------------------
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+------------------------------------------------------------ */

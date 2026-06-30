@@ -19,6 +19,9 @@ _REPO_ROOT = _WEBSITE_DIR.parent
 def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
 
+    assert "./assets/flux-design-system/fonts.css" in html
+    assert "./assets/flux-design-system/tokens.css" in html
+    assert "warm-industrial-design-system" not in html
     assert "What Scout returns" in html
     assert "Clean records with evidence attached." in html
     assert "The crawler is only the first step." in html
@@ -100,7 +103,8 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     client = TestClient(app)
 
     styles = client.get("/styles.css")
-    design_system = client.get("/assets/warm-industrial-design-system/warm-industrial.css")
+    flux_fonts = client.get("/assets/flux-design-system/fonts.css")
+    flux_tokens = client.get("/assets/flux-design-system/tokens.css")
     demo_gif = client.get("/assets/scout-product-demo.gif")
     logo = client.get("/assets/scout-wordmark.svg")
     mark = client.get("/assets/scout-mark.svg")
@@ -112,9 +116,13 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert ".brand-logo" in styles.text
     assert "aria-current" in styles.text
     assert ".code-copy__button" in styles.text
-    assert design_system.status_code == 200
-    assert "text/css" in design_system.headers["content-type"]
-    assert ".wi-grid-bg" in design_system.text
+    assert flux_fonts.status_code == 200
+    assert "text/css" in flux_fonts.headers["content-type"]
+    assert "Satoshi" in flux_fonts.text
+    assert flux_tokens.status_code == 200
+    assert "text/css" in flux_tokens.headers["content-type"]
+    assert "--flux-yellow" in flux_tokens.text
+    assert ".flux-card" in flux_tokens.text
     assert demo_gif.status_code == 200
     assert demo_gif.headers["content-type"] == "image/gif"
     assert demo_gif.content.startswith((b"GIF87a", b"GIF89a"))
@@ -128,6 +136,14 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert "javascript" in copy_code.headers["content-type"]
     assert "navigator.clipboard.writeText" in copy_code.text
     assert "Copy code sample" in copy_code.text
+
+
+def test_launch_website_uses_flux_not_warm_industrial() -> None:
+    for page in _WEBSITE_DIR.glob("*.html"):
+        html = page.read_text(encoding="utf-8")
+        assert "assets/flux-design-system/fonts.css" in html
+        assert "assets/flux-design-system/tokens.css" in html
+        assert "warm-industrial-design-system" not in html
 
 
 def test_homepage_has_section_aware_nav_and_scrollspy() -> None:

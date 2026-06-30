@@ -1,0 +1,182 @@
+/* ============================================================
+   FLUX DESIGN SYSTEM — Design Tokens
+   v1.0 · Brutalist-lite SaaS · Anton + Satoshi
+   ============================================================ */
+
+:root {
+  /* ---- Color ---------------------------------------------- */
+  --flux-yellow:      #ffe17c;  /* primary accent · CTAs · highlights */
+  --flux-charcoal:    #171e19;  /* ink · dark surfaces */
+  --flux-dark-gray:   #272727;  /* secondary dark surface */
+  --flux-sage:        #b7c6c2;  /* muted text on dark · borders */
+  --flux-offwhite:    #f8f9fa;  /* light card surface */
+  --flux-white:       #ffffff;  /* base background */
+
+  /* Borders */
+  --flux-border-light: rgba(23, 30, 25, 0.10);   /* hairline on light sections */
+  --flux-border-dark:  rgba(183, 198, 194, 0.10); /* hairline on dark sections */
+
+  /* Text opacities (on light) */
+  --flux-ink-70: rgba(23, 30, 25, 0.70);
+  --flux-ink-65: rgba(23, 30, 25, 0.65);
+  --flux-ink-45: rgba(23, 30, 25, 0.45);
+
+  /* ---- Typography ----------------------------------------- */
+  --flux-font-display: 'Anton', sans-serif;
+  --flux-font-body:    'Satoshi', system-ui, sans-serif;
+  --flux-font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  --flux-display-line: 0.9;     /* line-height for Anton headlines */
+  --flux-eyebrow-track: 0.22em; /* letter-spacing for overline labels */
+
+  /* ---- Radius ladder -------------------------------------- */
+  --flux-radius-input: 10px;
+  --flux-radius-card:  16px;
+  --flux-radius-md:    14px;
+  --flux-radius-pill:  999px;
+
+  /* ---- Motion --------------------------------------------- */
+  --flux-ease:     cubic-bezier(0.4, 0, 0.2, 1);
+  --flux-duration: 300ms;
+
+  /* ---- Grid background ------------------------------------ */
+  --flux-grid-size: 40px;
+  --flux-grid-line: rgba(183, 198, 194, 0.32);
+}
+
+/* ============================================================
+   PRIMITIVE CLASSES
+   ============================================================ */
+
+/* Display headline */
+.flux-display {
+  font-family: var(--flux-font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: var(--flux-display-line);
+  letter-spacing: normal;
+}
+
+/* Overline / eyebrow label */
+.flux-eyebrow {
+  font-family: var(--flux-font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: var(--flux-eyebrow-track);
+  text-transform: uppercase;
+  color: var(--flux-ink-45);
+}
+
+/* Primary CTA button */
+.flux-btn {
+  height: 56px;
+  padding: 0 30px;
+  font-family: var(--flux-font-display);
+  text-transform: uppercase;
+  font-size: 19px;
+  letter-spacing: 0.02em;
+  color: var(--flux-charcoal);
+  background: var(--flux-yellow);
+  border: none;
+  border-radius: var(--flux-radius-input);
+  cursor: pointer;
+  transition: transform var(--flux-duration) var(--flux-ease),
+              box-shadow var(--flux-duration) var(--flux-ease);
+}
+.flux-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(255, 225, 124, 0.5);
+}
+
+/* Dark variant */
+.flux-btn--dark {
+  color: var(--flux-white);
+  background: var(--flux-charcoal);
+}
+
+/* Pill button */
+.flux-pill {
+  display: inline-flex;
+  align-items: center;
+  background: var(--flux-charcoal);
+  color: var(--flux-white);
+  font-family: var(--flux-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 11px 24px;
+  border-radius: var(--flux-radius-pill);
+}
+
+/* Input */
+.flux-input {
+  height: 56px;
+  padding: 0 22px;
+  font-family: var(--flux-font-body);
+  font-size: 16px;
+  border: 1px solid rgba(23, 30, 25, 0.20);
+  border-radius: var(--flux-radius-input);
+  outline: none;
+  background: var(--flux-white);
+}
+
+/* Card */
+.flux-card {
+  background: var(--flux-offwhite);
+  border: 1px solid var(--flux-border-light);
+  border-radius: var(--flux-radius-card);
+  padding: 28px;
+  transition: transform var(--flux-duration) var(--flux-ease),
+              box-shadow var(--flux-duration) var(--flux-ease);
+}
+.flux-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 48px -20px rgba(23, 30, 25, 0.30);
+}
+.flux-card--dark {
+  background: var(--flux-charcoal);
+  color: var(--flux-white);
+  border-color: var(--flux-border-dark);
+}
+
+/* Badge */
+.flux-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border: 1px solid var(--flux-border-light);
+  border-radius: var(--flux-radius-pill);
+  background: var(--flux-white);
+}
+.flux-badge__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--flux-radius-pill);
+  background: var(--flux-yellow);
+  box-shadow: 0 0 0 4px rgba(255, 225, 124, 0.30);
+}
+
+/* Grid-pattern background */
+.flux-grid-bg {
+  background-color: var(--flux-white);
+  background-image:
+    linear-gradient(to right, var(--flux-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--flux-grid-line) 1px, transparent 1px);
+  background-size: var(--flux-grid-size) var(--flux-grid-size);
+}
+
+/* Yellow highlight bar behind a word (wrap the word in .flux-highlight) */
+.flux-highlight {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+}
+.flux-highlight::before {
+  content: "";
+  position: absolute;
+  left: -6px; right: -6px; top: 12%; bottom: 10%;
+  background: var(--flux-yellow);
+  transform: rotate(-3deg);
+  z-index: -1;
+  border-radius: 3px;
+}
