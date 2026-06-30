@@ -1,17 +1,31 @@
-"""Crawl4AI version pin and upgrade notes.
+"""Runtime version reporting and Crawl4AI upgrade notes.
 
-To upgrade Crawl4AI: bump CRAWL4AI_VERSION, run tests, update UPGRADE_NOTES.
-Nothing outside this file should import crawl4ai version directly.
+The health endpoint should report the installed dependency versions, not stale
+documentation constants. Keep fallbacks here for editable/source-tree contexts
+where package metadata is unavailable.
 """
 
-CRAWL4AI_VERSION = "0.7.7"
-SCOUT_VERSION = "0.1.0"
+from __future__ import annotations
+
+from importlib import metadata
+
+
+def _installed_version(package_name: str, fallback: str) -> str:
+    """Return installed package version with a stable fallback."""
+    try:
+        return metadata.version(package_name)
+    except metadata.PackageNotFoundError:
+        return fallback
+
+
+CRAWL4AI_VERSION = _installed_version("crawl4ai", "unknown")
+SCOUT_VERSION = _installed_version("scout-web", "0.1.0")
 
 UPGRADE_NOTES = """
-v0.7.7 → next:
+To upgrade Crawl4AI:
 - Check BrowserConfig API for breaking changes
 - Check CrawlerRunConfig parameter renames (wait_for, stream flag)
 - Verify fit_markdown attribute path on CrawlResult (currently result.markdown.fit_markdown)
 - Re-run: pytest tests/ -v && pytest tests/integration/ -v
-- Update CRAWL4AI_VERSION above
+- Confirm /health reports the installed Crawl4AI version from package metadata
 """
