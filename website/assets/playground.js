@@ -144,6 +144,17 @@
 
   const activeCapability = () => CAPABILITIES[workflowEl.value] || CAPABILITIES.scrape;
 
+  const normalizePublicUrl = (value) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return "";
+    }
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    return `https://${trimmed}`;
+  };
+
   const setStatus = (message, state = "") => {
     statusEl.textContent = message;
     statusEl.dataset.state = state;
@@ -172,7 +183,7 @@
     const capability = activeCapability();
     return {
       workflow: workflowEl.value,
-      url: urlEl.value.trim(),
+      url: normalizePublicUrl(urlEl.value),
       query: queryEl.value.trim(),
       output_format: outputFormatEl.value,
       max_items: capability.maxItems,

@@ -444,6 +444,14 @@ def test_docs_page_has_hosted_playground_controls() -> None:
     ):
         assert f'value="{capability}"' in html
     assert 'id="playgroundUrl"' in html
+    assert (
+        'id="playgroundUrl"\n                      name="url"\n                      type="text"'
+        in html
+    )
+    assert 'inputmode="url"' in html
+    assert "normalizePublicUrl" in (_WEBSITE_DIR / "assets" / "playground.js").read_text(
+        encoding="utf-8"
+    )
     assert 'id="playgroundQuery"' in html
     assert 'name="output_format"' in html
     assert 'value="json"' in html
