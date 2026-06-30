@@ -21,6 +21,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         """Pass public routes through; reject other requests without a valid key."""
         always_public_paths = {
             "/",
+            "/assets/playground.js",
             "/beta",
             "/beta.html",
             "/examples",
@@ -60,6 +61,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.url.path.startswith("/assets/flux-design-system/"):
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/v1/hosted/"):
+            return await call_next(request)  # type: ignore[misc]
+        if request.url.path.startswith("/v1/playground/"):
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/v1/billing/stripe/"):
             return await call_next(request)  # type: ignore[misc]

@@ -20,6 +20,7 @@ from scout.api.routers import (
     harvest,
     health,
     products,
+    playground,
     run,
     runs,
     structure,
@@ -113,6 +114,7 @@ app.include_router(extract.router)
 app.include_router(structure.router)
 app.include_router(harvest.router)
 app.include_router(products.router)
+app.include_router(playground.router)
 app.include_router(run.router)
 app.include_router(runs.router)
 app.include_router(algolia.router)

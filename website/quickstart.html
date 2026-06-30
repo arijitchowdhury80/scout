@@ -44,6 +44,65 @@
           </p>
         </section>
 
+        <section class="section playground-section" aria-labelledby="playground-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Try before you buy</p>
+            <h2 id="playground-title">Try Scout before you buy.</h2>
+          </div>
+          <p>
+            Run a small hosted demo without an API key. Playground runs are
+            capped to 10 product records or 5 website pages, reject local or
+            private network URLs, and return downloadable JSON and Markdown.
+          </p>
+          <form id="playgroundForm" class="playground-form">
+            <div class="playground-fields">
+              <label>
+                Workflow
+                <select name="workflow" id="playgroundWorkflow">
+                  <option value="products">Product page or category</option>
+                  <option value="website">Website crawl</option>
+                </select>
+              </label>
+              <label>
+                Public URL
+                <input
+                  id="playgroundUrl"
+                  name="url"
+                  type="url"
+                  placeholder="https://example.com"
+                  required
+                />
+              </label>
+              <label>
+                Preview format
+                <select name="output_format" id="playgroundOutputFormat">
+                  <option value="json">JSON</option>
+                  <option value="markdown">Markdown</option>
+                </select>
+              </label>
+            </div>
+            <div class="playground-actions">
+              <button class="wi-btn" type="submit">Run hosted demo</button>
+              <span id="playgroundStatus" class="playground-status" role="status" aria-live="polite">
+                Ready for a small public URL.
+              </span>
+            </div>
+          </form>
+          <div class="playground-results-shell">
+            <div class="playground-results-head">
+              <div>
+                <p class="wi-label">Results preview</p>
+                <h3>Records returned by Scout</h3>
+              </div>
+              <div class="playground-downloads">
+                <button id="playgroundDownloadJson" class="wi-pill" type="button" disabled>Download JSON</button>
+                <button id="playgroundDownloadMarkdown" class="wi-pill" type="button" disabled>Download Markdown</button>
+              </div>
+            </div>
+            <pre id="playgroundResults" class="playground-results"><code>No run yet. Enter a public URL and run the hosted demo.</code></pre>
+          </div>
+        </section>
+
         <section class="section step-section" aria-labelledby="hosted-api-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Path 01 · Hosted beta</p>
@@ -52,6 +111,8 @@
           <p>
             Hosted beta is invite-only and metered. Use the domain below with
             the API key delivered to you. Do not use localhost for hosted calls.
+            Hosted credits are capped while unit economics are validated; Scout
+            does not offer unlimited hosted crawling.
           </p>
           <pre><code>export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
 export SCOUT_HOSTED_API_KEY="paste-your-delivered-key"
@@ -244,5 +305,6 @@ scout launch-readiness --require-public</code></pre>
       </main>
     </div>
     <script src="/assets/copy-code.js" defer></script>
+    <script src="/assets/playground.js" defer></script>
   </body>
 </html>

@@ -45,6 +45,11 @@ def _make_app(api_key: str = "test-key", public_hosted_only: bool = False) -> Fa
         """Hosted routes perform their own Bearer auth."""
         return {"hosted": True}
 
+    @test_app.post("/v1/playground/run")
+    async def playground_run() -> dict:
+        """Playground routes perform their own public-demo limits."""
+        return {"playground": True}
+
     @test_app.post("/v1/billing/stripe/webhook")
     async def stripe_webhook() -> dict:
         """Stripe webhook routes perform Stripe signature auth."""
@@ -107,6 +112,16 @@ def test_hosted_routes_bypass_static_local_key_middleware() -> None:
     assert resp.json()["hosted"] is True
 
 
+def test_playground_routes_bypass_static_local_key_middleware() -> None:
+    """Playground routes must be public but capped by route-level controls."""
+    client = TestClient(_make_app(api_key="test-key"))
+
+    resp = client.post("/v1/playground/run")
+
+    assert resp.status_code == 200
+    assert resp.json()["playground"] is True
+
+
 def test_stripe_webhook_bypasses_static_local_key_middleware() -> None:
     """Stripe webhook routes must reach route-level signature auth without X-API-Key."""
     client = TestClient(_make_app(api_key="test-key"))
@@ -145,9 +160,12 @@ def test_public_hosted_only_keeps_hosted_and_billing_routes_available() -> None:
     client = TestClient(_make_app(api_key="test-key", public_hosted_only=True))
 
     hosted_resp = client.post("/v1/hosted/scrape")
+    playground_resp = client.post("/v1/playground/run")
     billing_resp = client.post("/v1/billing/stripe/webhook")
 
     assert hosted_resp.status_code == 200
     assert hosted_resp.json()["hosted"] is True
+    assert playground_resp.status_code == 200
+    assert playground_resp.json()["playground"] is True
     assert billing_resp.status_code == 200
     assert billing_resp.json()["billing"] is True

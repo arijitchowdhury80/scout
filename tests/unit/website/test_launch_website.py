@@ -109,6 +109,7 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     logo = client.get("/assets/scout-wordmark.svg")
     mark = client.get("/assets/scout-mark.svg")
     copy_code = client.get("/assets/copy-code.js")
+    playground = client.get("/assets/playground.js")
 
     assert styles.status_code == 200
     assert "text/css" in styles.headers["content-type"]
@@ -136,6 +137,10 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert "javascript" in copy_code.headers["content-type"]
     assert "navigator.clipboard.writeText" in copy_code.text
     assert "Copy code sample" in copy_code.text
+    assert playground.status_code == 200
+    assert "javascript" in playground.headers["content-type"]
+    assert "/v1/playground/run" in playground.text
+    assert "Download JSON" not in playground.text
 
 
 def test_launch_website_uses_flux_not_warm_industrial() -> None:
@@ -250,6 +255,10 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         "quickstart.html": [
             "Scout Docs",
             "One page for hosted API, local install, examples, and artifacts.",
+            "Try Scout before you buy.",
+            "Playground runs are capped",
+            "Download JSON",
+            "Download Markdown",
             "This replaces separate Quickstart, Guide, Examples, and API Guide pages.",
             "Call the live Scout API.",
             "API reference",
@@ -400,6 +409,24 @@ def test_command_docs_include_copy_code_behavior() -> None:
 
         assert "<pre><code>" in html
         assert 'src="/assets/copy-code.js"' in html
+
+
+def test_docs_page_has_hosted_playground_controls() -> None:
+    html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
+
+    assert 'id="playgroundForm"' in html
+    assert 'name="workflow"' in html
+    assert 'value="products"' in html
+    assert 'value="website"' in html
+    assert 'id="playgroundUrl"' in html
+    assert 'name="output_format"' in html
+    assert 'value="json"' in html
+    assert 'value="markdown"' in html
+    assert 'id="playgroundStatus"' in html
+    assert 'id="playgroundResults"' in html
+    assert 'id="playgroundDownloadJson"' in html
+    assert 'id="playgroundDownloadMarkdown"' in html
+    assert 'src="/assets/playground.js"' in html
 
 
 def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
