@@ -236,6 +236,30 @@ def test_playground_product_demo_is_public_limited_and_downloadable() -> None:
     assert crawler.product_request.timeout_ms <= 30_000
 
 
+def test_playground_accepts_scheme_less_public_urls() -> None:
+    crawler = _FakePlaygroundCrawler()
+    app.dependency_overrides[get_crawler] = lambda: crawler
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/playground/run",
+            json={
+                "workflow": "scrape",
+                "url": "example.com",
+                "max_items": 1,
+                "output_format": "json",
+            },
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 200
+    payload = resp.json()
+    assert payload["url"] == "https://example.com"
+    assert payload["records"][0]["url"] == "https://example.com"
+    assert crawler.scrape_request.url == "https://example.com"
+
+
 def test_playground_crawl_demo_is_public_limited_and_downloadable() -> None:
     crawler = _FakePlaygroundCrawler()
     app.dependency_overrides[get_crawler] = lambda: crawler

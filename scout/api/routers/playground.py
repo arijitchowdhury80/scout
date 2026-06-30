@@ -214,7 +214,12 @@ async def playground_run(
     crawler: ScoutCrawler = Depends(get_crawler),
 ) -> PlaygroundRunResponse:
     """Run a capped public demo without requiring a hosted API key."""
-    req = req.model_copy(update={"workflow": _normalize_workflow(req.workflow)})
+    req = req.model_copy(
+        update={
+            "workflow": _normalize_workflow(req.workflow),
+            "url": _normalize_public_url(req.url),
+        }
+    )
     if req.workflow not in _CAPABILITY_NAMES:
         raise HTTPException(
             status_code=400, detail=f"Unsupported playground workflow: {req.workflow}"
@@ -243,6 +248,15 @@ def _normalize_workflow(workflow: str) -> str:
     if value == "website":
         return "crawl"
     return value
+
+
+def _normalize_public_url(url: str) -> str:
+    value = url.strip()
+    if not value:
+        return value
+    if "://" in value:
+        return value
+    return f"https://{value}"
 
 
 async def _run_products_playground(

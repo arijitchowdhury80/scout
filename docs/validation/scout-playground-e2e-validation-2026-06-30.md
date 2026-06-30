@@ -67,6 +67,7 @@ Validate the public Scout Playground end to end across every listed capability:
 | Failure | Root Cause | Fix |
 |---|---|---|
 | Browser rejected `www.algolia.com` as missing URL | Playground URL field used `type="url"`, so native browser validation blocked submit before JS ran | Changed field to `type="text"` with `inputmode="url"` and normalized missing schemes in JS |
+| Direct playground API rejected `example.com`/`www.algolia.com` with 403 | Server-side URL safety ran before adding a default scheme | Added backend URL normalization before safety validation |
 | `crawl` summary had `blocked_count=null` in live output | Crawl playground response omitted `blocked_count` | Added `blocked_count: 0` to crawl response summary |
 | `social` returned zero records in first live probe | The test used `example.com`, which has no social profile links | Live certification now uses `https://www.algolia.com`, which returns social records |
 
@@ -86,8 +87,8 @@ ruff format --check scout/ tests/
 | Command | Result |
 |---|---|
 | `python3 -m pytest tests/e2e/test_playground_full_e2e.py -v` | Passed, all 17 UI workflows |
-| `SCOUT_LIVE_TESTS=1 python3 -m pytest tests/live/test_playground_live_workflows.py -v` | Passed, all 17 real backend workflows in 190.47s |
-| `python3 -m pytest tests/unit/api/test_playground.py tests/unit/website/test_launch_website.py tests/e2e/test_playground_full_e2e.py -q` | Passed, 28 tests |
+| `SCOUT_LIVE_TESTS=1 python3 -m pytest tests/live/test_playground_live_workflows.py -v` | Passed, all 17 real backend workflows in 155.67s after fixes |
+| `python3 -m pytest tests/unit/api/test_playground.py tests/unit/website/test_launch_website.py tests/e2e/test_playground_full_e2e.py -q` | Passed, 29 tests |
 | `python3 -m pyright scout/` | Passed, 0 errors |
 | `ruff check scout/ tests/` | Passed |
 | `ruff format --check scout/ tests/` | Passed, 226 files formatted |
