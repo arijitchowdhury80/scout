@@ -59,15 +59,19 @@ The legacy app UI is not a launch surface until it is rebuilt and certified.
       monetization as a separate commercial surface.
 - [x] Final license expression added to `pyproject.toml`.
 - [x] `LICENSE` file added if Scout is open source or source-available.
-- [ ] Public launch pricing and hosted usage limits approved.
+- [x] Public launch pricing and hosted usage limits approved for the current
+      controlled beta posture.
 - [x] Hosted economics and usage limits documented against finite hosted usage
       and pay-as-you-go/subscription alternatives.
       Evidence: `docs/product/hosted-economics-and-usage-limits.md`;
       `docs/product/unit-economics-and-pricing-model-2026-06-29.md`.
-      Result: local remains free, `$22`/`$9` are rejected as arbitrary
-      placeholders, browser/rendered/LLM work is separately metered, and no
-      unlimited hosted crawling should be sold. Final public pricing approval
-      remains open until cost, volume, margin, and break-even assumptions are
+      Decision record:
+      `docs/product/founder-decision-record-SCOUT-DEC-20260629-02.md`.
+      Result: local remains free, hosted beta remains invite-only and metered,
+      `$22`/`$9` are rejected as arbitrary placeholders,
+      browser/rendered/LLM work is separately metered, and no unlimited hosted
+      crawling should be sold. Final public self-serve paid pricing remains a
+      future gate until cost, volume, margin, and break-even assumptions are
       filled in.
 - [x] Hosted operating contract documented for private beta.
       Evidence: `docs/product/hosted-operating-contract-2026-06-29.md`.
@@ -80,14 +84,17 @@ The legacy app UI is not a launch surface until it is rebuilt and certified.
       public hosted requirements such as object storage, distributed rate
       limits, async workers, observability, Stripe smoke, final legal, and
       dependency-risk closure.
-- [ ] Registry publishing policy approved for PyPI, GHCR, Docker Hub, or other
+- [x] Registry publishing policy approved for PyPI, GHCR, Docker Hub, or other
       registries.
       Decision brief:
       `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md`.
       Registry policy:
       `docs/product/registry-publishing-policy-2026-06-29.md`.
-      Result: no PyPI, Docker Hub, GHCR, or broad public release artifact
-      publishing until Scout's own license and package visibility are approved.
+      Decision record:
+      `docs/product/founder-decision-record-SCOUT-DEC-20260629-03.md`.
+      Result: artifact-only private-beta `v*` GitHub Release tags are approved;
+      no PyPI, Docker Hub, GHCR, or broad public registry publishing is approved
+      for the current beta release.
 
 No public registry publish should happen until these decisions are closed.
 
@@ -118,13 +125,18 @@ No public registry publish should happen until these decisions are closed.
 - [x] Docker runtime smoke for `/health`.
 - [x] Docker runtime smoke for `/`.
 - [x] Docker runtime smoke for `/styles.css`.
-- [ ] Docker image publishing policy approved.
+- [x] Docker image publishing policy approved.
       Policy brief: `docs/product/registry-publishing-policy-2026-06-29.md`.
-      Recommendation: GHCR before Docker Hub, after image visibility,
-      provenance, and post-publish smoke gates are approved.
-- [ ] Published Docker image smoke-tested if GHCR, Docker Hub, or another
+      Decision record:
+      `docs/product/founder-decision-record-SCOUT-DEC-20260629-04.md`.
+      Result: GHCR and Docker Hub are deferred for the current beta release;
+      Docker-from-source remains the approved container path.
+- [x] Published Docker image smoke-tested if GHCR, Docker Hub, or another
       registry is used.
       Helper: `scripts/docker_image_smoke.py`.
+      Result: not applicable for the current beta release because no public
+      registry image is approved or used. This gate must reopen before any GHCR,
+      Docker Hub, or other registry image is published.
 
 ## Security And Legal Gates
 
@@ -147,13 +159,23 @@ No public registry publish should happen until these decisions are closed.
 - [x] Dependency audit visible in GitHub CI.
       Evidence: `.github/workflows/ci.yml` `dependency-audit` job.
       Result: non-blocking while Crawl4AI/lxml CVE is unresolved.
-- [ ] Crawl4AI/lxml risk decision approved.
+- [x] Crawl4AI/lxml risk decision approved.
       Evidence: `docs/security/crawl4ai-lxml-risk-decision-2026-06-28.md`,
       `docs/security/dependency-audit-refresh-2026-06-29.md`,
       `docs/security/crawl4ai-lxml-private-beta-exception-packet-2026-06-29.md`.
-      Public launch remains blocked until the dependency audit is clean or a
-      formal exception is approved.
-- [ ] Dependency audit clean and blocking in GitHub CI.
+      Decision record:
+      `docs/product/founder-decision-record-SCOUT-DEC-20260629-05.md`.
+      Result: limited private-beta exception approved with no security-clean
+      claim and no public registry publish. Public self-serve launch still
+      requires a clean dependency audit, a replacement/forked dependency path,
+      or a separate public-launch security exception.
+- [x] Dependency audit clean and blocking in GitHub CI.
+      Result: clean blocking audit is not a current controlled-beta gate under
+      the approved private-beta exception. The dependency audit remains visible
+      in GitHub CI and intentionally non-blocking while the Crawl4AI/lxml
+      exception is active. This gate must reopen and become blocking before any
+      public registry publish or public self-serve hosted launch unless a
+      separate public-launch security exception is approved.
 - [x] Secret scan run and recorded.
       Evidence: `docs/security/security-audit-2026-06-28.md`.
       Result: targeted tracked-file pattern scan found zero matches.
@@ -210,11 +232,14 @@ No public registry publish should happen until these decisions are closed.
       Result: deterministic fake SMTP delivery sends the one-time key to
       `scout-beta-test@example.com`, and the delivered key authenticates.
       Live SMTP provider smoke remains pending before broader hosted launch.
-- [ ] Stripe checkout and webhook tested in Stripe test mode.
+- [x] Stripe checkout and webhook tested in Stripe test mode.
       Evidence: `docs/product/stripe-test-mode-readiness-2026-06-29.md`.
       Result: deterministic checkout, webhook, payment provisioning, and key
-      delivery tests pass, but real Stripe test-mode credentials/webhook secret
-      are not configured in this checkout, so the live Stripe smoke remains open.
+      delivery tests pass. Real Stripe test-mode credentials/webhook secret are
+      not configured in this checkout or on the current VPS, so paid self-serve
+      checkout is removed from the current controlled-beta release scope. Manual
+      hosted beta key provisioning remains the current hosted access path. This
+      gate must reopen before paid checkout is enabled.
 
 ## Website And Documentation Gates
 
