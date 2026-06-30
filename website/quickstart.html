@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout Quickstart - Local-first web acquisition</title>
+    <title>Scout Quickstart - Hosted and local web acquisition</title>
     <meta
       name="description"
-      content="Install Scout locally, choose a workdir, run the HTTP service, and produce citable acquisition artifacts."
+      content="Use hosted Scout with an API key or install Scout locally to produce citable acquisition artifacts."
     />
     <link rel="icon" href="/assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/warm-industrial-design-system/warm-industrial.css" />
@@ -36,17 +36,53 @@
       <main>
         <section class="page-hero">
           <p class="wi-label wi-label--accent">Scout Quickstart</p>
-          <h1>Local install is the primary beta path.</h1>
+          <h1>Use hosted Scout with an API key, or run it locally.</h1>
           <p>
-            Scout is safest to test on your own machine first: your workdir,
-            your artifacts, your optional keys, and your browser capture path.
+            If you are using this website, start with the hosted API examples
+            below. Install locally when you want your own workdir, local
+            artifacts, or browser/session capture on your machine.
           </p>
+        </section>
+
+        <section class="section step-section" aria-labelledby="hosted-api-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Path 01 · Hosted beta</p>
+            <h2 id="hosted-api-title">Call the live Scout API.</h2>
+          </div>
+          <p>
+            Hosted beta is invite-only and metered. Use the domain below with
+            the API key delivered to you. Do not use localhost for hosted calls.
+          </p>
+          <pre><code>export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
+export SCOUT_HOSTED_API_KEY="paste-your-delivered-key"
+
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+
+curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","formats":["markdown"],"timeout_ms":30000}'</code></pre>
+          <div class="note-grid">
+            <article>
+              <h3>Use the real domain</h3>
+              <p>Hosted calls go to `https://scout.chowmes.com/v1/hosted/*` with `Authorization: Bearer ...`.</p>
+            </article>
+            <article>
+              <h3>Credits</h3>
+              <p>`/v1/hosted/me` shows your plan, balance, and current limits. A basic hosted scrape consumes one standard credit.</p>
+            </article>
+            <article>
+              <h3>Keys</h3>
+              <p>Never paste hosted API keys into frontend code, public repos, screenshots, tickets, or shared logs.</p>
+            </article>
+          </div>
         </section>
 
         <section class="section step-section" aria-labelledby="python-install-title">
           <div class="section-heading">
-            <p class="wi-label wi-label--accent">Path 01</p>
-            <h2 id="python-install-title">Install from the verified private-beta branch.</h2>
+            <p class="wi-label wi-label--accent">Path 02 · Local install</p>
+            <h2 id="python-install-title">Run Scout on your own machine.</h2>
           </div>
           <pre><code>python3 -m venv .venv
 source .venv/bin/activate
@@ -57,23 +93,23 @@ scout serve</code></pre>
           <div class="note-grid">
             <article>
               <h3>Workdir</h3>
-              <p>`SCOUT_WORKDIR` is where Scout writes run artifacts: records, source pages, blocked pages, validation, reports, raw evidence, and screenshots.</p>
+              <p>`SCOUT_WORKDIR` is where local Scout writes records, source pages, blocked pages, validation, reports, raw evidence, and screenshots.</p>
             </article>
             <article>
-              <h3>Health check</h3>
-              <p>Open `http://127.0.0.1:8421/health` after `scout serve` starts. The launch website is served from `/`. Local Swagger API docs remain at `/docs`; hosted deployments keep Swagger private.</p>
+              <h3>Local health check</h3>
+              <p>Only after `scout serve` is running locally, open `http://127.0.0.1:8421/health` or `http://127.0.0.1:8421/docs` on the same machine.</p>
             </article>
             <article>
               <h3>Package release</h3>
-              <p>`pip install scout-web` comes after the registry publishing and license gates close. Until then, beta installs use the verified launch branch.</p>
+              <p>`pip install scout-web` comes after registry publishing gates close. Until then, beta installs use the verified launch branch.</p>
             </article>
           </div>
         </section>
 
         <section class="section step-section" aria-labelledby="docker-title">
           <div class="section-heading">
-            <p class="wi-label wi-label--accent">Path 02</p>
-            <h2 id="docker-title">Run with Docker when you want a clean service boundary.</h2>
+            <p class="wi-label wi-label--accent">Path 03 · Docker</p>
+            <h2 id="docker-title">Use Docker when you want a clean local service boundary.</h2>
           </div>
           <pre><code>docker compose -f docker/docker-compose.yml up -d
 curl http://127.0.0.1:8421/health</code></pre>
@@ -127,43 +163,6 @@ scout launch-readiness --require-public</code></pre>
           </div>
         </section>
 
-        <section class="section step-section" aria-labelledby="hosted-api-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Hosted beta</p>
-            <h2 id="hosted-api-title">Use hosted Scout only after you receive an API key.</h2>
-          </div>
-          <p>
-            Hosted beta is a convenience API with finite credits. It is not
-            unlimited crawling, and local Scout remains the primary beta path.
-            Hosted beta remains invite-only and metered while pricing is
-            derived from unit economics. Final credits, retention, and overage
-            rules are not approved yet.
-          </p>
-          <pre><code>export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
-export SCOUT_HOSTED_API_KEY="paste-your-delivered-key"
-
-curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
-  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
-
-curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
-  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com","formats":["markdown"],"timeout_ms":30000}'</code></pre>
-          <div class="note-grid">
-            <article>
-              <h3>Credits</h3>
-              <p>`/v1/hosted/me` shows your plan, credit balance, and current limits. A basic hosted scrape consumes one standard credit.</p>
-            </article>
-            <article>
-              <h3>Bearer auth</h3>
-              <p>Hosted endpoints use `Authorization: Bearer ...`. Do not put hosted keys in frontend code, public repos, screenshots, or shared logs.</p>
-            </article>
-            <article>
-              <h3>Artifacts</h3>
-              <p>High-level hosted runs write records and source evidence into hosted artifact storage with limited beta retention.</p>
-            </article>
-          </div>
-        </section>
       </main>
     </div>
   </body>

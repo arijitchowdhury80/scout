@@ -18,8 +18,8 @@ _REPO_ROOT = _WEBSITE_DIR.parent
 def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
 
-    assert "What you get back" in html
-    assert "Records plus proof." in html
+    assert "What Scout returns" in html
+    assert "Clean records with evidence attached." in html
     assert "The crawler is only the first step." in html
     assert "Citation-grade evidence" in html
     assert "Typed records" in html
@@ -78,7 +78,7 @@ def test_api_root_serves_launch_website_from_same_origin() -> None:
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert "Turn messy web pages into citable, downstream-ready records." in response.text
-    assert "Records plus proof." in response.text
+    assert "Clean records with evidence attached." in response.text
     assert "The crawler is only the first step." in response.text
     assert "Demo and search builds" in response.text
     assert 'id="hostedBetaCheckout"' not in response.text
@@ -159,7 +159,10 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
     pages = {
         "quickstart.html": [
             "Scout Quickstart",
-            "Local install is the primary beta path.",
+            "Use hosted Scout with an API key, or run it locally.",
+            "Call the live Scout API.",
+            "https://scout.chowmes.com",
+            "Do not use localhost for hosted calls.",
             "codex/scout-platform-foundation",
             'pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"',
             "SCOUT_WORKDIR",
@@ -168,13 +171,11 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Private beta: ready_with_limits",
             "--require-public",
             "docker compose",
-            "Use hosted Scout only after you receive an API key.",
+            "Run Scout on your own machine.",
             "SCOUT_HOSTED_API_KEY",
             "/v1/hosted/me",
             "/v1/hosted/scrape",
             "invite-only and metered",
-            "unit economics",
-            "Final credits, retention, and overage",
         ],
         "pricing.html": [
             "Scout Pricing",
@@ -309,6 +310,17 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             assert expected in normalized_html
         assert "sk_live_" not in html
         assert "sk_test_" not in html
+
+
+def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
+    html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
+
+    hosted_index = html.index("https://scout.chowmes.com")
+    localhost_index = html.index("http://127.0.0.1:8421")
+
+    assert hosted_index < localhost_index
+    assert "Do not use localhost for hosted calls." in html
+    assert "Only after `scout serve` is running locally" in html
 
 
 def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
