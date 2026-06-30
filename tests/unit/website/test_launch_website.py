@@ -255,8 +255,9 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         "quickstart.html": [
             "Scout Docs",
             "One page for hosted API, local install, examples, and artifacts.",
-            "Try Scout before you buy.",
-            "Playground runs are capped",
+            "Scout Playground",
+            "Try every Scout capability before you buy.",
+            "The playground rejects local/private URLs",
             "Download JSON",
             "Download Markdown",
             "This replaces separate Quickstart, Guide, Examples, and API Guide pages.",
@@ -414,16 +415,46 @@ def test_command_docs_include_copy_code_behavior() -> None:
 def test_docs_page_has_hosted_playground_controls() -> None:
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
 
+    assert "Scout Playground" in html
+    assert "Choose a Scout capability" in html
+    assert "Acquire" in html
+    assert "Intelligence" in html
+    assert "Commerce" in html
+    assert "Evidence And Exports" in html
     assert 'id="playgroundForm"' in html
     assert 'name="workflow"' in html
-    assert 'value="products"' in html
-    assert 'value="website"' in html
+    for capability in (
+        "scrape",
+        "crawl",
+        "map",
+        "extract",
+        "screenshot",
+        "products",
+        "company",
+        "prism",
+        "investor",
+        "careers",
+        "jobs",
+        "news",
+        "research",
+        "docs",
+        "social",
+        "locations",
+        "website-quality",
+    ):
+        assert f'value="{capability}"' in html
     assert 'id="playgroundUrl"' in html
+    assert 'id="playgroundQuery"' in html
     assert 'name="output_format"' in html
     assert 'value="json"' in html
     assert 'value="markdown"' in html
     assert 'id="playgroundStatus"' in html
     assert 'id="playgroundResults"' in html
+    assert 'id="playgroundCurl"' in html
+    assert 'data-playground-tab="preview"' in html
+    assert 'data-playground-tab="json"' in html
+    assert 'data-playground-tab="markdown"' in html
+    assert 'data-playground-tab="curl"' in html
     assert 'id="playgroundDownloadJson"' in html
     assert 'id="playgroundDownloadMarkdown"' in html
     assert 'src="/assets/playground.js"' in html

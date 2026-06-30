@@ -11,17 +11,128 @@ from scout.core.types import (
     BlockedPage,
     CrawlPage,
     CrawlResponse,
+    ExtractResponse,
+    MapResponse,
     ProductArtifactFiles,
     ProductCrawlResponse,
     ProductSource,
     ScoutMetadata,
+    ScrapeResponse,
+    ScreenshotResponse,
 )
+
+
+ALL_PLAYGROUND_CAPABILITIES = {
+    "scrape",
+    "crawl",
+    "map",
+    "extract",
+    "screenshot",
+    "products",
+    "company",
+    "prism",
+    "investor",
+    "careers",
+    "jobs",
+    "news",
+    "research",
+    "docs",
+    "social",
+    "locations",
+    "website-quality",
+}
 
 
 class _FakePlaygroundCrawler:
     def __init__(self) -> None:
         self.product_request = None
         self.crawl_request = None
+        self.scrape_request = None
+        self.map_request = None
+        self.extract_request = None
+        self.screenshot_request = None
+
+    async def scrape(self, req):
+        self.scrape_request = req
+        markdown = (
+            "# Demo Company\n\n"
+            "Demo Company builds useful web tools. Jane Doe, Chief Executive Officer.\n"
+            "Careers Engineering Sales. Latest news and blog updates.\n"
+            "[LinkedIn](https://www.linkedin.com/company/demo-company)\n"
+            "Address: 123 Market Street, San Francisco, CA 94105\n"
+        )
+        return ScrapeResponse(
+            success=True,
+            url=req.url,
+            markdown=markdown,
+            raw_markdown=markdown,
+            clean_markdown=markdown,
+            raw_html=(
+                "<html><head><title>Demo Company</title>"
+                "<meta name='viewport' content='width=device-width'>"
+                "<meta name='description' content='Demo company'>"
+                "<meta property='og:title' content='Demo Company'>"
+                "<script type='application/ld+json'>{}</script></head>"
+                "<body><main><h1>Demo Company</h1><img alt='Demo' src='demo.png'>"
+                "<a href='/about'>About</a><a href='/careers'>Careers</a></main></body></html>"
+            ),
+            links=[
+                "https://www.linkedin.com/company/demo-company",
+                "https://example.com/about",
+                "https://example.com/careers",
+                "https://example.com/news",
+            ],
+            metadata=ScoutMetadata(
+                url=req.url,
+                crawled_at="2026-06-30T00:00:00Z",
+                title="Demo Company",
+                word_count=32,
+            ),
+            final_url=req.url,
+            fetched_at="2026-06-30T00:00:00Z",
+            provider="fake",
+            content_hash="abc123",
+            quality_score=0.95,
+            quality_reasons=["title_present", "not_blocked"],
+            duration_ms=10,
+        )
+
+    async def map_urls(self, req):
+        self.map_request = req
+        return MapResponse(
+            success=True,
+            start_url=req.url,
+            urls=[req.url, f"{req.url.rstrip('/')}/about", f"{req.url.rstrip('/')}/careers"],
+            total=3,
+            duration_ms=7,
+        )
+
+    async def extract(self, req):
+        self.extract_request = req
+        return ExtractResponse(
+            success=True,
+            url=req.url,
+            data={"title": "Demo Company", "summary": "Useful extracted data"},
+            markdown="# Demo Company\n\nUseful extracted data.",
+            metadata=ScoutMetadata(
+                url=req.url,
+                crawled_at="2026-06-30T00:00:00Z",
+                title="Demo Company",
+                word_count=4,
+            ),
+            duration_ms=9,
+        )
+
+    async def screenshot(self, req):
+        self.screenshot_request = req
+        return ScreenshotResponse(
+            success=True,
+            url=req.url,
+            screenshot_base64="iVBORw0KGgo=",
+            width=req.viewport_width,
+            height=req.viewport_height,
+            duration_ms=11,
+        )
 
     async def products(self, req):
         self.product_request = req
@@ -125,7 +236,7 @@ def test_playground_product_demo_is_public_limited_and_downloadable() -> None:
     assert crawler.product_request.timeout_ms <= 30_000
 
 
-def test_playground_website_demo_is_public_limited_and_downloadable() -> None:
+def test_playground_crawl_demo_is_public_limited_and_downloadable() -> None:
     crawler = _FakePlaygroundCrawler()
     app.dependency_overrides[get_crawler] = lambda: crawler
     try:
@@ -145,7 +256,7 @@ def test_playground_website_demo_is_public_limited_and_downloadable() -> None:
     assert resp.status_code == 200
     payload = resp.json()
     assert payload["success"] is True
-    assert payload["workflow"] == "website"
+    assert payload["workflow"] == "crawl"
     assert payload["limits"]["max_pages"] == 5
     assert payload["summary"]["page_count"] == 1
     assert payload["records"][0]["markdown"] == "# Demo page\n\nUseful content."
@@ -157,6 +268,51 @@ def test_playground_website_demo_is_public_limited_and_downloadable() -> None:
     assert crawler.crawl_request.timeout_ms <= 30_000
 
 
+def test_playground_capabilities_endpoint_lists_every_scout_feature() -> None:
+    client = TestClient(app)
+
+    resp = client.get("/v1/playground/capabilities")
+
+    assert resp.status_code == 200
+    payload = resp.json()
+    capability_names = {capability["name"] for capability in payload["capabilities"]}
+    assert ALL_PLAYGROUND_CAPABILITIES.issubset(capability_names)
+    assert payload["limits"]["max_products"] == 10
+    assert payload["limits"]["max_pages"] == 5
+    assert payload["limits"]["max_records"] == 10
+
+
+def test_playground_runs_all_scout_capabilities_with_public_caps() -> None:
+    for index, capability in enumerate(sorted(ALL_PLAYGROUND_CAPABILITIES), start=1):
+        crawler = _FakePlaygroundCrawler()
+        app.dependency_overrides[get_crawler] = lambda: crawler
+        try:
+            client = TestClient(app)
+            resp = client.post(
+                "/v1/playground/run",
+                headers={"X-Forwarded-For": f"198.51.100.{index}"},
+                json={
+                    "workflow": capability,
+                    "url": "https://example.com",
+                    "query": "Demo Company",
+                    "max_items": 99,
+                    "output_format": "json",
+                },
+            )
+        finally:
+            app.dependency_overrides.clear()
+
+        assert resp.status_code == 200, capability
+        payload = resp.json()
+        assert payload["workflow"] == capability
+        assert payload["success"] is True
+        assert payload["summary"]["capped"] is True
+        assert payload["summary"]["record_count"] >= 1
+        assert payload["downloads"]["json"]
+        assert payload["downloads"]["markdown"]
+        assert payload["download_filenames"]["json"] == f"scout-playground-{capability}.json"
+
+
 def test_playground_rejects_private_or_local_urls_without_running() -> None:
     crawler = _FakePlaygroundCrawler()
     app.dependency_overrides[get_crawler] = lambda: crawler
@@ -164,6 +320,7 @@ def test_playground_rejects_private_or_local_urls_without_running() -> None:
         client = TestClient(app)
         resp = client.post(
             "/v1/playground/run",
+            headers={"X-Forwarded-For": "198.51.100.200"},
             json={
                 "workflow": "website",
                 "url": "http://127.0.0.1:8421/health",

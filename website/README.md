@@ -61,9 +61,11 @@ Hosted beta checkout:
 Hosted playground:
 
 - The Docs page includes a public `/v1/playground/run` demo for try-before-buy
-  usage.
-- Anonymous runs are intentionally capped: product runs return up to 10 records;
-  website runs crawl one level and up to 5 pages.
+  usage across Scout's core acquisition, commerce, intelligence, and evidence
+  workflows.
+- Anonymous runs are intentionally capped: products return up to 10 records,
+  crawl/map return up to 5 pages, intelligence workflows return up to 10
+  records, and single-page workflows use a 30 second timeout.
 - The playground rejects local/private network URLs, returns downloadable JSON
   and Markdown directly to the browser, and does not grant access to paid
   `/v1/hosted/*` API routes.

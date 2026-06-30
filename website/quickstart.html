@@ -45,61 +45,126 @@
         </section>
 
         <section class="section playground-section" aria-labelledby="playground-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Try before you buy</p>
-            <h2 id="playground-title">Try Scout before you buy.</h2>
-          </div>
-          <p>
-            Run a small hosted demo without an API key. Playground runs are
-            capped to 10 product records or 5 website pages, reject local or
-            private network URLs, and return downloadable JSON and Markdown.
-          </p>
-          <form id="playgroundForm" class="playground-form">
-            <div class="playground-fields">
-              <label>
-                Workflow
-                <select name="workflow" id="playgroundWorkflow">
-                  <option value="products">Product page or category</option>
-                  <option value="website">Website crawl</option>
-                </select>
-              </label>
-              <label>
-                Public URL
-                <input
-                  id="playgroundUrl"
-                  name="url"
-                  type="url"
-                  placeholder="https://example.com"
-                  required
-                />
-              </label>
-              <label>
-                Preview format
-                <select name="output_format" id="playgroundOutputFormat">
-                  <option value="json">JSON</option>
-                  <option value="markdown">Markdown</option>
-                </select>
-              </label>
-            </div>
-            <div class="playground-actions">
-              <button class="wi-btn" type="submit">Run hosted demo</button>
-              <span id="playgroundStatus" class="playground-status" role="status" aria-live="polite">
-                Ready for a small public URL.
-              </span>
-            </div>
-          </form>
-          <div class="playground-results-shell">
-            <div class="playground-results-head">
+          <div class="playground-shell">
+            <div class="playground-hero">
               <div>
-                <p class="wi-label">Results preview</p>
-                <h3>Records returned by Scout</h3>
+                <p class="wi-label wi-label--accent">Scout Playground</p>
+                <h2 id="playground-title">Try every Scout capability before you buy.</h2>
               </div>
-              <div class="playground-downloads">
-                <button id="playgroundDownloadJson" class="wi-pill" type="button" disabled>Download JSON</button>
-                <button id="playgroundDownloadMarkdown" class="wi-pill" type="button" disabled>Download Markdown</button>
+              <p>
+                Choose a Scout capability, run a capped hosted demo, inspect the
+                response, copy the API call, and download JSON or Markdown. The
+                playground rejects local/private URLs and runs with public beta
+                safety limits.
+              </p>
+            </div>
+
+            <div class="playground-limit-row" aria-label="Playground limits">
+              <span>10 products</span>
+              <span>5 crawl/map pages</span>
+              <span>10 intelligence records</span>
+              <span>30 second timeout</span>
+              <span>No API key required</span>
+            </div>
+
+            <div class="playground-workspace">
+              <form id="playgroundForm" class="playground-form">
+                <div class="playground-capability-panel">
+                  <label>
+                    Choose a Scout capability
+                    <select name="workflow" id="playgroundWorkflow">
+                      <optgroup label="Acquire">
+                        <option value="scrape">Scrape - one page to markdown</option>
+                        <option value="crawl">Crawl - one level website crawl</option>
+                        <option value="map">Map - discover site URLs</option>
+                        <option value="screenshot">Screenshot - rendered page capture</option>
+                      </optgroup>
+                      <optgroup label="Commerce">
+                        <option value="products">Products - catalog records</option>
+                      </optgroup>
+                      <optgroup label="Intelligence">
+                        <option value="company">Company intelligence</option>
+                        <option value="prism">PRISM company bundle</option>
+                        <option value="investor">Investor intelligence</option>
+                        <option value="careers">Careers and hiring</option>
+                        <option value="jobs">Jobs</option>
+                        <option value="news">News and blogs</option>
+                        <option value="social">Social profiles</option>
+                        <option value="locations">Locations</option>
+                        <option value="website-quality">Website quality</option>
+                      </optgroup>
+                      <optgroup label="Evidence And Exports">
+                        <option value="extract">Extract - structured page data</option>
+                        <option value="research">Research - cited summary records</option>
+                        <option value="docs">Documentation - docs page records</option>
+                      </optgroup>
+                    </select>
+                  </label>
+                  <p id="playgroundCapabilityHelp" class="playground-help">
+                    Fetch one page and return clean markdown plus evidence metadata.
+                  </p>
+                </div>
+
+                <div class="playground-config-panel">
+                  <label>
+                    Public URL
+                    <input
+                      id="playgroundUrl"
+                      name="url"
+                      type="url"
+                      placeholder="https://example.com"
+                      required
+                    />
+                  </label>
+                  <label>
+                    Optional query or instruction
+                    <input
+                      id="playgroundQuery"
+                      name="query"
+                      type="text"
+                      placeholder="Example: find product records, investor assets, latest blogs"
+                    />
+                  </label>
+                  <label>
+                    Preview format
+                    <select name="output_format" id="playgroundOutputFormat">
+                      <option value="json">JSON</option>
+                      <option value="markdown">Markdown</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="playground-actions">
+                  <button class="wi-btn" type="submit">Run Scout Playground</button>
+                  <span id="playgroundStatus" class="playground-status" role="status" aria-live="polite">
+                    Ready. Choose a capability and enter a public URL.
+                  </span>
+                </div>
+              </form>
+
+              <div class="playground-results-shell">
+                <div class="playground-results-head">
+                  <div>
+                    <p class="wi-label">Results preview</p>
+                    <h3>What Scout returned</h3>
+                  </div>
+                  <div class="playground-downloads">
+                    <button id="playgroundDownloadJson" class="wi-pill" type="button" disabled>Download JSON</button>
+                    <button id="playgroundDownloadMarkdown" class="wi-pill" type="button" disabled>Download Markdown</button>
+                  </div>
+                </div>
+                <div class="playground-tabs" role="tablist" aria-label="Playground output">
+                  <button type="button" data-playground-tab="preview" aria-selected="true">Preview</button>
+                  <button type="button" data-playground-tab="json" aria-selected="false">JSON</button>
+                  <button type="button" data-playground-tab="markdown" aria-selected="false">Markdown</button>
+                  <button type="button" data-playground-tab="curl" aria-selected="false">cURL</button>
+                </div>
+                <pre id="playgroundResults" class="playground-results" data-playground-panel="preview"><code>No run yet. Enter a public URL and run Scout.</code></pre>
+                <pre id="playgroundJson" class="playground-results" data-playground-panel="json" hidden><code>{}</code></pre>
+                <pre id="playgroundMarkdown" class="playground-results" data-playground-panel="markdown" hidden><code>No Markdown yet.</code></pre>
+                <pre id="playgroundCurl" class="playground-results" data-playground-panel="curl" hidden><code>curl -X POST "https://scout.chowmes.com/v1/playground/run"</code></pre>
               </div>
             </div>
-            <pre id="playgroundResults" class="playground-results"><code>No run yet. Enter a public URL and run the hosted demo.</code></pre>
           </div>
         </section>
 
