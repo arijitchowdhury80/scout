@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.types import RunRequest
@@ -57,6 +57,16 @@ def _company_name(req: RunRequest) -> str:
     return req.query.strip() or "unknown"
 
 
+def _candidate_urls(base: str) -> list[str]:
+    parsed = urlparse(base)
+    root = f"{parsed.scheme}://{parsed.netloc}" if parsed.scheme and parsed.netloc else base
+    urls: list[str] = []
+    if parsed.path and parsed.path != "/":
+        urls.append(base)
+    urls.extend(urljoin(root.rstrip("/") + "/", path.lstrip("/")) for path in _CAREERS_PATHS)
+    return list(dict.fromkeys(urls))
+
+
 def _detect_ats(all_text: str) -> str:
     for platform, pattern in _ATS_PATTERNS.items():
         if pattern.search(all_text):
@@ -93,8 +103,7 @@ async def run_careers(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
     careers_url = ""
     source = None
 
-    for path in _CAREERS_PATHS:
-        url = urljoin(base + "/", path.lstrip("/"))
+    for url in _candidate_urls(base):
         resp = await safe_scrape(crawler, url)
         if resp:
             source = evidence_from_scrape(url, resp)

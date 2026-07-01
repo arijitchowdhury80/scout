@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 from scout.api.deps import get_crawler
 from scout.api.main import app
+from scout.api.routers import playground as playground_router
 from scout.core.types import (
     AlgoliaProductRecord,
     BlockedPage,
@@ -304,6 +305,42 @@ def test_playground_capabilities_endpoint_lists_every_scout_feature() -> None:
     assert payload["limits"]["max_products"] == 10
     assert payload["limits"]["max_pages"] == 5
     assert payload["limits"]["max_records"] == 10
+
+
+def test_playground_rate_limit_allows_one_full_capability_tour() -> None:
+    """The public playground promises users can try every listed capability."""
+    crawler = _FakePlaygroundCrawler()
+    client_ip = "198.51.100.88"
+    playground_router._RATE_BUCKETS.pop(client_ip, None)
+    app.dependency_overrides[get_crawler] = lambda: crawler
+    try:
+        client = TestClient(app)
+        capabilities_resp = client.get("/v1/playground/capabilities")
+        assert capabilities_resp.status_code == 200
+        capabilities = [
+            capability["name"] for capability in capabilities_resp.json()["capabilities"]
+        ]
+        assert capabilities_resp.json()["limits"]["requests_per_hour"] >= len(capabilities)
+
+        statuses = []
+        for capability in capabilities:
+            resp = client.post(
+                "/v1/playground/run",
+                headers={"X-Forwarded-For": client_ip},
+                json={
+                    "workflow": capability,
+                    "url": "https://example.com",
+                    "query": "Demo Company",
+                    "max_items": 99,
+                    "output_format": "json",
+                },
+            )
+            statuses.append((capability, resp.status_code))
+    finally:
+        app.dependency_overrides.clear()
+        playground_router._RATE_BUCKETS.pop(client_ip, None)
+
+    assert statuses == [(capability, 200) for capability in capabilities]
 
 
 def test_playground_runs_all_scout_capabilities_with_public_caps() -> None:

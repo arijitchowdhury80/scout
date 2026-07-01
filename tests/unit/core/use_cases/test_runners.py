@@ -49,6 +49,16 @@ def _mock_crawler(responses: dict[str, ScrapeResponse]) -> MagicMock:
     return crawler
 
 
+def _mock_exact_crawler(responses: dict[str, ScrapeResponse]) -> MagicMock:
+    crawler = MagicMock()
+
+    async def _scrape(req):
+        return responses.get(req.url, _scrape_fail(req.url))
+
+    crawler.scrape = AsyncMock(side_effect=_scrape)
+    return crawler
+
+
 def _req(use_case: str, query: str = "Acme Corp", url: str = "https://www.acme.com") -> RunRequest:
     return RunRequest(use_case=use_case, query=query, url=url, mode="auto")
 
@@ -194,6 +204,27 @@ async def test_careers_runner_returns_empty_when_no_careers_page() -> None:
     assert records == []
 
 
+@pytest.mark.asyncio
+async def test_careers_runner_uses_supplied_exact_careers_url_first() -> None:
+    from scout.core.use_cases.runners.careers import run_careers
+
+    exact_url = "https://www.adobe.com/careers.html"
+    crawler = _mock_exact_crawler(
+        {
+            exact_url: _scrape_ok(
+                exact_url,
+                "# Careers\n\nEngineering, sales, support, and design roles.",
+            )
+        }
+    )
+
+    records = await run_careers(_req("careers", query="Adobe", url=exact_url), crawler)
+
+    assert len(records) == 1
+    assert records[0]["careers_url"] == exact_url
+    assert crawler.scrape.await_args_list[0].args[0].url == exact_url
+
+
 # ---------------------------------------------------------------------------
 # Investor runner
 # ---------------------------------------------------------------------------
@@ -239,6 +270,27 @@ async def test_investor_runner_returns_empty_when_no_ir_page() -> None:
     crawler = _mock_crawler({})
     records = await run_investor(_req("investor"), crawler)
     assert records == []
+
+
+@pytest.mark.asyncio
+async def test_investor_runner_uses_supplied_exact_investor_url_first() -> None:
+    from scout.core.use_cases.runners.investor import run_investor
+
+    exact_url = "https://www.adobe.com/investor-relations.html"
+    crawler = _mock_exact_crawler(
+        {
+            exact_url: _scrape_ok(
+                exact_url,
+                "# Investor Relations\n\nAnnual Report 2025. Earnings release. NASDAQ: ADBE.",
+            )
+        }
+    )
+
+    records = await run_investor(_req("investor", query="Adobe", url=exact_url), crawler)
+
+    assert len(records) >= 2
+    assert records[0]["url"] == exact_url
+    assert crawler.scrape.await_args_list[0].args[0].url == exact_url
 
 
 # ---------------------------------------------------------------------------

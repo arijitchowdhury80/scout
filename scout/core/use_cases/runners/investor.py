@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.types import RunRequest
@@ -51,6 +51,16 @@ def _extract_ticker(markdown: str) -> str:
     return match.group(1) if match else ""
 
 
+def _candidate_urls(base: str) -> list[str]:
+    parsed = urlparse(base)
+    root = f"{parsed.scheme}://{parsed.netloc}" if parsed.scheme and parsed.netloc else base
+    urls: list[str] = []
+    if parsed.path and parsed.path != "/":
+        urls.append(base)
+    urls.extend(urljoin(root.rstrip("/") + "/", path.lstrip("/")) for path in _IR_PATHS)
+    return list(dict.fromkeys(urls))
+
+
 async def run_investor(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
     base = _base_url(req)
     company = _company_name(req)
@@ -61,8 +71,7 @@ async def run_investor(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
     ir_url = ""
     source = None
 
-    for path in _IR_PATHS:
-        url = urljoin(base + "/", path.lstrip("/"))
+    for url in _candidate_urls(base):
         resp = await safe_scrape(crawler, url)
         if resp:
             source = evidence_from_scrape(url, resp)
