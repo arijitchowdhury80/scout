@@ -142,15 +142,17 @@ def test_public_hosted_only_blocks_local_routes_even_with_static_key() -> None:
     assert resp.json()["detail"] == "Local Scout API is disabled in hosted-only mode."
 
 
-def test_public_hosted_only_blocks_docs() -> None:
-    """Hosted-only mode must not expose local developer docs."""
+def test_public_hosted_only_allows_product_docs_but_blocks_api_docs() -> None:
+    """Hosted-only mode serves product docs but not local developer API docs."""
     client = TestClient(_make_app(api_key="test-key", public_hosted_only=True))
 
-    docs_resp = client.get("/docs")
+    product_docs_resp = client.get("/docs")
+    api_docs_resp = client.get("/api/docs")
     openapi_resp = client.get("/openapi.json")
     health_resp = client.get("/health")
 
-    assert docs_resp.status_code == 403
+    assert product_docs_resp.status_code == 200
+    assert api_docs_resp.status_code == 403
     assert openapi_resp.status_code == 403
     assert health_resp.status_code == 200
 

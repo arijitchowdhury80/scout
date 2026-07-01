@@ -99,7 +99,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await run_db.close()
 
 
-app = FastAPI(title="Scout", lifespan=lifespan)
+app = FastAPI(
+    title="Scout",
+    lifespan=lifespan,
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+)
 
 app.add_middleware(
     AuthMiddleware,

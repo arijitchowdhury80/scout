@@ -326,6 +326,83 @@ a {
   line-height: 1.55;
 }
 
+.docs-hero {
+  padding-bottom: 46px;
+}
+
+.docs-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+  border-left: 1px solid var(--wi-border);
+  border-right: 1px solid var(--wi-border);
+}
+
+.docs-sidebar {
+  position: sticky;
+  top: 82px;
+  align-self: start;
+  min-height: calc(100vh - 82px);
+  padding: 34px 24px;
+  border-right: 1px solid var(--wi-border);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.docs-sidebar nav {
+  display: grid;
+  gap: 4px;
+  margin-top: 18px;
+}
+
+.docs-sidebar nav a {
+  display: block;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(24, 24, 27, 0.08);
+  color: #3f3f46;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.docs-sidebar nav a:focus-visible,
+.docs-sidebar nav a:hover {
+  color: var(--wi-fg);
+}
+
+.docs-sidebar__callout {
+  margin-top: 28px;
+  padding: 18px;
+  border: 1px solid var(--wi-border);
+  background: #fff;
+}
+
+.docs-sidebar__callout strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.docs-sidebar__callout p {
+  margin: 0 0 14px;
+  color: var(--wi-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.docs-content {
+  min-width: 0;
+}
+
+.docs-content > .section {
+  padding-top: 54px;
+  padding-bottom: 54px;
+}
+
+.docs-content .section-heading {
+  max-width: 860px;
+}
+
 .hero-kicker {
   display: flex;
   flex-wrap: wrap;
@@ -1205,6 +1282,13 @@ ul {
   background: rgba(188, 138, 46, 0.12);
 }
 
+.purchase-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 28px;
+}
+
 .beta {
   align-items: center;
 }
@@ -1353,6 +1437,22 @@ ul {
     padding-bottom: 0;
   }
 
+  .docs-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .docs-sidebar {
+    position: static;
+    min-height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--wi-border);
+  }
+
+  .docs-sidebar nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 18px;
+  }
+
   .hero-grid,
   .demo-section,
   .operating-model,
@@ -1497,6 +1597,23 @@ ul {
 
   .playground-downloads .wi-pill {
     width: 100%;
+  }
+
+  .docs-sidebar {
+    padding: 24px 20px;
+  }
+
+  .docs-sidebar nav {
+    grid-template-columns: 1fr;
+  }
+
+  .docs-content > .section {
+    padding-top: 40px;
+    padding-bottom: 40px;
+  }
+
+  .purchase-actions {
+    flex-direction: column;
   }
 
   .beta-form-row {

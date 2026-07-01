@@ -209,7 +209,7 @@ def test_playground_all_workflows_are_functional_from_ui(
             "**/v1/playground/run", lambda route: _fulfill_playground(route, observed_requests)
         )
 
-        page.goto(f"{static_site_url}/quickstart.html", wait_until="networkidle")
+        page.goto(f"{static_site_url}/", wait_until="networkidle")
         assert page.locator("text=Scout Playground").count() >= 1
 
         workflow_values = page.locator("#playgroundWorkflow option").evaluate_all(
@@ -238,7 +238,7 @@ def test_playground_long_running_run_shows_visible_progress(static_site_url: str
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
 
-        page.goto(f"{static_site_url}/quickstart.html", wait_until="networkidle")
+        page.goto(f"{static_site_url}/", wait_until="networkidle")
         page.evaluate(
             """
             () => {

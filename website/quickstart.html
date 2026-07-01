@@ -8,7 +8,7 @@
       name="description"
       content="Use hosted Scout with an API key or install Scout locally to produce citable acquisition artifacts."
     />
-    <link rel="icon" href="/assets/scout-mark.svg" type="image/svg+xml" />
+    <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
     <link rel="stylesheet" href="./assets/flux-design-system/tokens.css" />
     <link rel="stylesheet" href="./styles.css" />
@@ -19,7 +19,7 @@
     <div class="site-shell">
       <header class="site-header">
         <a class="brand" href="/" aria-label="Scout home">
-          <img class="brand-logo" src="/assets/scout-wordmark.svg" alt="Scout" width="172" height="64" />
+          <img class="brand-logo" src="./assets/scout-wordmark.svg" alt="Scout" width="172" height="64" />
         </a>
         <nav class="site-nav" aria-label="Primary navigation">
           <a href="/">Overview</a>
@@ -32,17 +32,39 @@
       </header>
 
       <main>
-        <section class="page-hero">
+        <section class="page-hero docs-hero">
           <p class="wi-label wi-label--accent">Scout Docs</p>
-          <h1>Software documentation for Scout.</h1>
+          <h1>Technical documentation for Scout.</h1>
           <p>
-            Use this page to install Scout, call the hosted API, inspect the
-            endpoint shape, and understand the artifact contract. The interactive
-            playground lives under the demo flow; docs stay focused on
-            implementation details.
+            Install Scout, call the hosted API, inspect endpoint shapes, and
+            understand the artifact contract. The interactive playground lives
+            on the homepage under Demo; documentation stays focused on how to
+            implement and verify Scout.
           </p>
         </section>
 
+        <div class="docs-layout">
+          <aside class="docs-sidebar" aria-label="Scout docs table of contents">
+            <p class="wi-label wi-label--accent">On this page</p>
+            <nav>
+              <a href="#docs-index-title">Documentation map</a>
+              <a href="#playground-link-title">Playground link</a>
+              <a href="#hosted-api-title">Hosted API</a>
+              <a href="#api-reference-title">API reference</a>
+              <a href="#python-install-title">Local install</a>
+              <a href="#docker-title">Docker</a>
+              <a href="#examples-title">Examples</a>
+              <a href="#artifact-contract-title">Artifact contract</a>
+              <a href="#readiness-title">Readiness check</a>
+            </nav>
+            <div class="docs-sidebar__callout">
+              <strong>Want to try it first?</strong>
+              <p>Run a capped hosted demo before wiring an API call.</p>
+              <a class="wi-pill" href="/#playground">Open playground</a>
+            </div>
+          </aside>
+
+          <div class="docs-content">
         <section class="section docs-index" aria-labelledby="docs-index-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Documentation map</p>
@@ -295,8 +317,11 @@ scout launch-readiness --require-public</code></pre>
           </div>
         </section>
 
+          </div>
+        </div>
+
       </main>
     </div>
-    <script src="/assets/copy-code.js" defer></script>
+    <script src="./assets/copy-code.js" defer></script>
   </body>
 </html>

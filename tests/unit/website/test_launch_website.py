@@ -24,12 +24,12 @@ def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
     assert "warm-industrial-design-system" not in html
     assert "What Scout returns" in html
     assert "Clean records with evidence attached." in html
-    assert "The crawler is only the first step." in html
-    assert "Citation-grade evidence" in html
-    assert "Typed records" in html
-    assert "Algolia-ready exports" in html
+    assert "Acquisition primitives for real workflows." in html
+    assert "Features in Scout are organized by what people need to do" in html
     assert "Demo and search builds" in html
-    assert "Request hosted access" in html
+    assert "Scout Playground" in html
+    assert "Try every Scout capability before you buy." in html
+    assert "Request hosted beta" in html
     assert 'href="/beta"' in html
     assert 'id="hostedBetaCheckout"' not in html
     assert "/v1/billing/stripe/checkout-session" not in html
@@ -37,7 +37,7 @@ def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
     assert "window.location.assign" not in html
     assert "Scout beta demo" in html
     assert "URL to evidence to records in under a minute." in html
-    assert "/assets/scout-product-demo.gif?v=20260630-slow-readable" in html
+    assert "./assets/scout-product-demo.gif?v=20260630-slow-readable" in html
     assert "No hard-site bypass guarantee." in html
     assert "STRIPE_SECRET_KEY" not in html
     assert "sk_live_" not in html
@@ -61,11 +61,11 @@ def test_launch_website_states_current_launch_readiness_boundaries() -> None:
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
-    assert "The crawler is only the first step." in normalized_html
-    assert "Acquisition ladder" in normalized_html
-    assert "Citation-grade evidence" in normalized_html
-    assert "Typed records" in normalized_html
-    assert "Portable artifacts" in normalized_html
+    assert "Acquisition primitives for real workflows." in normalized_html
+    assert "Product catalogs" in normalized_html
+    assert "Competitive intelligence" in normalized_html
+    assert "Research archives" in normalized_html
+    assert "Browser-assisted capture" in normalized_html
     assert "Hosted beta" in normalized_html
     assert "Local beta" in normalized_html
     assert "Pay-as-you-go candidate" in normalized_html
@@ -83,7 +83,7 @@ def test_api_root_serves_launch_website_from_same_origin() -> None:
     assert "text/html" in response.headers["content-type"]
     assert "Turn messy web pages into citable, downstream-ready records." in response.text
     assert "Clean records with evidence attached." in response.text
-    assert "The crawler is only the first step." in response.text
+    assert "Acquisition primitives for real workflows." in response.text
     assert "Demo and search builds" in response.text
     assert 'id="hostedBetaCheckout"' not in response.text
     assert "/v1/billing/stripe/checkout-session" not in response.text
@@ -154,11 +154,10 @@ def test_launch_website_uses_flux_not_warm_industrial() -> None:
 def test_public_pages_share_streamlined_header_ia() -> None:
     expected_nav = (
         ">Overview</a>",
+        ">Features</a>",
         ">Demo</a>",
-        ">Use Cases</a>",
         ">Docs</a>",
         ">Pricing</a>",
-        ">Beta</a>",
     )
 
     for page in _WEBSITE_DIR.glob("*.html"):
@@ -175,6 +174,8 @@ def test_public_pages_share_streamlined_header_ia() -> None:
         assert "API guide" not in normalized_header
         assert ">Status</a>" not in normalized_header
         assert ">Legal</a>" not in normalized_header
+        assert ">Use Cases</a>" not in normalized_header
+        assert ">Beta</a>" not in normalized_header
         assert "site-nav--utility" not in normalized_header
 
 
@@ -185,29 +186,39 @@ def test_homepage_has_streamlined_primary_nav_and_scrollspy() -> None:
 
     for nav_item in (
         ">Overview</a>",
+        ">Features</a>",
         ">Demo</a>",
-        ">Use Cases</a>",
         ">Docs</a>",
         ">Pricing</a>",
-        ">Beta</a>",
     ):
         assert nav_item in normalized_html
 
     assert ">Quickstart</a>" not in normalized_html
     assert ">Examples</a>" not in normalized_html
     assert ">Guide</a>" not in normalized_html
+    assert ">Use Cases</a>" not in normalized_html
+    assert ">Beta</a>" not in normalized_html
     assert "API guide" not in normalized_html
     assert '<nav class="site-nav" aria-label="Primary navigation">' in normalized_html
     assert "site-nav--utility" not in normalized_html
-    assert 'data-section-link="top"' in html
-    assert 'data-section-link="demo"' in html
-    assert 'data-section-link="use-cases"' in html
+    assert 'href="#use-cases" data-section-link="use-cases">Features</a>' in html
+    assert 'href="#demo" data-section-link="demo">Demo</a>' in html
+    assert 'href="#purchase" data-section-link="purchase">Pricing</a>' in html
     assert 'id="top"' in html
+    assert 'id="use-cases"' in html
+    assert 'data-nav-section="use-cases"' in html
+    assert 'data-nav-section="demo"' in html
+    assert 'id="playground"' in html
+    assert 'id="purchase"' in html
+    assert 'class="section feature-section"' not in html
+    assert 'class="marquee-band"' not in html
+    assert 'id="features"' not in html
     assert 'aria-current="true"' in html
     assert "IntersectionObserver" in html
     assert "setActiveSection" in html
-    assert 'src="/assets/scout-wordmark.svg"' in html
-    assert 'href="/assets/scout-mark.svg"' in html
+    assert "dataset.navSection" in html
+    assert 'src="./assets/scout-wordmark.svg"' in html
+    assert 'href="./assets/scout-mark.svg"' in html
 
 
 def test_launch_website_demo_gif_is_real_beta_safe_media() -> None:
@@ -254,13 +265,12 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
     pages = {
         "quickstart.html": [
             "Scout Docs",
-            "One page for hosted API, local install, examples, and artifacts.",
-            "Scout Playground",
-            "Try every Scout capability before you buy.",
-            "The playground rejects local/private URLs",
-            "Download JSON",
-            "Download Markdown",
-            "This replaces separate Quickstart, Guide, Examples, and API Guide pages.",
+            "Technical documentation for Scout.",
+            "Documentation map",
+            "Start with the path you need.",
+            "Try Scout in the homepage playground.",
+            "The hosted playground lives under the demo flow",
+            "Open playground",
             "Call the live Scout API.",
             "API reference",
             "The endpoints testers actually need.",
@@ -401,7 +411,7 @@ def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
     assert "Do not use localhost for hosted calls." in html
     assert "Only after `scout serve` is running on your own machine" in html
     assert "http://127.0.0.1:8421" not in html
-    assert 'src="/assets/copy-code.js"' in html
+    assert 'src="./assets/copy-code.js"' in html
 
 
 def test_command_docs_include_copy_code_behavior() -> None:
@@ -409,11 +419,11 @@ def test_command_docs_include_copy_code_behavior() -> None:
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
 
         assert "<pre><code>" in html
-        assert 'src="/assets/copy-code.js"' in html
+        assert 'src="./assets/copy-code.js"' in html
 
 
-def test_docs_page_has_hosted_playground_controls() -> None:
-    html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
+def test_homepage_has_hosted_playground_controls_under_demo_flow() -> None:
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
 
     assert "Scout Playground" in html
     assert "Choose a Scout capability" in html
@@ -465,7 +475,24 @@ def test_docs_page_has_hosted_playground_controls() -> None:
     assert 'data-playground-tab="curl"' in html
     assert 'id="playgroundDownloadJson"' in html
     assert 'id="playgroundDownloadMarkdown"' in html
-    assert 'src="/assets/playground.js"' in html
+    assert 'src="./assets/playground.js"' in html
+
+
+def test_docs_page_links_to_playground_without_embedding_controls() -> None:
+    html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
+
+    assert "Technical documentation for Scout." in html
+    assert 'class="docs-layout"' in html
+    assert 'class="docs-sidebar"' in html
+    assert 'class="docs-content"' in html
+    assert "Try Scout in the homepage playground." in html
+    assert 'href="/#playground"' in html
+    assert "API setup" in html
+    assert "Local install" in html
+    assert "Artifact contract" in html
+    assert 'id="playgroundForm"' not in html
+    assert 'id="playgroundWorkflow"' not in html
+    assert 'src="./assets/playground.js"' not in html
 
 
 def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
@@ -473,6 +500,7 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
 
     expected = {
         "/quickstart": "Scout Docs",
+        "/docs": "Scout Docs",
         "/guide": "Scout Docs",
         "/pricing": "Scout Pricing",
         "/examples": "Scout Docs",
@@ -482,6 +510,7 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/terms": "Scout Beta Terms Placeholder",
         "/privacy": "Scout Beta Privacy Placeholder",
         "/quickstart.html": "Scout Docs",
+        "/docs.html": "Scout Docs",
         "/guide.html": "Scout Docs",
         "/pricing.html": "Scout Pricing",
         "/examples.html": "Scout Docs",
@@ -524,14 +553,18 @@ def test_api_serves_third_party_notices_without_auth() -> None:
     assert "Apache License, Version 2.0" in response.text
 
 
-def test_fastapi_docs_remain_api_docs_not_marketing_docs() -> None:
+def test_public_docs_route_serves_software_docs_and_api_docs_move_to_api_docs() -> None:
     client = TestClient(app)
 
-    response = client.get("/docs")
+    public_docs = client.get("/docs")
+    api_docs = client.get("/api/docs")
 
-    assert response.status_code == 200
-    assert "Swagger UI" in response.text
-    assert "Scout Quickstart" not in response.text
+    assert public_docs.status_code == 200
+    assert "Scout Docs" in public_docs.text
+    assert "Technical documentation for Scout." in public_docs.text
+    assert "Swagger UI" not in public_docs.text
+    assert api_docs.status_code == 200
+    assert "Swagger UI" in api_docs.text
 
 
 def test_crawl4ai_attribution_is_consistent_across_public_docs() -> None:

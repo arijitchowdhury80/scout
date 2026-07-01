@@ -73,6 +73,8 @@ def _asset_media_type(asset_name: str) -> str:
 
 @router.get("/quickstart")
 @router.get("/quickstart.html")
+@router.get("/docs")
+@router.get("/docs.html")
 async def launch_site_quickstart() -> FileResponse:
     """Serve the consolidated Scout docs page."""
     return _launch_site_page("quickstart.html")

@@ -24,6 +24,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/assets/playground.js",
             "/beta",
             "/beta.html",
+            "/docs",
+            "/docs.html",
             "/examples",
             "/examples.html",
             "/assets/copy-code.js",
@@ -51,10 +53,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/THIRD_PARTY_NOTICES.md",
         }
         local_browser_public_paths = {
-            "/docs",
-            "/docs/oauth2-redirect",
+            "/api/docs",
+            "/api/docs/oauth2-redirect",
+            "/api/redoc",
             "/openapi.json",
-            "/redoc",
         }
         if request.url.path in always_public_paths:
             return await call_next(request)  # type: ignore[misc]

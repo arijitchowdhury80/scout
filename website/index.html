@@ -8,7 +8,7 @@
       name="description"
       content="Scout turns messy web pages into citable, downstream-ready records with local-first acquisition, browser evidence, and artifact folders."
     />
-    <link rel="icon" href="/assets/scout-mark.svg" type="image/svg+xml" />
+    <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
     <link rel="stylesheet" href="./assets/flux-design-system/tokens.css" />
     <link rel="stylesheet" href="./styles.css" />
@@ -35,21 +35,20 @@
     <div class="site-shell">
       <header class="site-header">
         <a class="brand" href="#top" aria-label="Scout home">
-          <img class="brand-logo" src="/assets/scout-wordmark.svg" alt="Scout" width="172" height="64" />
+          <img class="brand-logo" src="./assets/scout-wordmark.svg" alt="Scout" width="172" height="64" />
         </a>
         <nav class="site-nav" aria-label="Primary navigation">
           <a href="#top" data-section-link="top" aria-current="true">Overview</a>
+          <a href="#use-cases" data-section-link="use-cases">Features</a>
           <a href="#demo" data-section-link="demo">Demo</a>
-          <a href="#use-cases" data-section-link="use-cases">Use Cases</a>
-          <a href="/quickstart">Docs</a>
-          <a href="/pricing">Pricing</a>
-          <a href="/beta">Beta</a>
+          <a href="/docs">Docs</a>
+          <a href="#purchase" data-section-link="purchase">Pricing</a>
         </nav>
         <a class="wi-pill nav-cta" href="/beta">Join beta</a>
       </header>
 
       <main id="top">
-        <section class="hero" aria-labelledby="hero-title">
+        <section class="hero" aria-labelledby="hero-title" data-nav-section="top">
           <div class="hero-kicker">
             <span class="wi-status"><span class="wi-pulse"></span>Private beta</span>
             <span class="wi-readout">CLI / HTTP / Docker / Skill / Hosted beta</span>
@@ -67,7 +66,7 @@
                 agents, search indexes, and intelligence pipelines can trust.
               </p>
               <div class="hero-actions" aria-label="Primary actions">
-                <a class="wi-btn" href="/quickstart">Install locally <span>↗</span></a>
+                <a class="wi-btn" href="/docs">Install locally <span>↗</span></a>
                 <a class="wi-btn wi-btn--ghost" href="/beta">Join hosted beta</a>
               </div>
             </div>
@@ -92,95 +91,15 @@
           </div>
         </section>
 
-        <section class="marquee-band" aria-label="Scout capabilities">
-          <span>Scrape</span>
-          <span>Crawl</span>
-          <span>Map</span>
-          <span>Browser capture</span>
-          <span>Product records</span>
-          <span>Company intelligence</span>
-          <span>Artifacts</span>
-          <span>Citations</span>
-        </section>
-
-        <section class="section demo-section" id="demo" aria-labelledby="demo-title">
-          <div class="demo-copy">
-            <p class="wi-label wi-label--accent">Scout beta demo</p>
-            <h2 id="demo-title">URL to evidence to records in under a minute.</h2>
-            <p>
-              Watch the beta-safe flow: Scout starts from a public category URL,
-              preserves the evidence trail, produces product records, and
-              exports them to downstream tools.
-            </p>
-            <div class="demo-steps" aria-label="Demo workflow">
-              <span>URL</span>
-              <span>Evidence</span>
-              <span>Records</span>
-              <span>Exports</span>
-            </div>
-            <p class="demo-note">No hard-site bypass guarantee.</p>
-          </div>
-          <figure class="demo-media">
-            <img
-              src="/assets/scout-product-demo.gif?v=20260630-slow-readable"
-              alt="Animated Scout beta demo showing a URL becoming source evidence, product records, and export artifacts."
-              width="1280"
-              height="720"
-            />
-            <figcaption>
-              Fictional demo data. The production promise is evidence and
-              artifact discipline, not guaranteed access to every protected site.
-            </figcaption>
-          </figure>
-        </section>
-
-        <section class="section feature-section" id="features" aria-labelledby="features-title">
+        <section class="section use-cases" id="use-cases" data-nav-section="use-cases" aria-labelledby="use-cases-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Features</p>
-            <h2 id="features-title">The crawler is only the first step.</h2>
-            <p>
-              Scout wraps acquisition with the pieces downstream AI, search,
-              research, and demo workflows actually need.
-            </p>
-          </div>
-          <div class="feature-grid">
-            <article>
-              <span>01</span>
-              <h3>Acquisition ladder</h3>
-              <p>Crawl4AI, direct fetch, scout-browser, user-browser capture, saved evidence, and API adapters under one contract.</p>
-            </article>
-            <article>
-              <span>02</span>
-              <h3>Citation-grade evidence</h3>
-              <p>Source registry, hashes, provider status, snippets, blocked pages, screenshots, and field-level citations.</p>
-            </article>
-            <article>
-              <span>03</span>
-              <h3>Typed records</h3>
-              <p>Product, company, investor, career, job, news, docs, research, social, location, and website-quality records.</p>
-            </article>
-            <article>
-              <span>04</span>
-              <h3>Algolia-ready exports</h3>
-              <p>Prepare object IDs, names, prices, URLs, images, categories, variants, warnings, and export files.</p>
-            </article>
-            <article>
-              <span>05</span>
-              <h3>Local and hosted</h3>
-              <p>Run locally through CLI/HTTP/Docker/skill, or use hosted beta keys when you want managed convenience.</p>
-            </article>
-            <article>
-              <span>06</span>
-              <h3>Portable artifacts</h3>
-              <p>JSON, JSONL, CSV, SQLite, source pages, blocked evidence, validation, and reports for replay and audit.</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section use-cases" id="use-cases" aria-labelledby="use-cases-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">What people use it for</p>
             <h2 id="use-cases-title">Acquisition primitives for real workflows.</h2>
+            <p>
+              Features in Scout are organized by what people need to do:
+              acquire pages, preserve proof, create typed records, and export
+              something downstream tools can trust.
+            </p>
           </div>
           <div class="use-case-grid">
             <article>
@@ -210,9 +129,167 @@
           </div>
         </section>
 
-        <section class="section pricing" id="pricing">
+        <section class="section demo-section" id="demo" data-nav-section="demo" aria-labelledby="demo-title">
+          <div class="demo-copy">
+            <p class="wi-label wi-label--accent">Scout beta demo</p>
+            <h2 id="demo-title">URL to evidence to records in under a minute.</h2>
+            <p>
+              Watch the beta-safe flow: Scout starts from a public category URL,
+              preserves the evidence trail, produces product records, and
+              exports them to downstream tools.
+            </p>
+            <div class="demo-steps" aria-label="Demo workflow">
+              <span>URL</span>
+              <span>Evidence</span>
+              <span>Records</span>
+              <span>Exports</span>
+            </div>
+            <p class="demo-note">No hard-site bypass guarantee.</p>
+          </div>
+          <figure class="demo-media">
+            <img
+              src="./assets/scout-product-demo.gif?v=20260630-slow-readable"
+              alt="Animated Scout beta demo showing a URL becoming source evidence, product records, and export artifacts."
+              width="1280"
+              height="720"
+            />
+            <figcaption>
+              Fictional demo data. The production promise is evidence and
+              artifact discipline, not guaranteed access to every protected site.
+            </figcaption>
+          </figure>
+        </section>
+
+        <section class="section playground-section" id="playground" data-nav-section="demo" aria-labelledby="playground-title">
+          <div class="playground-shell">
+            <div class="playground-hero">
+              <div>
+                <p class="wi-label wi-label--accent">Scout Playground</p>
+                <h2 id="playground-title">Try every Scout capability before you buy.</h2>
+              </div>
+              <p>
+                Choose a Scout capability, run a capped hosted demo, inspect the
+                response, copy the API call, and download JSON or Markdown. The
+                playground rejects local/private URLs and runs with public beta
+                safety limits.
+              </p>
+            </div>
+
+            <div class="playground-limit-row" aria-label="Playground limits">
+              <span>10 products</span>
+              <span>5 crawl/map pages</span>
+              <span>10 intelligence records</span>
+              <span>30 second timeout</span>
+              <span>20 demo runs / hour</span>
+              <span>No API key required</span>
+            </div>
+
+            <div class="playground-workspace">
+              <form id="playgroundForm" class="playground-form">
+                <div class="playground-capability-panel">
+                  <label>
+                    Choose a Scout capability
+                    <select name="workflow" id="playgroundWorkflow">
+                      <optgroup label="Acquire">
+                        <option value="scrape">Scrape - one page to markdown</option>
+                        <option value="crawl">Crawl - one level website crawl</option>
+                        <option value="map">Map - discover site URLs</option>
+                        <option value="screenshot">Screenshot - rendered page capture</option>
+                      </optgroup>
+                      <optgroup label="Commerce">
+                        <option value="products">Products - catalog records</option>
+                      </optgroup>
+                      <optgroup label="Intelligence">
+                        <option value="company">Company intelligence</option>
+                        <option value="prism">PRISM company bundle</option>
+                        <option value="investor">Investor intelligence</option>
+                        <option value="careers">Careers and hiring</option>
+                        <option value="jobs">Jobs</option>
+                        <option value="news">News and blogs</option>
+                        <option value="social">Social profiles</option>
+                        <option value="locations">Locations</option>
+                        <option value="website-quality">Website quality</option>
+                      </optgroup>
+                      <optgroup label="Evidence And Exports">
+                        <option value="extract">Extract - structured page data</option>
+                        <option value="research">Research - cited summary records</option>
+                        <option value="docs">Documentation - docs page records</option>
+                      </optgroup>
+                    </select>
+                  </label>
+                  <p id="playgroundCapabilityHelp" class="playground-help">
+                    Fetch one page and return clean markdown plus evidence metadata.
+                  </p>
+                </div>
+
+                <div class="playground-config-panel">
+                  <label>
+                    Public URL
+                    <input
+                      id="playgroundUrl"
+                      name="url"
+                      type="text"
+                      inputmode="url"
+                      autocomplete="url"
+                      placeholder="https://example.com"
+                      required
+                    />
+                  </label>
+                  <label>
+                    Optional query or instruction
+                    <input
+                      id="playgroundQuery"
+                      name="query"
+                      type="text"
+                      placeholder="Example: find product records, investor assets, latest blogs"
+                    />
+                  </label>
+                  <label>
+                    Preview format
+                    <select name="output_format" id="playgroundOutputFormat">
+                      <option value="json">JSON</option>
+                      <option value="markdown">Markdown</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="playground-actions">
+                  <button class="wi-btn" type="submit">Run Scout Playground</button>
+                  <span id="playgroundStatus" class="playground-status" role="status" aria-live="polite">
+                    Ready. Choose a capability and enter a public URL.
+                  </span>
+                </div>
+              </form>
+
+              <div class="playground-results-shell">
+                <div class="playground-results-head">
+                  <div>
+                    <p class="wi-label">Results preview</p>
+                    <h3>What Scout returned</h3>
+                  </div>
+                  <div class="playground-downloads">
+                    <button id="playgroundDownloadJson" class="wi-pill" type="button" disabled>Download JSON</button>
+                    <button id="playgroundDownloadMarkdown" class="wi-pill" type="button" disabled>Download Markdown</button>
+                  </div>
+                </div>
+                <div class="playground-tabs" role="tablist" aria-label="Playground output">
+                  <button type="button" data-playground-tab="preview" aria-selected="true">Preview</button>
+                  <button type="button" data-playground-tab="json" aria-selected="false">JSON</button>
+                  <button type="button" data-playground-tab="markdown" aria-selected="false">Markdown</button>
+                  <button type="button" data-playground-tab="curl" aria-selected="false">cURL</button>
+                </div>
+                <pre id="playgroundResults" class="playground-results" data-playground-panel="preview"><code>No run yet. Enter a public URL and run Scout.</code></pre>
+                <pre id="playgroundJson" class="playground-results" data-playground-panel="json" hidden><code>{}</code></pre>
+                <pre id="playgroundMarkdown" class="playground-results" data-playground-panel="markdown" hidden><code>No Markdown yet.</code></pre>
+                <pre id="playgroundCurl" class="playground-results" data-playground-panel="curl" hidden><code>curl -X POST "https://scout.chowmes.com/v1/playground/run"</code></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section pricing" id="purchase" data-nav-section="purchase">
           <div class="section-heading">
-            <p class="wi-label wi-label--accent">Pricing direction</p>
+            <p class="wi-label wi-label--accent">Purchase</p>
             <h2>Free local. Metered hosted.</h2>
           </div>
           <div class="pricing-grid">
@@ -232,35 +309,10 @@
               <p>Prepaid credits are the leading paid model. Monthly plans come later only if real usage patterns justify them.</p>
             </article>
           </div>
-        </section>
-
-        <section class="section beta" id="beta">
-          <div>
-            <p class="wi-label wi-label--accent">Private beta</p>
-            <h2>Start with one website you already research by hand.</h2>
-            <p>
-              The first beta should test whether Scout makes acquisition more
-              inspectable, reusable, and trustworthy. Not whether it can promise
-              infinite hosted crawling.
-            </p>
-            <p class="beta-note">
-              Local Scout is free for beta. Hosted access is invite-only while
-              pricing, billing, credits, retention, and support are finalized.
-            </p>
-          </div>
-          <div class="beta-panel beta-panel--cards" aria-label="Private beta actions">
-            <article>
-              <h3>Install locally</h3>
-              <p>Best path for first testers: your machine, your browser, your artifacts.</p>
-              <a class="wi-btn" href="/quickstart">Open quickstart</a>
-            </article>
-            <article>
-              <h3>Request hosted access</h3>
-              <p>Use the beta page when you need a managed API key and finite hosted credits.</p>
-              <a class="wi-btn wi-btn--ghost" href="/beta">Open beta page</a>
-            </article>
+          <div class="purchase-actions" aria-label="Purchase actions">
+            <a class="wi-btn" href="/docs">Read docs</a>
+            <a class="wi-btn wi-btn--ghost" href="/beta">Request hosted beta</a>
             <a class="wi-btn" href="https://github.com/arijitchowdhury80/scout">View GitHub <span>↗</span></a>
-            <a class="wi-btn wi-btn--ghost" href="/pricing">View pricing</a>
           </div>
         </section>
       </main>
@@ -274,7 +326,7 @@
           <a href="https://github.com/arijitchowdhury80/scout/blob/codex/scout-platform-foundation/README.md">README</a>
           <a href="https://github.com/arijitchowdhury80/scout/blob/codex/scout-platform-foundation/docs/validation/scout-feature-certification-2026-06-28.md">Certification</a>
           <a href="https://github.com/arijitchowdhury80/scout/blob/codex/scout-platform-foundation/docs/legal/legal-readiness-checklist.md">Legal readiness</a>
-          <a href="/quickstart">Docs</a>
+          <a href="/docs">Docs</a>
           <a href="/pricing">Pricing</a>
           <a href="/beta">Private beta</a>
           <a href="/legal">Legal</a>
@@ -289,9 +341,7 @@
     </div>
     <script>
       const sectionLinks = Array.from(document.querySelectorAll("[data-section-link]"));
-      const trackedSections = sectionLinks
-        .map((link) => document.getElementById(link.dataset.sectionLink || ""))
-        .filter(Boolean);
+      const trackedSections = Array.from(document.querySelectorAll("[data-nav-section]"));
 
       function setActiveSection(sectionId) {
         sectionLinks.forEach((link) => {
@@ -310,8 +360,11 @@
             const visibleEntry = entries
               .filter((entry) => entry.isIntersecting)
               .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-            if (visibleEntry?.target?.id) {
-              setActiveSection(visibleEntry.target.id);
+            const sectionId = visibleEntry?.target
+              ? visibleEntry.target.dataset.navSection || visibleEntry.target.id
+              : "";
+            if (sectionId) {
+              setActiveSection(sectionId);
             }
           },
           {
@@ -328,7 +381,7 @@
           if (sectionId) setActiveSection(sectionId);
         });
       });
-
     </script>
+    <script src="./assets/playground.js" defer></script>
   </body>
 </html>
