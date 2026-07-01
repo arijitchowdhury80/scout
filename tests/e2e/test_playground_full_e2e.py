@@ -232,6 +232,73 @@ def test_playground_all_workflows_are_functional_from_ui(
         assert request["max_items"] == case["max_items"]
 
 
+def test_playground_long_running_run_shows_visible_progress(static_site_url: str) -> None:
+    """A slow hosted run must not look dead while the backend is still working."""
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+
+        page.goto(f"{static_site_url}/quickstart.html", wait_until="networkidle")
+        page.evaluate(
+            """
+            () => {
+              window.__playgroundRequests = [];
+              window.fetch = async (_url, options) => {
+                const requestPayload = JSON.parse(options.body);
+                window.__playgroundRequests.push(requestPayload);
+                await new Promise((resolve) => setTimeout(resolve, 1500));
+                const workflow = requestPayload.workflow;
+                const record = {
+                  objectID: `${workflow}-demo-1`,
+                  record_type: `${workflow}.playground`,
+                  title: `${workflow} demo record`,
+                  url: requestPayload.url,
+                  source_url: requestPayload.url
+                };
+                return new Response(JSON.stringify({
+                  success: true,
+                  workflow,
+                  url: requestPayload.url,
+                  output_format: requestPayload.output_format,
+                  limits: {max_records: requestPayload.max_items, timeout_ms: 30000},
+                  summary: {record_count: 1, blocked_count: 0, duration_ms: 1500, capped: true},
+                  records: [record],
+                  blocked_pages: [],
+                  downloads: {
+                    json: JSON.stringify({workflow, records: [record], blocked_pages: []}, null, 2),
+                    markdown: `# ${workflow} demo record\\n\\nSource: ${requestPayload.url}\\n`
+                  },
+                  download_filenames: {
+                    json: `scout-playground-${workflow}.json`,
+                    markdown: `scout-playground-${workflow}.md`
+                  },
+                  error: ""
+                }), {status: 200, headers: {"Content-Type": "application/json"}});
+              };
+            }
+            """
+        )
+        page.locator("#playgroundWorkflow").select_option("crawl")
+        page.locator("#playgroundUrl").fill("www.algolia.com")
+        page.locator('button[type="submit"]').click()
+
+        page.wait_for_function(
+            "document.querySelector('#playgroundStatus').textContent.includes('Elapsed')",
+            timeout=3_000,
+        )
+        assert "Still working" in page.locator("#playgroundResults").inner_text()
+        assert "www.algolia.com" in page.locator("#playgroundStatus").inner_text()
+
+        page.wait_for_function(
+            "document.querySelector('#playgroundStatus').textContent.includes('Complete:')",
+            timeout=10_000,
+        )
+        observed_requests = page.evaluate("window.__playgroundRequests")
+        browser.close()
+
+    assert observed_requests[0]["workflow"] == "crawl"
+
+
 def _exercise_workflow(page: Page, case: dict[str, Any], tmp_path: Path) -> None:
     workflow = case["workflow"]
     page.locator("#playgroundWorkflow").select_option(workflow)

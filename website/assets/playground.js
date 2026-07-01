@@ -141,6 +141,7 @@
   let latestDownloads = null;
   let latestFilenames = null;
   let latestPayload = null;
+  let runningTimer = null;
 
   const activeCapability = () => CAPABILITIES[workflowEl.value] || CAPABILITIES.scrape;
 
@@ -167,6 +168,13 @@
 
   const setPanelText = (element, text) => {
     element.textContent = text || "";
+  };
+
+  const clearRunningTimer = () => {
+    if (runningTimer) {
+      window.clearInterval(runningTimer);
+      runningTimer = null;
+    }
   };
 
   const switchTab = (tabName) => {
@@ -286,8 +294,31 @@
     }
 
     submit.disabled = true;
-    setStatus(`Running ${activeCapability().label} demo...`, "running");
-    setPanelText(previewEl, "Scout is acquiring evidence and preparing a capped preview.");
+    submit.textContent = "Running Scout...";
+    statusEl.setAttribute("aria-busy", "true");
+    const startedAt = Date.now();
+    const capabilityLabel = activeCapability().label;
+    const updateRunningCopy = () => {
+      const elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+      setStatus(
+        `Running ${capabilityLabel} demo for ${payload.url}. Elapsed ${elapsed}s. Still working...`,
+        "running"
+      );
+      setPanelText(
+        previewEl,
+        [
+          "Scout is acquiring evidence and preparing a capped preview.",
+          "",
+          `Capability: ${capabilityLabel}`,
+          `Target: ${payload.url}`,
+          `Elapsed: ${elapsed}s`,
+          "",
+          "Still working. Crawl, product, and intelligence demos can take 20-30 seconds on live websites.",
+        ].join("\n")
+      );
+    };
+    updateRunningCopy();
+    runningTimer = window.setInterval(updateRunningCopy, 1000);
     switchTab(outputFormatEl.value === "markdown" ? "markdown" : "preview");
 
     try {
@@ -311,7 +342,10 @@
       setPanelText(previewEl, error instanceof Error ? error.message : String(error));
       switchTab("preview");
     } finally {
+      clearRunningTimer();
       submit.disabled = false;
+      submit.textContent = "Run Scout Playground";
+      statusEl.removeAttribute("aria-busy");
     }
   });
 
