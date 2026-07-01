@@ -90,6 +90,24 @@ def test_api_root_serves_launch_website_from_same_origin() -> None:
     assert "Scout app" not in response.text
 
 
+def test_public_site_responses_are_reload_safe_after_deploys() -> None:
+    client = TestClient(app)
+
+    homepage = client.get("/")
+    docs = client.get("/docs")
+    styles = client.get("/styles.css")
+    playground = client.get("/assets/playground.js")
+    demo_gif = client.get("/assets/scout-product-demo.gif")
+
+    for response in (homepage, docs):
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "no-store"
+
+    for response in (styles, playground, demo_gif):
+        assert response.status_code == 200
+        assert response.headers["cache-control"] == "public, max-age=31536000, immutable"
+
+
 def test_removed_app_ui_routes_are_not_public_product_surfaces() -> None:
     client = TestClient(app)
 

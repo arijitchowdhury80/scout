@@ -12,18 +12,20 @@ router = APIRouter(include_in_schema=False)
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _WEBSITE_DIR = _REPO_ROOT / "website"
+_HTML_HEADERS = {"Cache-Control": "no-store"}
+_IMMUTABLE_ASSET_HEADERS = {"Cache-Control": "public, max-age=31536000, immutable"}
 
 
 @router.get("/")
 async def launch_site_index() -> FileResponse:
     """Serve the Scout marketing website as the public root."""
-    return FileResponse(_WEBSITE_DIR / "index.html", media_type="text/html")
+    return _launch_site_page("index.html")
 
 
 @router.get("/styles.css")
 async def launch_site_styles() -> FileResponse:
     """Serve launch-site CSS from the API origin."""
-    return FileResponse(_WEBSITE_DIR / "styles.css", media_type="text/css")
+    return _launch_site_asset_response(_WEBSITE_DIR / "styles.css", "styles.css")
 
 
 @router.get("/assets/flux-design-system/{asset_name}")
@@ -32,9 +34,9 @@ async def launch_site_design_system_asset(asset_name: str) -> FileResponse:
     allowed_assets = {"fonts.css", "README.md", "tokens.css"}
     if asset_name not in allowed_assets:
         raise HTTPException(status_code=404, detail="Launch site asset not found.")
-    return FileResponse(
+    return _launch_site_asset_response(
         _WEBSITE_DIR / "assets" / "flux-design-system" / asset_name,
-        media_type=_asset_media_type(asset_name),
+        asset_name,
     )
 
 
@@ -50,10 +52,7 @@ async def launch_site_asset(asset_name: str) -> FileResponse:
     }
     if asset_name not in allowed_assets:
         raise HTTPException(status_code=404, detail="Launch site asset not found.")
-    return FileResponse(
-        _WEBSITE_DIR / "assets" / asset_name,
-        media_type=_asset_media_type(asset_name),
-    )
+    return _launch_site_asset_response(_WEBSITE_DIR / "assets" / asset_name, asset_name)
 
 
 def _asset_media_type(asset_name: str) -> str:
@@ -145,4 +144,17 @@ async def launch_site_third_party_notices() -> FileResponse:
 
 def _launch_site_page(page_file: str) -> FileResponse:
     """Return a known launch-site HTML file."""
-    return FileResponse(_WEBSITE_DIR / page_file, media_type="text/html")
+    return FileResponse(
+        _WEBSITE_DIR / page_file,
+        media_type="text/html",
+        headers=_HTML_HEADERS,
+    )
+
+
+def _launch_site_asset_response(path: Path, asset_name: str) -> FileResponse:
+    """Return a launch-site asset with deploy-safe cache headers."""
+    return FileResponse(
+        path,
+        media_type=_asset_media_type(asset_name),
+        headers=_IMMUTABLE_ASSET_HEADERS,
+    )
