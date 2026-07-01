@@ -297,7 +297,7 @@ a {
 }
 
 .hero {
-  min-height: calc(100vh - 70px);
+  min-height: auto;
   padding: 64px 36px 58px;
   border-bottom: 1px solid var(--wi-border);
 }

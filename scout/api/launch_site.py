@@ -13,7 +13,7 @@ router = APIRouter(include_in_schema=False)
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _WEBSITE_DIR = _REPO_ROOT / "website"
 _HTML_HEADERS = {"Cache-Control": "no-store"}
-_IMMUTABLE_ASSET_HEADERS = {"Cache-Control": "public, max-age=31536000, immutable"}
+_ASSET_HEADERS = {"Cache-Control": "public, max-age=0, must-revalidate"}
 
 
 @router.get("/")
@@ -156,5 +156,5 @@ def _launch_site_asset_response(path: Path, asset_name: str) -> FileResponse:
     return FileResponse(
         path,
         media_type=_asset_media_type(asset_name),
-        headers=_IMMUTABLE_ASSET_HEADERS,
+        headers=_ASSET_HEADERS,
     )

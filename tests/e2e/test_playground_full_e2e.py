@@ -299,6 +299,32 @@ def test_playground_long_running_run_shows_visible_progress(static_site_url: str
     assert observed_requests[0]["workflow"] == "crawl"
 
 
+def test_homepage_hero_leaves_next_section_visible(static_site_url: str) -> None:
+    """The homepage hero should not create a dead grid gap before Features."""
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 1000})
+        page.goto(f"{static_site_url}/", wait_until="networkidle")
+
+        layout = page.evaluate(
+            """
+            () => {
+              const actions = document.querySelector('.hero-actions').getBoundingClientRect();
+              const features = document.querySelector('#use-cases').getBoundingClientRect();
+              return {
+                featuresTop: features.top,
+                gapAfterActions: features.top - actions.bottom,
+                viewportHeight: window.innerHeight,
+              };
+            }
+            """
+        )
+        browser.close()
+
+    assert layout["featuresTop"] < layout["viewportHeight"] - 24
+    assert layout["gapAfterActions"] < 110
+
+
 def _exercise_workflow(page: Page, case: dict[str, Any], tmp_path: Path) -> None:
     workflow = case["workflow"]
     page.locator("#playgroundWorkflow").select_option(workflow)

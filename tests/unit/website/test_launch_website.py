@@ -105,7 +105,7 @@ def test_public_site_responses_are_reload_safe_after_deploys() -> None:
 
     for response in (styles, playground, demo_gif):
         assert response.status_code == 200
-        assert response.headers["cache-control"] == "public, max-age=31536000, immutable"
+        assert response.headers["cache-control"] == "public, max-age=0, must-revalidate"
 
 
 def test_removed_app_ui_routes_are_not_public_product_surfaces() -> None:
