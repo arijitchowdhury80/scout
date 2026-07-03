@@ -55,6 +55,7 @@ class StripeCheckoutSessionRequestBody(BaseModel):
     """Request body for creating a hosted Scout beta checkout session."""
 
     email: str = ""
+    package_id: str = "beta_trial"
 
 
 class StripeCheckoutSessionResponse(BaseModel):
@@ -100,8 +101,10 @@ async def stripe_checkout_session(
     body: StripeCheckoutSessionRequestBody,
     checkout_service: StripeCheckoutService = Depends(get_stripe_checkout_service),
 ) -> StripeCheckoutSessionResponse:
-    """Create a Stripe Checkout Session for the hosted beta pass."""
-    result = checkout_service.create_beta_checkout_session(StripeCheckoutRequest(email=body.email))
+    """Create a Stripe Checkout Session for a hosted Scout credit package."""
+    result = checkout_service.create_checkout_session(
+        StripeCheckoutRequest(email=body.email, package_id=body.package_id)
+    )
     if not result.success:
         raise HTTPException(status_code=503, detail=result.reason)
     return _checkout_session_response(result)
@@ -212,10 +215,11 @@ def _checkout_request(event: dict[str, object]) -> HostedCheckoutProvisioningReq
         provider=HostedPaymentProvider.STRIPE,
         checkout_session_id=str(session.get("id", "")),
         customer_id=str(session.get("customer", "")),
-        payment_intent_id=str(session.get("payment_intent", "")),
+        payment_intent_id=_checkout_payment_reference(session),
         email=_checkout_email(session),
+        package_id=_checkout_package_id(session),
         amount_total_cents=_checkout_amount_total(session),
-        currency=str(session.get("currency", "")).lower(),
+        currency=_checkout_currency(session),
         plan=HostedPlan.HOSTED_BETA_PASS,
         scopes=["runs:create"],
         status=HostedCheckoutPaymentStatus(str(session.get("payment_status", "unpaid"))),
@@ -249,6 +253,30 @@ def _checkout_amount_total(session: dict[str, object]) -> int:
     if isinstance(amount, str):
         return int(amount)
     return 0
+
+
+def _checkout_package_id(session: dict[str, object]) -> str:
+    """Return the hosted package id from Stripe metadata."""
+    metadata = session.get("metadata")
+    if isinstance(metadata, dict) and metadata.get("package_id"):
+        return str(metadata["package_id"])
+    return "beta_trial"
+
+
+def _checkout_currency(session: dict[str, object]) -> str:
+    """Return checkout currency, defaulting setup sessions to USD."""
+    currency = str(session.get("currency", "")).lower()
+    if currency:
+        return currency
+    return "usd"
+
+
+def _checkout_payment_reference(session: dict[str, object]) -> str:
+    """Return payment or setup intent reference from a Stripe checkout session."""
+    payment_intent = str(session.get("payment_intent", ""))
+    if payment_intent:
+        return payment_intent
+    return str(session.get("setup_intent", ""))
 
 
 def _signature_timestamp(header: str) -> int | None:

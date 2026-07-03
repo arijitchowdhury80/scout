@@ -101,10 +101,10 @@ Current code-aligned beta pass limits:
 
 | Limit | Current value |
 |---|---:|
-| Standard credits | 2,000 |
-| Browser credits | 100 |
+| Standard credits | 100 |
+| Browser credits | 0 |
 | Artifact retention | 7 days |
-| Max pages per run | 100 |
+| Max pages per run | 25 |
 | Max concurrent hosted runs | 1 |
 
 Current action costs:

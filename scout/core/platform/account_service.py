@@ -191,6 +191,8 @@ class HostedAccountService:
         scopes: list[str],
         key_name: str = "Default key",
         name: str = "",
+        standard_credits: int | None = None,
+        browser_credits: int | None = None,
     ) -> HostedProvisioningResult:
         """Provision a hosted tenant and return the raw API key once."""
         normalized_email = email.strip().lower()
@@ -210,8 +212,12 @@ class HostedAccountService:
             scopes=scopes,
         )
         balance = HostedUsageBalance(
-            standard_credits_remaining=limits.standard_credits,
-            browser_credits_remaining=limits.browser_credits,
+            standard_credits_remaining=limits.standard_credits
+            if standard_credits is None
+            else standard_credits,
+            browser_credits_remaining=limits.browser_credits
+            if browser_credits is None
+            else browser_credits,
         )
         self.store.save_account(tenant, api_key, balance)
         return HostedProvisioningResult(

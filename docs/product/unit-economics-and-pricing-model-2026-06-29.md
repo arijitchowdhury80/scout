@@ -1,7 +1,50 @@
 # Scout Unit Economics And Pricing Model
 
 Date: 2026-06-29
-Status: New launch gate; pricing not approved
+Status: Launch candidate model defined; final paid launch still requires founder approval and Stripe verification
+
+## Recommended Launch Candidate As Of 2026-07-03
+
+Recommended launch candidate as of 2026-07-03:
+
+- Local Scout remains free.
+- Beta trial: 30 days, 100 standard credits, $0 charge, payment method required later.
+- First pay-as-you-go package: $10 for 1,000 standard credits.
+- Browser-heavy work is not included in the first public pay-as-you-go package.
+- Browser credits remain private/controlled until browser-worker cost is measured.
+- Subscriptions remain deferred until usage telemetry proves recurring demand.
+
+What the first $10 package gives the customer:
+
+| Unit | Customer meaning |
+|---|---|
+| 1 scrape | 1 scrape = 1 standard credit |
+| 1 returned crawl page | 1 returned crawl page = 1 standard credit |
+| 1 product/intelligence record | 1 record = 1 standard credit |
+| 1 screenshot | 1 screenshot = 3 standard credits |
+| 1 browser render | 1 browser render = 5 browser credits |
+| 1 browser minute | 1 browser minute = 10 browser credits |
+
+Default unit-economics calculation for the $10 / 1,000 standard-credit package:
+
+Estimated cost for 1,000 standard credits: $2.59. Estimated gross margin: 74.1%. Break-even: 17 packs/month.
+
+| Line item | Value |
+|---|---:|
+| Revenue | $10.00 |
+| Variable hosted cost | $1.50 |
+| Payment processing | $0.59 |
+| Allocated support | $0.50 |
+| Estimated cost for 1,000 standard credits | $2.59 |
+| Gross profit | $7.41 |
+| Estimated gross margin | 74.1% |
+| Fixed monthly cost assumption | $120 |
+| Break-even | 17 packs/month |
+
+This model is implemented in `scout.core.platform.pricing` and covered by
+`tests/unit/core/platform/test_pricing.py`. It is a launch candidate, not an
+irrevocable public price. If hosting, LLM, browser, firewall, storage, support,
+or payment costs change, change the package before enabling paid checkout.
 
 ## Decision Update
 

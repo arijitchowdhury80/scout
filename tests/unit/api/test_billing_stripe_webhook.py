@@ -130,7 +130,8 @@ def test_stripe_webhook_checkout_completed_provisions_without_leaking_raw_key(
     assert delivered_key.startswith("scout_live_")
     assert delivered_key_auth.allowed is True
     assert stored.email == "scout-beta-test@example.com"
-    assert stored.amount_total_cents == 2200
+    assert stored.package_id == "beta_trial"
+    assert stored.amount_total_cents == 0
 
 
 def test_stripe_webhook_blocks_provisioning_when_key_delivery_is_disabled(
@@ -260,10 +261,11 @@ def _checkout_event_payload() -> bytes:
                 "object": {
                     "id": "cs_test_beta_001",
                     "customer": "cus_test_001",
-                    "payment_intent": "pi_test_001",
-                    "amount_total": 2200,
+                    "setup_intent": "seti_test_001",
+                    "amount_total": 0,
                     "currency": "usd",
-                    "payment_status": "paid",
+                    "payment_status": "no_payment_required",
+                    "metadata": {"package_id": "beta_trial"},
                     "customer_details": {"email": "scout-beta-test@example.com"},
                 }
             },

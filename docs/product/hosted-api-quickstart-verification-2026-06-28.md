@@ -62,8 +62,8 @@ tenant_id: tenant_d307e68b00ca4a01b1d41c222d84f7ed
 key_id: key_2bb7177f9b454e4ca5a36421cead5bf2
 plan: hosted_beta_pass
 scopes: ["runs:create"]
-standard_credits_remaining: 2000
-browser_credits_remaining: 100
+standard_credits_remaining: 100
+browser_credits_remaining: 0
 raw_api_key_masked: scout_live_v8S-d...feG378
 ```
 
@@ -72,8 +72,8 @@ Hosted API smoke result:
 ```text
 me_before_status: active
 plan: hosted_beta_pass
-before_standard: 2000
-before_browser: 100
+before_standard: 100
+before_browser: 0
 scrape_success: true
 credits_charged: 1
 credit_type: standard
@@ -81,8 +81,8 @@ provider: crawl4ai
 final_url: https://example.com
 quality_score: 1.0
 markdown_len: 166
-after_standard: 1999
-after_browser: 100
+after_standard: 99
+after_browser: 0
 ```
 
 Server log confirmation:
@@ -115,4 +115,3 @@ The hosted API quickstart path works with a newly generated key. The key can:
 - Public hosted launch still requires Stripe test-mode smoke, live key delivery
   provider smoke, support channel confirmation, and final legal/pricing
   decisions.
-

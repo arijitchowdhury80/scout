@@ -12,9 +12,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 from scout.core.platform.account_service import HostedAccountService, HostedProvisioningResult
 from scout.core.platform.hosted import HostedPlan
-
-BETA_PASS_AMOUNT_CENTS = 2200
-BETA_PASS_CURRENCY = "usd"
+from scout.core.platform.pricing import get_credit_package
 
 
 class HostedPaymentProvider(str, Enum):
@@ -28,6 +26,7 @@ class HostedCheckoutPaymentStatus(str, Enum):
 
     PAID = "paid"
     UNPAID = "unpaid"
+    NO_PAYMENT_REQUIRED = "no_payment_required"
 
 
 class HostedCheckoutProvisioningRequest(BaseModel):
@@ -38,6 +37,7 @@ class HostedCheckoutProvisioningRequest(BaseModel):
     customer_id: str = ""
     payment_intent_id: str = ""
     email: EmailStr
+    package_id: str = "beta_trial"
     amount_total_cents: int = Field(ge=0)
     currency: str = Field(min_length=3, max_length=3)
     plan: HostedPlan = HostedPlan.HOSTED_BETA_PASS
@@ -53,6 +53,7 @@ class HostedCheckoutProvisioningRecord(BaseModel):
     tenant_id: str
     key_id: str
     email: EmailStr
+    package_id: str = "beta_trial"
     plan: HostedPlan
     amount_total_cents: int
     currency: str
@@ -102,7 +103,7 @@ class SQLiteHostedPaymentStore:
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT provider, checkout_session_id, tenant_id, key_id, email, plan,
+                SELECT provider, checkout_session_id, tenant_id, key_id, email, package_id, plan,
                        amount_total_cents, currency, customer_id, payment_intent_id, created_at
                 FROM hosted_payment_checkouts
                 WHERE provider = ? AND checkout_session_id = ?
@@ -119,9 +120,9 @@ class SQLiteHostedPaymentStore:
             conn.execute(
                 """
                 INSERT INTO hosted_payment_checkouts
-                (provider, checkout_session_id, tenant_id, key_id, email, plan,
+                (provider, checkout_session_id, tenant_id, key_id, email, package_id, plan,
                  amount_total_cents, currency, customer_id, payment_intent_id, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 _record_values(record),
             )
@@ -143,6 +144,7 @@ class SQLiteHostedPaymentStore:
                   tenant_id TEXT NOT NULL,
                   key_id TEXT NOT NULL,
                   email TEXT NOT NULL,
+                  package_id TEXT NOT NULL DEFAULT 'beta_trial',
                   plan TEXT NOT NULL,
                   amount_total_cents INTEGER NOT NULL,
                   currency TEXT NOT NULL,
@@ -152,6 +154,12 @@ class SQLiteHostedPaymentStore:
                   PRIMARY KEY (provider, checkout_session_id)
                 )
                 """
+            )
+            _ensure_column(
+                conn,
+                table="hosted_payment_checkouts",
+                column="package_id",
+                definition="TEXT NOT NULL DEFAULT 'beta_trial'",
             )
 
 
@@ -188,6 +196,12 @@ class HostedPaymentProvisioningService:
             scopes=request.scopes,
             key_name=f"{request.provider.value} checkout {request.checkout_session_id}",
         )
+        package = get_credit_package(request.package_id)
+        self.account_service.set_balance(
+            provisioned.tenant.tenant_id,
+            standard_credits=package.standard_credits,
+            browser_credits=package.browser_credits,
+        )
         self.payment_store.save_checkout(_record_from_request(request, provisioned))
         return HostedCheckoutProvisioningResult(
             success=True,
@@ -202,7 +216,14 @@ def _validate_checkout(
     request: HostedCheckoutProvisioningRequest,
 ) -> HostedCheckoutProvisioningResult | None:
     """Return a rejection result when checkout data should not provision access."""
-    if request.status is not HostedCheckoutPaymentStatus.PAID:
+    package = get_credit_package(request.package_id)
+    if package.amount_cents == 0:
+        if request.status is not HostedCheckoutPaymentStatus.NO_PAYMENT_REQUIRED:
+            return HostedCheckoutProvisioningResult(
+                success=False,
+                reason=f"Checkout session is not complete for package {package.package_id}.",
+            )
+    elif request.status is not HostedCheckoutPaymentStatus.PAID:
         return HostedCheckoutProvisioningResult(
             success=False,
             reason="Checkout session is not paid.",
@@ -215,13 +236,14 @@ def _validate_checkout(
 
 def _price_reason(request: HostedCheckoutProvisioningRequest) -> str:
     """Return a rejection reason when checkout price does not match the plan."""
-    expected = f"Expected checkout amount {BETA_PASS_AMOUNT_CENTS} {BETA_PASS_CURRENCY}"
+    package = get_credit_package(request.package_id)
+    expected = f"Expected checkout amount {package.amount_cents} {package.currency}"
     if request.plan is not HostedPlan.HOSTED_BETA_PASS:
         return "Payment provisioning currently supports hosted_beta_pass only."
-    if request.amount_total_cents != BETA_PASS_AMOUNT_CENTS:
-        return f"{expected} for {request.plan.value}."
-    if request.currency.lower() != BETA_PASS_CURRENCY:
-        return f"{expected} for {request.plan.value}."
+    if request.amount_total_cents != package.amount_cents:
+        return f"{expected} for package {package.package_id}."
+    if request.currency.lower() != package.currency:
+        return f"{expected} for package {package.package_id}."
     return ""
 
 
@@ -249,6 +271,7 @@ def _record_from_request(
         tenant_id=provisioned.tenant.tenant_id,
         key_id=provisioned.api_key.key_id,
         email=request.email,
+        package_id=request.package_id,
         plan=request.plan,
         amount_total_cents=request.amount_total_cents,
         currency=request.currency.lower(),
@@ -265,6 +288,7 @@ def _record_from_row(row: sqlite3.Row) -> HostedCheckoutProvisioningRecord:
         tenant_id=row["tenant_id"],
         key_id=row["key_id"],
         email=row["email"],
+        package_id=row["package_id"],
         plan=row["plan"],
         amount_total_cents=row["amount_total_cents"],
         currency=row["currency"],
@@ -282,6 +306,7 @@ def _record_values(record: HostedCheckoutProvisioningRecord) -> tuple[object, ..
         record.tenant_id,
         record.key_id,
         str(record.email),
+        record.package_id,
         record.plan.value,
         record.amount_total_cents,
         record.currency,
@@ -289,3 +314,16 @@ def _record_values(record: HostedCheckoutProvisioningRecord) -> tuple[object, ..
         record.payment_intent_id,
         record.created_at,
     )
+
+
+def _ensure_column(
+    conn: sqlite3.Connection,
+    *,
+    table: str,
+    column: str,
+    definition: str,
+) -> None:
+    """Add a SQLite column when an older hosted payment DB lacks it."""
+    columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    if column not in columns:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")

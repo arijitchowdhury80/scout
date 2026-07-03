@@ -346,11 +346,13 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         "pricing.html": [
             "Scout Pricing",
             "Local HTTP package",
-            "Metered",
-            "Hosted private beta",
+            "Beta trial",
+            "Hosted beta tester key",
+            "$10",
+            "1,000 standard credits",
             "Pay-as-you-go candidate",
             "unit economics",
-            "No arbitrary one-time price",
+            "Estimated gross margin: 74.1%",
             "No unlimited hosted crawling",
         ],
         "status.html": [
@@ -394,9 +396,11 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Tester handoff packet",
             "docs/product/private-beta-tester-handoff.md",
             "Hosted beta checkout",
-            "unit economics are",
-            "Final credits, price, retention, and overage rules",
-            "Limited credits, not",
+            "Beta trial checkout collects a payment method",
+            "charges $0",
+            "100 standard credits",
+            "package_id",
+            "beta_trial",
             "/v1/billing/stripe/checkout-session",
             "Private beta is limited",
             "Run the launch readiness checker.",
@@ -476,6 +480,29 @@ def test_docs_key_generation_form_is_email_delivery_based() -> None:
     assert "Only after `scout serve` is running on your own machine" in html
     assert "http://127.0.0.1:8421" not in html
     assert 'src="./assets/copy-code.js"' in html
+
+
+def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
+    html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
+    normalized_html = " ".join(html.split())
+
+    expected_strings = [
+        "$10",
+        "1,000 standard credits",
+        "1 scrape = 1 standard credit",
+        "1 returned crawl page = 1 standard credit",
+        "1 screenshot = 3 standard credits",
+        "1 browser minute = 10 browser credits",
+        "Estimated cost for 1,000 standard credits: $2.59",
+        "Estimated gross margin: 74.1%",
+        "Break-even: 17 packs/month",
+        "Beta trial",
+        "30 days",
+        "100 standard credits",
+    ]
+
+    for expected in expected_strings:
+        assert expected in normalized_html
 
 
 def test_command_docs_include_copy_code_behavior() -> None:

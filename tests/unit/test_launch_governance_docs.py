@@ -537,8 +537,8 @@ def test_hosted_api_quickstart_verification_records_new_key_smoke() -> None:
     assert "credits_charged: 1" in verification
     assert "provider: crawl4ai" in verification
     assert "quality_score: 1.0" in verification
-    assert "before_standard: 2000" in verification
-    assert "after_standard: 1999" in verification
+    assert "before_standard: 100" in verification
+    assert "after_standard: 99" in verification
     assert "- [x] Hosted API quickstart tested with a newly generated API key." in checklist
     assert "docs/product/hosted-api-quickstart-verification-2026-06-28.md" in checklist
 
@@ -561,7 +561,7 @@ def test_hosted_operating_contract_documents_private_beta_boundary() -> None:
     assert "POST /v1/hosted/products" in contract
     assert "POST /v1/hosted/run/{use_case}" in contract
     assert "GET /v1/hosted/runs/{run_id}/artifacts" in contract
-    assert "`hosted_beta_pass` | 2,000 | 100 | 7 days | 100 | 1" in contract
+    assert "`hosted_beta_pass` | 100 | 0 | 7 days | 25 | 1" in contract
     assert "browser render | browser | 5" in contract
     assert "browser minute | browser | 10" in contract
     assert "server `SCOUT_WORKDIR`" in contract

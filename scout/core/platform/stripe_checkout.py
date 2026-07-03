@@ -10,12 +10,18 @@ from urllib.request import Request, urlopen
 
 from pydantic import BaseModel, Field
 
+from scout.core.platform.pricing import get_credit_package
+
 
 class StripeCheckoutConfig(BaseModel):
     """Configuration required to create Stripe Checkout Sessions."""
 
     secret_key: str = Field(default="", exclude=True)
     beta_price_id: str = ""
+    standard_1000_price_id: str = ""
+    standard_3000_price_id: str = ""
+    standard_15000_price_id: str = ""
+    browser_100_price_id: str = ""
     success_url: str = ""
     cancel_url: str = ""
     endpoint_url: str = "https://api.stripe.com/v1/checkout/sessions"
@@ -27,17 +33,27 @@ class StripeCheckoutConfig(BaseModel):
         return all(
             [
                 self.secret_key,
-                self.beta_price_id,
                 self.success_url,
                 self.cancel_url,
             ]
         )
+
+    def price_id_for_package(self, package_id: str) -> str:
+        """Return the configured Stripe price id for a paid package."""
+        price_ids = {
+            "standard_1000": self.standard_1000_price_id or self.beta_price_id,
+            "standard_3000": self.standard_3000_price_id,
+            "standard_15000": self.standard_15000_price_id,
+            "browser_100": self.browser_100_price_id,
+        }
+        return price_ids.get(package_id, "")
 
 
 class StripeCheckoutRequest(BaseModel):
     """Request to create a hosted beta Checkout Session."""
 
     email: str = ""
+    package_id: str = "beta_trial"
 
 
 class StripeCheckoutSession(BaseModel):
@@ -117,27 +133,61 @@ class StripeCheckoutService:
         """Return whether Stripe Checkout creation has required configuration."""
         return self._config.enabled
 
-    def create_beta_checkout_session(
+    def create_checkout_session(
         self,
         request: StripeCheckoutRequest,
     ) -> StripeCheckoutResult:
-        """Create a Stripe Checkout Session for the hosted beta pass."""
+        """Create a Stripe Checkout Session for a hosted credit package."""
         if not self._config.enabled:
             return StripeCheckoutResult(
                 success=False,
                 reason="Stripe Checkout is not configured.",
             )
-        data = {
-            "mode": "payment",
-            "line_items[0][price]": self._config.beta_price_id,
-            "line_items[0][quantity]": "1",
-            "success_url": self._config.success_url,
-            "cancel_url": self._config.cancel_url,
-            "metadata[plan]": "hosted_beta_pass",
-            "metadata[product]": "scout_hosted_beta",
-        }
+        try:
+            package = get_credit_package(request.package_id)
+        except ValueError as exc:
+            return StripeCheckoutResult(success=False, reason=str(exc))
+        if package.amount_cents == 0:
+            data = {
+                "mode": "setup",
+                "success_url": self._config.success_url,
+                "cancel_url": self._config.cancel_url,
+                "metadata[package_id]": package.package_id,
+                "metadata[plan]": "hosted_beta_pass",
+                "metadata[product]": "scout_hosted",
+            }
+        else:
+            price_id = self._config.price_id_for_package(package.package_id)
+            if price_id == "":
+                return StripeCheckoutResult(
+                    success=False,
+                    reason=f"Stripe price is not configured for package {package.package_id}.",
+                )
+            data = {
+                "mode": "payment",
+                "line_items[0][price]": price_id,
+                "line_items[0][quantity]": "1",
+                "success_url": self._config.success_url,
+                "cancel_url": self._config.cancel_url,
+                "metadata[package_id]": package.package_id,
+                "metadata[plan]": "hosted_beta_pass",
+                "metadata[product]": "scout_hosted",
+            }
         if request.email.strip():
             data["customer_email"] = request.email.strip()
+        return self._post_checkout_session(data)
+
+    def create_beta_checkout_session(
+        self,
+        request: StripeCheckoutRequest,
+    ) -> StripeCheckoutResult:
+        """Compatibility wrapper for the hosted beta trial checkout."""
+        return self.create_checkout_session(
+            request.model_copy(update={"package_id": request.package_id or "beta_trial"})
+        )
+
+    def _post_checkout_session(self, data: dict[str, str]) -> StripeCheckoutResult:
+        """Send a prepared Checkout Session form payload to Stripe."""
         headers = {
             "Authorization": f"Bearer {self._config.secret_key}",
             "Content-Type": "application/x-www-form-urlencoded",

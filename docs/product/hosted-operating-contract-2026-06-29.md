@@ -19,7 +19,7 @@ Scout has two operating modes:
 | Mode | Primary user | Cost posture | Data/artifact posture | Launch status |
 |---|---|---|---|---|
 | Local Scout | Builders who want ownership and low marginal cost | Free beta; user brings compute/browser/storage | Artifacts stay in the user's selected workdir | Primary private-beta path |
-| Hosted Scout | Approved testers who want managed API convenience | Paid finite credits; no unlimited usage | Server writes tenant-owned run artifacts with limited retention | Limited private beta only |
+| Hosted Scout | Approved testers who want managed API convenience | Finite beta/pay-as-you-go credits; no unlimited usage | Server writes tenant-owned run artifacts with limited retention | Limited private beta only |
 
 Hosted Scout should be described as managed convenience, not the main value
 wedge. The strongest Scout promise remains owned acquisition plus evidence:
@@ -86,7 +86,7 @@ Current private-beta plan defaults:
 
 | Plan | Standard credits | Browser credits | Retention | Max pages/records | Concurrency |
 |---|---:|---:|---:|---:|---:|
-| `hosted_beta_pass` | 2,000 | 100 | 7 days | 100 | 1 |
+| `hosted_beta_pass` | 100 | 0 | 7 days | 25 | 1 |
 | `hosted_starter` | 5,000 | 250 | 14 days | 250 | 2 |
 | `hosted_pro` | 25,000 | 1,500 | 30 days | 1,000 | 5 |
 
@@ -100,10 +100,11 @@ Current action costs:
 | browser render | browser | 5 |
 | browser minute | browser | 10 |
 
-The previous `$22` hosted beta pass is not approved pricing. Hosted pricing
-must be derived from unit economics before checkout or public pricing claims are
-restored. Hosted Scout must still not be marketed as unlimited hosted crawling,
-lifetime API usage, or public self-serve scale.
+The first pay-as-you-go candidate is $10 for 1,000 standard credits, backed by
+the unit-economics model in
+`docs/product/unit-economics-and-pricing-model-2026-06-29.md`. Browser credits
+remain separately controlled. Hosted Scout must still not be marketed as
+unlimited hosted crawling, lifetime API usage, or public self-serve scale.
 
 ### 5. Store And Retrieve Artifacts
 

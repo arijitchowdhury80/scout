@@ -103,10 +103,10 @@ examples, not as approved commercial terms:
 
 | Bucket | Private-beta value |
 |---|---:|
-| Standard credits | 2,000 |
-| Browser credits | 100 |
+| Standard credits | 100 |
+| Browser credits | 0 |
 | Artifact retention | 7 days |
-| Max pages/records per run | 100 |
+| Max pages/records per run | 25 |
 | Max concurrent hosted runs | 1 |
 
 Public launch must not offer unlimited hosted crawling. Before broader hosted

@@ -44,7 +44,7 @@ def test_stripe_checkout_route_returns_checkout_url_without_static_api_key() -> 
 
     response = client.post(
         "/v1/billing/stripe/checkout-session",
-        json={"email": "builder@example.com"},
+        json={"email": "builder@example.com", "package_id": "beta_trial"},
     )
 
     assert response.status_code == 200
@@ -54,7 +54,7 @@ def test_stripe_checkout_route_returns_checkout_url_without_static_api_key() -> 
         "checkout_url": "https://checkout.stripe.com/c/pay/cs_test_checkout_001",
         "reason": "",
     }
-    assert service.emails == ["builder@example.com"]
+    assert service.requests == [("builder@example.com", "beta_trial")]
     assert "sk_test" not in response.text
 
 
@@ -71,7 +71,7 @@ def test_stripe_checkout_route_returns_503_when_checkout_is_not_configured() -> 
 
     assert response.status_code == 503
     assert response.json()["detail"] == "Stripe Checkout is not configured."
-    assert service.emails == [""]
+    assert service.requests == [("", "beta_trial")]
 
 
 def test_stripe_status_returns_non_secret_readiness_flags() -> None:
@@ -132,10 +132,15 @@ class RecordingStripeCheckoutService:
     def __init__(self, result: StripeCheckoutResult, enabled: bool = True) -> None:
         self.result = result
         self.enabled = enabled
-        self.emails: list[str] = []
+        self.requests: list[tuple[str, str]] = []
 
-    def create_beta_checkout_session(self, request: object) -> StripeCheckoutResult:
-        self.emails.append(str(getattr(request, "email", "")))
+    def create_checkout_session(self, request: object) -> StripeCheckoutResult:
+        self.requests.append(
+            (
+                str(getattr(request, "email", "")),
+                str(getattr(request, "package_id", "")),
+            )
+        )
         return self.result
 
 

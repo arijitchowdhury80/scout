@@ -56,7 +56,10 @@
             <article>
               <h3>Hosted beta checkout</h3>
               <p>Creates a Stripe checkout session only after hosted pricing and payment configuration are approved.</p>
-              <p class="beta-note">Hosted beta is capped and metered. It is not unlimited crawling.</p>
+              <p class="beta-note">
+                Limited credits, not unlimited crawling. Hosted beta is capped
+                and metered so tester activity cannot create an unbounded bill.
+              </p>
               <p>
                 Current hosted beta is invite-only while unit economics are
                 validated. Final credits, price, retention, and overage rules
@@ -128,11 +131,12 @@ scout launch-readiness --require-public</code></pre>
                   placeholder="you@example.com"
                   required
                 />
+                <input id="hostedBetaPackage" name="package_id" type="hidden" value="beta_trial" />
                 <button class="wi-btn" type="submit">Create hosted beta checkout</button>
               </div>
               <p id="hostedBetaStatus" class="beta-status" role="status" aria-live="polite">
-                Hosted beta pricing is not approved yet. Limited credits, not
-                unlimited crawling.
+                Beta trial checkout collects a payment method, charges $0, and
+                provisions 100 standard credits after the signed Stripe webhook.
               </p>
               <p class="beta-note">
                 By requesting hosted access, you acknowledge the
@@ -227,6 +231,7 @@ scout launch-readiness --require-public</code></pre>
         event.preventDefault();
         if (!checkoutButton) return;
         const email = document.getElementById("hostedBetaEmail")?.value.trim() || "";
+        const packageId = document.getElementById("hostedBetaPackage")?.value || "beta_trial";
         const endpoint = checkoutForm.dataset.endpoint || "/v1/billing/stripe/checkout-session";
         checkoutStatus.textContent = "Creating Stripe Checkout Session...";
         checkoutStatus.dataset.state = "loading";
@@ -235,7 +240,7 @@ scout launch-readiness --require-public</code></pre>
           const response = await fetch(endpoint, {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify({ email, package_id: packageId }),
           });
           const payload = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(payload.detail || "Hosted beta is not configured yet.");

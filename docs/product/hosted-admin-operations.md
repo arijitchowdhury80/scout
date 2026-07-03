@@ -146,7 +146,15 @@ Those require a billing ledger, cost model, analytics dashboard, and Stripe inte
 
 ## Pricing And Billing Gap
 
-Pay-as-you-go pricing is not finalized. A production model should add:
+Pay-as-you-go pricing candidate:
+
+- Beta trial: 30 days, 100 standard credits, $0 charge, payment method required later.
+- First paid package: $10 for 1,000 standard credits.
+- A standard credit means one scrape, one returned crawl page, or one product/intelligence record.
+- Browser credits remain separately metered and are not included in the first public package.
+- Current default economics estimate $2.59 loaded cost, $7.41 gross profit, 74.1% gross margin, and break-even at 17 packs/month for the $10 package.
+
+A production billing model should still add:
 
 - Stripe customer and checkout-session records,
 - package definitions such as `$10`, `$25`, `$100` credit bundles,

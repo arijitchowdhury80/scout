@@ -1,8 +1,9 @@
 """Tests for creating Stripe Checkout Sessions for hosted Scout beta access.
 
 # Scenario list:
-# - configured service creates a one-time payment checkout session
-# - checkout payload includes beta plan metadata and customer email when supplied
+# - configured service creates a beta trial setup checkout session
+# - configured service creates a package payment checkout session
+# - checkout payload includes package metadata and customer email when supplied
 # - missing Stripe configuration fails before any outbound request
 # - service result never exposes the Stripe secret key
 """
@@ -17,20 +18,20 @@ from scout.core.platform.stripe_checkout import (
 )
 
 
-def test_stripe_checkout_creates_beta_session_with_expected_payload() -> None:
+def test_stripe_checkout_creates_beta_trial_setup_session_with_expected_payload() -> None:
     transport = RecordingStripeCheckoutTransport()
     service = StripeCheckoutService(
         StripeCheckoutConfig(
             secret_key="sk_test_secret",
-            beta_price_id="price_beta_22",
+            standard_1000_price_id="price_standard_1000",
             success_url="https://scout.example/success",
             cancel_url="https://scout.example/cancel",
         ),
         transport=transport,
     )
 
-    result = service.create_beta_checkout_session(
-        StripeCheckoutRequest(email="builder@example.com")
+    result = service.create_checkout_session(
+        StripeCheckoutRequest(email="builder@example.com", package_id="beta_trial")
     )
 
     assert result.success is True
@@ -40,14 +41,13 @@ def test_stripe_checkout_creates_beta_session_with_expected_payload() -> None:
         {
             "url": "https://api.stripe.com/v1/checkout/sessions",
             "data": {
-                "mode": "payment",
-                "line_items[0][price]": "price_beta_22",
-                "line_items[0][quantity]": "1",
+                "mode": "setup",
                 "success_url": "https://scout.example/success",
                 "cancel_url": "https://scout.example/cancel",
                 "customer_email": "builder@example.com",
+                "metadata[package_id]": "beta_trial",
                 "metadata[plan]": "hosted_beta_pass",
-                "metadata[product]": "scout_hosted_beta",
+                "metadata[product]": "scout_hosted",
             },
             "authorization": "Bearer sk_test_secret",
         }
@@ -55,19 +55,69 @@ def test_stripe_checkout_creates_beta_session_with_expected_payload() -> None:
     assert "sk_test_secret" not in result.model_dump_json()
 
 
-def test_stripe_checkout_missing_configuration_fails_without_transport_call() -> None:
+def test_stripe_checkout_creates_standard_credit_payment_session() -> None:
     transport = RecordingStripeCheckoutTransport()
     service = StripeCheckoutService(
         StripeCheckoutConfig(
-            secret_key="",
-            beta_price_id="price_beta_22",
+            secret_key="sk_test_secret",
+            standard_1000_price_id="price_standard_1000",
             success_url="https://scout.example/success",
             cancel_url="https://scout.example/cancel",
         ),
         transport=transport,
     )
 
-    result = service.create_beta_checkout_session(StripeCheckoutRequest())
+    result = service.create_checkout_session(
+        StripeCheckoutRequest(email="builder@example.com", package_id="standard_1000")
+    )
+
+    assert result.success is True
+    assert transport.calls[0]["data"] == {
+        "mode": "payment",
+        "line_items[0][price]": "price_standard_1000",
+        "line_items[0][quantity]": "1",
+        "success_url": "https://scout.example/success",
+        "cancel_url": "https://scout.example/cancel",
+        "customer_email": "builder@example.com",
+        "metadata[package_id]": "standard_1000",
+        "metadata[plan]": "hosted_beta_pass",
+        "metadata[product]": "scout_hosted",
+    }
+
+
+def test_stripe_checkout_rejects_paid_package_without_price_id() -> None:
+    transport = RecordingStripeCheckoutTransport()
+    service = StripeCheckoutService(
+        StripeCheckoutConfig(
+            secret_key="sk_test_secret",
+            success_url="https://scout.example/success",
+            cancel_url="https://scout.example/cancel",
+        ),
+        transport=transport,
+    )
+
+    result = service.create_checkout_session(
+        StripeCheckoutRequest(email="builder@example.com", package_id="standard_1000")
+    )
+
+    assert result.success is False
+    assert result.reason == "Stripe price is not configured for package standard_1000."
+    assert transport.calls == []
+
+
+def test_stripe_checkout_missing_configuration_fails_without_transport_call() -> None:
+    transport = RecordingStripeCheckoutTransport()
+    service = StripeCheckoutService(
+        StripeCheckoutConfig(
+            secret_key="",
+            standard_1000_price_id="price_standard_1000",
+            success_url="https://scout.example/success",
+            cancel_url="https://scout.example/cancel",
+        ),
+        transport=transport,
+    )
+
+    result = service.create_checkout_session(StripeCheckoutRequest(package_id="beta_trial"))
 
     assert result.success is False
     assert result.checkout_url == ""
