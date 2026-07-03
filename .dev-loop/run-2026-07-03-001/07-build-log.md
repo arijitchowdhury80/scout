@@ -266,6 +266,73 @@ ruff format --check scout/ tests/ scripts/*.py
 
 Result: pyright 0 errors; Ruff passed; format check passed.
 
+## Hosted Account Monitoring Summary Slice
+
+Implemented:
+
+- `/v1/hosted/me` now returns compact monitoring summaries in addition to
+  tenant, key, plan, balance, and limits.
+- `usage_summary` includes usage event count, standard credits used, browser
+  credits used, and the deeper `/v1/hosted/usage` URL.
+- `purchase_summary` includes purchase count, total amount paid, currency, last
+  package id, and the deeper `/v1/hosted/purchases` URL.
+- `links` gives callers stable docs/pricing/usage/purchase locations without
+  exposing raw API keys.
+- Hosted operations docs now describe `/v1/hosted/me` as the account snapshot
+  endpoint for self-service and monitoring.
+
+Verification:
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_purchases.py::test_hosted_me_returns_usage_and_purchase_monitoring_summary -q
+```
+
+Result: 1 passed, 2 warnings.
+
+## Final Production Smoke And Load On Current Branch Tip
+
+Runtime commit deployed for this smoke: `e0c956f`.
+
+Production public smoke:
+
+- `GET https://scout.chowmes.com/health` returned `200`.
+- `GET https://scout.chowmes.com/pricing` returned `200`.
+- `GET https://scout.chowmes.com/quickstart` returned `200`.
+- `GET https://scout.chowmes.com/assets/pricing.js` returned `200`.
+- `GET https://scout.chowmes.com/assets/hosted-keygen.js` returned `403`, as
+  expected after removing the old direct keygen public path.
+- `GET https://scout.chowmes.com/v1/billing/packages` returned `200`.
+- VPS env still had hosted LLM disabled:
+  `HOSTED_LLM_MODE=disabled`, `LLM_API_KEY=` empty, and
+  `HOSTED_ASYNC_FIRST=true`.
+
+Fresh public HTTPS 250-user hosted acceptance load on `e0c956f`:
+
+- Command target: `https://scout.chowmes.com`
+- Users/concurrency: 250/250
+- Requests: 4,000 across `/v1/hosted/me`, hosted scrape/crawl/products,
+  hosted intelligence runs, and hosted run listing.
+- Result file: `/tmp/scout-load-e0c956f-result.json`
+- Duration: 80.99s
+- Throughput: 49.39 req/s
+- P95 latency: 4,929ms
+- Error rate: 0.00%
+- Result: passed `p95 <= 15000ms` and `error_rate <= 2%`.
+- Post-test container: CPU 0.20%, memory 150.7MiB, PIDs 23.
+
+Final production cleanup:
+
+- Revoked the 250 temporary `load250_e0c956f_%@chowmes.internal` load-test
+  keys; all load-test keys now show `revoked`.
+- Restarted the Scout container to flush the in-process acceptance queue.
+- Verified public health after cleanup:
+  `{"status":"ok","crawl4ai_version":"0.9.0","scout_version":"0.1.0"}`.
+- Post-cleanup container: CPU 0.16%, memory 104.9MiB, PIDs 7.
+
+Boundary: this is a successful hosted async-acceptance load test. It is still
+not proof that the 2-vCPU VPS can execute 250 simultaneous long-running browser
+or crawler jobs to completion without separate worker capacity.
+
 ## Payment-Method-First Beta Access Slice
 
 Implemented:
@@ -289,6 +356,26 @@ python3 -m pytest tests/unit/website/test_launch_website.py::test_launch_website
 ```
 
 Result: 4 passed, 2 warnings.
+
+```bash
+python3 -m pytest tests/unit/core/platform/test_key_delivery.py tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_hosted_purchases.py tests/unit/api/test_billing_stripe_checkout.py tests/unit/api/test_auth.py tests/unit/website/test_launch_website.py tests/unit/test_hosted_pricing_docs.py -q
+```
+
+Result: 58 passed, 2 warnings.
+
+```bash
+python3 -m pytest tests/unit/ -q
+```
+
+Result: 704 passed, 8 warnings.
+
+```bash
+python3 -m pyright scout/
+ruff check scout/ tests/ scripts/*.py
+ruff format --check scout/ tests/ scripts/*.py
+```
+
+Result: pyright 0 errors; Ruff passed; format check passed.
 
 ## Pricing Checkout UX Slice
 
