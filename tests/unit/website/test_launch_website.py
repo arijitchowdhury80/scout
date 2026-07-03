@@ -370,6 +370,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Operator local verification",
             "Beta trial",
             "Hosted beta tester key",
+            "Beta setup uses $0 Stripe Checkout",
             "$10",
             "1,000 standard credits",
             "Pay-as-you-go candidate",
@@ -379,8 +380,9 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         ],
         "status.html": [
             "Scout Launch Status",
-            "Hosted beta: ready_with_limits",
-            "Launch readiness: ready",
+            "Scout hosted beta is online, but self-service is still gated.",
+            "Hosted service: online",
+            "Beta signup: configuration blocked",
             "What changed in the blocker burndown?",
             "Arijit decisions: closed",
             "Codex gates: closed",
@@ -441,7 +443,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "https://x.com/unclecode",
             "Apache License, Version 2.0",
             "Scout local/core is Apache-2.0",
-            "Controlled beta is ready; public self-serve remains deferred.",
+            "Hosted beta is capped; public claims stay gated.",
         ],
         "terms.html": [
             "Scout Beta Terms Placeholder",
@@ -449,6 +451,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Use Scout only for websites and data you are allowed to access.",
             "No guaranteed hard-site bypass.",
             "Hosted beta is capped and metered.",
+            "Hosted beta is capped and configuration-gated.",
         ],
         "privacy.html": [
             "Scout Beta Privacy Placeholder",
@@ -518,6 +521,7 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
         "Beta trial",
         "30 days",
         "100 standard credits",
+        "Beta setup uses $0 Stripe Checkout",
     ]
 
     for expected in expected_strings:

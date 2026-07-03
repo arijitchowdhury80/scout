@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout Launch Status - Beta release ready</title>
+    <title>Scout Launch Status - Hosted beta readiness</title>
     <meta
       name="description"
       content="Scout launch readiness status, beta boundaries, public self-serve limits, and readiness commands."
@@ -34,12 +34,13 @@
       <main>
         <section class="page-hero">
           <p class="wi-label wi-label--accent">Scout Launch Status</p>
-          <h1>Scout beta release is ready with limits.</h1>
+          <h1>Scout hosted beta is online, but self-service is still gated.</h1>
           <p>
             This page mirrors the launch readiness contract in plain language.
             It exists so beta testers and operators can see what is verified,
-            which release gates are closed, and which future public self-serve
-            capabilities remain intentionally deferred.
+            which release gates are closed, and which hosted self-service
+            configuration still has to pass before testers can onboard without
+            operator help.
           </p>
         </section>
 
@@ -50,19 +51,19 @@
           </div>
           <div class="status-grid">
             <article>
-              <span class="status-tag status-tag--primary">Beta</span>
-              <h3>Hosted beta: ready_with_limits</h3>
-              <p>Beta testers use hosted HTTP keys or the Claude/Codex skill. Local package and Docker paths are operator verification only.</p>
+              <span class="status-tag status-tag--limited">Hosted</span>
+              <h3>Hosted service: online</h3>
+              <p>The hosted API is reachable and package metadata is available. Self-service signup still depends on SMTP and Stripe configuration.</p>
             </article>
             <article>
-              <span class="status-tag status-tag--primary">Release</span>
-              <h3>Launch readiness: ready</h3>
-              <p>The release checklist has no current blockers after the artifact-only beta tag and downloaded-artifact smoke.</p>
+              <span class="status-tag status-tag--blocker">Signup</span>
+              <h3>Beta signup: configuration blocked</h3>
+              <p>Card-backed $0 beta setup cannot open until Stripe Checkout, signed webhook verification, and API-key email delivery are configured and smoke-tested.</p>
             </article>
             <article>
               <span class="status-tag status-tag--limited">Boundary</span>
-              <h3>Public self-serve is deferred</h3>
-              <p>PyPI, GHCR, Docker Hub, paid checkout, security-clean claims, and unlimited hosted crawling are not part of this beta release.</p>
+              <h3>No unlimited hosted crawling</h3>
+              <p>Hosted Scout is credit-metered. Browser-heavy work, public registry distribution, and security-clean claims stay behind separate gates.</p>
             </article>
           </div>
         </section>
@@ -83,11 +84,11 @@
             </article>
             <article>
               <h3>Hosted checkout: gated</h3>
-              <p>Hosted beta signup can register testers and queue API-key delivery while SMTP is being configured. Paid checkout separately requires Stripe Checkout and webhook verification.</p>
+              <p>Hosted beta signup uses $0 Stripe setup and API-key email delivery. Both remain blocked until Stripe Checkout, webhook signing, and SMTP delivery are configured.</p>
             </article>
             <article>
               <h3>Current blockers: configuration</h3>
-              <p>The hosted service is online. Beta requests without SMTP enter the pending delivery queue; paid checkout remains blocked until production Stripe and webhook secrets are installed.</p>
+              <p>The hosted service is online. Production self-service remains blocked until SMTP, Stripe Checkout, and webhook secrets are installed and smoke-tested.</p>
             </article>
           </div>
         </section>
