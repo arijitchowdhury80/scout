@@ -192,6 +192,22 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             assert fragment in output
 
 
+def test_python_admin_helpers_can_run_from_outside_repo() -> None:
+    """VPS invocations may call helper files directly from arbitrary cwd."""
+    script = REPO_ROOT / "scripts" / "hosted_production_smoke.py"
+
+    result = subprocess.run(
+        [sys.executable, str(script), "--help"],
+        check=True,
+        capture_output=True,
+        cwd="/tmp",
+        text=True,
+    )
+
+    assert "Operator smoke gate" in result.stdout
+    assert "--require-ready" in result.stdout
+
+
 def test_hosted_config_template_and_vps_config_do_not_request_beta_price_id() -> None:
     """Beta checkout uses Stripe setup mode; no beta price id should be configured."""
     template_text = (REPO_ROOT / "scripts" / "scout-write-hosted-config-template").read_text(
