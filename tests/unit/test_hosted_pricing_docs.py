@@ -53,6 +53,7 @@ def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     assert "included_in_standard_1000" in doc
     assert "$10 for 1,000 standard credits" in doc
     assert "Pay-as-you-go pricing candidate" in doc
+    assert "Stripe Checkout setup mode with `customer_creation=always`" in doc
 
 
 def test_distribution_docs_make_email_beta_registration_the_live_path() -> None:

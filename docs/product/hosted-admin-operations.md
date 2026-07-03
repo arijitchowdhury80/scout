@@ -15,8 +15,9 @@ Scout hosted beta has API-key based access, not a login system.
   the raw key in the browser.
 - `/beta` also exposes a secondary card-backed beta setup path. It posts
   `package_id=beta_trial` to `POST /v1/billing/stripe/checkout-session`, uses
-  Stripe Checkout setup mode, charges $0, and relies on the signed Stripe
-  webhook plus SMTP delivery to provision and email the beta API key.
+  Stripe Checkout setup mode with `customer_creation=always`, charges $0, and
+  relies on the signed Stripe webhook plus SMTP delivery to provision and email
+  the beta API key.
 - Paid hosted credit packages start from `/pricing`, which posts to
   `POST /v1/billing/stripe/checkout-session`. Stripe remains the paid purchase
   path for hosted credit packages.
@@ -36,10 +37,10 @@ Scout hosted beta has API-key based access, not a login system.
   disabled until Stripe settings, signed webhook delivery, and SMTP key
   delivery are configured. The beta page uses the same checkout-session route
   for `$0` setup-mode validation when `ready_for_beta_checkout` is true.
-- The paid hosted purchase path uses Stripe Checkout with card collection,
-  `customer_email`, and metadata. It intentionally does not send
-  `customer_creation=always`, which is reserved for payment-mode customer
-  creation. Paid credit packages use Checkout `mode=payment`,
+- The beta setup path uses Stripe Checkout with card collection,
+  `customer_email`, metadata, `mode=setup`, and `customer_creation=always` so
+  Stripe creates a customer/payment-method setup record during the $0 beta
+  flow. Paid credit packages use Checkout `mode=payment`,
   `customer_creation=always`, and package price line items.
 - Beta-trial key delivery uses the subject `Your Scout beta tester API key is
   ready`. It is signed by Arijit Chowdhury, Founder, Chowmes; explains the
