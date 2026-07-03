@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -10,12 +11,17 @@ from fastapi.testclient import TestClient
 from scout.api.config import settings
 from scout.api.deps import (
     get_hosted_account_service,
+    get_hosted_key_delivery_service,
     get_hosted_payment_provisioning_service,
 )
 from scout.api.main import app
 from scout.core.platform.account_service import HostedAccountService, HostedSignupEvent
 from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
 from scout.core.platform.hosted import HostedAction, HostedPlan
+from scout.core.platform.key_delivery import (
+    HostedApiKeyDeliveryRequest,
+    HostedApiKeyDeliveryResult,
+)
 from scout.core.platform.payment_provisioning import (
     HostedCheckoutPaymentStatus,
     HostedCheckoutProvisioningRequest,
@@ -26,7 +32,7 @@ from scout.core.platform.payment_provisioning import (
 
 
 @pytest.fixture(autouse=True)
-def _clear_dependency_overrides() -> None:
+def _clear_dependency_overrides() -> Iterator[None]:
     yield
     app.dependency_overrides.clear()
 
@@ -84,6 +90,62 @@ def test_billing_admin_metrics_returns_non_secret_metering_summary(tmp_path: Pat
     assert raw_key not in response.text
     assert "key_hash" not in response.text
     assert "scout_live_" not in response.text
+
+
+def test_billing_admin_delivers_pending_beta_signups_without_exposing_raw_keys(
+    tmp_path: Path,
+) -> None:
+    account_service, payment_service, _raw_key = _seed_services(tmp_path)
+    delivery = FakeDeliveryService()
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_payment_provisioning_service] = lambda: payment_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    client = TestClient(app)
+
+    response = client.post(
+        "/v1/billing/admin/deliver-pending-beta-keys",
+        headers={"X-API-Key": settings.scout_api_key},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["attempted"] == 1
+    assert data["delivered"] == 1
+    assert data["failed"] == 0
+    assert data["remaining_pending"] == 0
+    assert data["results"][0]["email"] == "pending@example.com"
+    assert data["results"][0]["status"] == "delivered"
+    assert data["results"][0]["tenant_id"].startswith("tenant_")
+    assert data["results"][0]["key_id"].startswith("key_")
+    assert "raw_api_key" not in data["results"][0]
+    assert delivery.requests[0].email == "pending@example.com"
+    assert delivery.requests[0].name == "Pending Tester"
+    assert delivery.requests[0].raw_api_key not in response.text
+    assert "scout_live_" not in response.text
+    assert account_service.find_tenant_by_email("pending@example.com") is not None
+    latest_events = account_service.list_signup_events(limit=10)
+    assert latest_events[0].email == "pending@example.com"
+    assert latest_events[0].status == "delivered"
+    assert latest_events[0].source == "admin_pending_beta_delivery"
+
+
+def test_billing_admin_pending_beta_delivery_requires_email_delivery(
+    tmp_path: Path,
+) -> None:
+    account_service, payment_service, _raw_key = _seed_services(tmp_path)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_payment_provisioning_service] = lambda: payment_service
+    client = TestClient(app)
+
+    response = client.post(
+        "/v1/billing/admin/deliver-pending-beta-keys",
+        headers={"X-API-Key": settings.scout_api_key},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Hosted API key delivery is not configured."
+    assert account_service.find_tenant_by_email("pending@example.com") is None
 
 
 def _seed_services(
@@ -184,3 +246,23 @@ def _checkout(
         scopes=["runs:create"],
         status=status,
     )
+
+
+class FakeDeliveryService:
+    """Fake hosted API-key delivery service for admin pending-delivery tests."""
+
+    enabled = True
+
+    def __init__(
+        self,
+        result: HostedApiKeyDeliveryResult | None = None,
+    ) -> None:
+        self.result = result or HostedApiKeyDeliveryResult(
+            delivered=True,
+            delivery_status="delivered",
+        )
+        self.requests: list[HostedApiKeyDeliveryRequest] = []
+
+    def deliver(self, request: HostedApiKeyDeliveryRequest) -> HostedApiKeyDeliveryResult:
+        self.requests.append(request)
+        return self.result

@@ -7,7 +7,7 @@ import hmac
 import json
 import time
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, EmailStr, Field
 
 from scout.api.config import settings
@@ -119,6 +119,29 @@ class HostedBillingAdminMetricsResponse(BaseModel):
     recent_purchases: list[dict[str, object]]
 
 
+class PendingBetaKeyDeliveryResult(BaseModel):
+    """Non-secret result for one pending beta signup delivery attempt."""
+
+    email: str
+    name: str = ""
+    status: str
+    tenant_id: str = ""
+    key_id: str = ""
+    delivery_status: str = ""
+    reason: str = ""
+
+
+class PendingBetaKeyDeliveryResponse(BaseModel):
+    """Admin response for draining queued beta signup requests."""
+
+    success: bool = True
+    attempted: int
+    delivered: int
+    failed: int
+    remaining_pending: int
+    results: list[PendingBetaKeyDeliveryResult]
+
+
 @router.get("/packages", response_model=HostedBillingPackagesResponse)
 async def billing_packages() -> HostedBillingPackagesResponse:
     """Return public hosted credit packages, credit meanings, and economics."""
@@ -180,6 +203,35 @@ async def billing_admin_metrics(
         recent_signup_events=signup_events,
         recent_usage=usage[:100],
         recent_purchases=[purchase.model_dump(mode="json") for purchase in purchases],
+    )
+
+
+@router.post(
+    "/admin/deliver-pending-beta-keys",
+    response_model=PendingBetaKeyDeliveryResponse,
+)
+async def deliver_pending_beta_keys(
+    limit: int = Query(default=25, ge=1, le=100),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    delivery_service: HostedApiKeyDeliveryService = Depends(get_hosted_key_delivery_service),
+) -> PendingBetaKeyDeliveryResponse:
+    """Provision and email API keys for queued beta signups after SMTP is configured."""
+    if not delivery_service.enabled:
+        raise HTTPException(status_code=503, detail="Hosted API key delivery is not configured.")
+
+    results: list[PendingBetaKeyDeliveryResult] = []
+    for event in account_service.pending_signup_requests(limit=limit):
+        results.append(_deliver_pending_beta_key(account_service, delivery_service, event))
+
+    delivered = sum(1 for result in results if result.status == "delivered")
+    failed = sum(1 for result in results if result.status != "delivered")
+    remaining_pending = len(account_service.pending_signup_requests(limit=10_000))
+    return PendingBetaKeyDeliveryResponse(
+        attempted=len(results),
+        delivered=delivered,
+        failed=failed,
+        remaining_pending=remaining_pending,
+        results=results,
     )
 
 
@@ -271,6 +323,94 @@ def _stripe_status_diagnostics(
         "blocking_reasons": blocking_reasons,
         "operator_next_actions": operator_next_actions,
     }
+
+
+def _deliver_pending_beta_key(
+    account_service: HostedAccountService,
+    delivery_service: HostedApiKeyDeliveryService,
+    event: HostedSignupEvent,
+) -> PendingBetaKeyDeliveryResult:
+    """Provision one pending beta signup and email its one-time raw API key."""
+    normalized_email = str(event.email).strip().lower()
+    try:
+        provisioned = account_service.provision_account(
+            email=normalized_email,
+            name=event.name,
+            plan=HostedPlan.HOSTED_BETA_PASS,
+            scopes=["runs:create"],
+            key_name="Hosted beta tester key",
+        )
+    except ValueError as exc:
+        account_service.record_signup_event(
+            HostedSignupEvent(
+                email=normalized_email,
+                name=event.name,
+                status="duplicate",
+                source="admin_pending_beta_delivery",
+                reason=str(exc),
+            )
+        )
+        return PendingBetaKeyDeliveryResult(
+            email=normalized_email,
+            name=event.name,
+            status="duplicate",
+            reason=str(exc),
+        )
+
+    delivery = delivery_service.deliver(
+        HostedApiKeyDeliveryRequest(
+            email=provisioned.tenant.email,
+            name=provisioned.tenant.name,
+            tenant_id=provisioned.tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            plan=provisioned.tenant.plan,
+            raw_api_key=provisioned.raw_api_key,
+            checkout_session_id="admin_pending_beta_delivery",
+        )
+    )
+    if not delivery.delivered:
+        account_service.record_signup_event(
+            HostedSignupEvent(
+                email=normalized_email,
+                name=event.name,
+                status="failed",
+                source="admin_pending_beta_delivery",
+                tenant_id=provisioned.tenant.tenant_id,
+                key_id=provisioned.api_key.key_id,
+                delivery_status=delivery.delivery_status,
+                reason=delivery.reason,
+            )
+        )
+        account_service.delete_account(provisioned.tenant.tenant_id)
+        return PendingBetaKeyDeliveryResult(
+            email=normalized_email,
+            name=event.name,
+            status="failed",
+            tenant_id=provisioned.tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            delivery_status=delivery.delivery_status,
+            reason=delivery.reason,
+        )
+
+    account_service.record_signup_event(
+        HostedSignupEvent(
+            email=normalized_email,
+            name=event.name,
+            status="delivered",
+            source="admin_pending_beta_delivery",
+            tenant_id=provisioned.tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            delivery_status=delivery.delivery_status,
+        )
+    )
+    return PendingBetaKeyDeliveryResult(
+        email=normalized_email,
+        name=event.name,
+        status="delivered",
+        tenant_id=provisioned.tenant.tenant_id,
+        key_id=provisioned.api_key.key_id,
+        delivery_status=delivery.delivery_status,
+    )
 
 
 @router.post("/stripe/checkout-session", response_model=StripeCheckoutSessionResponse)

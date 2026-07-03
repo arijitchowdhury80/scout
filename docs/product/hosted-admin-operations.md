@@ -476,6 +476,31 @@ records.
 It does not return raw hosted API keys, key hashes, Stripe secrets, SMTP
 secrets, or customer payment details.
 
+### Drain Pending Beta Key Deliveries
+
+If beta registration was open while SMTP delivery was not configured, Scout
+records those requests as `pending_delivery` without creating accounts or
+issuing raw API keys. After SMTP is configured and smoke-tested, drain the
+pending queue through the protected admin API:
+
+```bash
+curl -X POST "https://scout.chowmes.com/v1/billing/admin/deliver-pending-beta-keys?limit=25" \
+  -H "X-API-Key: $SCOUT_SERVICE_API_KEY"
+```
+
+This endpoint:
+
+- requires the service API key;
+- fails closed with `503` when hosted key delivery is not configured;
+- provisions each pending beta tester as a hosted account;
+- emails the raw API key exactly once;
+- records a new `admin_pending_beta_delivery` signup event;
+- returns only email, status, tenant ID, key ID, delivery status, reason, and
+  batch counts.
+
+It does not return raw hosted API keys, key hashes, SMTP secrets, Stripe
+secrets, or customer payment details.
+
 Hosted self-service key generation intentionally does not use a shared password
 gate. The beta flow is name plus email capture, account registration, key
 generation, and one-time API-key email delivery. Paid Stripe checkout remains
