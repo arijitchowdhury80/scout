@@ -108,7 +108,7 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
     ]
 
 
-def test_hosted_readiness_ignores_removed_beta_key_response_fallback(
+def test_hosted_readiness_accepts_beta_key_response_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     responses = {
@@ -125,7 +125,7 @@ def test_hosted_readiness_ignores_removed_beta_key_response_fallback(
             "webhook_configured": False,
             "key_delivery_configured": False,
             "key_delivery_response_fallback_enabled": True,
-            "ready_for_beta_key_delivery": False,
+            "ready_for_beta_key_delivery": True,
             "ready_for_paid_key_delivery": False,
         },
     }
@@ -139,9 +139,8 @@ def test_hosted_readiness_ignores_removed_beta_key_response_fallback(
 
     result = hosted_readiness_check.run_readiness("https://scout.chowmes.com/")
 
-    assert result.ready_for_beta_signup is False
+    assert result.ready_for_beta_signup is True
     assert result.blockers == [
-        "hosted API key email delivery not configured",
         "Stripe Checkout not configured",
         "Stripe webhook secret not configured",
         "paid checkout/key delivery not ready",
