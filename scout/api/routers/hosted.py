@@ -1045,6 +1045,11 @@ def _queue_hosted_job(
     work,
 ) -> JSONResponse:
     """Queue hosted work and return a 202 response with a poll URL."""
+    if queue.worker_count == 0:
+        raise _capacity_exception(
+            "Hosted async queue has no workers; retry shortly.",
+            HostedQueueFull(queue.retry_after_seconds),
+        )
     try:
         job = queue.enqueue(
             kind=kind,

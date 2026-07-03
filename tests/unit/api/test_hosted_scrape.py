@@ -10,9 +10,11 @@ from scout.api.deps import (
     get_crawler,
     get_hosted_admission_controller,
     get_hosted_account_service,
+    get_hosted_job_queue,
     get_hosted_key_delivery_service,
     get_hosted_rate_limiter,
 )
+from scout.api.hosted_jobs import HostedJobQueue
 from scout.api.main import app
 from scout.api.config import settings
 from scout.core.platform.account_service import (
@@ -436,11 +438,13 @@ def test_hosted_scrape_rate_limit_rejects_without_second_debit_or_crawl() -> Non
 def test_hosted_scrape_capacity_queues_without_debit_or_crawl() -> None:
     account_service, raw_key, tenant_id = _account_service_with_key()
     admission = AdmissionController(max_active=0, retry_after_seconds=3)
+    queue = HostedJobQueue(max_queued=2, worker_count=1)
     mock_crawler = MagicMock()
     mock_crawler.scrape = AsyncMock()
     app.dependency_overrides[get_crawler] = lambda: mock_crawler
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_admission_controller] = lambda: admission
+    app.dependency_overrides[get_hosted_job_queue] = lambda: queue
     try:
         client = TestClient(app)
         resp = client.post(

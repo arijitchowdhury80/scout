@@ -36,7 +36,7 @@ def _account_service_with_key() -> tuple[HostedAccountService, str, str]:
 def test_hosted_scrape_capacity_full_accepts_queued_job_without_debit_or_crawl() -> None:
     account_service, raw_key, tenant_id = _account_service_with_key()
     admission = AdmissionController(max_active=0, retry_after_seconds=3)
-    queue = HostedJobQueue(max_queued=2, worker_count=0)
+    queue = HostedJobQueue(max_queued=2, worker_count=1)
     mock_crawler = MagicMock()
     mock_crawler.scrape = AsyncMock()
     app.dependency_overrides[get_crawler] = lambda: mock_crawler
@@ -77,7 +77,7 @@ def test_hosted_scrape_capacity_full_accepts_queued_job_without_debit_or_crawl()
 def test_hosted_expensive_endpoints_queue_when_worker_capacity_is_full() -> None:
     account_service, raw_key, _tenant_id = _account_service_with_key()
     admission = AdmissionController(max_active=0, retry_after_seconds=3)
-    queue = HostedJobQueue(max_queued=4, worker_count=0)
+    queue = HostedJobQueue(max_queued=4, worker_count=1)
     mock_crawler = MagicMock()
     mock_crawler.crawl = AsyncMock()
     mock_crawler.products = AsyncMock()
@@ -124,7 +124,7 @@ def test_hosted_scrape_async_first_queues_without_waiting_for_capacity(
     monkeypatch.setattr("scout.api.routers.hosted.settings.hosted_async_first", True)
     account_service, raw_key, tenant_id = _account_service_with_key()
     admission = AdmissionController(max_active=100, retry_after_seconds=3)
-    queue = HostedJobQueue(max_queued=2, worker_count=0)
+    queue = HostedJobQueue(max_queued=2, worker_count=1)
     mock_crawler = MagicMock()
     mock_crawler.scrape = AsyncMock()
     app.dependency_overrides[get_crawler] = lambda: mock_crawler
@@ -158,7 +158,7 @@ def test_hosted_async_first_queues_all_expensive_endpoint_types(monkeypatch) -> 
     monkeypatch.setattr("scout.api.routers.hosted.settings.hosted_async_first", True)
     account_service, raw_key, _tenant_id = _account_service_with_key()
     admission = AdmissionController(max_active=100, retry_after_seconds=3)
-    queue = HostedJobQueue(max_queued=4, worker_count=0)
+    queue = HostedJobQueue(max_queued=4, worker_count=1)
     mock_crawler = MagicMock()
     mock_crawler.crawl = AsyncMock()
     mock_crawler.products = AsyncMock()
@@ -198,10 +198,42 @@ def test_hosted_async_first_queues_all_expensive_endpoint_types(monkeypatch) -> 
     assert mock_crawler.products.await_count == 0
 
 
+def test_hosted_async_queue_without_workers_rejects_instead_of_fake_accepting(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr("scout.api.routers.hosted.settings.hosted_async_first", True)
+    account_service, raw_key, tenant_id = _account_service_with_key()
+    queue = HostedJobQueue(max_queued=4, worker_count=0, retry_after_seconds=7)
+    mock_crawler = MagicMock()
+    mock_crawler.scrape = AsyncMock()
+    app.dependency_overrides[get_crawler] = lambda: mock_crawler
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_job_queue] = lambda: queue
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/scrape",
+            json={"url": "https://example.com"},
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    balance = account_service.get_balance(tenant_id)
+    assert resp.status_code == 429
+    assert resp.headers["retry-after"] == "7"
+    assert resp.json()["detail"] == "Hosted async queue has no workers; retry shortly."
+    assert mock_crawler.scrape.await_count == 0
+    assert (
+        balance.standard_credits_remaining
+        == plan_limits(HostedPlan.HOSTED_BETA_PASS).standard_credits
+    )
+
+
 def test_hosted_job_polling_returns_result_after_worker_completes() -> None:
     account_service, raw_key, tenant_id = _account_service_with_key()
     admission = AdmissionController(max_active=0, retry_after_seconds=3)
-    queue = HostedJobQueue(max_queued=2, worker_count=0)
+    queue = HostedJobQueue(max_queued=2, worker_count=1)
     mock_crawler = MagicMock()
     mock_crawler.scrape = AsyncMock(
         return_value=ScrapeResponse(
