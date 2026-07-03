@@ -13,6 +13,10 @@ Scout hosted beta has API-key based access, not a login system.
   the one-time API key, and records the signup event. When SMTP delivery is not
   configured, it records a pending tester request. Public signup never shows
   the raw key in the browser.
+- `/beta` also exposes a secondary card-backed beta setup path. It posts
+  `package_id=beta_trial` to `POST /v1/billing/stripe/checkout-session`, uses
+  Stripe Checkout setup mode, charges $0, and relies on the signed Stripe
+  webhook plus SMTP delivery to provision and email the beta API key.
 - Paid hosted credit packages start from `/pricing`, which posts to
   `POST /v1/billing/stripe/checkout-session`. Stripe remains the paid purchase
   path for hosted credit packages.
@@ -30,7 +34,8 @@ Scout hosted beta has API-key based access, not a login system.
 - Paid Stripe checkout forms are available from `/pricing` for paid hosted credit
   packages. They are readiness-gated by `/v1/billing/stripe/status` and stay
   disabled until Stripe settings, signed webhook delivery, and SMTP key
-  delivery are configured.
+  delivery are configured. The beta page uses the same checkout-session route
+  for `$0` setup-mode validation when `ready_for_beta_checkout` is true.
 - The paid hosted purchase path uses Stripe Checkout with card collection,
   `customer_email`, and metadata. It intentionally does not send
   `customer_creation=always`, which is reserved for payment-mode customer
@@ -395,10 +400,10 @@ scripts/scout-hosted-admin readiness \
 
 The checker calls only non-secret endpoints: `/health`,
 `/v1/billing/packages`, and `/v1/billing/stripe/status`. It fails if beta
-email registration is not ready, paid checkout is not ready, SMTP delivery is
-missing, required packages are absent, or a response contains secret-looking
-material. Paid-readiness mode also reports Stripe Checkout and webhook
-configuration gaps.
+email registration is not ready, beta Stripe setup is not ready, paid checkout
+is not ready, SMTP delivery is missing, required packages are absent, or a
+response contains secret-looking material. Paid-readiness mode also reports
+Stripe Checkout and webhook configuration gaps.
 
 Machine-readable output for deployment logs:
 

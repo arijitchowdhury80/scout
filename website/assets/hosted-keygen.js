@@ -1,12 +1,14 @@
 (function () {
   const form = document.getElementById("hostedKeyForm");
   const statusEl = document.getElementById("hostedKeyStatus");
+  const checkoutForm = document.getElementById("hostedBetaCheckoutForm");
+  const checkoutStatusEl = document.getElementById("hostedBetaCheckoutStatus");
   const statusForm = document.getElementById("hostedKeyStatusForm");
   const lookupStatusEl = document.getElementById("hostedKeyLookupStatus");
   const reissueForm = document.getElementById("hostedKeyReissueForm");
   const reissueStatusEl = document.getElementById("hostedKeyReissueStatus");
 
-  if (!form && !statusForm && !reissueForm) {
+  if (!form && !checkoutForm && !statusForm && !reissueForm) {
     return;
   }
 
@@ -16,8 +18,14 @@
     statusForm?.dataset.statusCheckEndpoint || "/v1/hosted/beta-key/status";
   const reissueEndpoint =
     reissueForm?.dataset.reissueEndpoint || "/v1/hosted/beta-key/reissue";
+  const checkoutEndpoint =
+    checkoutForm?.dataset.checkoutEndpoint || "/v1/billing/stripe/checkout-session";
+  const checkoutReadyFlag = checkoutForm?.dataset.readyFlag || "ready_for_beta_checkout";
 
   if (form && statusEl) {
+    checkReadiness();
+  }
+  if (checkoutForm && checkoutStatusEl) {
     checkReadiness();
   }
 
@@ -127,25 +135,88 @@
     }
   });
 
+  checkoutForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submitButton = checkoutForm.querySelector("button[type='submit']");
+    const formData = new FormData(checkoutForm);
+    const name = String(formData.get("name") || "").trim();
+    const email = String(formData.get("email") || "").trim();
+    const packageId = String(formData.get("package_id") || "beta_trial").trim();
+
+    if (!name) {
+      setCheckoutStatus("Enter your name or app name for card-backed beta setup.", "error");
+      return;
+    }
+
+    if (!email) {
+      setCheckoutStatus("Enter an email address for API key delivery.", "error");
+      return;
+    }
+
+    setCheckoutStatus("Checking card-backed beta setup readiness...", "running");
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+      const readiness = await fetchRegistrationReadiness();
+      if (readiness && readiness[checkoutReadyFlag] !== true) {
+        throw new Error(
+          "Card-backed beta setup is not ready yet. Use email beta registration or try again after Stripe is configured.",
+        );
+      }
+      const response = await fetch(checkoutEndpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({ name, email, package_id: packageId || "beta_trial" }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.detail || "Card-backed beta setup is not ready yet.");
+      }
+      if (!payload.checkout_url) {
+        throw new Error("Stripe did not return a beta checkout URL.");
+      }
+      setCheckoutStatus("Redirecting to Stripe for $0 beta setup...", "running");
+      window.location.assign(payload.checkout_url);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Card-backed beta setup is not ready yet.";
+      setCheckoutStatus(message, "error");
+      if (submitButton) submitButton.disabled = false;
+    }
+  });
+
   async function checkReadiness() {
-    if (!form || !statusEl) return;
-    const submitButton = form.querySelector("button[type='submit']");
+    const submitButton = form?.querySelector("button[type='submit']");
+    const checkoutButton = checkoutForm?.querySelector("button[type='submit']");
     try {
       const response = await fetch(statusEndpoint, { headers: { accept: "application/json" } });
       if (!response.ok) return;
       const status = await response.json();
-      if (status.beta_signup_enabled === true) {
+      if (form && statusEl && status.beta_signup_enabled === true) {
         if (submitButton) submitButton.disabled = false;
         setStatus(
           "Hosted beta registration is open. Register and Scout will email your API key when delivery is configured.",
           "success",
         );
-        return;
       }
-      if (status.beta_signup_enabled !== true) {
+      if (form && statusEl && status.beta_signup_enabled !== true) {
         if (submitButton) submitButton.disabled = true;
         setStatus(
           "Hosted beta registration is not open yet. Existing keys still work.",
+          "error",
+        );
+      }
+      if (checkoutForm && checkoutStatusEl && status[checkoutReadyFlag] === true) {
+        if (checkoutButton) checkoutButton.disabled = false;
+        setCheckoutStatus(
+          "Card-backed beta setup is ready. Stripe will collect a payment method and charge $0.",
+          "success",
+        );
+      }
+      if (checkoutForm && checkoutStatusEl && status[checkoutReadyFlag] !== true) {
+        if (checkoutButton) checkoutButton.disabled = true;
+        setCheckoutStatus(
+          "Card-backed beta setup is not ready yet. Email beta registration can still record your request.",
           "error",
         );
       }
@@ -203,6 +274,12 @@
     if (!reissueStatusEl) return;
     reissueStatusEl.textContent = message;
     reissueStatusEl.dataset.state = state;
+  }
+
+  function setCheckoutStatus(message, state) {
+    if (!checkoutStatusEl) return;
+    checkoutStatusEl.textContent = message;
+    checkoutStatusEl.dataset.state = state;
   }
 
   function statusMessage(payload) {

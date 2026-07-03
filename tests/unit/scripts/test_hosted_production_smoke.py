@@ -15,6 +15,7 @@ def test_production_smoke_stops_before_stripe_when_readiness_is_blocked() -> Non
             health_ok=True,
             packages_ok=True,
             ready_for_beta_signup=False,
+            ready_for_beta_checkout=False,
             ready_for_paid_checkout=False,
             blockers=[
                 "hosted API key email delivery not configured",
@@ -41,6 +42,7 @@ def test_production_smoke_stops_before_stripe_when_readiness_is_blocked() -> Non
     assert result.health_ok is True
     assert result.packages_ok is True
     assert result.beta_key_delivery_ok is False
+    assert result.beta_checkout_ok is False
     assert result.paid_checkout_ok is False
     assert result.blockers == [
         "hosted API key email delivery not configured",
@@ -63,6 +65,7 @@ def test_production_smoke_checks_beta_delivery_and_paid_path_when_ready() -> Non
             health_ok=True,
             packages_ok=True,
             ready_for_beta_signup=True,
+            ready_for_beta_checkout=True,
             ready_for_paid_checkout=True,
             blockers=[],
             missing_environment_keys=[],
@@ -81,10 +84,11 @@ def test_production_smoke_checks_beta_delivery_and_paid_path_when_ready() -> Non
 
     assert result.ok is True
     assert result.beta_key_delivery_ok is True
+    assert result.beta_checkout_ok is True
     assert result.paid_checkout_ok is True
     assert result.blockers == []
     assert result.next_steps == ["Run a real Stripe Checkout + webhook + delivered-key E2E test."]
-    assert stripe_calls == ["standard_1000"]
+    assert stripe_calls == ["beta_trial", "standard_1000"]
 
 
 def test_production_smoke_json_output_never_contains_raw_secrets() -> None:
@@ -93,8 +97,10 @@ def test_production_smoke_json_output_never_contains_raw_secrets() -> None:
         health_ok=True,
         packages_ok=True,
         beta_signup_ready=True,
+        beta_checkout_ready=True,
         paid_checkout_ready=False,
         beta_key_delivery_ok=True,
+        beta_checkout_ok=True,
         paid_checkout_ok=False,
         blockers=["paid checkout/key delivery not ready"],
         missing_environment_keys=["STRIPE_STANDARD_1000_PRICE_ID"],

@@ -209,27 +209,27 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert "payload.raw_api_key" not in hosted_keygen.text
 
 
-def test_beta_page_uses_direct_email_registration_without_password() -> None:
-    """The public beta page should register by name/email and email the API key."""
+def test_beta_page_uses_email_registration_and_optional_card_setup_without_password() -> None:
+    """The public beta page should support email registration plus optional $0 setup."""
     html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
     hosted_keygen = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(encoding="utf-8")
 
     assert 'id="hostedKeyForm"' in html
     assert 'data-endpoint="/v1/hosted/beta-key"' in html
-    assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' not in html
-    assert 'data-ready-flag="ready_for_beta_checkout"' not in html
+    assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' in html
+    assert 'data-ready-flag="ready_for_beta_checkout"' in html
     assert 'id="pricingCheckoutForm"' not in html
     assert "Register for Beta API Key" in html
-    assert "Start $0 Beta Checkout" not in html
+    assert "Start $0 Beta Checkout" in html
     assert "Register with your name and email" in html
-    assert "card-backed" not in html.lower()
+    assert "card-backed" in html.lower()
     assert 'src="./assets/pricing.js"' not in html
-    assert "window.location.assign" not in hosted_keygen
-    assert "checkout_url" not in hosted_keygen
+    assert "window.location.assign" in hosted_keygen
+    assert "checkout_url" in hosted_keygen
     assert "submitEmailFallback" not in hosted_keygen
     assert "submitEmailRegistration" in hosted_keygen
     assert "Checking beta registration readiness" in hosted_keygen
-    assert "Card-backed beta setup" not in hosted_keygen
+    assert "Card-backed beta setup" in hosted_keygen
     assert "form?.dataset.endpoint" in hosted_keygen
     assert "form.dataset.endpoint" not in hosted_keygen
     assert 'type="password"' not in html
@@ -598,29 +598,29 @@ def test_beta_signup_uses_email_registration_without_password_or_browser_key_dis
 
     assert 'id="hostedKeyForm"' in html
     assert 'data-endpoint="/v1/hosted/beta-key"' in html
-    assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' not in html
+    assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' in html
     assert "Register for Beta API Key" in normalized_html
-    assert "Start $0 Beta Checkout" not in normalized_html
+    assert "Start $0 Beta Checkout" in normalized_html
     assert 'name="name"' in html
     assert 'name="email"' in html
     assert 'data-status-endpoint="/v1/billing/stripe/status"' in html
     assert 'name="package_id" type="hidden" value="beta_trial"' in html
     assert "Register for your beta tester API key." in normalized_html
     assert "Register and receive your API key by email" in normalized_html
-    assert "card-backed" not in normalized_html.lower()
+    assert "card-backed" in normalized_html.lower()
     assert "Scout provisions a finite-credit hosted beta key" in normalized_html
     assert "100 standard credits" in normalized_html
     assert "/v1/billing/stripe/status" in html
     assert 'id="pricingCheckoutForm"' not in html
-    assert 'data-ready-flag="ready_for_beta_checkout"' not in html
-    assert "/v1/billing/stripe/checkout-session" not in html
+    assert 'data-ready-flag="ready_for_beta_checkout"' in html
+    assert "/v1/billing/stripe/checkout-session" in html
     assert 'src="./assets/pricing.js"' not in html
     assert "payload.raw_api_key" not in html
     assert "payload.raw_api_key" not in hosted_keygen_js
     assert "submitEmailFallback" not in hosted_keygen_js
     assert "submitEmailRegistration" in hosted_keygen_js
     assert "Checking beta registration readiness" in hosted_keygen_js
-    assert "Card-backed beta setup" not in hosted_keygen_js
+    assert "Card-backed beta setup" in hosted_keygen_js
     assert "Use the email beta key path" not in pricing_js
     assert 'id="hostedKeyStatusForm"' in html
     assert 'data-status-check-endpoint="/v1/hosted/beta-key/status"' in html
@@ -634,6 +634,8 @@ def test_beta_signup_uses_email_registration_without_password_or_browser_key_dis
     assert "/v1/hosted/beta-key/reissue" in hosted_keygen_js
     assert "Requesting a replacement API key" in hosted_keygen_js
     assert "beta_signup_enabled" in hosted_keygen_js
+    assert "ready_for_beta_checkout" in hosted_keygen_js
+    assert "window.location.assign" in hosted_keygen_js
     assert "Hosted beta key registration is paused" not in hosted_keygen_js
     assert 'type="password"' not in html
     assert 'name="invite_password"' not in html

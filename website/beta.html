@@ -155,6 +155,48 @@ scout launch-readiness --require-public</code></pre>
               </p>
             </form>
             <form
+              id="hostedBetaCheckoutForm"
+              class="beta-form beta-form--secondary"
+              data-checkout-endpoint="/v1/billing/stripe/checkout-session"
+              data-status-endpoint="/v1/billing/stripe/status"
+              data-ready-flag="ready_for_beta_checkout"
+            >
+              <h3>Card-backed beta setup</h3>
+              <p>
+                Invited beta testers can also verify the full payment pipeline
+                with a $0 Stripe setup-mode checkout. Scout collects a payment
+                method, charges nothing, then emails the beta API key after the
+                signed webhook provisions the account.
+              </p>
+              <label for="hostedBetaCheckoutName">Name or app name</label>
+              <input
+                id="hostedBetaCheckoutName"
+                name="name"
+                type="text"
+                autocomplete="name"
+                placeholder="Your name or app"
+                required
+              />
+
+              <label for="hostedBetaCheckoutEmail">Email for API key delivery</label>
+              <input
+                id="hostedBetaCheckoutEmail"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              />
+              <input name="package_id" type="hidden" value="beta_trial" />
+              <button class="wi-btn wi-btn--secondary" type="submit">
+                Start $0 Beta Checkout
+              </button>
+              <p id="hostedBetaCheckoutStatus" class="beta-status" role="status" aria-live="polite">
+                Card-backed beta setup stays disabled until Stripe Checkout,
+                webhook signing, and email delivery are configured.
+              </p>
+            </form>
+            <form
               id="hostedKeyStatusForm"
               class="beta-form beta-form--secondary"
               data-status-check-endpoint="/v1/hosted/beta-key/status"

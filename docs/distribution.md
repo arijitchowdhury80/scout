@@ -101,13 +101,15 @@ does not pass an exact `--output-dir` or JSON `output_dir`.
 ## Hosted Beta Configuration
 
 Local use does not require Stripe or SMTP. Public hosted beta starts at `/beta`.
-When the hosted stack is fully ready, testers register name/email and receive
-the hosted API key by email after Scout provisions the account. The beta path is
-live-ready when `ready_for_beta_key_delivery` is true. That requires
-`HOSTED_BETA_SIGNUP_ENABLED=true` and SMTP key delivery. If SMTP is not
-configured, `/beta` can still record a name/email request through
-`/v1/hosted/beta-key`, but that is only a request queue, not a completed beta
-onboarding pipeline. Public signup never returns raw API keys in the browser.
+When the hosted stack is fully ready, testers can register name/email and
+receive the hosted API key by email after Scout provisions the account. The
+same page also exposes `$0` card-backed beta setup through Stripe Checkout
+setup mode. Email beta readiness is true when `ready_for_beta_key_delivery` is
+true; card-backed beta readiness is true when `ready_for_beta_checkout` is
+true. If SMTP is not configured, `/beta` can still record a name/email request
+through `/v1/hosted/beta-key`, but that is only a request queue, not a
+completed beta onboarding pipeline. Public signup never returns raw API keys in
+the browser.
 
 Hosted beta setup requires:
 
@@ -124,9 +126,11 @@ HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
 
 ```
 
-`/beta` posts to `/v1/hosted/beta-key`. Public signup never returns raw API
-keys in the browser; Scout emails the one-time key and stores only a hash. If
-SMTP is temporarily unavailable, the request is recorded for queued delivery.
+`/beta` posts direct email registration to `/v1/hosted/beta-key` and posts the
+optional `$0` beta card setup to `/v1/billing/stripe/checkout-session` with
+`package_id=beta_trial`. Public signup never returns raw API keys in the
+browser; Scout emails the one-time key and stores only a hash. If SMTP is
+temporarily unavailable, the request is recorded for queued delivery.
 
 Paid checkout uses Stripe Checkout. `/pricing` contains the paid hosted-credit
 checkout form, readiness-gated by `/v1/billing/stripe/status`; it requires

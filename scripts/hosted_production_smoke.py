@@ -26,8 +26,10 @@ class ProductionSmokeResult:
     health_ok: bool
     packages_ok: bool
     beta_signup_ready: bool
+    beta_checkout_ready: bool
     paid_checkout_ready: bool
     beta_key_delivery_ok: bool
+    beta_checkout_ok: bool
     paid_checkout_ok: bool
     blockers: list[str]
     next_steps: list[str]
@@ -40,8 +42,10 @@ class ProductionSmokeResult:
             self.health_ok
             and self.packages_ok
             and self.beta_signup_ready
+            and self.beta_checkout_ready
             and self.paid_checkout_ready
             and self.beta_key_delivery_ok
+            and self.beta_checkout_ok
             and self.paid_checkout_ok
             and not self.blockers
         )
@@ -63,8 +67,23 @@ def run_production_smoke(
     next_steps = _next_steps_for_blockers(blockers)
 
     beta_key_delivery_ok = readiness.ready_for_beta_signup and not blockers
+    beta_checkout_ok = False
     paid_checkout_ok = False
-    if not blockers and readiness.ready_for_beta_signup and readiness.ready_for_paid_checkout:
+    if (
+        not blockers
+        and readiness.ready_for_beta_signup
+        and readiness.ready_for_beta_checkout
+        and readiness.ready_for_paid_checkout
+    ):
+        stripe_runner(
+            base_url=readiness.base_url,
+            email="scout-beta-smoke@example.com",
+            name="Scout Beta Smoke",
+            create_checkout=False,
+            package_id="beta_trial",
+            timeout=timeout,
+        )
+        beta_checkout_ok = True
         stripe_runner(
             base_url=readiness.base_url,
             email="scout-paid-smoke@example.com",
@@ -81,8 +100,10 @@ def run_production_smoke(
         health_ok=readiness.health_ok,
         packages_ok=readiness.packages_ok,
         beta_signup_ready=readiness.ready_for_beta_signup,
+        beta_checkout_ready=readiness.ready_for_beta_checkout,
         paid_checkout_ready=readiness.ready_for_paid_checkout,
         beta_key_delivery_ok=beta_key_delivery_ok,
+        beta_checkout_ok=beta_checkout_ok,
         paid_checkout_ok=paid_checkout_ok,
         blockers=blockers,
         missing_environment_keys=readiness.missing_environment_keys,
@@ -118,7 +139,7 @@ def _next_steps_for_blockers(blockers: list[str]) -> list[str]:
         )
         steps.append(
             "Run scripts/stripe_test_mode_smoke.py --base-url https://scout.chowmes.com "
-            "--package-id standard_1000"
+            "--package-id beta_trial and --package-id standard_1000"
         )
     if any("health" in blocker for blocker in blockers):
         steps.append("Check the Scout container, Caddy route, and /health endpoint.")
@@ -161,8 +182,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Health: {'ready' if result.health_ok else 'blocked'}")
         print(f"Packages: {'ready' if result.packages_ok else 'blocked'}")
         print(f"Beta key email delivery: {'ready' if result.beta_signup_ready else 'blocked'}")
+        print(f"Beta Stripe setup: {'ready' if result.beta_checkout_ready else 'blocked'}")
         print(f"Paid checkout/key delivery: {'ready' if result.paid_checkout_ready else 'blocked'}")
         print(f"Beta key delivery smoke: {'ready' if result.beta_key_delivery_ok else 'not run'}")
+        print(f"Beta Stripe smoke: {'ready' if result.beta_checkout_ok else 'not run'}")
         print(f"Paid Stripe smoke: {'ready' if result.paid_checkout_ok else 'not run'}")
         if result.blockers:
             print("Blockers:", file=sys.stderr)

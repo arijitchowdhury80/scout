@@ -290,9 +290,9 @@ async def stripe_status(
         customer_portal_configured=customer_portal_configured,
         webhook_configured=webhook_configured,
         key_delivery_configured=key_delivery_configured,
-        public_self_service_path="email_beta_registration",
+        public_self_service_path="email_beta_registration_and_beta_checkout_setup",
         public_beta_key_endpoint="/v1/hosted/beta-key",
-        public_beta_checkout_endpoint="",
+        public_beta_checkout_endpoint="/v1/billing/stripe/checkout-session",
         public_paid_checkout_endpoint="/v1/billing/stripe/checkout-session",
         public_customer_portal_endpoint="/v1/billing/stripe/customer-portal-session",
         ready_for_beta_key_delivery=beta_signup_enabled and key_delivery_configured,
@@ -317,6 +317,10 @@ async def stripe_status(
             (
                 "Use /beta to register name/email and receive a hosted beta API key "
                 "by email when delivery is configured."
+            ),
+            (
+                "Use /beta to start a $0 Stripe setup-mode beta trial when beta "
+                "checkout readiness is true."
             ),
             "Use /pricing to buy paid credit packages when paid checkout readiness is true.",
         ],

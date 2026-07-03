@@ -58,6 +58,7 @@ def test_hosted_readiness_reports_ready_when_all_live_flags_are_true(
     assert result.health_ok is True
     assert result.packages_ok is True
     assert result.ready_for_beta_signup is True
+    assert result.ready_for_beta_checkout is True
     assert result.ready_for_paid_checkout is True
     assert result.blockers == []
     assert calls == [
@@ -103,6 +104,7 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
     result = hosted_readiness_check.run_readiness("https://scout.chowmes.com/")
 
     assert result.ready_for_beta_signup is False
+    assert result.ready_for_beta_checkout is False
     assert result.ready_for_paid_checkout is False
     assert result.blockers == [
         "hosted beta signup disabled",
@@ -110,6 +112,7 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
         "Stripe Checkout not configured",
         "Stripe webhook secret not configured",
         "self-service beta key delivery not ready",
+        "beta Stripe setup not ready",
         "paid checkout/key delivery not ready",
     ]
     assert result.missing_environment_keys == [
@@ -151,9 +154,11 @@ def test_hosted_readiness_allows_beta_when_email_delivery_is_ready_but_checkout_
     result = hosted_readiness_check.run_readiness("https://scout.chowmes.com/")
 
     assert result.ready_for_beta_signup is True
+    assert result.ready_for_beta_checkout is False
     assert result.blockers == [
         "Stripe Checkout not configured",
         "Stripe webhook secret not configured",
+        "beta Stripe setup not ready",
         "paid checkout/key delivery not ready",
     ]
 
@@ -175,6 +180,7 @@ def test_hosted_readiness_main_fails_require_beta_when_blocked(
             health_ok=True,
             packages_ok=True,
             ready_for_beta_signup=False,
+            ready_for_beta_checkout=False,
             ready_for_paid_checkout=False,
             blockers=["hosted API key email delivery not configured"],
             missing_environment_keys=["HOSTED_KEY_DELIVERY_SMTP_HOST"],

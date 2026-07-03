@@ -31,6 +31,7 @@ class HostedReadinessResult:
     health_ok: bool
     packages_ok: bool
     ready_for_beta_signup: bool
+    ready_for_beta_checkout: bool
     ready_for_paid_checkout: bool
     blockers: list[str]
     missing_environment_keys: list[str] = field(default_factory=list)
@@ -96,6 +97,7 @@ def run_readiness(base_url: str, timeout: float = 20.0) -> HostedReadinessResult
     }
     packages_ok = {"beta_trial", "standard_1000"}.issubset(package_ids)
     ready_for_beta_signup = billing.get("ready_for_beta_key_delivery") is True
+    ready_for_beta_checkout = billing.get("ready_for_beta_checkout") is True
     ready_for_paid_checkout = billing.get("ready_for_paid_key_delivery") is True
     missing_environment_keys = [
         str(key) for key in billing.get("missing_environment_keys", []) if isinstance(key, str)
@@ -116,6 +118,8 @@ def run_readiness(base_url: str, timeout: float = 20.0) -> HostedReadinessResult
         blockers.append("Stripe webhook secret not configured")
     if not ready_for_beta_signup:
         blockers.append("self-service beta key delivery not ready")
+    if not ready_for_beta_checkout:
+        blockers.append("beta Stripe setup not ready")
     if not ready_for_paid_checkout:
         blockers.append("paid checkout/key delivery not ready")
 
@@ -124,6 +128,7 @@ def run_readiness(base_url: str, timeout: float = 20.0) -> HostedReadinessResult
         health_ok=health_ok,
         packages_ok=packages_ok,
         ready_for_beta_signup=ready_for_beta_signup,
+        ready_for_beta_checkout=ready_for_beta_checkout,
         ready_for_paid_checkout=ready_for_paid_checkout,
         blockers=blockers,
         missing_environment_keys=missing_environment_keys,
@@ -165,6 +170,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Health: {'ready' if result.health_ok else 'blocked'}")
         print(f"Packages: {'ready' if result.packages_ok else 'blocked'}")
         print("Beta signup: " + ("ready" if result.ready_for_beta_signup else "blocked"))
+        print("Beta Stripe setup: " + ("ready" if result.ready_for_beta_checkout else "blocked"))
         print("Paid checkout: " + ("ready" if result.ready_for_paid_checkout else "blocked"))
         if result.blockers:
             print("Blockers:", file=sys.stderr)
