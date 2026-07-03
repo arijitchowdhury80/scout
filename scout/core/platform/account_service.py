@@ -378,6 +378,33 @@ class HostedAccountService:
         """Remove a hosted account after failed one-time key delivery."""
         self.store.delete_account(tenant_id)
 
+    def find_tenant_by_email(self, email: str) -> HostedTenantRecord | None:
+        """Return tenant metadata for a normalized email if it exists."""
+        return self.store.find_tenant_by_email(email)
+
+    def latest_key_id_for_tenant(self, tenant_id: str) -> str:
+        """Return the most recent non-secret key id for a hosted tenant."""
+        for account in self.store.list_accounts(limit=10_000):
+            if account.tenant_id == tenant_id:
+                return account.key_id
+        return ""
+
+    def add_credits(
+        self,
+        tenant_id: str,
+        *,
+        standard_credits: int,
+        browser_credits: int,
+    ) -> HostedUsageBalance:
+        """Add hosted credits to an existing tenant balance."""
+        balance = self.store.get_balance(tenant_id)
+        next_balance = HostedUsageBalance(
+            standard_credits_remaining=(balance.standard_credits_remaining + standard_credits),
+            browser_credits_remaining=(balance.browser_credits_remaining + browser_credits),
+        )
+        self.store.set_balance(tenant_id, next_balance)
+        return next_balance
+
     def debit_standard_credits(
         self,
         *,

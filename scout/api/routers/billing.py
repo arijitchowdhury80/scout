@@ -278,6 +278,8 @@ def _deliver_api_key(
         return "not_required"
     if not result.success:
         return "not_delivered"
+    if result.raw_api_key == "":
+        return "not_required"
     delivery = delivery_service.deliver(
         HostedApiKeyDeliveryRequest(
             email=checkout.email,

@@ -123,6 +123,12 @@ when `--package-id beta_trial` is used for test-mode smoke validation. That
 validates payment-method collection and webhook provisioning without charging
 the beta tester, but it is separate from the direct `/beta` email-key form.
 
+When a paid checkout webhook uses an email that already has a hosted account,
+Scout treats the checkout as a credit top-up: it adds the purchased credits to
+the existing tenant, records the purchase, and does not send another raw API
+key. First-time paid buyers still receive a one-time API key email after
+webhook provisioning succeeds.
+
 All key delivery paths use the same SMTP settings:
 
 ```text

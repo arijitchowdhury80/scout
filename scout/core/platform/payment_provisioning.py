@@ -10,7 +10,7 @@ from typing import Protocol
 
 from pydantic import BaseModel, EmailStr, Field
 
-from scout.core.platform.account_service import HostedAccountService, HostedProvisioningResult
+from scout.core.platform.account_service import HostedAccountService
 from scout.core.platform.hosted import HostedPlan
 from scout.core.platform.pricing import get_credit_package
 
@@ -226,20 +226,45 @@ class HostedPaymentProvisioningService:
         if rejection is not None:
             return rejection
 
+        package = get_credit_package(request.package_id)
+        existing_tenant = self.account_service.find_tenant_by_email(str(request.email))
+        if existing_tenant is not None:
+            self.account_service.add_credits(
+                existing_tenant.tenant_id,
+                standard_credits=package.standard_credits,
+                browser_credits=package.browser_credits,
+            )
+            key_id = self.account_service.latest_key_id_for_tenant(existing_tenant.tenant_id)
+            self.payment_store.save_checkout(
+                _record_from_request(
+                    request,
+                    tenant_id=existing_tenant.tenant_id,
+                    key_id=key_id,
+                )
+            )
+            return HostedCheckoutProvisioningResult(
+                success=True,
+                tenant_id=existing_tenant.tenant_id,
+                key_id=key_id,
+                plan=existing_tenant.plan,
+            )
+
         provisioned = self.account_service.provision_account(
             email=str(request.email),
             name=request.name,
             plan=request.plan,
             scopes=request.scopes,
             key_name=f"{request.provider.value} checkout {request.checkout_session_id}",
-        )
-        package = get_credit_package(request.package_id)
-        self.account_service.set_balance(
-            provisioned.tenant.tenant_id,
             standard_credits=package.standard_credits,
             browser_credits=package.browser_credits,
         )
-        self.payment_store.save_checkout(_record_from_request(request, provisioned))
+        self.payment_store.save_checkout(
+            _record_from_request(
+                request,
+                tenant_id=provisioned.tenant.tenant_id,
+                key_id=provisioned.api_key.key_id,
+            )
+        )
         return HostedCheckoutProvisioningResult(
             success=True,
             tenant_id=provisioned.tenant.tenant_id,
@@ -299,14 +324,16 @@ def _existing_result(
 
 def _record_from_request(
     request: HostedCheckoutProvisioningRequest,
-    provisioned: HostedProvisioningResult,
+    *,
+    tenant_id: str,
+    key_id: str,
 ) -> HostedCheckoutProvisioningRecord:
     """Build a persisted checkout mapping from request and account result."""
     return HostedCheckoutProvisioningRecord(
         provider=request.provider,
         checkout_session_id=request.checkout_session_id,
-        tenant_id=provisioned.tenant.tenant_id,
-        key_id=provisioned.api_key.key_id,
+        tenant_id=tenant_id,
+        key_id=key_id,
         email=request.email,
         package_id=request.package_id,
         plan=request.plan,

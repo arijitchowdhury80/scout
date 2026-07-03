@@ -34,6 +34,11 @@ Scout hosted beta has API-key based access, not a login system.
 - The public pricing page can start Stripe Checkout for hosted credit packages
   through `/v1/billing/stripe/checkout-session` when Stripe price IDs and
   checkout settings are configured.
+- A successful paid Stripe webhook creates a hosted tenant for a first-time
+  buyer, or adds the purchased credits to the existing tenant when the checkout
+  email already has a hosted account. Existing-account top-ups do not email a
+  second raw API key; they record the purchase against the tenant/key and update
+  the credit balance.
 - Hosted Stripe success/cancel redirects should land on
   `https://scout.chowmes.com/pricing?checkout=success` or
   `https://scout.chowmes.com/pricing?checkout=cancelled` so users see a clear
@@ -229,7 +234,10 @@ keys, not user sessions:
   and `/v1/hosted/purchases` provide deeper ledger/history rows.
 
 A future account portal should add email verification, login, key rotation,
-downloadable invoices, credit top-up, and Stripe customer portal links.
+downloadable invoices, explicit top-up history UX, and Stripe customer portal
+links. The backend already records paid checkout purchases and can top up an
+existing tenant balance when the Stripe checkout email matches an existing
+hosted account.
 
 ## Current Credit Model
 
@@ -309,6 +317,8 @@ Today, Scout can answer:
 - usage totals in `/v1/hosted/me`,
 - per-tenant Stripe checkout/package purchase history through `/v1/hosted/purchases`,
 - purchase totals in `/v1/hosted/me`,
+- paid checkout top-ups for existing hosted tenants when Stripe webhook email
+  matches an existing account,
 - operator-level signup, credit, usage, purchase, and revenue summaries through
   `/v1/billing/admin/metrics`,
 - every successful hosted credit debit in the `hosted_credit_ledger` table,

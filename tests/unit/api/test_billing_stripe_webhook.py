@@ -27,6 +27,7 @@ from scout.core.platform.account_service import (
     HostedAccountService,
     InMemoryHostedAccountStore,
 )
+from scout.core.platform.hosted import HostedPlan
 from scout.core.platform.payment_provisioning import (
     HostedCheckoutProvisioningRecord,
     HostedPaymentProvider,
@@ -198,6 +199,55 @@ def test_stripe_webhook_checkout_completed_replay_is_idempotent(
     assert len(delivery_service.deliveries) == 1
 
 
+def test_stripe_webhook_paid_checkout_tops_up_existing_account_without_key_email(
+    tmp_path: Path,
+) -> None:
+    account_store = InMemoryHostedAccountStore()
+    account_service = HostedAccountService(account_store)
+    payment_store = SQLiteHostedPaymentStore(tmp_path / "hosted.sqlite")
+    beta = account_service.provision_account(
+        email="scout-beta-test@example.com",
+        name="Builder Person",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+        key_name="Initial beta key",
+    )
+    account_service.set_balance(
+        beta.tenant.tenant_id,
+        standard_credits=60,
+        browser_credits=0,
+    )
+    service = HostedPaymentProvisioningService(account_service, payment_store)
+    delivery_service = RecordingKeyDeliveryService()
+    payload = _standard_1000_checkout_event_payload()
+    client = _client(service, delivery_service)
+
+    response = client.post(
+        "/v1/billing/stripe/webhook",
+        content=payload,
+        headers={
+            "content-type": "application/json",
+            "Stripe-Signature": _signature_header(payload),
+        },
+    )
+    stored = _stored_checkout(payment_store)
+    balance = account_service.get_balance(beta.tenant.tenant_id)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["delivery_status"] == "not_required"
+    assert body["tenant_id"] == beta.tenant.tenant_id
+    assert body["key_id"] == beta.api_key.key_id
+    assert balance.standard_credits_remaining == 1060
+    assert balance.browser_credits_remaining == 0
+    assert stored is not None
+    assert stored.package_id == "standard_1000"
+    assert stored.amount_total_cents == 1000
+    assert len(delivery_service.deliveries) == 0
+    assert "scout_live_" not in response.text
+
+
 def test_stripe_webhook_ignores_irrelevant_event_type(tmp_path: Path) -> None:
     payment_store = SQLiteHostedPaymentStore(tmp_path / "hosted.sqlite")
     service = _payment_service(payment_store)
@@ -269,6 +319,34 @@ def _checkout_event_payload() -> bytes:
                     "payment_status": "no_payment_required",
                     "metadata": {
                         "package_id": "beta_trial",
+                        "name": "Builder Person",
+                    },
+                    "customer_details": {
+                        "email": "scout-beta-test@example.com",
+                        "name": "Builder Person",
+                    },
+                }
+            },
+        }
+    )
+
+
+def _standard_1000_checkout_event_payload() -> bytes:
+    """Return a paid Stripe checkout.session.completed event payload."""
+    return _event_payload(
+        {
+            "id": "evt_test_paid_001",
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_test_beta_001",
+                    "customer": "cus_test_001",
+                    "payment_intent": "pi_test_001",
+                    "amount_total": 1000,
+                    "currency": "usd",
+                    "payment_status": "paid",
+                    "metadata": {
+                        "package_id": "standard_1000",
                         "name": "Builder Person",
                     },
                     "customer_details": {
