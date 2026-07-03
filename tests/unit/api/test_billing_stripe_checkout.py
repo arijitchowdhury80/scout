@@ -14,12 +14,17 @@ import pytest
 from fastapi.testclient import TestClient
 
 from scout.api.deps import (
+    get_hosted_account_service,
     get_hosted_key_delivery_service,
     get_stripe_checkout_service,
     get_stripe_webhook_secret,
 )
 from scout.api.config import settings
 from scout.api.main import app
+from scout.core.platform.account_service import (
+    HostedAccountService,
+    InMemoryHostedAccountStore,
+)
 from scout.core.platform.stripe_checkout import (
     StripeCheckoutConfig,
     StripeCheckoutRequest,
@@ -65,6 +70,42 @@ def test_stripe_checkout_route_returns_checkout_url_without_static_api_key(monke
     }
     assert service.requests == [("builder@example.com", "Builder Person", "beta_trial")]
     assert "sk_test" not in response.text
+
+
+def test_beta_checkout_route_records_signup_attempt_before_webhook(monkeypatch) -> None:
+    service = RecordingStripeCheckoutService(
+        StripeCheckoutResult(
+            success=True,
+            checkout_session_id="cs_test_beta_signup_001",
+            checkout_url="https://checkout.stripe.com/c/pay/cs_test_beta_signup_001",
+        )
+    )
+    account_service = HostedAccountService(InMemoryHostedAccountStore())
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
+    client = _client(service, account_service=account_service)
+
+    response = client.post(
+        "/v1/billing/stripe/checkout-session",
+        json={
+            "email": "Beta.Builder@Example.com",
+            "name": "Beta Builder",
+            "package_id": "beta_trial",
+        },
+    )
+
+    assert response.status_code == 200
+    events = account_service.list_signup_events(limit=10)
+    assert len(events) == 1
+    event = events[0]
+    assert str(event.email) == "Beta.Builder@example.com"
+    assert event.name == "Beta Builder"
+    assert event.status == "checkout_started"
+    assert event.source == "stripe_checkout"
+    assert event.delivery_status == "checkout_session_created"
+    assert event.reason == "cs_test_beta_signup_001"
+    assert event.tenant_id == ""
+    assert event.key_id == ""
+    assert "scout_live_" not in response.text
 
 
 def test_stripe_checkout_route_blocks_when_webhook_is_not_configured(
@@ -628,12 +669,16 @@ def _client(
     *,
     webhook_secret: str = "whsec_test",
     delivery_enabled: bool = True,
+    account_service: HostedAccountService | None = None,
 ) -> TestClient:
     """Build a test client with the checkout service dependency overridden."""
     app.dependency_overrides[get_stripe_checkout_service] = lambda: service
     app.dependency_overrides[get_stripe_webhook_secret] = lambda: webhook_secret
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: RecordingDeliveryService(
         delivery_enabled
+    )
+    app.dependency_overrides[get_hosted_account_service] = lambda: (
+        account_service or HostedAccountService(InMemoryHostedAccountStore())
     )
     return TestClient(app)
 

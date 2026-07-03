@@ -501,6 +501,7 @@ async def stripe_checkout_session(
     webhook_secret: str = Depends(get_stripe_webhook_secret),
     checkout_service: StripeCheckoutService = Depends(get_stripe_checkout_service),
     delivery_service: HostedApiKeyDeliveryService = Depends(get_hosted_key_delivery_service),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
 ) -> StripeCheckoutSessionResponse:
     """Create a Stripe Checkout Session for a hosted Scout credit package."""
     _assert_checkout_ready(body, webhook_secret, delivery_service)
@@ -509,6 +510,7 @@ async def stripe_checkout_session(
     )
     if not result.success:
         raise HTTPException(status_code=503, detail=result.reason)
+    _record_checkout_started(account_service, body, result)
     return _checkout_session_response(result)
 
 
@@ -566,6 +568,26 @@ def _checkout_session_response(
         checkout_session_id=result.checkout_session_id,
         checkout_url=result.checkout_url,
         reason=result.reason,
+    )
+
+
+def _record_checkout_started(
+    account_service: HostedAccountService,
+    body: StripeCheckoutSessionRequestBody,
+    result: StripeCheckoutResult,
+) -> None:
+    """Record a non-secret beta checkout attempt before Stripe webhook delivery."""
+    if body.package_id != "beta_trial":
+        return
+    account_service.record_signup_event(
+        HostedSignupEvent(
+            email=body.email,
+            name=body.name,
+            status="checkout_started",
+            source="stripe_checkout",
+            delivery_status="checkout_session_created",
+            reason=result.checkout_session_id,
+        )
     )
 
 

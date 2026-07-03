@@ -59,6 +59,12 @@ Scout hosted beta has API-key based access, not a login system.
 - The checkout API itself fails closed before creating Stripe sessions if the
   webhook secret or SMTP key delivery is missing. `$0` `beta_trial` setup also
   requires hosted beta signup to be enabled.
+- When a `$0` `beta_trial` Checkout Session is created, Scout records a
+  non-secret `hosted_signup_events` row with status `checkout_started`, source
+  `stripe_checkout`, delivery status `checkout_session_created`, and the
+  Stripe Checkout Session id as the reference. This gives operators visibility
+  into beta testers who reached Stripe even if they abandon setup or the signed
+  webhook never arrives.
 - A successful paid Stripe webhook creates a hosted tenant for a first-time
   buyer, or adds the purchased credits to the existing tenant when the checkout
   email already has a hosted account. Existing-account top-ups do not email a
