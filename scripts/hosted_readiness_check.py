@@ -35,6 +35,7 @@ class HostedReadinessResult:
     ready_for_paid_checkout: bool
     blockers: list[str]
     missing_environment_keys: list[str] = field(default_factory=list)
+    operator_next_actions: list[str] = field(default_factory=list)
 
 
 def assert_no_secret_leak(text: str) -> None:
@@ -102,6 +103,11 @@ def run_readiness(base_url: str, timeout: float = 20.0) -> HostedReadinessResult
     missing_environment_keys = [
         str(key) for key in billing.get("missing_environment_keys", []) if isinstance(key, str)
     ]
+    operator_next_actions = [
+        str(action)
+        for action in billing.get("operator_next_actions", [])
+        if isinstance(action, str)
+    ]
 
     blockers: list[str] = []
     if not health_ok:
@@ -132,6 +138,7 @@ def run_readiness(base_url: str, timeout: float = 20.0) -> HostedReadinessResult
         ready_for_paid_checkout=ready_for_paid_checkout,
         blockers=blockers,
         missing_environment_keys=missing_environment_keys,
+        operator_next_actions=operator_next_actions,
     )
 
 
@@ -180,6 +187,10 @@ def main(argv: list[str] | None = None) -> int:
             print("Missing environment keys:")
             for key in result.missing_environment_keys:
                 print(f"  - {key}")
+        if result.operator_next_actions:
+            print("Operator next actions:")
+            for action in result.operator_next_actions:
+                print(f"  - {action}")
 
     if args.require_beta_signup and not result.ready_for_beta_signup:
         return 2

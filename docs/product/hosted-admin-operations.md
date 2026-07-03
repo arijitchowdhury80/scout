@@ -802,3 +802,26 @@ A production billing model should still add:
 Until those remaining billing operations exist and live Stripe/SMTP smoke tests
 pass, Scout is a hosted beta with self-service registration code and
 readiness-gated checkout, not a fully launched paid SaaS.
+
+## Current Hosted Readiness Output
+
+Use the readiness helper whenever hosted status looks confusing:
+
+```bash
+python3 scripts/hosted_readiness_check.py --base-url https://scout.chowmes.com
+```
+
+The helper calls `/health`, `/v1/billing/packages`, and
+`/v1/billing/stripe/status`. It now prints:
+
+- health/package readiness,
+- beta key delivery readiness,
+- beta `$0` Stripe setup readiness,
+- paid checkout readiness,
+- missing environment variable names,
+- operator next actions returned by `/v1/billing/stripe/status`.
+
+This keeps the production operator loop explicit: if SMTP or Stripe is missing,
+the command should show the missing non-secret variable names and the exact
+setup categories to complete. It must never print Stripe secrets, webhook
+secrets, SMTP passwords, raw hosted API keys, or key hashes.

@@ -92,6 +92,10 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
                 "STRIPE_SECRET_KEY",
                 "STRIPE_WEBHOOK_SECRET",
             ],
+            "operator_next_actions": [
+                "Configure hosted API-key SMTP delivery settings.",
+                "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
+            ],
         },
     }
 
@@ -119,6 +123,10 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
         "HOSTED_KEY_DELIVERY_SMTP_HOST",
         "STRIPE_SECRET_KEY",
         "STRIPE_WEBHOOK_SECRET",
+    ]
+    assert result.operator_next_actions == [
+        "Configure hosted API-key SMTP delivery settings.",
+        "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
     ]
 
 
@@ -184,10 +192,13 @@ def test_hosted_readiness_main_fails_require_beta_when_blocked(
             ready_for_paid_checkout=False,
             blockers=["hosted API key email delivery not configured"],
             missing_environment_keys=["HOSTED_KEY_DELIVERY_SMTP_HOST"],
+            operator_next_actions=["Configure hosted API-key SMTP delivery settings."],
         ),
     )
 
     exit_code = hosted_readiness_check.main(["--require-beta-signup"])
 
     assert exit_code == 2
-    assert "hosted API key email delivery not configured" in capsys.readouterr().err
+    captured = capsys.readouterr()
+    assert "hosted API key email delivery not configured" in captured.err
+    assert "Configure hosted API-key SMTP delivery settings." in captured.out
