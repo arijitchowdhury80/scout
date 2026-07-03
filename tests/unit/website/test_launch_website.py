@@ -554,6 +554,9 @@ def test_beta_signup_collects_name_and_email_without_password() -> None:
     assert "100 standard credits" in normalized_html
     assert "hostedBetaSignup" in html
     assert "/v1/hosted/beta-key" in html
+    assert "/v1/billing/stripe/status" in html
+    assert "key_delivery_configured" in html
+    assert "registration is temporarily paused" in html
     assert "/v1/billing/stripe/checkout-session" not in html
     assert 'type="password"' not in html
     assert 'name="invite_password"' not in html

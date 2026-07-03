@@ -12,7 +12,9 @@ Scout is closer to ready for a controlled demo/private beta if the launch surfac
 
 - The public website and anonymous playground can demonstrate Scout concepts.
 - The local package can be downloaded and smoke-tested.
-- Hosted API access exists for provisioned keys, but self-serve hosted onboarding is not deployed and still needs cost controls.
+- Hosted API access exists for provisioned keys. Self-serve hosted onboarding is
+  implemented as name/email API-key registration, but production still needs SMTP
+  delivery configuration before it can complete end to end.
 - The legacy app UI is not the public launch surface.
 
 The critical blockers for tomorrow are not core scraping mechanics. They are hosted access, spend safety, account/key issuance, quotas, and clear product framing.
@@ -47,8 +49,12 @@ Production domain: `https://scout.chowmes.com/`
 - `/app` returns `403`, consistent with hosted-only production guard.
 - `/api/docs` returns `403`, consistent with hosted-only production guard.
 - `/assets/hosted-keygen.js` is no longer part of the public beta website.
-- `POST /v1/hosted/beta-key` is not the public beta path; hosted beta access
-  now starts with the `$0` Stripe Checkout/payment-method flow.
+- `/beta` exposes the public beta registration form and posts to
+  `POST /v1/hosted/beta-key`; the path requires SMTP delivery to email the raw
+  API key.
+- `/pricing` exposes `$0` beta trial and paid credit checkout options; the
+  Stripe path requires Stripe price IDs, checkout URLs, webhook secret, and SMTP
+  delivery before it is live-ready.
 
 Production playground workflow smoke via `curl`:
 
@@ -91,7 +97,8 @@ This is good, but not sufficient. The code should still enforce a hosted-product
 
 ### What Is Not Ready
 
-- No deployed self-serve hosted key generation.
+- Self-serve hosted key generation is implemented, but not live-operational
+  until SMTP delivery is configured.
 - No deployed login/account portal.
 - No user-owned API key management UI.
 - No distributed rate limit. The current limiter is in-memory per process.
@@ -181,35 +188,45 @@ The launch requirement says most users will run hosted, log in, create their own
 Current reality:
 
 - Full login/account UI is not implemented.
-- The public docs no longer expose the old direct email key-generation form.
-- Hosted beta access is designed to start at `/beta#hosted-checkout`, using
-  Stripe Checkout with `package_id=beta_trial`.
-- The direct `/v1/hosted/beta-key` route remains a disabled legacy/operator
-  exception path, not the public signup path.
+- The public `/beta` page exposes direct name/email key registration through
+  `/v1/hosted/beta-key`.
+- Hosted beta can also use `$0` Stripe setup-mode checkout from `/pricing` with
+  `package_id=beta_trial` once Stripe is configured.
+- Neither path is live-ready unless SMTP delivery is configured, because the raw
+  key is emailed once and is never returned in the browser response.
 
 Tomorrow options:
 
 1. Controlled hosted beta, fastest:
-   - Configure Stripe test/live keys and SMTP delivery.
-   - Send testers to `/beta#hosted-checkout`.
-   - Users enter email/payment method through Stripe and receive one API key
-     after the signed webhook provisions access.
-   - This is not real login. It is payment-method-backed key issuance.
+   - Configure SMTP delivery and keep beta credits low.
+   - Send testers to `/beta`.
+   - Users enter name/email and receive one API key by email after Scout records
+     the hosted account.
+   - This is not real login. It is email-captured key issuance.
 
-2. Manual key provisioning, safest:
+2. Payment-method-backed beta:
+   - Configure Stripe test/live keys, package price IDs, webhook secret, checkout
+     success/cancel URLs, and SMTP delivery.
+   - Send testers to `/pricing` and select `$0 beta trial`.
+   - Users complete Stripe setup-mode checkout and receive one API key after the
+     signed webhook provisions access.
+
+3. Manual key provisioning, safest:
    - Pre-create a small pool of API keys.
    - Give keys only to selected testers.
    - Keep anonymous playground public for everyone else.
    - Avoids last-minute signup abuse but creates demo friction.
 
-3. True login, not tomorrow-safe:
+4. True login, not tomorrow-safe:
    - Add Clerk/Auth.js or equivalent.
    - Add account portal.
    - Add key create/revoke/list.
    - Add tenant dashboard.
    - Add email verification and abuse controls.
 
-Recommendation for tomorrow: option 1 only if throttles and low credits are deployed first. Otherwise use option 2.
+Recommendation for tomorrow: direct `/beta` registration only after SMTP is
+configured and verified. Use manual provisioning until SMTP is live. Use Stripe
+only after a full test-mode checkout/webhook/email/key verification pass.
 
 ## Release Plan For Tomorrow
 

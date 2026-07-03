@@ -188,6 +188,24 @@ scout launch-readiness --require-public</code></pre>
       const signupForm = document.getElementById("hostedBetaSignup");
       const signupStatus = document.getElementById("hostedBetaStatus");
       const signupButton = signupForm?.querySelector("button[type='submit']");
+      const betaReadinessEndpoint = "/v1/billing/stripe/status";
+
+      async function checkBetaRegistrationReadiness() {
+        if (!signupButton || !signupStatus) return;
+        try {
+          const response = await fetch(betaReadinessEndpoint, { headers: { accept: "application/json" } });
+          if (!response.ok) return;
+          const status = await response.json();
+          if (!status.key_delivery_configured) {
+            signupButton.disabled = true;
+            signupStatus.textContent =
+              "Hosted beta registration is temporarily paused while API-key email delivery is configured. Existing keys still work, and admins can provision keys manually.";
+            signupStatus.dataset.state = "error";
+          }
+        } catch {
+          // Static-file previews cannot reach the API; keep the form interactive there.
+        }
+      }
 
       signupForm?.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -226,6 +244,8 @@ scout launch-readiness --require-public</code></pre>
         }
         signupButton.disabled = false;
       });
+
+      checkBetaRegistrationReadiness();
     </script>
   </body>
 </html>

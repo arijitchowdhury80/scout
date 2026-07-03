@@ -7,15 +7,17 @@ Status: private beta operations
 
 Scout hosted beta has API-key based access, not a login system.
 
-- Public beta testers start access through the hosted beta Stripe Checkout flow
-  on `/beta#hosted-checkout`; the direct `POST /v1/hosted/beta-key` route is a
-  legacy/operator exception path and should stay disabled unless explicitly
-  needed.
+- Public beta testers start access through the hosted beta registration form on
+  `/beta`, which posts name and email to `POST /v1/hosted/beta-key`. The route
+  records the tester, provisions beta credits, and emails the raw API key once
+  when SMTP delivery is configured.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
 - Self-service signup emails the raw API key and never returns it in the HTTP response. Operator CLI provisioning still prints the raw key once. Scout stores only a hash.
-- Stripe checkout registration captures name plus email, writes the name onto
-  the hosted tenant, and includes it in one-time API-key delivery.
+- Stripe checkout registration is available from `/pricing` for `$0` beta trial
+  payment-method verification and paid credit packages once Stripe settings are
+  configured. A signed checkout webhook writes the customer name/email onto the
+  hosted tenant and includes it in one-time API-key delivery.
 - The key-delivery email is signed by Arijit, explains the 100-credit/30-day
   beta boundary, includes credit meaning, links to docs/pricing, and asks users
   to reply with their use case, target site, and failing run ID for support.
@@ -44,9 +46,9 @@ Scout hosted beta has API-key based access, not a login system.
   verification are still required before calling the hosted purchase path ready.
 - No formal public self-serve account portal or Stripe customer portal.
 
-Stripe checkout, webhook, and key-delivery scaffolding exists in code and
-tests, and the pricing page can initiate a hosted credit checkout. The paid
-production loop is still pending live Stripe test-mode certification.
+Direct beta registration, Stripe checkout, webhook, and key-delivery scaffolding
+exist in code and tests. Production still needs live SMTP and Stripe settings
+before those paths are operational end to end.
 
 ## Admin Scripts
 
@@ -58,11 +60,10 @@ cd /Users/arijitchowdhury/Dropbox/AI-Development/Scout
 
 ### Enable Or Disable Email-Based Beta Signup
 
-Keep `HOSTED_BETA_SIGNUP_ENABLED=false` for the normal hosted beta checkout
-path. Set it to `true` only for a deliberate direct-key exception when SMTP
-delivery is configured and the launch operator accepts bypassing Stripe payment
-method capture. Set it back to `false` to stop new direct keys without disabling
-existing Bearer keys.
+Set `HOSTED_BETA_SIGNUP_ENABLED=true` only when SMTP delivery is configured.
+Set it to `false` to stop new direct beta keys without disabling existing Bearer
+keys. The public beta form should not be considered live until both this flag
+and the SMTP delivery settings are present.
 
 Required delivery settings:
 
