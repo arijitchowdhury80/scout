@@ -154,10 +154,8 @@ curl -s -X POST http://localhost:8421/run/company \
 
 ## Product Surface Boundary
 
-Scout beta guidance is hosted HTTP plus this Claude/Codex skill. Local CLI,
-local HTTP, Python, and Docker remain internal/operator verification surfaces.
-The previous experimental local `/app` UI has been removed from the supported
-product surface.
+Scout beta guidance is hosted HTTP plus this Claude/Codex skill. Local CLI, local HTTP, Python, and Docker remain internal/operator verification surfaces.
+The previous experimental local `/app` UI has been removed from the supported product surface.
 
 ## Use Cases
 

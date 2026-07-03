@@ -119,6 +119,13 @@ scout hosted-curl \
 ```bash
 scout hosted-curl \
   --base-url https://your-scout-domain.example \
+  --endpoint screenshot \
+  --url https://www.cnn.com/
+```
+
+```bash
+scout hosted-curl \
+  --base-url https://your-scout-domain.example \
   --endpoint products \
   --url https://www.nike.com/w/mens-shirts-6ymx6znik1
 ```

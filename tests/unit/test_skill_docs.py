@@ -39,8 +39,9 @@ def test_skill_playbook_matches_current_launch_surface_and_auth_boundary() -> No
         assert path in skill
     assert "previous experimental local" in skill
     assert "removed from the supported product surface" in skill
-    assert "hosted API, and artifact examples" in skill
-    assert "hosted API" in skill
+    assert "Scout beta guidance is hosted HTTP plus this Claude/Codex skill" in skill
+    assert "Local CLI, local HTTP, Python, and Docker remain internal/operator" in skill
+    assert "Hosted HTTP API when the user has a `SCOUT_HOSTED_API_KEY`" in skill
     assert "All HTTP endpoints except `/` and `/health` require" not in skill
 
 

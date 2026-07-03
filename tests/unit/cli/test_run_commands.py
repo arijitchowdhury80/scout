@@ -429,6 +429,30 @@ def test_hosted_curl_command_prints_copyable_scrape_request() -> None:
     )
 
 
+def test_hosted_curl_command_prints_copyable_screenshot_request() -> None:
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app,
+        [
+            "hosted-curl",
+            "--base-url",
+            "https://scout.example.com/",
+            "--endpoint",
+            "screenshot",
+            "--url",
+            "https://www.cnn.com/",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert 'curl -X POST "https://scout.example.com/v1/hosted/screenshot"' in result.output
+    assert (
+        '-d \'{"url":"https://www.cnn.com/","viewport_width":1280,"viewport_height":800}\''
+        in result.output
+    )
+
+
 def test_run_jobs_placeholder_is_explicit() -> None:
     runner = CliRunner()
     with runner.isolated_filesystem():
