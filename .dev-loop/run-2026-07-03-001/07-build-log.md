@@ -430,6 +430,30 @@ python3 -m pytest tests/unit/ -q
 Result: pyright 0 errors; Ruff passed; format check passed; shell syntax
 passed; unit suite 705 passed, 8 warnings.
 
+Production deployment verification for this slice:
+
+- Commit deployed: `5a35b9b`.
+- Public smoke returned `200` for `/health`, `/pricing`, `/beta`,
+  `/quickstart`, `/assets/pricing.js`, and `/v1/billing/packages`.
+- Old `/assets/hosted-keygen.js` returned `403`, as expected.
+- `POST /v1/billing/stripe/checkout-session` with name, email, and
+  `package_id=beta_trial` returned `503 {"detail":"Stripe Checkout is not configured."}`,
+  as expected for the current production env.
+- Fresh public HTTPS 250-user hosted acceptance load:
+  `/tmp/scout-load-5a35b9b-result.json`.
+- Users/concurrency: 250/250.
+- Requests: 4,000.
+- Duration: 89.39s.
+- Throughput: 44.75 req/s.
+- P95 latency: 5,643ms.
+- Error rate: 0.03%.
+- Result: passed `p95 <= 15000ms` and `error_rate <= 2%`.
+- Caveat: one request returned `502 Bad Gateway` for
+  `POST /v1/hosted/run/docs`; this is not a zero-hiccup result.
+- Final cleanup revoked the 250 `load250_5a35b9b_%@chowmes.internal` keys,
+  restarted Scout to flush the in-process queue, verified public health `200`,
+  and left the container idle at CPU 0.18%, memory 105.1MiB, PIDs 7.
+
 ## Payment-Method-First Beta Access Slice
 
 Implemented:
