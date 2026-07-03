@@ -68,10 +68,11 @@ Scout hosted beta has API-key based access, not a login system.
 - A `$0` `beta_trial` checkout for an email that already has a hosted account
   is recorded for auditability but does not add another 100 free beta credits.
   Only paid packages add credits to an existing tenant balance.
-- Hosted Stripe success/cancel redirects should land on
-  `https://scout.chowmes.com/pricing?checkout=success` or
-  `https://scout.chowmes.com/pricing?checkout=cancelled` so users see a clear
-  post-checkout status on the same page that initiated purchase.
+- Hosted Stripe redirects are page-specific: paid package success/cancel
+  redirects land on `https://scout.chowmes.com/pricing?checkout=success` or
+  `https://scout.chowmes.com/pricing?checkout=cancelled`; `$0` beta setup
+  redirects land on `https://scout.chowmes.com/beta?checkout=success` or
+  `https://scout.chowmes.com/beta?checkout=cancelled`.
 
 ## What Does Not Exist Yet
 
@@ -139,6 +140,8 @@ STRIPE_STANDARD_3000_PRICE_ID=price_...
 STRIPE_STANDARD_15000_PRICE_ID=price_...
 STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success
 STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled
+STRIPE_BETA_SUCCESS_URL=https://scout.chowmes.com/beta?checkout=success
+STRIPE_BETA_CANCEL_URL=https://scout.chowmes.com/beta?checkout=cancelled
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 

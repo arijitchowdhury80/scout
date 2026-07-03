@@ -24,6 +24,8 @@ class StripeCheckoutConfig(BaseModel):
     browser_100_price_id: str = ""
     success_url: str = ""
     cancel_url: str = ""
+    beta_success_url: str = ""
+    beta_cancel_url: str = ""
     endpoint_url: str = "https://api.stripe.com/v1/checkout/sessions"
     timeout_seconds: float = 20.0
 
@@ -59,6 +61,18 @@ class StripeCheckoutConfig(BaseModel):
         return all(
             self.price_id_for_package(package_id) != "" for package_id in public_paid_package_ids
         )
+
+    def success_url_for_package(self, package_id: str) -> str:
+        """Return the package-specific success URL when configured."""
+        if package_id == "beta_trial" and self.beta_success_url:
+            return self.beta_success_url
+        return self.success_url
+
+    def cancel_url_for_package(self, package_id: str) -> str:
+        """Return the package-specific cancel URL when configured."""
+        if package_id == "beta_trial" and self.beta_cancel_url:
+            return self.beta_cancel_url
+        return self.cancel_url
 
 
 class StripeCheckoutRequest(BaseModel):
@@ -169,8 +183,8 @@ class StripeCheckoutService:
             data = {
                 "mode": "setup",
                 "payment_method_types[0]": "card",
-                "success_url": self._config.success_url,
-                "cancel_url": self._config.cancel_url,
+                "success_url": self._config.success_url_for_package(package.package_id),
+                "cancel_url": self._config.cancel_url_for_package(package.package_id),
                 "metadata[package_id]": package.package_id,
                 "metadata[plan]": "hosted_beta_pass",
                 "metadata[product]": "scout_hosted",
@@ -187,8 +201,8 @@ class StripeCheckoutService:
                 "customer_creation": "always",
                 "line_items[0][price]": price_id,
                 "line_items[0][quantity]": "1",
-                "success_url": self._config.success_url,
-                "cancel_url": self._config.cancel_url,
+                "success_url": self._config.success_url_for_package(package.package_id),
+                "cancel_url": self._config.cancel_url_for_package(package.package_id),
                 "metadata[package_id]": package.package_id,
                 "metadata[plan]": "hosted_beta_pass",
                 "metadata[product]": "scout_hosted",

@@ -50,9 +50,12 @@ The following real Stripe test-mode settings were not configured in the process 
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_SUCCESS_URL`
 - `STRIPE_CANCEL_URL`
+- `STRIPE_BETA_SUCCESS_URL`
+- `STRIPE_BETA_CANCEL_URL`
 
 Beta trial checkout uses Stripe Checkout `mode=setup` and does not require a
-Stripe price ID. Paid package checkout uses configured package price IDs.
+Stripe price ID. Paid package checkout uses configured package price IDs. Beta
+checkout should return to `/beta`; paid checkout should return to `/pricing`.
 
 No secret values were printed during this check.
 
@@ -80,6 +83,8 @@ The release checklist item **"Stripe checkout and webhook tested in Stripe test 
    - `STRIPE_WEBHOOK_SECRET=whsec_...`
    - `STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success`
    - `STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled`
+   - `STRIPE_BETA_SUCCESS_URL=https://scout.chowmes.com/beta?checkout=success`
+   - `STRIPE_BETA_CANCEL_URL=https://scout.chowmes.com/beta?checkout=cancelled`
    - hosted key delivery settings for a non-production recipient.
 2. Start Scout locally.
 3. Verify `/v1/billing/stripe/status` reports:

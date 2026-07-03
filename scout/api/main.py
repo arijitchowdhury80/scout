@@ -119,6 +119,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             browser_100_price_id=settings.stripe_browser_100_price_id,
             success_url=settings.stripe_success_url,
             cancel_url=settings.stripe_cancel_url,
+            beta_success_url=settings.stripe_beta_success_url,
+            beta_cancel_url=settings.stripe_beta_cancel_url,
         )
     )
     bind_db(run_db)

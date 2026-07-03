@@ -57,7 +57,11 @@ def test_stripe_redirect_examples_use_hosted_pricing_page_not_localhost() -> Non
 
     assert "STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success" in env_example
     assert "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled" in env_example
+    assert "STRIPE_BETA_SUCCESS_URL=https://scout.chowmes.com/beta?checkout=success" in env_example
+    assert "STRIPE_BETA_CANCEL_URL=https://scout.chowmes.com/beta?checkout=cancelled" in env_example
     assert "STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success" in readiness
     assert "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled" in readiness
+    assert "STRIPE_BETA_SUCCESS_URL=https://scout.chowmes.com/beta?checkout=success" in readiness
+    assert "STRIPE_BETA_CANCEL_URL=https://scout.chowmes.com/beta?checkout=cancelled" in readiness
     assert "STRIPE_SUCCESS_URL=http://127.0.0.1" not in env_example
     assert "STRIPE_CANCEL_URL=http://127.0.0.1" not in env_example

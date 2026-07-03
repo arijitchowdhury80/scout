@@ -26,6 +26,8 @@ def test_stripe_checkout_creates_beta_trial_setup_session_with_expected_payload(
             standard_1000_price_id="price_standard_1000",
             success_url="https://scout.example/success",
             cancel_url="https://scout.example/cancel",
+            beta_success_url="https://scout.example/beta?checkout=success",
+            beta_cancel_url="https://scout.example/beta?checkout=cancelled",
         ),
         transport=transport,
     )
@@ -46,10 +48,9 @@ def test_stripe_checkout_creates_beta_trial_setup_session_with_expected_payload(
             "url": "https://api.stripe.com/v1/checkout/sessions",
             "data": {
                 "mode": "setup",
-                "customer_creation": "always",
                 "payment_method_types[0]": "card",
-                "success_url": "https://scout.example/success",
-                "cancel_url": "https://scout.example/cancel",
+                "success_url": "https://scout.example/beta?checkout=success",
+                "cancel_url": "https://scout.example/beta?checkout=cancelled",
                 "customer_email": "builder@example.com",
                 "metadata[name]": "Builder Person",
                 "metadata[package_id]": "beta_trial",
@@ -60,6 +61,30 @@ def test_stripe_checkout_creates_beta_trial_setup_session_with_expected_payload(
         }
     ]
     assert "sk_test_secret" not in result.model_dump_json()
+
+
+def test_stripe_checkout_beta_trial_falls_back_to_default_return_urls() -> None:
+    transport = RecordingStripeCheckoutTransport()
+    service = StripeCheckoutService(
+        StripeCheckoutConfig(
+            secret_key="sk_test_secret",
+            success_url="https://scout.example/pricing?checkout=success",
+            cancel_url="https://scout.example/pricing?checkout=cancelled",
+        ),
+        transport=transport,
+    )
+
+    result = service.create_checkout_session(
+        StripeCheckoutRequest(email="builder@example.com", package_id="beta_trial")
+    )
+
+    assert result.success is True
+    assert transport.calls[0]["data"]["success_url"] == (
+        "https://scout.example/pricing?checkout=success"
+    )
+    assert transport.calls[0]["data"]["cancel_url"] == (
+        "https://scout.example/pricing?checkout=cancelled"
+    )
 
 
 def test_stripe_checkout_creates_standard_credit_payment_session() -> None:
