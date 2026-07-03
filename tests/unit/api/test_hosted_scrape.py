@@ -166,9 +166,7 @@ def test_hosted_beta_key_generation_requires_email_only_and_creates_usable_key(
     assert delivery.requests[0].raw_api_key not in me_resp.text
 
 
-def test_hosted_beta_key_generation_can_show_key_once_without_delivery_service(
-    monkeypatch,
-) -> None:
+def test_hosted_beta_key_generation_requires_delivery_service(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
@@ -178,21 +176,12 @@ def test_hosted_beta_key_generation_can_show_key_once_without_delivery_service(
             "/v1/hosted/beta-key",
             json={"name": "Tester", "email": "no-email@example.com"},
         )
-        data = resp.json()
-        me_resp = client.get(
-            "/v1/hosted/me",
-            headers={"Authorization": f"Bearer {data['raw_api_key']}"},
-        )
     finally:
         app.dependency_overrides.clear()
 
-    assert resp.status_code == 200
-    assert data["success"] is True
-    assert data["delivery_status"] == "shown_once"
-    assert data["raw_api_key"].startswith("scout_live_")
-    assert "Copy this key now" in data["warning"]
-    assert account_service.store.find_tenant_by_email("no-email@example.com") is not None
-    assert me_resp.status_code == 200
+    assert resp.status_code == 503
+    assert resp.json()["detail"] == "Hosted API key email delivery is not configured."
+    assert account_service.store.find_tenant_by_email("no-email@example.com") is None
 
 
 def test_hosted_beta_key_generation_rolls_back_when_delivery_fails(monkeypatch) -> None:
