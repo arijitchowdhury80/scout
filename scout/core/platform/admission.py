@@ -5,6 +5,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
 import asyncio
+import time
 
 
 class AdmissionRejected(Exception):
@@ -22,6 +23,7 @@ class AdmissionController:
         self.max_active = max(0, max_active)
         self.retry_after_seconds = max(1, retry_after_seconds)
         self._active = 0
+        self._reject_until = 0.0
         self._lock = asyncio.Lock()
 
     @property
@@ -31,7 +33,9 @@ class AdmissionController:
     @asynccontextmanager
     async def admit(self) -> AsyncIterator[None]:
         async with self._lock:
-            if self._active >= self.max_active:
+            now = time.monotonic()
+            if now < self._reject_until or self._active >= self.max_active:
+                self._reject_until = now + self.retry_after_seconds
                 raise AdmissionRejected(self.retry_after_seconds)
             self._active += 1
         try:
