@@ -207,6 +207,32 @@ and deletes the account plus records `failed` if delivery fails. It refuses to
 mutate anything unless `--yes` or `--dry-run` is provided, and it never prints
 raw API keys, key hashes, or SMTP passwords.
 
+### Run The Hosted Production Smoke Gate
+
+Use the production smoke gate when checking whether the hosted SaaS path is
+actually ready for beta signup and paid checkout. It checks `/health`,
+`/v1/billing/packages`, `/v1/billing/stripe/status`, and, only when readiness
+flags are green, the non-mutating Stripe smoke checks for both `$0` beta setup
+and the paid `standard_1000` package.
+
+```bash
+scripts/scout-hosted-admin production-smoke --json
+```
+
+For a hard gate in release scripts:
+
+```bash
+scripts/scout-hosted-admin production-smoke --require-ready
+```
+
+The smoke output is deliberately non-secret. It prints readiness booleans,
+blockers, and concrete next commands, but never prints Stripe secret keys,
+webhook secrets, SMTP passwords, raw hosted API keys, or key hashes.
+
+As of the latest hosted check, `https://scout.chowmes.com` has green health and
+package metadata, but production self-service remains blocked until SMTP key
+delivery, Stripe Checkout, and the Stripe webhook secret are configured.
+
 ### Let Testers Check Beta Request Status
 
 The beta page includes a self-service status lookup for testers who submitted

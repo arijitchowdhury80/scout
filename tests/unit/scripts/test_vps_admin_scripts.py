@@ -24,6 +24,7 @@ SCRIPT_NAMES = [
     "scout-vps-configure-hosted-env",
     "scout-hosted-load-test",
     "scout-stripe-bootstrap-prices",
+    "hosted_production_smoke.py",
 ]
 
 
@@ -52,10 +53,17 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "process-pending-signups",
             "disable-access",
             "readiness",
+            "production-smoke",
             "validate-config",
             "write-config-template",
             "bootstrap-stripe-prices",
             "configure-production-env",
+        ],
+        "hosted_production_smoke.py": [
+            "Operator smoke gate",
+            "--base-url",
+            "--json",
+            "--require-ready",
         ],
         "scout-stripe-bootstrap-prices": [
             "Create Stripe one-time price IDs",

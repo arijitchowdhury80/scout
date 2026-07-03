@@ -21,6 +21,7 @@ Commands:
                     Process queued beta signup requests after SMTP is configured.
   disable-access    Disable hosted access by email, tenant id, or key id.
   readiness         Check hosted health, packages, signup, checkout, and blockers.
+  production-smoke  Run the hosted production smoke gate with exact next steps.
   validate-config   Validate local SMTP/Stripe env before pushing to the VPS.
   write-config-template
                     Write a local SMTP/Stripe env template with no secrets.
@@ -42,6 +43,7 @@ Examples:
   scripts/scout-hosted-admin process-pending-signups --yes
   scripts/scout-hosted-admin disable-access --email tester@example.com --reason "abuse report" --yes
   scripts/scout-hosted-admin readiness --require-beta-signup --require-paid-checkout
+  scripts/scout-hosted-admin production-smoke --json
   scripts/scout-hosted-admin write-config-template --output secrets/scout-production.env
   scripts/scout-hosted-admin validate-config --secrets-file secrets/scout-production.env --require all
   scripts/scout-hosted-admin bootstrap-stripe-prices --secrets-file secrets/scout-production.env --dry-run
@@ -84,6 +86,10 @@ disable_access() {
 
 readiness() {
   exec python3 "$SCRIPT_DIR/hosted_readiness_check.py" "$@"
+}
+
+production_smoke() {
+  exec python3 "$SCRIPT_DIR/hosted_production_smoke.py" "$@"
 }
 
 validate_config() {
@@ -151,6 +157,10 @@ case "$1" in
   readiness)
     shift
     readiness "$@"
+    ;;
+  production-smoke)
+    shift
+    production_smoke "$@"
     ;;
   validate-config)
     shift
