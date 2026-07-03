@@ -8,7 +8,7 @@ import json
 import time
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from scout.api.config import settings
 from scout.api.deps import (
@@ -83,7 +83,7 @@ class StripeCheckoutSessionResponse(BaseModel):
 
 
 class StripeBillingStatusResponse(BaseModel):
-    """Non-secret Stripe billing readiness flags."""
+    """Non-secret Stripe billing readiness flags and operator diagnostics."""
 
     beta_signup_enabled: bool
     checkout_configured: bool
@@ -92,6 +92,9 @@ class StripeBillingStatusResponse(BaseModel):
     ready_for_beta_key_delivery: bool
     ready_for_beta_checkout: bool
     ready_for_paid_key_delivery: bool
+    missing_configuration: list[str] = Field(default_factory=list)
+    blocking_reasons: list[str] = Field(default_factory=list)
+    operator_next_actions: list[str] = Field(default_factory=list)
 
 
 class HostedBillingPackagesResponse(BaseModel):
@@ -183,6 +186,12 @@ async def stripe_status(
     checkout_configured = checkout_service.enabled
     webhook_configured = webhook_secret != ""
     key_delivery_configured = delivery_service.enabled
+    diagnostics = _stripe_status_diagnostics(
+        beta_signup_enabled=beta_signup_enabled,
+        checkout_configured=checkout_configured,
+        webhook_configured=webhook_configured,
+        key_delivery_configured=key_delivery_configured,
+    )
     return StripeBillingStatusResponse(
         beta_signup_enabled=beta_signup_enabled,
         checkout_configured=checkout_configured,
@@ -198,7 +207,52 @@ async def stripe_status(
         ready_for_paid_key_delivery=(
             checkout_configured and webhook_configured and key_delivery_configured
         ),
+        missing_configuration=diagnostics["missing_configuration"],
+        blocking_reasons=diagnostics["blocking_reasons"],
+        operator_next_actions=diagnostics["operator_next_actions"],
     )
+
+
+def _stripe_status_diagnostics(
+    *,
+    beta_signup_enabled: bool,
+    checkout_configured: bool,
+    webhook_configured: bool,
+    key_delivery_configured: bool,
+) -> dict[str, list[str]]:
+    """Build actionable readiness diagnostics without exposing secret values."""
+    missing_configuration: list[str] = []
+    blocking_reasons: list[str] = []
+    operator_next_actions: list[str] = []
+
+    if not beta_signup_enabled:
+        missing_configuration.append("hosted_beta_signup")
+        blocking_reasons.append("Hosted beta signup is disabled.")
+        operator_next_actions.append(
+            "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open."
+        )
+    if not checkout_configured:
+        missing_configuration.append("stripe_checkout")
+        blocking_reasons.append("Stripe Checkout is not configured.")
+        operator_next_actions.append(
+            "Configure Stripe secret key, price IDs, success URL, and cancel URL."
+        )
+    if not webhook_configured:
+        missing_configuration.append("stripe_webhook_secret")
+        blocking_reasons.append("Stripe webhook secret is not configured.")
+        operator_next_actions.append(
+            "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint."
+        )
+    if not key_delivery_configured:
+        missing_configuration.append("hosted_key_delivery_smtp")
+        blocking_reasons.append("Hosted API-key email delivery is not configured.")
+        operator_next_actions.append("Configure hosted API-key SMTP delivery settings.")
+
+    return {
+        "missing_configuration": missing_configuration,
+        "blocking_reasons": blocking_reasons,
+        "operator_next_actions": operator_next_actions,
+    }
 
 
 @router.post("/stripe/checkout-session", response_model=StripeCheckoutSessionResponse)

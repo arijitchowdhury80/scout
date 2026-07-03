@@ -303,6 +303,19 @@ Machine-readable output for deployment logs:
 scripts/scout-hosted-admin readiness --json
 ```
 
+The underlying `GET /v1/billing/stripe/status` response is also operator
+actionable. In addition to backward-compatible booleans such as
+`ready_for_beta_checkout` and `ready_for_paid_key_delivery`, it returns:
+
+- `missing_configuration`: machine-readable missing capability names such as
+  `stripe_checkout`, `stripe_webhook_secret`, and `hosted_key_delivery_smtp`.
+- `blocking_reasons`: human-readable, non-secret reasons shown by the launch
+  website when checkout is paused.
+- `operator_next_actions`: non-secret setup steps for the operator to complete.
+
+The status route never returns Stripe secret keys, webhook secret values, SMTP
+passwords, API-key hashes, or raw hosted API keys.
+
 ### Provision A Hosted API Key Directly
 
 Shortest command:

@@ -153,6 +153,11 @@ def test_stripe_status_returns_non_secret_readiness_flags() -> None:
         "ready_for_beta_key_delivery": False,
         "ready_for_beta_checkout": False,
         "ready_for_paid_key_delivery": True,
+        "missing_configuration": ["hosted_beta_signup"],
+        "blocking_reasons": ["Hosted beta signup is disabled."],
+        "operator_next_actions": [
+            "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open."
+        ],
     }
     assert "whsec_test" not in response.text
     assert "sk_" not in response.text
@@ -172,7 +177,8 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
     response = client.get("/v1/billing/stripe/status")
 
     assert response.status_code == 200
-    assert response.json() == {
+    data = response.json()
+    assert data == {
         "beta_signup_enabled": False,
         "checkout_configured": False,
         "webhook_configured": False,
@@ -180,7 +186,28 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
         "ready_for_beta_key_delivery": False,
         "ready_for_beta_checkout": False,
         "ready_for_paid_key_delivery": False,
+        "missing_configuration": [
+            "hosted_beta_signup",
+            "stripe_checkout",
+            "stripe_webhook_secret",
+            "hosted_key_delivery_smtp",
+        ],
+        "blocking_reasons": [
+            "Hosted beta signup is disabled.",
+            "Stripe Checkout is not configured.",
+            "Stripe webhook secret is not configured.",
+            "Hosted API-key email delivery is not configured.",
+        ],
+        "operator_next_actions": [
+            "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open.",
+            "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
+            "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
+            "Configure hosted API-key SMTP delivery settings.",
+        ],
     }
+    assert "sk_" not in response.text
+    assert "whsec_" not in response.text
+    assert "SMTP_PASSWORD" not in response.text
 
 
 def test_stripe_status_requires_checkout_webhook_and_delivery_for_beta(monkeypatch) -> None:
@@ -206,6 +233,18 @@ def test_stripe_status_requires_checkout_webhook_and_delivery_for_beta(monkeypat
         "ready_for_beta_key_delivery": True,
         "ready_for_beta_checkout": False,
         "ready_for_paid_key_delivery": False,
+        "missing_configuration": [
+            "stripe_checkout",
+            "stripe_webhook_secret",
+        ],
+        "blocking_reasons": [
+            "Stripe Checkout is not configured.",
+            "Stripe webhook secret is not configured.",
+        ],
+        "operator_next_actions": [
+            "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
+            "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
+        ],
     }
 
 
@@ -233,6 +272,9 @@ def test_stripe_status_reports_beta_checkout_readiness(monkeypatch) -> None:
         "ready_for_beta_key_delivery": True,
         "ready_for_beta_checkout": True,
         "ready_for_paid_key_delivery": True,
+        "missing_configuration": [],
+        "blocking_reasons": [],
+        "operator_next_actions": [],
     }
 
 
@@ -261,6 +303,21 @@ def test_stripe_status_does_not_enable_beta_without_checkout_webhook_and_deliver
         "ready_for_beta_key_delivery": False,
         "ready_for_beta_checkout": False,
         "ready_for_paid_key_delivery": False,
+        "missing_configuration": [
+            "stripe_checkout",
+            "stripe_webhook_secret",
+            "hosted_key_delivery_smtp",
+        ],
+        "blocking_reasons": [
+            "Stripe Checkout is not configured.",
+            "Stripe webhook secret is not configured.",
+            "Hosted API-key email delivery is not configured.",
+        ],
+        "operator_next_actions": [
+            "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
+            "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
+            "Configure hosted API-key SMTP delivery settings.",
+        ],
     }
 
 

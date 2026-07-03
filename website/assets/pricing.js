@@ -211,7 +211,10 @@
         setCheckoutStatus(checkoutReadyMessage(packageId), "success");
       } else {
         if (submitButton) submitButton.disabled = true;
-        setCheckoutStatus(checkoutPausedMessage(packageId), "error");
+        setCheckoutStatus(
+          readinessDetailsMessage(status) || checkoutPausedMessage(packageId),
+          "error",
+        );
       }
     } catch {
       // Static file previews cannot reach the API; keep the form interactive there.
@@ -237,6 +240,25 @@
       return "Card-backed beta checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured. Use the email beta key path if it is ready.";
     }
     return "Hosted checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured. Existing keys still work.";
+  }
+
+  function readinessDetailsMessage(status) {
+    const blocking_reasons = Array.isArray(status.blocking_reasons)
+      ? status.blocking_reasons
+      : [];
+    const operator_next_actions = Array.isArray(status.operator_next_actions)
+      ? status.operator_next_actions
+      : [];
+    const reasons = blocking_reasons.filter(Boolean).join(" ");
+    const actions = operator_next_actions.filter(Boolean).join(" ");
+
+    if (!reasons && !actions) {
+      return "";
+    }
+    if (reasons && actions) {
+      return `${reasons} Next: ${actions}`;
+    }
+    return reasons || `Next: ${actions}`;
   }
 
   function formatDollars(cents) {

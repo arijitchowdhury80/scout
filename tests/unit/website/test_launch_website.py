@@ -46,6 +46,7 @@ def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
 
 def test_launch_website_keeps_paid_checkout_paused_without_secrets() -> None:
     html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
+    pricing_js = (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
 
     assert "Buy hosted credits online." in html
     assert 'id="pricingCheckoutForm"' in html
@@ -58,8 +59,13 @@ def test_launch_website_keeps_paid_checkout_paused_without_secrets() -> None:
     assert 'value="standard_15000"' in html
     assert 'id="pricingCheckoutReturnStatus"' in html
     assert 'src="./assets/pricing.js"' in html
+    assert "blocking_reasons" in pricing_js
+    assert "operator_next_actions" in pricing_js
+    assert "readinessDetailsMessage" in pricing_js
     assert "sk_live_" not in html
     assert "sk_test_" not in html
+    assert "sk_live_" not in pricing_js
+    assert "sk_test_" not in pricing_js
 
 
 def test_launch_website_states_current_launch_readiness_boundaries() -> None:
