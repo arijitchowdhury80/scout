@@ -12,6 +12,7 @@ import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -451,7 +452,12 @@ def main(argv: list[str] | None = None) -> int:
     if not keys:
         print("--api-key or --api-key-file is required for live load tests.", file=sys.stderr)
         return 2
-    report = asyncio.run(run_load(args, keys))
+    loop = asyncio.new_event_loop()
+    try:
+        loop.set_default_executor(ThreadPoolExecutor(max_workers=args.concurrency))
+        report = loop.run_until_complete(run_load(args, keys))
+    finally:
+        loop.close()
     print(json.dumps(report, indent=2))
     return 0 if report["passed"] else 1
 
