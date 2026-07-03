@@ -8,7 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from scout.api.config import settings
 from scout.api.deps import (
@@ -175,9 +175,20 @@ class HostedAccountSummaryResponse(BaseModel):
 class HostedBetaKeyRequest(BaseModel):
     """Hosted beta key generation request."""
 
-    name: str = ""
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(..., min_length=1)
     email: EmailStr
     key_name: str = "Hosted beta key"
+
+    @field_validator("name")
+    @classmethod
+    def _name_must_not_be_blank(cls, value: str) -> str:
+        """Require a real beta tester or app name for self-service registration."""
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("Name is required for beta API key registration.")
+        return stripped
 
 
 class HostedBetaKeyResponse(BaseModel):

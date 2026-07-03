@@ -713,3 +713,46 @@ Added `scripts/scout-hosted-admin write-config-template` and `scripts/scout-writ
 
 Verification red: `python3 -m pytest tests/unit/scripts/test_vps_admin_scripts.py -q` failed with missing script/wrapper.
 Verification green: rerun after implementation passed.
+
+## 2026-07-03 — passwordless beta signup contract hardening
+
+Implemented:
+
+- `/v1/hosted/beta-key` now requires both `name` and `email` for
+  self-service beta registration, matching the public beta form.
+- The hosted beta key request model rejects extra fields, so removed
+  invite-password/password payloads fail validation instead of being silently
+  ignored.
+- OpenAPI regression coverage now proves the request schema contains only
+  `name`, `email`, and `key_name`, and requires `name` plus `email`.
+
+Verification RED:
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_scrape.py -q
+```
+
+Result: failed because missing `name` returned `200` and OpenAPI only required
+`email`.
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_generation_rejects_removed_invite_password_field -q
+```
+
+Result: failed because `invite_password` was silently accepted.
+
+Verification GREEN:
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_scrape.py -q
+```
+
+Result: 17 passed, 2 warnings.
+
+```bash
+python3 -m pytest tests/unit/website/test_launch_website.py::test_docs_beta_access_is_self_service_email_delivery_without_password tests/unit/website/test_launch_website.py::test_beta_signup_collects_name_and_email_without_password -q
+python3 -m pytest tests/unit/scripts/test_vps_admin_scripts.py::test_hosted_admin_has_no_beta_invite_password_flow tests/unit/scripts/test_vps_admin_scripts.py::test_hosted_admin_does_not_expose_password_or_secret_generation -q
+python3 -m pytest tests/unit/api/test_billing_stripe_checkout.py -q
+```
+
+Result: 2 passed, 2 passed, and 11 passed respectively.

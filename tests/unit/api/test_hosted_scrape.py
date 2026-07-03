@@ -107,6 +107,7 @@ def test_hosted_beta_key_generation_is_disabled_when_signup_disabled(monkeypatch
         resp = client.post(
             "/v1/hosted/beta-key",
             json={
+                "name": "Tester",
                 "email": "tester@example.com",
                 "key_name": "Tester key",
             },
@@ -118,7 +119,7 @@ def test_hosted_beta_key_generation_is_disabled_when_signup_disabled(monkeypatch
     assert resp.json()["detail"] == "Hosted beta key generation is disabled."
 
 
-def test_hosted_beta_key_generation_requires_email_only_and_creates_usable_key(
+def test_hosted_beta_key_generation_requires_name_email_and_creates_usable_key(
     monkeypatch,
 ) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
@@ -176,6 +177,56 @@ def test_hosted_beta_key_generation_requires_email_only_and_creates_usable_key(
     assert delivery.requests[0].raw_api_key not in me_resp.text
 
 
+def test_hosted_beta_key_generation_requires_name_and_email(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        missing_name = client.post(
+            "/v1/hosted/beta-key",
+            json={"email": "missing-name@example.com"},
+        )
+        blank_name = client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "   ", "email": "blank-name@example.com"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert missing_name.status_code == 422
+    assert blank_name.status_code == 422
+    assert account_service.store.find_tenant_by_email("missing-name@example.com") is None
+    assert account_service.store.find_tenant_by_email("blank-name@example.com") is None
+    assert delivery.requests == []
+
+
+def test_hosted_beta_key_generation_rejects_removed_invite_password_field(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/v1/hosted/beta-key",
+            json={
+                "name": "Passwordless Tester",
+                "email": "passwordless@example.com",
+                "invite_password": "old-beta-password",
+            },
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 422
+    assert account_service.store.find_tenant_by_email("passwordless@example.com") is None
+    assert delivery.requests == []
+
+
 def test_hosted_beta_key_generation_requires_configured_delivery_service(
     monkeypatch,
 ) -> None:
@@ -209,6 +260,19 @@ def test_hosted_beta_key_response_schema_does_not_expose_raw_key() -> None:
 
     assert response.status_code == 200
     assert "raw_api_key" not in schema["properties"]
+
+
+def test_hosted_beta_key_request_schema_requires_name_email_and_no_invite_password() -> None:
+    client = TestClient(app)
+
+    response = client.get("/openapi.json")
+    schema = response.json()["components"]["schemas"]["HostedBetaKeyRequest"]
+
+    assert response.status_code == 200
+    assert schema["required"] == ["name", "email"]
+    assert set(schema["properties"]) == {"name", "email", "key_name"}
+    assert "password" not in schema["properties"]
+    assert "invite_password" not in schema["properties"]
 
 
 def test_hosted_beta_key_generation_rolls_back_when_delivery_fails(monkeypatch) -> None:
