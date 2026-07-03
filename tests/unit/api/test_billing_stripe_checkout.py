@@ -248,6 +248,9 @@ def test_stripe_status_returns_non_secret_readiness_flags() -> None:
     )
     delivery = RecordingDeliveryService(enabled=True)
     app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_customer_portal_service] = lambda: (
+        RecordingStripeCustomerPortalService(StripeCustomerPortalResult(success=True), enabled=True)
+    )
     app.dependency_overrides[get_stripe_webhook_secret] = lambda: "whsec_test"
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     client = TestClient(app)
@@ -284,6 +287,11 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
     )
     delivery = RecordingDeliveryService(enabled=False)
     app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_customer_portal_service] = lambda: (
+        RecordingStripeCustomerPortalService(
+            StripeCustomerPortalResult(success=False), enabled=False
+        )
+    )
     app.dependency_overrides[get_stripe_webhook_secret] = lambda: ""
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     client = TestClient(app)
@@ -297,6 +305,7 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
         {
             "beta_signup_enabled": False,
             "checkout_configured": False,
+            "customer_portal_configured": False,
             "webhook_configured": False,
             "key_delivery_configured": False,
             "ready_for_beta_key_delivery": False,
@@ -305,18 +314,21 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
             "missing_configuration": [
                 "hosted_beta_signup",
                 "stripe_checkout",
+                "stripe_customer_portal",
                 "stripe_webhook_secret",
                 "hosted_key_delivery_smtp",
             ],
             "blocking_reasons": [
                 "Hosted beta signup is disabled.",
                 "Stripe Checkout is not configured.",
+                "Stripe Customer Portal is not configured.",
                 "Stripe webhook secret is not configured.",
                 "Hosted API-key email delivery is not configured.",
             ],
             "operator_next_actions": [
                 "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open.",
                 "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
+                "Configure STRIPE_PORTAL_RETURN_URL for customer billing management.",
                 "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
                 "Configure hosted API-key SMTP delivery settings.",
             ],
@@ -339,6 +351,7 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
     monkeypatch.setattr(settings, "stripe_secret_key", "")
     monkeypatch.setattr(settings, "stripe_success_url", "")
     monkeypatch.setattr(settings, "stripe_cancel_url", "")
+    monkeypatch.setattr(settings, "stripe_portal_return_url", "")
     monkeypatch.setattr(settings, "stripe_standard_1000_price_id", "")
     monkeypatch.setattr(settings, "stripe_standard_3000_price_id", "")
     monkeypatch.setattr(settings, "stripe_standard_15000_price_id", "")
@@ -347,6 +360,11 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
     monkeypatch.setattr(settings, "hosted_key_delivery_smtp_username", "")
     monkeypatch.setattr(settings, "hosted_key_delivery_smtp_password", "")
     app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_customer_portal_service] = lambda: (
+        RecordingStripeCustomerPortalService(
+            StripeCustomerPortalResult(success=False), enabled=False
+        )
+    )
     app.dependency_overrides[get_stripe_webhook_secret] = lambda: ""
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     client = TestClient(app)
@@ -358,6 +376,7 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
     assert data["public_self_service_path"] == "email_beta_registration_with_checkout_hook"
     assert data["public_beta_key_endpoint"] == "/v1/hosted/beta-key"
     assert data["public_beta_checkout_endpoint"] == "/v1/billing/stripe/checkout-session"
+    assert data["public_customer_portal_endpoint"] == ("/v1/billing/stripe/customer-portal-session")
     assert data["customer_next_actions"] == [
         "Use /beta for email-first beta registration; Scout may route through $0 Stripe setup once checkout is fully configured.",
         "Use /pricing to buy paid credit packages when paid checkout readiness is true.",
@@ -366,6 +385,7 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
         "STRIPE_SECRET_KEY",
         "STRIPE_SUCCESS_URL",
         "STRIPE_CANCEL_URL",
+        "STRIPE_PORTAL_RETURN_URL",
         "STRIPE_WEBHOOK_SECRET",
         "STRIPE_STANDARD_1000_PRICE_ID",
         "STRIPE_STANDARD_3000_PRICE_ID",
@@ -387,6 +407,11 @@ def test_stripe_status_requires_checkout_webhook_and_delivery_for_beta(monkeypat
     delivery = RecordingDeliveryService(enabled=True)
     monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
     app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_customer_portal_service] = lambda: (
+        RecordingStripeCustomerPortalService(
+            StripeCustomerPortalResult(success=False), enabled=False
+        )
+    )
     app.dependency_overrides[get_stripe_webhook_secret] = lambda: ""
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     client = TestClient(app)
@@ -399,6 +424,7 @@ def test_stripe_status_requires_checkout_webhook_and_delivery_for_beta(monkeypat
         {
             "beta_signup_enabled": True,
             "checkout_configured": False,
+            "customer_portal_configured": False,
             "webhook_configured": False,
             "key_delivery_configured": True,
             "ready_for_beta_key_delivery": True,
@@ -406,14 +432,17 @@ def test_stripe_status_requires_checkout_webhook_and_delivery_for_beta(monkeypat
             "ready_for_paid_key_delivery": False,
             "missing_configuration": [
                 "stripe_checkout",
+                "stripe_customer_portal",
                 "stripe_webhook_secret",
             ],
             "blocking_reasons": [
                 "Stripe Checkout is not configured.",
+                "Stripe Customer Portal is not configured.",
                 "Stripe webhook secret is not configured.",
             ],
             "operator_next_actions": [
                 "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
+                "Configure STRIPE_PORTAL_RETURN_URL for customer billing management.",
                 "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
             ],
         },
@@ -428,6 +457,9 @@ def test_stripe_status_reports_beta_checkout_readiness(monkeypatch) -> None:
     delivery = RecordingDeliveryService(enabled=True)
     monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
     app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_customer_portal_service] = lambda: (
+        RecordingStripeCustomerPortalService(StripeCustomerPortalResult(success=True), enabled=True)
+    )
     app.dependency_overrides[get_stripe_webhook_secret] = lambda: "whsec_test"
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     client = TestClient(app)
@@ -441,6 +473,7 @@ def test_stripe_status_reports_beta_checkout_readiness(monkeypatch) -> None:
         {
             "beta_signup_enabled": True,
             "checkout_configured": True,
+            "customer_portal_configured": True,
             "webhook_configured": True,
             "key_delivery_configured": True,
             "ready_for_beta_key_delivery": True,
@@ -464,6 +497,11 @@ def test_stripe_status_keeps_paid_checkout_blocked_without_paid_price_ids(
     delivery = RecordingDeliveryService(enabled=True)
     monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
     app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_customer_portal_service] = lambda: (
+        RecordingStripeCustomerPortalService(
+            StripeCustomerPortalResult(success=True), enabled=False
+        )
+    )
     app.dependency_overrides[get_stripe_webhook_secret] = lambda: "whsec_test"
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     client = TestClient(app)
@@ -473,8 +511,15 @@ def test_stripe_status_keeps_paid_checkout_blocked_without_paid_price_ids(
     assert response.status_code == 200
     data = response.json()
     assert data["checkout_configured"] is True
+    assert data["customer_portal_configured"] is False
     assert data["ready_for_beta_checkout"] is True
     assert data["ready_for_paid_key_delivery"] is False
+    assert "stripe_customer_portal" in data["missing_configuration"]
+    assert "Stripe Customer Portal is not configured." in data["blocking_reasons"]
+    assert (
+        "Configure STRIPE_PORTAL_RETURN_URL for customer billing management."
+        in data["operator_next_actions"]
+    )
     assert "stripe_paid_price_ids" in data["missing_configuration"]
     assert "Stripe paid package price IDs are not configured." in data["blocking_reasons"]
     assert "Configure Stripe price IDs for public paid packages." in data["operator_next_actions"]
@@ -509,16 +554,19 @@ def test_stripe_status_does_not_enable_beta_without_checkout_webhook_and_deliver
             "ready_for_paid_key_delivery": False,
             "missing_configuration": [
                 "stripe_checkout",
+                "stripe_customer_portal",
                 "stripe_webhook_secret",
                 "hosted_key_delivery_smtp",
             ],
             "blocking_reasons": [
                 "Stripe Checkout is not configured.",
+                "Stripe Customer Portal is not configured.",
                 "Stripe webhook secret is not configured.",
                 "Hosted API-key email delivery is not configured.",
             ],
             "operator_next_actions": [
                 "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
+                "Configure STRIPE_PORTAL_RETURN_URL for customer billing management.",
                 "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
                 "Configure hosted API-key SMTP delivery settings.",
             ],
@@ -813,8 +861,9 @@ class RecordingStripeCheckoutService:
 class RecordingStripeCustomerPortalService:
     """Record Stripe Customer Portal requests and return a deterministic result."""
 
-    def __init__(self, result: StripeCustomerPortalResult) -> None:
+    def __init__(self, result: StripeCustomerPortalResult, enabled: bool = True) -> None:
         self.result = result
+        self.enabled = enabled
         self.requests: list[str] = []
 
     def create_portal_session(

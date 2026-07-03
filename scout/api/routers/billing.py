@@ -104,12 +104,14 @@ class StripeBillingStatusResponse(BaseModel):
 
     beta_signup_enabled: bool
     checkout_configured: bool
+    customer_portal_configured: bool
     webhook_configured: bool
     key_delivery_configured: bool
     public_self_service_path: str
     public_beta_key_endpoint: str
     public_beta_checkout_endpoint: str
     public_paid_checkout_endpoint: str
+    public_customer_portal_endpoint: str
     ready_for_beta_key_delivery: bool
     ready_for_beta_checkout: bool
     ready_for_paid_key_delivery: bool
@@ -262,17 +264,20 @@ async def deliver_pending_beta_keys(
 async def stripe_status(
     webhook_secret: str = Depends(get_stripe_webhook_secret),
     checkout_service: StripeCheckoutService = Depends(get_stripe_checkout_service),
+    portal_service: StripeCustomerPortalService = Depends(get_stripe_customer_portal_service),
     delivery_service: HostedApiKeyDeliveryService = Depends(get_hosted_key_delivery_service),
 ) -> StripeBillingStatusResponse:
     """Return non-secret Stripe readiness for the launch website."""
     beta_signup_enabled = settings.hosted_beta_signup_enabled
     checkout_configured = checkout_service.enabled
     paid_packages_configured = checkout_service.paid_packages_configured
+    customer_portal_configured = portal_service.enabled
     webhook_configured = webhook_secret != ""
     key_delivery_configured = delivery_service.enabled
     diagnostics = _stripe_status_diagnostics(
         beta_signup_enabled=beta_signup_enabled,
         checkout_configured=checkout_configured,
+        customer_portal_configured=customer_portal_configured,
         paid_packages_configured=paid_packages_configured,
         webhook_configured=webhook_configured,
         key_delivery_configured=key_delivery_configured,
@@ -281,12 +286,14 @@ async def stripe_status(
     return StripeBillingStatusResponse(
         beta_signup_enabled=beta_signup_enabled,
         checkout_configured=checkout_configured,
+        customer_portal_configured=customer_portal_configured,
         webhook_configured=webhook_configured,
         key_delivery_configured=key_delivery_configured,
         public_self_service_path="email_beta_registration_with_checkout_hook",
         public_beta_key_endpoint="/v1/hosted/beta-key",
         public_beta_checkout_endpoint="/v1/billing/stripe/checkout-session",
         public_paid_checkout_endpoint="/v1/billing/stripe/checkout-session",
+        public_customer_portal_endpoint="/v1/billing/stripe/customer-portal-session",
         ready_for_beta_key_delivery=beta_signup_enabled and key_delivery_configured,
         ready_for_beta_checkout=(
             beta_signup_enabled
@@ -296,6 +303,7 @@ async def stripe_status(
         ),
         ready_for_paid_key_delivery=(
             checkout_configured
+            and customer_portal_configured
             and paid_packages_configured
             and webhook_configured
             and key_delivery_configured
@@ -318,6 +326,7 @@ def _stripe_status_diagnostics(
     *,
     beta_signup_enabled: bool,
     checkout_configured: bool,
+    customer_portal_configured: bool,
     paid_packages_configured: bool,
     webhook_configured: bool,
     key_delivery_configured: bool,
@@ -342,6 +351,13 @@ def _stripe_status_diagnostics(
         blocking_reasons.append("Stripe Checkout is not configured.")
         operator_next_actions.append(
             "Configure Stripe secret key, price IDs, success URL, and cancel URL."
+        )
+    if not customer_portal_configured:
+        missing_environment_keys.extend(_missing_stripe_customer_portal_environment_keys())
+        missing_configuration.append("stripe_customer_portal")
+        blocking_reasons.append("Stripe Customer Portal is not configured.")
+        operator_next_actions.append(
+            "Configure STRIPE_PORTAL_RETURN_URL for customer billing management."
         )
     if not webhook_secret:
         missing_environment_keys.append("STRIPE_WEBHOOK_SECRET")
@@ -380,6 +396,16 @@ def _missing_stripe_checkout_environment_keys() -> list[str]:
         missing.append("STRIPE_SUCCESS_URL")
     if not settings.stripe_cancel_url:
         missing.append("STRIPE_CANCEL_URL")
+    return missing
+
+
+def _missing_stripe_customer_portal_environment_keys() -> list[str]:
+    """Return missing non-secret Stripe Customer Portal config key names."""
+    missing: list[str] = []
+    if not settings.stripe_secret_key:
+        missing.append("STRIPE_SECRET_KEY")
+    if not settings.stripe_portal_return_url:
+        missing.append("STRIPE_PORTAL_RETURN_URL")
     return missing
 
 
