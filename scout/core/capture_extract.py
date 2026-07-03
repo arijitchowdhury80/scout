@@ -66,7 +66,7 @@ async def structure_capture(
     llm_schema: dict | None = None,
     instruction: str = "",
     llm_api_key: str = "",
-    llm_provider: str = "gemini/gemini-2.0-flash",
+    llm_provider: str = "ollama/llama3.2:3b",
 ) -> CaptureExtraction:
     """Structure already-captured HTML into markdown + optional typed records.
 

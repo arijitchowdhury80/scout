@@ -130,7 +130,7 @@ def test_hosted_products_rejects_max_products_above_plan_limit_without_crawling(
     balance = account_service.get_balance(tenant_id)
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
     assert resp.status_code == 403
-    assert resp.json()["detail"] == "Plan allows at most 100 products per request."
+    assert resp.json()["detail"] == "Plan allows at most 25 products per request."
     assert balance.standard_credits_remaining == limits.standard_credits
     assert mock_crawler.products.await_count == 0
 

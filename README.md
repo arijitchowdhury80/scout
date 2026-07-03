@@ -4,7 +4,7 @@ Scout is a self-hosted web intelligence platform built on [Crawl4AI](https://git
 
 Scout's strongest promise is not "another crawler." Scout is an owned acquisition workbench: it helps teams acquire web evidence, preserve what happened, escalate to browser/user-session capture when needed, turn messy pages into typed records, and write artifacts that downstream tools can trust.
 
-Scout runs as a Python package, CLI, local HTTP service, Docker service, or Claude/Codex skill backend.
+Scout's public beta distribution is intentionally narrow: hosted HTTP API and Claude/Codex skill. The local package remains available to run the HTTP service for verification and private development.
 
 ## Why Scout
 
@@ -77,7 +77,7 @@ playwright install chromium
 cp .env.example .env.local
 # Edit .env.local: set SCOUT_API_KEY, LLM_API_KEY, SCOUT_WORKDIR
 
-# Start the server
+# Start the local HTTP server
 scout serve
 # or: python -m uvicorn scout.api.main:app --host 0.0.0.0 --port 8421
 
@@ -334,7 +334,7 @@ Crawl a URL and extract structured data using CSS selectors or an LLM strategy.
   },
   "instruction": "",
   "extraction_schema": {},
-  "llm_provider": "gemini/gemini-2.0-flash",
+  "llm_provider": "ollama/llama3.2:3b",
   "use_js": false,
   "timeout_ms": 45000
 }
@@ -346,7 +346,7 @@ Crawl a URL and extract structured data using CSS selectors or an LLM strategy.
 | `css_schema` | dict? | `null` | CSS-based extraction schema (no LLM needed) |
 | `instruction` | string | `""` | Natural language extraction instruction (requires LLM) |
 | `extraction_schema` | dict | `{}` | JSON Schema for LLM-based extraction (alias: `schema`) |
-| `llm_provider` | string | `"gemini/gemini-2.0-flash"` | LLM provider for instruction-based extraction |
+| `llm_provider` | string | `"ollama/llama3.2:3b"` | Local/open-source provider target for instruction-based extraction |
 | `use_js` | bool | `false` | Enable JavaScript rendering |
 | `timeout_ms` | int | `45000` | Request timeout |
 
@@ -776,33 +776,21 @@ in [docs/validation/feature-certification.md](docs/validation/feature-certificat
 
 ---
 
-## CLI
+## Hosted HTTP Beta
+
+Hosted beta admin scripts for the Chowmes VPS live in `scripts/`:
 
 ```bash
-scout scrape https://example.com/about
-scout map https://example.com --pages 200
-scout crawl https://example.com/docs --depth 2 --pages 50
-scout products "men shirts" --site example.com --output-dir ./scout-runs/shirts
-scout product-export ./scout-runs/shirts/records.json --output-dir ./scout-runs/shirts/exports --format jsonl --format csv --format sqlite --format google_sheets
-scout screenshot https://example.com --output screenshot.png
-scout run company --query stripe.com --mode auto
-scout run prism --query "Nike" --mode auto --output-dir ./scout-runs/nike
-scout run jobs --profile examples/job-hunter/job-profile.yaml
-scout hosted-provision --email tester@example.com --db /data/hosted_accounts.sqlite
-scout hosted-curl --base-url https://your-scout-domain.example --endpoint scrape --url https://example.com
+scripts/scout-vps-provision-hosted-key --email tester@example.com --key-name "Beta key"
+scripts/scout-vps-list-hosted-accounts --format table
 ```
+
+See [docs/product/hosted-admin-operations.md](docs/product/hosted-admin-operations.md)
+for the current API-key, credit, and billing status.
 
 Execution modes: `auto`, `crawl4ai`, `webfetch`, `websearch`, `browser`, `user-browser`, `saved`, `api`.
 
 ---
-
-## Docker
-
-```bash
-cp .env.example .env
-docker compose -f docker/docker-compose.yml up --build
-curl http://localhost:8421/health
-```
 
 For an internet-facing hosted/private-beta API, set:
 
@@ -826,12 +814,6 @@ SCOUT_HOSTED_BASE_URL=https://scout.chowmes.com
 The VPS deployment is expected to keep Scout bound to `127.0.0.1:8421` behind
 Caddy. Public callers use hosted Bearer keys only; local/admin `X-API-Key`
 routes are disabled when `SCOUT_PUBLIC_HOSTED_ONLY=true`.
-
-The Docker setup includes:
-- **Dockerfile** — Python 3.11 + Crawl4AI + Playwright Chromium
-- **docker-compose.yml** — Named volume for `/data`, env var passthrough
-- **nginx.conf** — HTTPS reverse proxy, WebSocket upgrade for live browser, no-buffer for SSE
-- **scout.service** — systemd unit with security hardening
 
 ---
 
@@ -901,7 +883,7 @@ scout/
 │           ├── social.py
 │           ├── locations.py
 │           └── website_quality.py
-├── cli/                    # CLI entry points
+├── cli/                    # Internal command entry points
 └── skill/                  # Claude/Codex skill definition
 ```
 

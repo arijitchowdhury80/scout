@@ -96,6 +96,27 @@ class SQLiteHostedAccountStore:
             created_at=row["created_at"],
         )
 
+    def find_tenant_by_email(self, email: str) -> HostedTenantRecord | None:
+        """Return tenant metadata for a normalized email if it exists."""
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT tenant_id, email, plan, status, created_at
+                FROM hosted_tenants
+                WHERE lower(email) = lower(?)
+                """,
+                (email.strip(),),
+            ).fetchone()
+        if row is None:
+            return None
+        return HostedTenantRecord(
+            tenant_id=row["tenant_id"],
+            email=row["email"],
+            plan=row["plan"],
+            status=row["status"],
+            created_at=row["created_at"],
+        )
+
     def get_balance(self, tenant_id: str) -> HostedUsageBalance:
         """Return tenant credit balance."""
         with self._connect() as conn:

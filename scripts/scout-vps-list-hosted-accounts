@@ -1,0 +1,159 @@
+#!/bin/sh
+set -eu
+
+HELPER_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/scripts/chowmes-ssh-helper"
+ENV_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/.env.local"
+HOSTED_DB="/data/hosted_accounts.sqlite"
+
+usage() {
+  cat <<EOF
+usage: scout-vps-list-hosted-accounts [--format table|json] [--limit N] [--env PATH] [--helper PATH]
+
+List Scout hosted beta tenants, API-key metadata, and credit balances from:
+  $HOSTED_DB
+
+Tables used:
+  hosted_tenants
+  hosted_api_keys
+  hosted_credit_balances
+
+Options:
+  --format FORMAT  table or json. Default: table
+  --limit N        Maximum rows. Default: 50
+  --env PATH       SSH env file for the ChowMes SSH helper. Default: $ENV_DEFAULT
+  --helper PATH    SSH helper path. Default: $HELPER_DEFAULT
+  -h, --help       Show this help.
+
+Secret safety:
+  This script does not print raw API keys or stored API-key hashes.
+EOF
+}
+
+helper="$HELPER_DEFAULT"
+env_file="$ENV_DEFAULT"
+format="table"
+limit="50"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --format)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      format="$2"
+      shift 2
+      ;;
+    --limit)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      limit="$2"
+      shift 2
+      ;;
+    --env)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      env_file="$2"
+      shift 2
+      ;;
+    --helper)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      helper="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+case "$format" in
+  table|json) ;;
+  *)
+    echo "Unsupported --format: $format" >&2
+    exit 2
+    ;;
+esac
+
+case "$limit" in
+  ''|*[!0-9]*)
+    echo "--limit must be a positive integer." >&2
+    exit 2
+    ;;
+esac
+
+if [ "$limit" -lt 1 ]; then
+  echo "--limit must be a positive integer." >&2
+  exit 2
+fi
+
+if [ ! -x "$helper" ]; then
+  echo "SSH helper is not executable: $helper" >&2
+  exit 1
+fi
+
+"$helper" --env "$env_file" "sudo docker exec -i scout python3 - '$limit' '$format' <<'PY'
+import json
+import sqlite3
+import sys
+
+limit = int(sys.argv[1])
+output_format = sys.argv[2]
+conn = sqlite3.connect('$HOSTED_DB')
+conn.row_factory = sqlite3.Row
+rows = conn.execute(
+    '''
+    SELECT
+      t.tenant_id,
+      t.email,
+      t.plan,
+      t.status AS tenant_status,
+      t.created_at AS tenant_created_at,
+      k.key_id,
+      k.name AS key_name,
+      k.status AS key_status,
+      k.created_at AS key_created_at,
+      k.last_used_at,
+      b.standard_credits_remaining,
+      b.browser_credits_remaining
+    FROM hosted_tenants t
+    LEFT JOIN hosted_api_keys k ON k.tenant_id = t.tenant_id
+    LEFT JOIN hosted_credit_balances b ON b.tenant_id = t.tenant_id
+    ORDER BY t.created_at DESC
+    LIMIT ?
+    ''',
+    (limit,),
+).fetchall()
+records = [dict(row) for row in rows]
+if output_format == 'json':
+    print(json.dumps(records, indent=2, sort_keys=True))
+else:
+    headers = [
+        'email',
+        'plan',
+        'tenant_status',
+        'key_name',
+        'key_status',
+        'standard_credits_remaining',
+        'browser_credits_remaining',
+        'last_used_at',
+        'tenant_id',
+        'key_id',
+    ]
+    print('\\t'.join(headers))
+    for record in records:
+        print('\\t'.join(str(record.get(header) or '') for header in headers))
+PY"

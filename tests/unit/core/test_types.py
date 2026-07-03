@@ -143,7 +143,7 @@ def test_extract_request_shape():
         **{"schema": {"type": "object", "properties": {"name": {"type": "string"}}}},
         instruction="Extract the company name",
     )
-    assert req.llm_provider == "gemini/gemini-2.0-flash"
+    assert req.llm_provider == "ollama/llama3.2:3b"
     assert req.use_js is False
 
 

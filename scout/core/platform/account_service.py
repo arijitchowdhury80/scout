@@ -76,6 +76,8 @@ class HostedAccountStore(Protocol):
 
     def get_tenant(self, tenant_id: str) -> HostedTenantRecord | None: ...
 
+    def find_tenant_by_email(self, email: str) -> HostedTenantRecord | None: ...
+
     def get_balance(self, tenant_id: str) -> HostedUsageBalance: ...
 
     def set_balance(self, tenant_id: str, balance: HostedUsageBalance) -> None: ...
@@ -113,6 +115,14 @@ class InMemoryHostedAccountStore:
         """Return tenant metadata."""
         return self.tenants.get(tenant_id)
 
+    def find_tenant_by_email(self, email: str) -> HostedTenantRecord | None:
+        """Return tenant metadata for a normalized email if it exists."""
+        normalized = email.strip().lower()
+        for tenant in self.tenants.values():
+            if str(tenant.email).lower() == normalized:
+                return tenant
+        return None
+
     def get_balance(self, tenant_id: str) -> HostedUsageBalance:
         """Return tenant credit balance."""
         return self.balances[tenant_id]
@@ -141,11 +151,14 @@ class HostedAccountService:
         key_name: str = "Default key",
     ) -> HostedProvisioningResult:
         """Provision a hosted tenant and return the raw API key once."""
+        normalized_email = email.strip().lower()
+        if self.store.find_tenant_by_email(normalized_email) is not None:
+            raise ValueError("A hosted beta key already exists for this email.")
         limits = plan_limits(plan)
         if not limits.hosted_enabled:
             raise ValueError(f"Plan {plan.value} is not hosted-enabled.")
 
-        tenant = HostedTenantRecord(email=email, plan=plan)
+        tenant = HostedTenantRecord(email=normalized_email, plan=plan)
         raw_key = generate_api_key()
         api_key = ApiKeyRecord(
             key_id=f"key_{uuid4().hex}",

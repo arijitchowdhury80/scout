@@ -52,7 +52,7 @@ async def acquire_open_page(
     llm_schema: dict | None = None,
     instruction: str = "",
     llm_api_key: str = "",
-    llm_provider: str = "gemini/gemini-2.0-flash",
+    llm_provider: str = "ollama/llama3.2:3b",
     scan_full_page: bool = True,
 ) -> CaptureExtraction:
     """Attach Crawl4AI to a running Chrome over CDP and structure the current

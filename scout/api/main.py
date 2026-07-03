@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.responses import Response
 
 from scout.api.config import settings
+from scout.api.hosted_llm_policy import resolve_hosted_llm_api_key
 from scout.api.deps import get_crawler
 from scout.api.middleware.auth import AuthMiddleware
 from scout.api import launch_site
@@ -56,7 +57,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from scout.core.platform.hosted_rate_limit import HostedRateLimitConfig, HostedRateLimiter
     from scout.core.platform.stripe_checkout import StripeCheckoutConfig, StripeCheckoutService
 
-    app.state.crawler = ScoutCrawler(llm_api_key=settings.llm_api_key)
+    app.state.crawler = ScoutCrawler(llm_api_key=resolve_hosted_llm_api_key(settings))
     db_path = settings.resolve_db_path()
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     run_db = RunDB(db_path)

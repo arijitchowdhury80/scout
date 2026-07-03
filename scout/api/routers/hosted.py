@@ -8,7 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 from scout.api.config import settings
 from scout.api.deps import (
@@ -24,6 +24,7 @@ from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
 from scout.core.platform.hosted import (
     HostedAction,
+    HostedPlan,
     HostedPlanLimits,
     HostedUsageBalance,
     plan_limits,
@@ -108,6 +109,28 @@ class HostedAccountSummaryResponse(BaseModel):
     limits: HostedPlanLimits
 
 
+class HostedBetaKeyRequest(BaseModel):
+    """Hosted beta key generation request."""
+
+    email: EmailStr
+    key_name: str = "Hosted beta key"
+
+
+class HostedBetaKeyResponse(BaseModel):
+    """One-time hosted beta key generation response."""
+
+    success: bool
+    tenant_id: str
+    key_id: str
+    email: str
+    plan: str
+    scopes: list[str]
+    standard_credits_remaining: int
+    browser_credits_remaining: int
+    raw_api_key: str
+    warning: str
+
+
 @router.get("/me", response_model=HostedAccountSummaryResponse)
 async def hosted_me(
     authorization: str = Header(default=""),
@@ -130,6 +153,43 @@ async def hosted_me(
         account_status=tenant.status.value,
         balance=account_service.get_balance(auth.tenant_id),
         limits=plan_limits(tenant.plan),
+    )
+
+
+@router.post("/beta-key", response_model=HostedBetaKeyResponse)
+async def hosted_beta_key(
+    req: HostedBetaKeyRequest,
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+) -> HostedBetaKeyResponse:
+    """Provision a hosted beta API key after email capture."""
+    if not settings.hosted_beta_signup_enabled:
+        raise HTTPException(
+            status_code=503,
+            detail="Hosted beta key generation is disabled.",
+        )
+
+    try:
+        provisioned = account_service.provision_account(
+            email=str(req.email),
+            plan=HostedPlan.HOSTED_BETA_PASS,
+            scopes=["runs:create"],
+            key_name=req.key_name.strip() or "Hosted beta key",
+        )
+    except ValueError as exc:
+        if "already exists" in str(exc):
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        raise
+    return HostedBetaKeyResponse(
+        success=True,
+        tenant_id=provisioned.tenant.tenant_id,
+        key_id=provisioned.api_key.key_id,
+        email=str(provisioned.tenant.email),
+        plan=provisioned.tenant.plan.value,
+        scopes=provisioned.api_key.scopes,
+        standard_credits_remaining=provisioned.balance.standard_credits_remaining,
+        browser_credits_remaining=provisioned.balance.browser_credits_remaining,
+        raw_api_key=provisioned.raw_api_key,
+        warning="Copy this key now. Scout stores only its hash and cannot show it again.",
     )
 
 

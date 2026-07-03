@@ -116,7 +116,7 @@ def test_hosted_crawl_rejects_max_pages_above_plan_limit_without_crawling() -> N
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
     balance = account_service.get_balance(tenant_id)
     assert resp.status_code == 403
-    assert resp.json()["detail"] == "Plan allows at most 100 pages per crawl."
+    assert resp.json()["detail"] == "Plan allows at most 25 pages per crawl."
     assert balance.standard_credits_remaining == limits.standard_credits
     assert mock_crawler.crawl.await_count == 0
 

@@ -1,0 +1,136 @@
+#!/bin/sh
+set -eu
+
+HELPER_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/scripts/chowmes-ssh-helper"
+ENV_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/.env.local"
+HOSTED_DB="/data/hosted_accounts.sqlite"
+
+usage() {
+  cat <<EOF
+usage: scout-vps-provision-hosted-key --email EMAIL [--key-name NAME] [--plan PLAN] [--env PATH] [--helper PATH]
+
+Provision a Scout hosted API key directly on the VPS with:
+  scout hosted-provision --db $HOSTED_DB
+
+Options:
+  --email EMAIL    User or consuming app email. Required.
+  --key-name NAME  Display name for the API key. Default: Hosted beta key
+  --plan PLAN      hosted_beta_pass, hosted_starter, or hosted_pro. Default: hosted_beta_pass
+  --env PATH       SSH env file for the ChowMes SSH helper. Default: $ENV_DEFAULT
+  --helper PATH    SSH helper path. Default: $HELPER_DEFAULT
+  -h, --help       Show this help.
+
+The raw API key is printed once by Scout. Store it immediately.
+EOF
+}
+
+helper="$HELPER_DEFAULT"
+env_file="$ENV_DEFAULT"
+email=""
+key_name="Hosted beta key"
+plan="hosted_beta_pass"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --email)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      email="$2"
+      shift 2
+      ;;
+    --key-name)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      key_name="$2"
+      shift 2
+      ;;
+    --plan)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      plan="$2"
+      shift 2
+      ;;
+    --env)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      env_file="$2"
+      shift 2
+      ;;
+    --helper)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      helper="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+if [ -z "$email" ]; then
+  echo "Missing --email." >&2
+  usage >&2
+  exit 2
+fi
+
+case "$plan" in
+  hosted_beta_pass|hosted_starter|hosted_pro) ;;
+  *)
+    echo "Unsupported --plan: $plan" >&2
+    exit 2
+    ;;
+esac
+
+if [ ! -x "$helper" ]; then
+  echo "SSH helper is not executable: $helper" >&2
+  exit 1
+fi
+
+encoded_email="$(printf '%s' "$email" | base64 | tr -d '\n')"
+encoded_key_name="$(printf '%s' "$key_name" | base64 | tr -d '\n')"
+
+"$helper" --env "$env_file" "python3 - '$encoded_email' '$encoded_key_name' '$plan' <<'PY'
+import base64
+import subprocess
+import sys
+
+email = base64.b64decode(sys.argv[1]).decode('utf-8')
+key_name = base64.b64decode(sys.argv[2]).decode('utf-8')
+plan = sys.argv[3]
+subprocess.run(
+    [
+        'sudo',
+        'docker',
+        'exec',
+        'scout',
+        'scout',
+        'hosted-provision',
+        '--email',
+        email,
+        '--db',
+        '$HOSTED_DB',
+        '--key-name',
+        key_name,
+        '--plan',
+        plan,
+    ],
+    check=True,
+)
+PY"

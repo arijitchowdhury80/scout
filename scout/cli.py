@@ -558,7 +558,7 @@ def extract(
         "", "--llm-key", envvar="LLM_API_KEY", help="LLM API key (or set LLM_API_KEY env var)"
     ),
     provider: str = typer.Option(
-        "gemini/gemini-2.0-flash", "--provider", help="LiteLLM provider string"
+        "ollama/llama3.2:3b", "--provider", help="LiteLLM provider string"
     ),
     js: bool = typer.Option(False, "--js", help="Enable JS rendering"),
 ) -> None:

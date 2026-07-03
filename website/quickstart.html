@@ -51,8 +51,7 @@
               <a href="#playground-link-title">Playground link</a>
               <a href="#hosted-api-title">Hosted API</a>
               <a href="#api-reference-title">API reference</a>
-              <a href="#python-install-title">Local install</a>
-              <a href="#docker-title">Docker</a>
+              <a href="#skill-title">Claude/Codex skill</a>
               <a href="#examples-title">Examples</a>
               <a href="#artifact-contract-title">Artifact contract</a>
               <a href="#readiness-title">Readiness check</a>
@@ -124,8 +123,8 @@
             <h2 id="hosted-api-title">Call the live Scout API.</h2>
           </div>
           <p>
-            Hosted beta is invite-only and metered. Use the domain below with
-            the API key delivered to you. Do not use localhost for hosted calls.
+            Hosted HTTP beta is email-based and metered. Use the domain below with
+            the API key generated for you. Do not use localhost for hosted calls.
             Hosted credits are capped while unit economics are validated; Scout
             does not offer unlimited hosted crawling.
           </p>
@@ -139,6 +138,32 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","formats":["markdown"],"timeout_ms":30000}'</code></pre>
+          <div class="hosted-key-card" aria-labelledby="hosted-key-title">
+            <div>
+              <p class="wi-label wi-label--accent">Private beta access</p>
+              <h3 id="hosted-key-title">Generate a hosted beta key.</h3>
+              <p>
+                Enter your email to create your own hosted Scout key. The key is
+                shown once; store it in your server-side environment, not
+                frontend code.
+              </p>
+            </div>
+            <form id="hostedKeyForm" class="hosted-key-form">
+              <label>
+                Email
+                <input name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+              </label>
+              <label>
+                Key name
+                <input name="key_name" type="text" placeholder="My app beta key" />
+              </label>
+              <button class="wi-btn" type="submit">Generate API key</button>
+            </form>
+            <div id="hostedKeyResult" class="hosted-key-result" aria-live="polite">
+              <p>Enter your email to generate a hosted key.</p>
+            </div>
+            <button id="copyHostedKey" class="wi-pill" type="button" disabled>Copy key</button>
+          </div>
           <div class="note-grid">
             <article>
               <h3>Use the real domain</h3>
@@ -166,6 +191,10 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               <span role="cell">Check hosted beta plan, credits, limits, and retention.</span>
             </div>
             <div role="row">
+              <strong role="cell">POST /v1/hosted/beta-key</strong>
+              <span role="cell">Email-based beta key generation from the Docs page.</span>
+            </div>
+            <div role="row">
               <strong role="cell">POST /v1/hosted/scrape</strong>
               <span role="cell">Acquire one public URL and return content plus evidence metadata.</span>
             </div>
@@ -190,8 +219,8 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
 
         <section class="section step-section" aria-labelledby="python-install-title">
           <div class="section-heading">
-            <p class="wi-label wi-label--accent">Path 02 · Local install</p>
-            <h2 id="python-install-title">Run Scout on your own machine.</h2>
+            <p class="wi-label wi-label--accent">Path 02 · Local HTTP package</p>
+            <h2 id="python-install-title">Run the Scout HTTP server on your own machine.</h2>
           </div>
           <pre><code>python3 -m venv .venv
 source .venv/bin/activate
@@ -206,7 +235,7 @@ scout serve</code></pre>
             </article>
             <article>
               <h3>Local-only health check</h3>
-              <p>Only after `scout serve` is running on your own machine, open the local health or Swagger page from that same machine.</p>
+              <p>Only after `scout serve` is running on your own machine, open `http://localhost:8421/health` from that same machine.</p>
             </article>
             <article>
               <h3>Package release</h3>
@@ -215,21 +244,22 @@ scout serve</code></pre>
           </div>
         </section>
 
-        <section class="section step-section" aria-labelledby="docker-title">
+        <section class="section step-section" aria-labelledby="skill-title">
           <div class="section-heading">
-            <p class="wi-label wi-label--accent">Path 03 · Docker</p>
-            <h2 id="docker-title">Use Docker when you want a clean local service boundary.</h2>
+            <p class="wi-label wi-label--accent">Path 03 · Claude/Codex skill</p>
+            <h2 id="skill-title">Use Scout from an agent workflow.</h2>
           </div>
-          <pre><code>docker compose -f docker/docker-compose.yml up -d
-curl http://localhost:8421/health</code></pre>
+          <pre><code># Point the Scout skill at hosted HTTP
+export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
+export SCOUT_HOSTED_API_KEY="paste-your-generated-key"</code></pre>
           <div class="note-grid">
             <article>
-              <h3>Persistence</h3>
-              <p>Mount a host volume for Scout runs so artifacts survive container restarts.</p>
+              <h3>Skill boundary</h3>
+              <p>The skill is the agent-facing wrapper. Hosted HTTP remains the acquisition surface.</p>
             </article>
             <article>
-              <h3>Browser capture</h3>
-              <p>Docker is best for service-style scraping. User-browser capture remains a local-machine workflow because it can touch your active session.</p>
+              <h3>Use small first runs</h3>
+              <p>Start with one public URL, inspect records and evidence, then expand within your hosted credits.</p>
             </article>
           </div>
         </section>
@@ -241,7 +271,7 @@ curl http://localhost:8421/health</code></pre>
           </div>
           <div class="check-grid">
             <article><h3>1. Pick a target</h3><p>Start with a public page you are allowed to access.</p></article>
-            <article><h3>2. Run Scout</h3><p>Use CLI or HTTP API. Keep live hard-site testing small and intentional.</p></article>
+            <article><h3>2. Run Scout</h3><p>Use hosted HTTP or the Claude/Codex skill. Keep live hard-site testing small and intentional.</p></article>
             <article><h3>3. Inspect evidence</h3><p>Open `records.json`, `source_pages.json`, `blocked_pages.json`, and `extraction_report.md`.</p></article>
           </div>
         </section>
@@ -323,5 +353,6 @@ scout launch-readiness --require-public</code></pre>
       </main>
     </div>
     <script src="./assets/copy-code.js" defer></script>
+    <script src="./assets/hosted-keygen.js" defer></script>
   </body>
 </html>

@@ -887,6 +887,92 @@ li {
   line-height: 1.45;
 }
 
+.hosted-key-card {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(320px, 1fr);
+  gap: 28px;
+  align-items: start;
+  margin: 28px 0;
+  padding: 28px;
+  border: 1px solid var(--wi-border);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 12px 12px 0 rgba(23, 30, 25, 0.06);
+}
+
+.hosted-key-card h3 {
+  margin: 8px 0 12px;
+  font-family: var(--wi-font-serif);
+  font-size: 32px;
+  line-height: 1;
+}
+
+.hosted-key-card p {
+  margin: 0;
+  color: var(--wi-muted);
+  line-height: 1.6;
+}
+
+.hosted-key-form {
+  display: grid;
+  gap: 14px;
+}
+
+.hosted-key-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--flux-ink-65);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hosted-key-form input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius-btn);
+  background: var(--flux-white);
+  color: var(--wi-fg);
+  font: 600 15px/1.2 var(--wi-font-sans);
+  letter-spacing: 0;
+  padding: 0 14px;
+}
+
+.hosted-key-form input:focus-visible {
+  outline: 3px solid rgba(255, 225, 124, 0.85);
+  outline-offset: 2px;
+}
+
+.hosted-key-result {
+  grid-column: 1 / -1;
+  min-height: 92px;
+  border: 1px solid rgba(23, 30, 25, 0.18);
+  background: var(--wi-fg);
+  color: var(--flux-white);
+  font: 13px/1.55 var(--wi-font-mono);
+  overflow-x: auto;
+  padding: 18px;
+  white-space: pre-wrap;
+}
+
+.hosted-key-result[data-state="success"] {
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.hosted-key-result[data-state="error"] {
+  border-color: rgba(220, 38, 38, 0.55);
+  color: #fecaca;
+}
+
+.hosted-key-result[data-state="running"] {
+  color: var(--wi-accent-surface);
+}
+
+.hosted-key-card #copyHostedKey {
+  justify-self: end;
+}
+
 .endpoint-table {
   margin-top: 24px;
   grid-template-columns: 1fr;
@@ -1507,6 +1593,10 @@ ul {
     grid-template-columns: 1fr;
   }
 
+  .hosted-key-card {
+    grid-template-columns: 1fr;
+  }
+
   .playground-form {
     border-right: 0;
     border-bottom: 1px solid var(--wi-border);
@@ -1597,6 +1687,18 @@ ul {
 
   .playground-downloads .wi-pill {
     width: 100%;
+  }
+
+  .hosted-key-card {
+    padding: 20px;
+  }
+
+  .hosted-key-card h3 {
+    font-size: 28px;
+  }
+
+  .hosted-key-card #copyHostedKey {
+    justify-self: stretch;
   }
 
   .docs-sidebar {

@@ -67,11 +67,26 @@ def test_launch_website_states_current_launch_readiness_boundaries() -> None:
     assert "Research archives" in normalized_html
     assert "Browser-assisted capture" in normalized_html
     assert "Hosted beta" in normalized_html
-    assert "Local beta" in normalized_html
+    assert "Claude/Codex skill" in normalized_html
     assert "Pay-as-you-go candidate" in normalized_html
     assert "Launch status" not in normalized_html
     assert "Production-ready multi-tenant SaaS" not in html
     assert "Unlimited hosted scraping" not in html
+
+
+def test_public_distribution_copy_is_http_and_skill_only() -> None:
+    public_files = [
+        _WEBSITE_DIR / "index.html",
+        _WEBSITE_DIR / "quickstart.html",
+        _WEBSITE_DIR / "pricing.html",
+        _REPO_ROOT / "README.md",
+    ]
+    combined = "\n".join(path.read_text(encoding="utf-8") for path in public_files)
+    normalized = " ".join(combined.split()).lower()
+
+    assert "hosted http" in normalized
+    assert "claude/codex skill" in normalized
+    assert "docker" not in normalized
 
 
 def test_api_root_serves_launch_website_from_same_origin() -> None:
@@ -127,6 +142,7 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     logo = client.get("/assets/scout-wordmark.svg")
     mark = client.get("/assets/scout-mark.svg")
     copy_code = client.get("/assets/copy-code.js")
+    hosted_keygen = client.get("/assets/hosted-keygen.js")
     playground = client.get("/assets/playground.js")
 
     assert styles.status_code == 200
@@ -155,6 +171,9 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert "javascript" in copy_code.headers["content-type"]
     assert "navigator.clipboard.writeText" in copy_code.text
     assert "Copy code sample" in copy_code.text
+    assert hosted_keygen.status_code == 200
+    assert "javascript" in hosted_keygen.headers["content-type"]
+    assert "/v1/hosted/beta-key" in hosted_keygen.text
     assert playground.status_code == 200
     assert "javascript" in playground.headers["content-type"]
     assert "/v1/playground/run" in playground.text
@@ -290,8 +309,14 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "The hosted playground lives under the demo flow",
             "Open playground",
             "Call the live Scout API.",
+            "Generate a hosted beta key.",
+            "Enter your email to create your own hosted Scout key.",
+            "/v1/hosted/beta-key",
+            'id="hostedKeyForm"',
+            'id="hostedKeyResult"',
             "API reference",
             "The endpoints testers actually need.",
+            "POST /v1/hosted/beta-key",
             "POST /products",
             "POST /run/{use_case}",
             "https://scout.chowmes.com",
@@ -303,12 +328,11 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "scout launch-readiness",
             "Private beta: ready_with_limits",
             "--require-public",
-            "docker compose",
-            "Run Scout on your own machine.",
+            "Run the Scout HTTP server on your own machine.",
             "SCOUT_HOSTED_API_KEY",
             "/v1/hosted/me",
             "/v1/hosted/scrape",
-            "invite-only and metered",
+            "email-based and metered",
             "Examples",
             "Page to markdown",
             "Product category to records",
@@ -321,7 +345,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         ],
         "pricing.html": [
             "Scout Pricing",
-            "Free local beta",
+            "Local HTTP package",
             "Metered",
             "Hosted private beta",
             "Pay-as-you-go candidate",
@@ -427,6 +451,24 @@ def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
 
     assert hosted_index < localhost_index
     assert "Do not use localhost for hosted calls." in html
+
+
+def test_docs_key_generation_form_is_email_based_and_copyable() -> None:
+    html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
+    js = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(encoding="utf-8")
+    css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
+
+    assert '<form id="hostedKeyForm"' in html
+    assert 'name="invite_password"' not in html
+    assert 'type="password"' not in html
+    assert 'name="email"' in html
+    assert 'id="copyHostedKey"' in html
+    assert "/v1/hosted/beta-key" in js
+    assert "navigator.clipboard.writeText" in js
+    assert "raw_api_key" in js
+    assert "invite_password" not in js
+    assert ".hosted-key-card" in css
+    assert ".hosted-key-result" in css
     assert "Only after `scout serve` is running on your own machine" in html
     assert "http://127.0.0.1:8421" not in html
     assert 'src="./assets/copy-code.js"' in html

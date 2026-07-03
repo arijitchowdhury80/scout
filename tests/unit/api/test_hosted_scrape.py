@@ -6,14 +6,24 @@ from unittest.mock import AsyncMock, MagicMock
 
 from fastapi.testclient import TestClient
 
-from scout.api.deps import get_crawler, get_hosted_account_service, get_hosted_rate_limiter
+from scout.api.deps import (
+    get_crawler,
+    get_hosted_account_service,
+    get_hosted_key_delivery_service,
+    get_hosted_rate_limiter,
+)
 from scout.api.main import app
+from scout.api.config import settings
 from scout.core.platform.account_service import (
     HostedAccountService,
     InMemoryHostedAccountStore,
 )
 from scout.core.platform.hosted import HostedPlan, plan_limits
 from scout.core.platform.hosted_rate_limit import HostedRateLimitConfig, HostedRateLimiter
+from scout.core.platform.key_delivery import (
+    HostedApiKeyDeliveryRequest,
+    HostedApiKeyDeliveryResult,
+)
 from scout.core.types import ScoutMetadata, ScrapeResponse
 
 _TS = "2026-06-28T12:00:00Z"
@@ -82,6 +92,144 @@ def test_hosted_me_returns_plan_limits_and_balance_without_raw_key() -> None:
     assert data["limits"]["browser_credits"] == limits.browser_credits
     assert data["limits"]["max_pages_per_run"] == limits.max_pages_per_run
     assert raw_key not in resp.text
+
+
+def test_hosted_beta_key_generation_is_disabled_when_signup_disabled(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", False, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/beta-key",
+            json={
+                "email": "tester@example.com",
+                "key_name": "Tester key",
+            },
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 503
+    assert resp.json()["detail"] == "Hosted beta key generation is disabled."
+
+
+def test_hosted_beta_key_generation_requires_email_only_and_creates_usable_key(
+    monkeypatch,
+) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/beta-key",
+            json={
+                "name": "New Tester",
+                "email": "new-tester@example.com",
+                "key_name": "New tester beta key",
+            },
+        )
+        data = resp.json()
+        me_resp = client.get(
+            "/v1/hosted/me",
+            headers={"Authorization": f"Bearer {delivery.requests[0].raw_api_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 200
+    assert data["success"] is True
+    assert data["email"] == "new-tester@example.com"
+    assert data["name"] == "New Tester"
+    assert data["plan"] == "hosted_beta_pass"
+    assert data["scopes"] == ["runs:create"]
+    assert data["delivery_status"] == "delivered"
+    assert "raw_api_key" not in data
+    assert (
+        data["standard_credits_remaining"]
+        == plan_limits(HostedPlan.HOSTED_BETA_PASS).standard_credits
+    )
+    assert (
+        data["browser_credits_remaining"]
+        == plan_limits(HostedPlan.HOSTED_BETA_PASS).browser_credits
+    )
+    assert me_resp.status_code == 200
+    assert me_resp.json()["tenant_id"] == data["tenant_id"]
+    assert delivery.requests[0].email == "new-tester@example.com"
+    assert delivery.requests[0].name == "New Tester"
+    assert delivery.requests[0].raw_api_key not in resp.text
+    assert delivery.requests[0].raw_api_key not in me_resp.text
+
+
+def test_hosted_beta_key_generation_requires_delivery_service(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "Tester", "email": "no-email@example.com"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 503
+    assert resp.json()["detail"] == "Hosted API key email delivery is not configured."
+    assert account_service.store.find_tenant_by_email("no-email@example.com") is None
+
+
+def test_hosted_beta_key_generation_rolls_back_when_delivery_fails(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService(
+        HostedApiKeyDeliveryResult(
+            delivered=False,
+            delivery_status="failed",
+            reason="SMTP delivery failed: smtp down",
+        )
+    )
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "Retry Tester", "email": "retry@example.com"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 502
+    assert resp.json()["detail"] == "SMTP delivery failed: smtp down"
+    assert account_service.store.find_tenant_by_email("retry@example.com") is None
+
+
+def test_hosted_beta_key_generation_rejects_duplicate_email(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        first = client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "First User", "email": "dupe@example.com", "key_name": "First"},
+        )
+        second = client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "Second User", "email": "dupe@example.com", "key_name": "Second"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert first.status_code == 200
+    assert second.status_code == 409
+    assert second.json()["detail"] == "A hosted beta key already exists for this email."
 
 
 def test_hosted_scrape_rejects_unsafe_url_without_calling_crawler() -> None:
@@ -218,3 +366,23 @@ def test_hosted_scrape_rate_limit_rejects_without_second_debit_or_crawl() -> Non
     assert raw_key not in second.text
     assert mock_crawler.scrape.await_count == 1
     assert balance.standard_credits_remaining == limits.standard_credits - 1
+
+
+class FakeDeliveryService:
+    """Fake hosted API-key delivery service for beta signup route tests."""
+
+    enabled = True
+
+    def __init__(
+        self,
+        result: HostedApiKeyDeliveryResult | None = None,
+    ) -> None:
+        self.result = result or HostedApiKeyDeliveryResult(
+            delivered=True,
+            delivery_status="delivered",
+        )
+        self.requests: list[HostedApiKeyDeliveryRequest] = []
+
+    def deliver(self, request: HostedApiKeyDeliveryRequest) -> HostedApiKeyDeliveryResult:
+        self.requests.append(request)
+        return self.result

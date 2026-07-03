@@ -94,7 +94,7 @@ def test_hosted_run_rejects_max_records_above_plan_limit_without_debit() -> None
     balance = account_service.get_balance(tenant_id)
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
     assert resp.status_code == 403
-    assert resp.json()["detail"] == "Plan allows at most 100 records per hosted run."
+    assert resp.json()["detail"] == "Plan allows at most 25 records per hosted run."
     assert balance.standard_credits_remaining == limits.standard_credits
 
 

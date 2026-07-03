@@ -78,7 +78,9 @@ def test_authenticate_key_rejects_revoked_key() -> None:
     assert decision.reason == "API key is not active."
 
 
-def test_consume_action_debits_standard_and_browser_buckets_separately() -> None:
+def test_consume_action_debits_standard_and_denies_browser_when_beta_has_no_browser_credits() -> (
+    None
+):
     service = HostedAccountService(InMemoryHostedAccountStore())
     result = service.provision_account(
         email="builder@example.com",
@@ -100,15 +102,13 @@ def test_consume_action_debits_standard_and_browser_buckets_separately() -> None
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
 
     assert standard.allowed is True
-    assert browser.allowed is True
+    assert browser.allowed is False
+    assert browser.reason == "Insufficient browser credits: need 5, have 0."
     assert (
         balance.standard_credits_remaining
         == limits.standard_credits - HostedAction.SCRAPE.credit_cost
     )
-    assert (
-        balance.browser_credits_remaining
-        == limits.browser_credits - HostedAction.BROWSER_RENDER.credit_cost
-    )
+    assert balance.browser_credits_remaining == limits.browser_credits
 
 
 def test_consume_action_denies_without_mutating_when_credits_insufficient() -> None:

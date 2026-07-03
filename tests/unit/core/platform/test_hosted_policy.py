@@ -36,10 +36,10 @@ def test_plan_limits_beta_pass_has_finite_credits_and_retention() -> None:
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
 
     assert limits.hosted_enabled is True
-    assert limits.standard_credits == 2000
-    assert limits.browser_credits == 100
+    assert limits.standard_credits == 100
+    assert limits.browser_credits == 0
     assert limits.artifact_retention_days == 7
-    assert limits.max_pages_per_run == 100
+    assert limits.max_pages_per_run == 25
 
 
 def test_hosted_action_browser_render_costs_more_than_scrape() -> None:

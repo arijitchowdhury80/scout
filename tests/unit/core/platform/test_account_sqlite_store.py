@@ -54,11 +54,10 @@ def test_sqlite_store_persists_admission_credit_debit(tmp_path: Path) -> None:
     balance = third_account_service.get_balance(provisioned.tenant.tenant_id)
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
 
-    assert decision.allowed is True
+    assert decision.allowed is False
+    assert decision.reason == "Insufficient browser credits: need 5, have 0."
     assert balance.standard_credits_remaining == limits.standard_credits
-    assert balance.browser_credits_remaining == (
-        limits.browser_credits - HostedAction.BROWSER_RENDER.credit_cost
-    )
+    assert balance.browser_credits_remaining == limits.browser_credits
 
 
 def test_sqlite_store_persists_revoked_key_status(tmp_path: Path) -> None:
