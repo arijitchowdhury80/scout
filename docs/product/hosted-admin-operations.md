@@ -7,25 +7,21 @@ Status: private beta operations
 
 Scout hosted beta has API-key based access, not a login system.
 
-- Public beta testers start access through the hosted beta checkout form on
-  `/beta`, which posts name, email, and package selection to
-  `POST /v1/billing/stripe/checkout-session`. Stripe webhook confirmation then
-  provisions the hosted account and SMTP delivers the raw API key once. Without
-  Stripe and SMTP configuration, self-service signup fails closed.
+- Public beta testers start access through the hosted beta key form on `/beta`,
+  which posts name and email to `POST /v1/hosted/beta-key`. Scout provisions the
+  hosted account and SMTP delivers the raw API key once. Without SMTP
+  configuration, self-service signup fails closed before creating an account.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
 - Self-service signup emails the raw API key when SMTP delivery is configured.
   Public browser/API signup never returns `raw_api_key`; operator CLI
   provisioning is the only flow that prints the raw key once. Scout stores only
   a hash.
-- Stripe checkout registration is available from `/pricing` for `$0` beta trial
-  payment-method verification and paid credit packages once Stripe settings are
-  configured. The `$0` beta trial uses Stripe Checkout `mode=setup` with card
-  payment-method collection, so beta testers can verify the billing pipeline
-  without paying during the trial. Scout asks Stripe Checkout to create a
-  Customer for both setup-mode beta checkouts and paid credit-pack checkouts.
-  A signed checkout webhook writes the customer name/email and Stripe reference
-  IDs onto the hosted tenant and includes them in one-time API-key delivery.
+- Stripe checkout is available from `/pricing` for future payment-method
+  verification and paid credit packages once Stripe settings are configured.
+  The `$0` beta trial package can still use Stripe Checkout `mode=setup` with
+  card payment-method collection when the card-backed beta path is enabled, but
+  the current public beta key request path does not require Stripe.
 - The key-delivery email is signed by Arijit, explains the 100-credit/30-day
   beta boundary, includes credit meaning, links to docs/pricing, and asks users
   to reply with their use case, target site, and failing run ID for support.

@@ -42,8 +42,8 @@ Public website paths served by `scout serve`:
 - `/guide` and `/examples` - compatibility aliases that serve the consolidated
   Docs page. Do not reintroduce them as primary navigation items.
 - `/pricing` - hosted-metered pricing posture.
-- `/beta` - hosted HTTP and Claude/Codex skill beta path plus hosted checkout
-  form.
+- `/beta` - hosted HTTP and Claude/Codex skill beta path plus email-delivered
+  beta API key form.
 - `/account` - API-key based hosted account lookup for credits, usage, and
   purchase history. It does not create a login and does not persist the pasted
   key in browser storage.
@@ -54,14 +54,13 @@ Public website paths served by `scout serve`:
 
 Hosted beta registration:
 
-- The beta section posts to `/v1/billing/stripe/checkout-session` with name,
-  email, and package selection. Stripe Checkout confirms the beta trial or paid
-  package before hosted account provisioning.
+- The beta section posts to `/v1/hosted/beta-key` with name and email. Scout
+  provisions the hosted beta account and emails the API key when SMTP delivery
+  is configured.
 - The Scout API now serves this website at `/`, so the registration form and
   hosted API are same-origin when launched through `scout serve`.
 - The page never contains SMTP, Stripe, or Scout secret keys; it only collects
-  checkout inputs, then relies on server-side webhook provisioning and SMTP key
-  delivery.
+  signup inputs, then relies on server-side provisioning and SMTP key delivery.
 - The beta page also describes support expectations: GitHub private-beta issue
   templates for non-security feedback, private reporting for vulnerabilities,
   and no secrets in public issues.

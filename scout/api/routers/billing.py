@@ -88,6 +88,7 @@ class StripeBillingStatusResponse(BaseModel):
     checkout_configured: bool
     webhook_configured: bool
     key_delivery_configured: bool
+    ready_for_beta_key_delivery: bool
     ready_for_beta_checkout: bool
     ready_for_paid_key_delivery: bool
 
@@ -178,6 +179,7 @@ async def stripe_status(
         checkout_configured=checkout_configured,
         webhook_configured=webhook_configured,
         key_delivery_configured=key_delivery_configured,
+        ready_for_beta_key_delivery=beta_signup_enabled and key_delivery_configured,
         ready_for_beta_checkout=(
             beta_signup_enabled
             and checkout_configured

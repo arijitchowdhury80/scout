@@ -38,6 +38,7 @@ def test_hosted_readiness_reports_ready_when_all_live_flags_are_true(
             "checkout_configured": True,
             "webhook_configured": True,
             "key_delivery_configured": True,
+            "ready_for_beta_key_delivery": True,
             "ready_for_beta_checkout": True,
             "ready_for_paid_key_delivery": True,
         },
@@ -82,6 +83,7 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
             "checkout_configured": False,
             "webhook_configured": False,
             "key_delivery_configured": False,
+            "ready_for_beta_key_delivery": False,
             "ready_for_beta_checkout": False,
             "ready_for_paid_key_delivery": False,
         },
@@ -102,12 +104,12 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
         "hosted API key email delivery not configured",
         "Stripe Checkout not configured",
         "Stripe webhook secret not configured",
-        "hosted beta checkout/key delivery not ready",
+        "hosted beta key delivery not ready",
         "paid checkout/key delivery not ready",
     ]
 
 
-def test_hosted_readiness_requires_beta_checkout_not_response_fallback(
+def test_hosted_readiness_requires_beta_key_delivery_not_response_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     responses = {
@@ -123,6 +125,7 @@ def test_hosted_readiness_requires_beta_checkout_not_response_fallback(
             "checkout_configured": False,
             "webhook_configured": False,
             "key_delivery_configured": False,
+            "ready_for_beta_key_delivery": False,
             "ready_for_beta_checkout": False,
             "ready_for_paid_key_delivery": False,
         },
@@ -142,7 +145,7 @@ def test_hosted_readiness_requires_beta_checkout_not_response_fallback(
         "hosted API key email delivery not configured",
         "Stripe Checkout not configured",
         "Stripe webhook secret not configured",
-        "hosted beta checkout/key delivery not ready",
+        "hosted beta key delivery not ready",
         "paid checkout/key delivery not ready",
     ]
 

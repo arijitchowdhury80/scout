@@ -40,7 +40,7 @@ python3 -m scout.cli serve --host 127.0.0.1 --port 18423
 |---|---|---|
 | `/` | `Scout - Evidence-grade web acquisition for AI workflows` | Pass |
 | `/?checkout=success` | Stripe checkout return status for successful hosted beta payment | Pass |
-| `/?checkout=cancelled` | Stripe checkout return status for cancelled hosted beta checkout | Pass |
+| `/?checkout=cancelled` | Stripe checkout return status for cancelled hosted checkout | Pass |
 | `/quickstart` | `Scout Quickstart - Local-first web acquisition` | Pass |
 | `/guide` | `Scout Developer Guide - Local, hosted, and skill usage` | Pass |
 | `/examples` | `Scout Examples - Beta-safe workflows` | Pass |
@@ -48,7 +48,7 @@ python3 -m scout.cli serve --host 127.0.0.1 --port 18423
 | `/status` | `Scout Launch Status - Private beta readiness` | Pass |
 | `/beta` | `Scout Private Beta - Local install or hosted pass` | Pass |
 | `/beta?checkout=success` | Stripe checkout return status for successful hosted beta payment | Pass |
-| `/beta?checkout=cancelled` | Stripe checkout return status for cancelled hosted beta checkout | Pass |
+| `/beta?checkout=cancelled` | Legacy Stripe checkout return status for cancelled hosted checkout | Pass |
 | `/legal` | `Scout Legal And Third-Party Notices` | Pass |
 | `/terms` | `Scout Beta Terms Placeholder` | Pass |
 | `/privacy` | `Scout Beta Privacy Placeholder` | Pass |
@@ -94,7 +94,7 @@ Additional demo media smoke was run with Playwright Chromium against
   evidence -> records -> exports without claiming hard-site bypass.
 - The `/status` page exposes the current private-beta/public-launch verdict,
   owner summary, blocker summary, and filtered readiness commands.
-- The hosted beta checkout return URLs surface success/cancel states instead
+- The hosted checkout return URLs surface success/cancel states instead
   of dropping testers back onto the site without context.
 - 2026-06-29 update: the website no longer exposes `$22`/`$9` as pricing.
   It now states that hosted beta remains metered while pricing is derived from

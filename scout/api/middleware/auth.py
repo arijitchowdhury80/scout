@@ -24,6 +24,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/account",
             "/account.html",
             "/assets/account.js",
+            "/assets/hosted-keygen.js",
             "/assets/playground.js",
             "/assets/pricing.js",
             "/beta",

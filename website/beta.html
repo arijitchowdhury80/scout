@@ -34,7 +34,7 @@
       <main>
         <section class="page-hero">
           <p class="wi-label wi-label--accent">Scout Private Beta</p>
-          <h1>Start hosted beta checkout.</h1>
+          <h1>Register for your beta tester API key.</h1>
           <p>
             Private beta is hosted HTTP first, with Claude/Codex skill support
             for agent workflows. Keys are finite-credit and metered so testing
@@ -50,8 +50,8 @@
           <div class="compare-grid">
             <article>
               <h3>Hosted HTTP</h3>
-              <p>Start beta checkout, receive the hosted API key by email after account provisioning, call `https://scout.chowmes.com/v1/hosted/*`, and inspect finite credits from `/account`.</p>
-              <a class="wi-btn" href="#hosted-checkout">Start hosted beta checkout</a>
+              <p>Register your name and email, receive the hosted API key by email after account provisioning, call `https://scout.chowmes.com/v1/hosted/*`, and inspect finite credits from `/account`.</p>
+              <a class="wi-btn" href="#beta-key">Get beta tester API key</a>
             </article>
             <article>
               <h3>Claude/Codex skill</h3>
@@ -93,29 +93,28 @@ scout launch-readiness --require-public</code></pre>
           </div>
         </section>
 
-        <section class="section beta" id="hosted-checkout">
+        <section class="section beta" id="beta-key">
           <div>
-            <p class="wi-label wi-label--accent">Hosted beta checkout</p>
+            <p class="wi-label wi-label--accent">Hosted beta API key</p>
             <h2>Request hosted API access.</h2>
             <p>
-              Register your name and email through the hosted checkout flow.
-              Scout provisions the beta trial after Stripe confirms the setup
-              session and emails the API key. Public signup never shows raw keys
-              in the browser.
+              Register your name and email. Scout records the beta tester,
+              provisions a finite-credit hosted account, and emails the API
+              key. Public signup never shows raw keys in the browser.
             </p>
           </div>
-          <div class="beta-panel" aria-label="Hosted beta checkout registration">
+          <div class="beta-panel" aria-label="Hosted beta API key registration">
             <form
-              id="pricingCheckoutForm"
+              id="hostedKeyForm"
               class="beta-form"
-              data-endpoint="/v1/billing/stripe/checkout-session"
+              data-endpoint="/v1/hosted/beta-key"
               data-status-endpoint="/v1/billing/stripe/status"
-              data-ready-flag="ready_for_beta_checkout"
+              data-ready-flag="ready_for_beta_key_delivery"
             >
-              <input id="pricingPackageId" name="package_id" type="hidden" value="beta_trial" />
-              <label for="pricingCheckoutName">Name or app name</label>
+              <input id="hostedKeyNameHidden" name="key_name" type="hidden" value="Hosted beta tester key" />
+              <label for="hostedKeyName">Name or app name</label>
               <input
-                id="pricingCheckoutName"
+                id="hostedKeyName"
                 name="name"
                 type="text"
                 autocomplete="name"
@@ -123,22 +122,21 @@ scout launch-readiness --require-public</code></pre>
                 required
               />
 
-              <label for="pricingCheckoutEmail">Email for hosted API key delivery</label>
+              <label for="hostedKeyEmail">Email for hosted API key delivery</label>
               <div class="beta-form-row">
                 <input
-                  id="pricingCheckoutEmail"
+                  id="hostedKeyEmail"
                   name="email"
                   type="email"
                   autocomplete="email"
                   placeholder="you@example.com"
                   required
                 />
-                <button class="wi-btn" type="submit">Start Hosted Beta Checkout</button>
+                <button class="wi-btn" type="submit">Email My Beta Key</button>
               </div>
-              <p id="pricingCheckoutStatus" class="beta-status" role="status" aria-live="polite">
-                Scout opens Stripe Checkout for beta registration, then emails
-                the API key after webhook provisioning succeeds.
-                The beta trial includes 100 standard credits.
+              <p id="hostedKeyStatus" class="beta-status" role="status" aria-live="polite">
+                Scout emails the API key after registration succeeds. The beta
+                trial includes 100 standard credits for 30 days.
               </p>
               <p class="beta-note">
                 By requesting hosted access, you acknowledge the
@@ -189,6 +187,6 @@ scout launch-readiness --require-public</code></pre>
       </main>
     </div>
     <script src="./assets/copy-code.js" defer></script>
-    <script src="./assets/pricing.js" defer></script>
+    <script src="./assets/hosted-keygen.js" defer></script>
   </body>
 </html>

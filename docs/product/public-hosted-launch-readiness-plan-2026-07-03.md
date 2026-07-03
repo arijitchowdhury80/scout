@@ -48,13 +48,14 @@ Production domain: `https://scout.chowmes.com/`
 - `/v1/hosted/me` correctly returns `401` without a Bearer key.
 - `/app` returns `403`, consistent with hosted-only production guard.
 - `/api/docs` returns `403`, consistent with hosted-only production guard.
-- `/assets/hosted-keygen.js` is no longer part of the public beta website.
-- `/beta` exposes the public hosted beta checkout form and posts to
-  `POST /v1/billing/stripe/checkout-session`; webhook-confirmed provisioning and
-  SMTP key delivery are required before the path is live-ready.
-- `/pricing` exposes `$0` beta trial and paid credit checkout options; the
+- `/assets/hosted-keygen.js` is part of the public beta website and submits the
+  no-password beta key request.
+- `/beta` exposes the public hosted beta API-key form and posts to
+  `POST /v1/hosted/beta-key`; SMTP key delivery is required before the path is
+  live-ready.
+- `/pricing` exposes `$0` beta trial and paid credit package information; the
   Stripe path requires Stripe price IDs, checkout URLs, webhook secret, and SMTP
-  delivery before it is live-ready.
+  delivery before paid/card-backed checkout is live-ready.
 
 Production playground workflow smoke via `curl`:
 
@@ -188,14 +189,12 @@ The launch requirement says most users will run hosted, log in, create their own
 Current reality:
 
 - Full login/account UI is not implemented.
-- The public `/beta` page exposes hosted checkout, not direct browser key
-  generation.
-- Hosted beta uses `$0` Stripe setup-mode checkout with
-  `package_id=beta_trial` once Stripe is configured.
-- `/beta` signup is live-ready only when Stripe webhook provisioning and SMTP
-  delivery are configured.
-  Stripe checkout also requires SMTP delivery because the raw key must be
-  delivered after the signed webhook provisions access.
+- The public `/beta` page exposes direct beta key registration, not an on-screen
+  raw-key fallback.
+- Hosted beta uses `POST /v1/hosted/beta-key` for name/email capture and
+  email-only API-key delivery once SMTP is configured.
+- `/beta` signup is live-ready only when hosted beta signup is enabled and SMTP
+  delivery is configured. Stripe checkout is a separate paid/card-backed path.
 
 Tomorrow options:
 
@@ -245,12 +244,12 @@ Decision to make before any deploy:
 
 Implement:
 
-- Configure beta trial checkout or choose manual provisioning.
+- Configure hosted beta key delivery or choose manual provisioning.
 - Lower hosted beta credits.
 - Set browser credits to 0 for public beta.
 - Add hosted LLM disabled policy.
 - Add provider rejection tests.
-- Keep direct keygen disabled except for operator exceptions.
+- Keep direct keygen email-only with no browser raw-key fallback.
 - Add global hosted run emergency cap.
 - Add config kill switches.
 - Make launch-readiness distinguish:
@@ -265,10 +264,9 @@ Verification:
 - `python3 -m pyright scout/`
 - `ruff check scout/ tests/ && ruff format --check scout/ tests/`
 - Production `curl` confirms:
-  - `/beta#hosted-checkout` is the public beta access path
-  - `/v1/billing/stripe/checkout-session` creates a `beta_trial` checkout when configured
-  - `/v1/hosted/beta-key` is not the public signup route and remains fail-closed
-    unless operator SMTP delivery is configured
+  - `/beta#beta-key` is the public beta access path
+  - `/v1/hosted/beta-key` registers a beta tester and emails the key when SMTP is configured
+  - `/v1/billing/stripe/checkout-session` remains the paid/card-backed checkout path
   - generated key can call `/v1/hosted/me`
   - generated key can run one capped hosted workflow
   - credits decrement

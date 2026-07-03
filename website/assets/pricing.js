@@ -204,7 +204,7 @@
       if (status[checkoutReadyFlag] !== true) {
         if (submitButton) submitButton.disabled = true;
         setCheckoutStatus(
-          "Hosted beta checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured. Existing keys still work.",
+          "Hosted checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured. Existing keys still work.",
           "error",
         );
       }

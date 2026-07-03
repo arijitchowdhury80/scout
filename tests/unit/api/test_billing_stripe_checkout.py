@@ -98,6 +98,7 @@ def test_stripe_status_returns_non_secret_readiness_flags() -> None:
         "checkout_configured": True,
         "webhook_configured": True,
         "key_delivery_configured": True,
+        "ready_for_beta_key_delivery": False,
         "ready_for_beta_checkout": False,
         "ready_for_paid_key_delivery": True,
     }
@@ -124,6 +125,7 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
         "checkout_configured": False,
         "webhook_configured": False,
         "key_delivery_configured": False,
+        "ready_for_beta_key_delivery": False,
         "ready_for_beta_checkout": False,
         "ready_for_paid_key_delivery": False,
     }
@@ -149,6 +151,7 @@ def test_stripe_status_requires_checkout_webhook_and_delivery_for_beta(monkeypat
         "checkout_configured": False,
         "webhook_configured": False,
         "key_delivery_configured": True,
+        "ready_for_beta_key_delivery": True,
         "ready_for_beta_checkout": False,
         "ready_for_paid_key_delivery": False,
     }
@@ -175,6 +178,7 @@ def test_stripe_status_reports_beta_checkout_readiness(monkeypatch) -> None:
         "checkout_configured": True,
         "webhook_configured": True,
         "key_delivery_configured": True,
+        "ready_for_beta_key_delivery": True,
         "ready_for_beta_checkout": True,
         "ready_for_paid_key_delivery": True,
     }
@@ -202,6 +206,7 @@ def test_stripe_status_does_not_enable_beta_without_checkout_webhook_and_deliver
         "checkout_configured": False,
         "webhook_configured": False,
         "key_delivery_configured": False,
+        "ready_for_beta_key_delivery": False,
         "ready_for_beta_checkout": False,
         "ready_for_paid_key_delivery": False,
     }
