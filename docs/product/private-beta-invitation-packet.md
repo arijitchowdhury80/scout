@@ -4,10 +4,10 @@ Date: 2026-06-29
 
 Status: operator recruiting packet for controlled private beta
 
-Use this packet before inviting testers. The goal is to recruit 5-10 trusted
-testers who can validate Scout's local-first acquisition workflow, artifact
-model, hosted finite-credit path, and feedback loop without mistaking private
-beta for public launch.
+Use this packet before inviting testers. The goal is to recruit trusted testers
+who can validate Scout's hosted HTTP API, Claude/Codex skill path, artifact
+model, hosted finite-credit metering, and feedback loop without mistaking beta
+for unlimited public launch.
 
 ## Who To Invite
 
@@ -19,8 +19,8 @@ Start with 5-10 trusted testers across these profiles:
 - RevOps or data teams that need website-to-record workflows,
 - technical users willing to inspect artifacts and file precise feedback.
 
-Good testers are comfortable with a CLI, HTTP API, Docker, or agent-backed
-workflow. They do not need a polished app UI.
+Good testers are comfortable with an HTTP API or agent-backed workflow. They do
+not need a polished app UI.
 
 ## Do Not Invite
 
@@ -80,14 +80,14 @@ Start here:
 
 Important boundaries:
 
-- local install is the primary path,
-- hosted beta is finite-credit and approved-testers-only,
+- hosted HTTP and Claude/Codex skill are the beta paths,
+- hosted beta is finite-credit and metered,
 - no unlimited hosted crawling,
 - no guaranteed hard-site bypass,
 - do not paste API keys, cookies, secrets, or private customer data into issues.
 
-If you are interested, reply with your preferred path: local package, Docker,
-hosted API, or skill/agent usage.
+If you are interested, reply with your preferred path: hosted API or
+skill/agent usage.
 
 Thanks,
 Arijit
@@ -100,7 +100,7 @@ Hi [name],
 
 Thank you for testing Scout. Could you send one short update with:
 
-- surface used: local package, Docker, hosted API, or skill,
+- surface used: hosted API or skill,
 - command or endpoint used,
 - target type,
 - record count, source count, citation count, and blocked count if available,

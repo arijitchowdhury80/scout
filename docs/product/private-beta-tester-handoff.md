@@ -15,7 +15,7 @@ and report useful feedback without exposing secrets.
 - Hosted Scout is the primary beta path for testers.
 - Claude/Codex skill usage is the second supported tester path.
 - Local package and Docker instructions are no longer tester onboarding paths.
-- Current source branch for operator verification: `codex/scout-platform-foundation`.
+- Current source branch for operator verification: `codex/scout-saas-prod-ready`.
 - No unlimited hosted crawling.
 - No guaranteed hard-site bypass.
 
@@ -75,7 +75,10 @@ curl -s -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
 ### 3. Run one structured workflow
 
 ```bash
-scout run company --query Adobe --mode auto --workdir ./scout-runs
+curl -s -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/run/company" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -d '{"query":"Adobe","mode":"saved","max_records":10}'
 ```
 
 ### 4. Inspect artifacts
@@ -120,7 +123,7 @@ Security reports should not be filed as public issues. Follow `SECURITY.md`.
 
 Tester is onboarded when they can:
 
-- install or access Scout through one supported path,
+- access Scout through hosted HTTP or a supported skill workflow,
 - run one scrape or company workflow,
 - find the artifact folder or hosted response,
 - understand hosted credits are finite,

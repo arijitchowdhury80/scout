@@ -106,7 +106,7 @@ def test_private_beta_tester_handoff_packet_is_sendable_and_boundary_safe() -> N
     assert "Local package and Docker instructions are no longer tester onboarding paths" in handoff
     assert "Local-first path" not in handoff
     assert "### Docker path" not in handoff
-    assert "codex/scout-platform-foundation" in handoff
+    assert "codex/scout-saas-prod-ready" in handoff
     assert "scout launch-readiness" in handoff
     assert "Private beta: `ready_with_limits`" in handoff
     assert "Public launch: `ready`" in handoff

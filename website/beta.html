@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout Private Beta - Local install or hosted pass</title>
+    <title>Scout Private Beta - Hosted HTTP and skill access</title>
     <meta
       name="description"
-      content="Join the Scout private beta through local install or limited hosted API-key registration."
+      content="Join the Scout private beta through hosted HTTP API key registration and Claude/Codex skill usage."
     />
     <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
@@ -28,34 +28,34 @@
           <a href="/docs">Docs</a>
           <a href="/#purchase">Pricing</a>
         </nav>
-        <a class="wi-pill nav-cta" href="/docs">Install locally</a>
+        <a class="wi-pill nav-cta" href="/docs">Read docs</a>
       </header>
 
       <main>
         <section class="page-hero">
           <p class="wi-label wi-label--accent">Scout Private Beta</p>
-          <h1>Choose your beta path.</h1>
+          <h1>Generate your hosted beta key.</h1>
           <p>
-            Private beta is limited. Start locally if you want the cleanest path.
-            Choose hosted only when you want a convenience API key with finite,
-            metered beta credits.
+            Private beta is hosted HTTP first, with Claude/Codex skill support
+            for agent workflows. Keys are finite-credit and metered so testing
+            cannot create an unbounded infrastructure or model bill.
           </p>
         </section>
 
         <section class="section local-hosted" aria-labelledby="beta-path-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Beta paths</p>
-            <h2 id="beta-path-title">Local install first. Hosted beta when convenience matters.</h2>
+            <h2 id="beta-path-title">Hosted HTTP first. Skill when you want agents.</h2>
           </div>
           <div class="compare-grid">
             <article>
-              <h3>Local beta</h3>
-              <p>Best for first tests, private workflows, browser capture, and artifact inspection.</p>
-              <a class="wi-btn" href="/quickstart">Open quickstart</a>
+              <h3>Hosted HTTP</h3>
+              <p>Generate a beta key, call `https://scout.chowmes.com/v1/hosted/*`, and inspect finite credits from `/account`.</p>
+              <a class="wi-btn" href="#hosted-checkout">Generate beta key</a>
             </article>
             <article>
-              <h3>Hosted beta API key</h3>
-              <p>Registers your name and email, provisions finite beta credits, and emails your hosted API key.</p>
+              <h3>Claude/Codex skill</h3>
+              <p>Use the skill wrapper from an agent, with hosted HTTP doing the acquisition work and preserving evidence.</p>
               <p class="beta-note">
                 Limited credits, not unlimited crawling. Hosted beta is capped
                 and metered while unit economics are validated, so tester
@@ -75,9 +75,9 @@
             <h2 id="beta-readiness-title">Run the launch readiness checker.</h2>
           </div>
           <p>
-            Scout ships a packaged readiness check so beta operators can tell
-            the difference between controlled private beta readiness and public
-            launch readiness.
+            Scout ships readiness checks so operators can distinguish hosted
+            beta readiness from future paid checkout, registry, and enterprise
+            launch claims.
           </p>
           <pre><code>scout launch-readiness
 scout launch-readiness --require-public</code></pre>
@@ -99,8 +99,9 @@ scout launch-readiness --require-public</code></pre>
             <h2>Register for hosted API access.</h2>
             <p>
               Register your name and email. Scout records the beta account,
-              provisions 100 standard credits, and emails or shows the API key
-              once. Paid credit packs stay on the pricing page.
+              provisions 100 standard credits, and either emails the API key or
+              shows it once when response fallback is enabled. Paid credit packs
+              stay on the pricing page.
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted beta API key registration">
@@ -133,8 +134,9 @@ scout launch-readiness --require-public</code></pre>
                 <button class="wi-btn" type="submit">Register for Beta Tester API Key</button>
               </div>
               <p id="hostedBetaStatus" class="beta-status" role="status" aria-live="polite">
-                Scout emails the API key after provisioning the
-                hosted beta account. The beta trial includes 100 standard credits.
+                Scout emails the API key after provisioning the hosted beta
+                account, or shows it once if email delivery is not configured.
+                The beta trial includes 100 standard credits.
               </p>
               <p class="beta-note">
                 By requesting hosted access, you acknowledge the
@@ -155,9 +157,9 @@ scout launch-readiness --require-public</code></pre>
               <h3>Tester handoff packet</h3>
               <p>
                 Send approved testers the
-                <a href="https://github.com/arijitchowdhury80/scout/blob/codex/scout-platform-foundation/docs/product/private-beta-tester-handoff.md">docs/product/private-beta-tester-handoff.md</a>
-                packet before their first run. It explains local-first setup,
-                hosted finite credits, artifact inspection, feedback format, and
+                <a href="https://github.com/arijitchowdhury80/scout/blob/codex/scout-saas-prod-ready/docs/product/private-beta-tester-handoff.md">docs/product/private-beta-tester-handoff.md</a>
+                packet before their first run. It explains hosted finite
+                credits, skill usage, artifact inspection, feedback format, and
                 secret-handling boundaries.
               </p>
             </article>
@@ -169,7 +171,7 @@ scout launch-readiness --require-public</code></pre>
             </article>
             <article>
               <h3>Request workflows</h3>
-              <p>Use the private beta feature template for missing product, company intel, hosted API, CLI, Docker, skill, or documentation workflows.</p>
+              <p>Use the private beta feature template for missing product, company intel, hosted API, skill, or documentation workflows.</p>
             </article>
             <article>
               <h3>Keep secrets out</h3>
@@ -200,7 +202,7 @@ scout launch-readiness --require-public</code></pre>
           if (!status.ready_for_beta_key_delivery) {
             signupButton.disabled = true;
             signupStatus.textContent =
-              "Hosted beta registration is temporarily paused while API-key delivery is configured. Existing keys still work, and admins can provision keys manually.";
+              "Hosted beta registration is temporarily paused while API-key delivery or one-time key display is configured. Existing keys still work.";
             signupStatus.dataset.state = "error";
           }
         } catch {
@@ -236,7 +238,16 @@ scout launch-readiness --require-public</code></pre>
           });
           const payload = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(payload.detail || "Hosted beta registration is not available yet.");
-          signupStatus.textContent = `API key email queued for ${payload.email}. Check your inbox, then open /account to inspect credits.`;
+          if (payload.raw_api_key) {
+            signupStatus.innerHTML = "";
+            const message = document.createElement("span");
+            message.textContent = `API key generated for ${payload.email}. Copy it now; Scout will not show it again. `;
+            const key = document.createElement("code");
+            key.textContent = payload.raw_api_key;
+            signupStatus.append(message, key);
+          } else {
+            signupStatus.textContent = `API key email queued for ${payload.email}. Check your inbox, then open /account to inspect credits.`;
+          }
           signupStatus.dataset.state = "success";
         } catch (error) {
           signupStatus.textContent =

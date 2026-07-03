@@ -6,7 +6,7 @@
     <title>Scout Docs - API, install, examples, and artifacts</title>
     <meta
       name="description"
-      content="Use hosted Scout with an API key or install Scout locally to produce citable acquisition artifacts."
+      content="Use hosted Scout with a beta API key or a Claude/Codex skill to produce citable acquisition artifacts."
     />
     <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
@@ -76,11 +76,11 @@
             </div>
             <div role="row">
               <strong role="cell"><a href="#api-reference-title">API reference</a></strong>
-              <span role="cell">Review the public hosted endpoints and local service endpoints testers need.</span>
+              <span role="cell">Review the hosted endpoints beta testers need.</span>
             </div>
             <div role="row">
-              <strong role="cell"><a href="#python-install-title">Local install</a></strong>
-              <span role="cell">Run Scout locally with your own workdir, browser, provider keys, and artifacts.</span>
+              <strong role="cell"><a href="#skill-title">Claude/Codex skill</a></strong>
+              <span role="cell">Use Scout through an agent while hosted HTTP does the acquisition work.</span>
             </div>
             <div role="row">
               <strong role="cell"><a href="#examples-title">Examples</a></strong>
@@ -98,7 +98,7 @@
             <p class="wi-label wi-label--accent">Interactive demo</p>
             <h2 id="playground-link-title">Try Scout in the homepage playground.</h2>
             <p>
-              Documentation stays focused on install, API calls, endpoint shape,
+              Documentation stays focused on API calls, endpoint shape,
               artifacts, and examples. The hosted playground lives under the
               demo flow so testers can try Scout before they dive into docs.
             </p>
@@ -111,7 +111,7 @@
             </article>
             <article>
               <h3>Then implement</h3>
-              <p>Use the commands below when you are ready to call hosted Scout or install it locally.</p>
+              <p>Use the commands below when you are ready to call hosted Scout or configure the skill.</p>
               <a class="wi-btn wi-btn--ghost" href="#hosted-api-title">Jump to API setup</a>
             </article>
           </div>
@@ -123,8 +123,9 @@
             <h2 id="hosted-api-title">Call the live Scout API.</h2>
           </div>
           <p>
-            Hosted HTTP beta is email-based and metered. Use the domain below with
-            the API key generated for you. Do not use localhost for hosted calls.
+            Hosted HTTP beta is email-based or one-time-key-display based and
+            metered. Use the domain below with the API key generated for you. Do
+            not use localhost for hosted calls.
             Hosted credits are capped while unit economics are validated; Scout
             does not offer unlimited hosted crawling.
           </p>
@@ -144,7 +145,8 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               <h3 id="hosted-key-title">Register for a beta API key.</h3>
               <p>
                 Beta testers register with name and email. Scout emails the API
-                key after the hosted account is provisioned.
+                key, or shows it once when response fallback is enabled, after
+                the hosted account is provisioned.
               </p>
             </div>
             <a class="wi-btn" href="/beta#hosted-checkout">Open beta key registration</a>
@@ -187,8 +189,8 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               <span role="cell">Check hosted beta plan, credits, limits, and retention.</span>
             </div>
             <div role="row">
-              <strong role="cell">POST /v1/billing/stripe/checkout-session</strong>
-              <span role="cell">Create a hosted beta trial or credit-package Stripe Checkout Session.</span>
+              <strong role="cell">POST /v1/hosted/beta-key</strong>
+              <span role="cell">Generate a finite-credit hosted beta key from name and email.</span>
             </div>
             <div role="row">
               <strong role="cell">POST /v1/hosted/scrape</strong>
@@ -199,28 +201,32 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               <span role="cell">Verify a local or hosted Scout service is alive.</span>
             </div>
             <div role="row">
-              <strong role="cell">POST /scrape</strong>
-              <span role="cell">Local authenticated scrape route for agent and workflow integrations.</span>
+              <strong role="cell">POST /v1/hosted/products</strong>
+              <span role="cell">Acquire product records through the hosted beta surface.</span>
             </div>
             <div role="row">
-              <strong role="cell">POST /products</strong>
-              <span role="cell">Local product acquisition route that writes product artifacts.</span>
+              <strong role="cell">POST /v1/hosted/run/{use_case}</strong>
+              <span role="cell">Run company, PRISM, investor, careers, jobs, news, research, docs, social, locations, and website-quality workflows.</span>
             </div>
             <div role="row">
-              <strong role="cell">POST /run/{use_case}</strong>
-              <span role="cell">Local intelligence runner for company, PRISM, investor, careers, jobs, news, research, docs, social, locations, and website-quality workflows.</span>
+              <strong role="cell">GET /v1/hosted/runs</strong>
+              <span role="cell">List hosted run summaries owned by the caller's beta key.</span>
             </div>
           </div>
         </section>
 
         <section class="section step-section" aria-labelledby="python-install-title">
           <div class="section-heading">
-            <p class="wi-label wi-label--accent">Path 02 · Local HTTP package</p>
-            <h2 id="python-install-title">Run the Scout HTTP server on your own machine.</h2>
+            <p class="wi-label wi-label--accent">Operator verification</p>
+            <h2 id="python-install-title">Local package is not the tester beta path.</h2>
           </div>
+          <p>
+            Operators can still verify the package locally. Beta testers should
+            use hosted HTTP or the Claude/Codex skill.
+          </p>
           <pre><code>python3 -m venv .venv
 source .venv/bin/activate
-pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
+pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-saas-prod-ready"
 playwright install chromium
 export SCOUT_WORKDIR="$PWD/scout-runs"
 scout serve</code></pre>
@@ -235,7 +241,7 @@ scout serve</code></pre>
             </article>
             <article>
               <h3>Package release</h3>
-              <p>`pip install scout-web` comes after registry publishing gates close. Until then, beta installs use the verified launch branch.</p>
+              <p>`pip install scout-web` comes after registry publishing gates close. Until then, package installs remain operator verification only.</p>
             </article>
           </div>
         </section>

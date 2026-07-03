@@ -1,13 +1,47 @@
 # Distribution
 
-Scout is distributed as a standalone Python package and can also be installed
-as a Claude/Codex skill integration.
+Scout's beta distribution is intentionally narrow:
 
-## Standalone Package
+1. Hosted HTTP API at `https://scout.chowmes.com`.
+2. Claude/Codex skill configured to call hosted HTTP.
+
+The Python package, CLI, local HTTP service, and Docker image remain
+operator/developer verification surfaces. They are not tester-facing beta
+distribution paths.
+
+## Hosted HTTP Beta
+
+Beta testers generate a finite-credit hosted key from `/beta`, then call hosted
+routes with Bearer auth:
 
 ```bash
-pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
-playwright install chromium
+export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
+export SCOUT_HOSTED_API_KEY="paste-your-generated-key"
+
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+```
+
+If SMTP delivery is configured, Scout emails the API key. If the launch fallback
+`HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK=true` is enabled, Scout shows the
+key once in the beta registration response and stores only the hash afterward.
+
+## Claude/Codex Skill
+
+The skill is the agent-facing distribution surface. It should call hosted HTTP
+for beta testers and preserve source evidence in responses. Local commands in
+skill docs are internal package smoke examples, not public tester onboarding.
+
+```bash
+export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
+export SCOUT_HOSTED_API_KEY="paste-your-generated-key"
+```
+
+## Operator-Only Local Package
+
+```bash
+pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-saas-prod-ready"
+python -m playwright install chromium
 ```
 
 `pip install scout-web` is the target command for the first package-registry
@@ -55,7 +89,9 @@ does not pass an exact `--output-dir` or JSON `output_dir`.
 
 ## Hosted Beta Configuration
 
-Local use does not require Stripe or SMTP. Paid hosted beta does.
+Local use does not require Stripe or SMTP. The hosted beta can generate keys by
+email delivery or by the one-time response fallback. Paid hosted checkout still
+requires Stripe and SMTP.
 
 Minimum Stripe Checkout settings:
 
@@ -66,11 +102,11 @@ STRIPE_SUCCESS_URL=https://your-domain.example/?checkout=success
 STRIPE_CANCEL_URL=https://your-domain.example/?checkout=cancelled
 ```
 
-The beta trial checkout uses Stripe Checkout `mode=setup`, collects a payment
-method, charges `$0`, and does not require a Stripe price ID. Paid packages use
-package-specific price IDs such as `STRIPE_STANDARD_1000_PRICE_ID`.
+Paid checkout uses Stripe Checkout. The beta launch key-generation path does not
+require Stripe when `/v1/hosted/beta-key` is enabled with email delivery or the
+one-time response fallback.
 
-Payment-confirmed provisioning also needs:
+Email delivery or payment-confirmed provisioning needs:
 
 ```text
 STRIPE_WEBHOOK_SECRET=whsec_...
@@ -137,9 +173,9 @@ Scout exposes a non-secret readiness check for the website:
 curl http://localhost:8421/v1/billing/stripe/status
 ```
 
-It returns only booleans for checkout, webhook, key delivery, and end-to-end
-paid key delivery readiness. It never returns Stripe, SMTP, or Scout API
-secrets.
+It returns only booleans for checkout, webhook, key delivery, response fallback,
+and end-to-end paid key delivery readiness. It never returns Stripe, SMTP, or
+Scout API secrets.
 
 For a real Stripe test-mode smoke, start Scout with the Stripe and SMTP
 settings above, then run:
@@ -249,7 +285,11 @@ known artifact names under the run output directory. A production deployment
 still needs async hosted jobs, object storage, signed artifact URLs, and a
 hosted dashboard for browsing run outputs.
 
-## Docker
+## Internal Docker Infrastructure
+
+Docker remains deployment/operator infrastructure for the VPS and CI smoke
+tests. It is not a tester distribution path and Scout does not publish a public
+Docker image for this beta.
 
 ```bash
 docker compose -f docker/docker-compose.yml up --build
@@ -275,28 +315,28 @@ docker run --rm -p 18421:8421 \
 `/health`, `/`, and `/styles.css` were smoke-tested from the built image. The
 image includes Playwright Chromium and the bundled launch website assets.
 
-## Skill Install
+## Skill Install For Operators
 
 ```bash
 bash install-skill.sh
 ```
 
-The skill wrapper should remain thin: it teaches the agent how to call Scout,
-but the scraper, crawler, product pipeline, tests, and docs live in the
-standalone package.
+The skill wrapper should remain thin: it teaches the agent how to call hosted
+Scout, but the scraper, crawler, product pipeline, tests, and docs live in the
+Scout repository.
 
 ## Runtime Capability Matrix
 
-| Capability | Standalone CLI | Claude/Codex Skill |
+| Capability | Hosted HTTP | Claude/Codex Skill | Operator Local |
 |---|---:|---:|
-| Crawl4AI fetch/crawl | Yes | Yes |
-| WebSearch/WebFetch host provider | No | Yes, when host exposes it |
-| In-app browser/session | No | Yes, when host exposes it |
-| CDP/profile browser attach | Yes | Optional |
-| Saved HTML/DOM replay | Yes | Yes |
-| PDF/document parsing | Yes with optional extra | Yes with optional extra |
-| ATS adapters | Yes when implemented | Yes when implemented |
-| Social provider imports | Yes when implemented | Yes when implemented |
+| Crawl4AI fetch/crawl | Yes | Yes, through hosted HTTP | Yes |
+| WebSearch/WebFetch host provider | No | Yes, when host exposes it | No |
+| In-app browser/session | No | Host-dependent | Internal only |
+| CDP/profile browser attach | No | No for hosted beta | Internal only |
+| Saved HTML/DOM replay | Yes | Yes, through hosted HTTP | Yes |
+| PDF/document parsing | Yes with optional extra | Yes with optional extra | Yes with optional extra |
+| ATS adapters | Yes when implemented | Yes when implemented | Yes when implemented |
+| Social provider imports | Yes when implemented | Yes when implemented | Yes when implemented |
 
 Skill-host capabilities and standalone CLI capabilities are intentionally
 different. Scout core should accept normalized provider output from either
@@ -304,9 +344,9 @@ environment and produce the same record and artifact contracts.
 
 ## High-Level Workflows
 
-Scout's standalone package exposes high-level workflow commands under
-`scout run`. These commands are the stable distribution surface for use cases
-that need more than one raw fetch.
+Scout's operator package exposes high-level workflow commands under
+`scout run`. These commands remain useful for local verification and internal
+debugging, but beta testers should use hosted HTTP or the skill.
 
 ```bash
 scout run company --query Adobe --mode auto --output-dir ./scout-runs/company
@@ -399,11 +439,11 @@ curl -s -X POST http://localhost:8421/run/prism \
 If `output_dir` is omitted, the HTTP app derives a timestamped folder under
 `SCOUT_WORKDIR`.
 
-Scout is shipped as a utility/service, not a dashboard app. The supported
-surfaces are CLI, local HTTP API, hosted beta API, Docker-from-source, and
-Claude/Codex skill usage. The previous experimental `/app` UI has been removed
+Scout is shipped to beta testers as hosted HTTP plus Claude/Codex skill usage.
+CLI, local HTTP API, and Docker-from-source remain operator verification and VPS
+infrastructure surfaces. The previous experimental `/app` UI has been removed
 from the supported product surface; use the launch website, quickstart, API
-docs, CLI examples, and artifact outputs instead.
+docs, hosted examples, and artifact outputs instead.
 
 Execution modes are stable package API values:
 

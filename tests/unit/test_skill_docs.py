@@ -12,14 +12,16 @@ def test_skill_readme_uses_verified_private_beta_install_path() -> None:
     readme = _read("scout/skill/README.md")
 
     assert "Scout Skill Wrapper" in readme
+    assert "hosted HTTP plus this skill are the tester distribution" in readme
+    assert 'SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"' in readme
     assert (
-        'pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"'
+        'pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-saas-prod-ready"'
         in readme
     )
     assert "pip install git+https://github.com/arijitchowdhury80/scout.git\n" not in readme
     assert "pip install scout-web" in readme
-    assert "reserved for after the license and" in readme
-    assert "publishing gates close" in readme
+    assert "reserved for after the" in readme
+    assert "license and publishing gates close" in readme
 
 
 def test_skill_playbook_matches_current_launch_surface_and_auth_boundary() -> None:

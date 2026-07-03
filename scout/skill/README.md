@@ -2,16 +2,19 @@
 
 This directory contains the Claude/Codex skill wrapper for Scout.
 
-Scout itself is a standalone package:
+For beta testers, the skill should call hosted HTTP:
 
 ```bash
-pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
-playwright install chromium
+export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
+export SCOUT_HOSTED_API_KEY="paste-your-generated-key"
 ```
 
-Start the local service for agent use:
+Operator-only local verification can install the package from the verified
+branch:
 
 ```bash
+pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-saas-prod-ready"
+python -m playwright install chromium
 scout serve
 curl http://localhost:8421/health
 ```
@@ -33,9 +36,9 @@ The skill teaches the agent how to call Scout for:
 - Algolia-ready product artifacts
 - hosted API quickstart guidance
 
-During private beta, install from the verified branch-qualified URL. The
-registry command `pip install scout-web` is reserved for after the license and
-publishing gates close.
+During private beta, hosted HTTP plus this skill are the tester distribution
+paths. The registry command `pip install scout-web` is reserved for after the
+license and publishing gates close.
 
-The runtime, tests, Docker files, and product documentation live in the
-standalone Scout repository: <https://github.com/arijitchowdhury80/scout>.
+The runtime, tests, internal Docker files, and product documentation live in the
+Scout repository: <https://github.com/arijitchowdhury80/scout>.

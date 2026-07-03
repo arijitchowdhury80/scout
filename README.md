@@ -68,14 +68,37 @@ Primary launch references:
 
 ## Quick Start
 
+For beta testers, Scout has two supported distribution paths:
+
+1. Hosted HTTP API at `https://scout.chowmes.com`.
+2. Claude/Codex skill configured to call the hosted HTTP API.
+
+Local package installs are kept as operator/developer verification paths, not
+the tester-facing beta distribution.
+
 ```bash
-# Private beta install
-pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
-playwright install chromium
+# Hosted beta
+export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
+export SCOUT_HOSTED_API_KEY="paste-your-generated-key"
+
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+```
+
+Open `/beta` on the hosted site to generate a finite-credit beta key with your
+name and email. If SMTP delivery is not configured, Scout shows the key once in
+the response and stores only the hash afterward.
+
+Operator-only local verification:
+
+```bash
+pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-saas-prod-ready"
+python -m playwright install chromium
 
 # Configure
 cp .env.example .env.local
-# Edit .env.local: set SCOUT_API_KEY, LLM_API_KEY, SCOUT_WORKDIR
+# Edit .env.local: set SCOUT_API_KEY and SCOUT_WORKDIR.
+# Leave LLM_API_KEY empty unless you intentionally enable local LLM features.
 
 # Start the local HTTP server
 scout serve
@@ -89,7 +112,7 @@ curl http://localhost:8421/health
 after the license and publishing gates close.
 
 Open `http://localhost:8421/` for the Scout launch website, or
-`http://localhost:8421/docs` for Swagger API docs.
+`http://localhost:8421/docs` for Swagger API docs during local verification.
 
 For the initial static product website, open:
 

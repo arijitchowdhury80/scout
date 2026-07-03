@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout Pricing - Free local, metered hosted beta</title>
+    <title>Scout Pricing - Metered hosted beta</title>
     <meta
       name="description"
-      content="Scout pricing starts with a free local beta. Hosted pricing is metered and being validated from unit economics."
+      content="Scout hosted beta pricing is metered and being validated from unit economics."
     />
     <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
@@ -34,19 +34,17 @@
       <main>
         <section class="page-hero">
           <p class="wi-label wi-label--accent">Scout Pricing</p>
-          <h1>Free local beta. Metered hosted convenience.</h1>
+          <h1>Metered hosted beta. No unlimited crawling.</h1>
           <p>
-            The economic rule is simple: local runs use your compute, so local
-            package can be free. Hosted runs use Scout workers, browsers, storage,
-            LLM calls, security, and support, so hosted usage must be metered
-            and priced from real unit economics.
+            Hosted runs use Scout workers, browsers, storage, security, and
+            support. External LLM use is disabled by default for beta, and
+            hosted usage is finite-credit and priced from real unit economics.
           </p>
         </section>
 
         <section
           class="section pricing"
           data-packages-endpoint="/v1/billing/packages"
-          data-checkout-endpoint="/v1/billing/stripe/checkout-session"
           aria-labelledby="pricing-packages-title"
         >
           <div class="section-heading">
@@ -56,14 +54,14 @@
           <div id="pricingPackageGrid" class="pricing-grid">
             <article>
               <span class="price">$0</span>
-              <h3>Local HTTP package</h3>
-              <p>Install Scout locally when you need to run the HTTP service on your own machine.</p>
+              <h3>Operator local verification</h3>
+              <p>The local package is for internal verification and operator debugging, not the tester beta distribution.</p>
             </article>
             <article class="featured-price">
               <span class="price">Beta trial</span>
               <h3>Hosted beta tester key</h3>
               <p>30 days with 100 standard credits for approved beta testers. The beta trial is capped and excludes browser-heavy work until those costs are proven.</p>
-              <p>Production beta should collect a payment method through Stripe before credits are granted, but charge $0 during the approved beta trial.</p>
+              <p>Tomorrow's beta key generation does not require Stripe. Paid checkout stays separate until Stripe webhook and delivery smoke are closed.</p>
             </article>
             <article>
               <span class="price">$10</span>
@@ -77,65 +75,19 @@
         <section class="section beta" aria-labelledby="pricing-checkout-title">
           <div>
             <p class="wi-label wi-label--accent">Buy hosted credits</p>
-            <h2 id="pricing-checkout-title">Start a hosted Scout checkout.</h2>
+            <h2 id="pricing-checkout-title">Start with the beta key path.</h2>
             <p>
-              Register your name and email, choose the $0 beta trial or a
-              pay-as-you-go package, and Scout will deliver your hosted API key
-              after Stripe confirms payment or setup.
+              For tomorrow's beta, generate a finite-credit key from the hosted
+              beta page. Paid credit checkout stays paused until Stripe webhook
+              and key-delivery smoke are closed.
             </p>
           </div>
-          <div class="beta-panel" aria-label="Hosted credit checkout">
-            <p
-              id="pricingCheckoutReturnStatus"
-              class="beta-status checkout-return-status"
-              role="status"
-              aria-live="polite"
-              data-success-query="checkout=success"
-              data-cancel-query="checkout=cancelled"
-              hidden
-            >
-              Stripe checkout return status appears here.
+          <div class="beta-panel" aria-label="Hosted beta key access">
+            <p class="beta-status" role="status">
+              Beta users receive 100 standard credits. Paid packages are shown
+              for unit-economics visibility, not live self-serve purchase.
             </p>
-            <form
-              id="pricingCheckoutForm"
-              class="beta-form"
-              data-checkout-endpoint="/v1/billing/stripe/checkout-session"
-            >
-              <label for="pricingCheckoutName">Name or app name</label>
-              <input
-                id="pricingCheckoutName"
-                name="name"
-                type="text"
-                autocomplete="name"
-                placeholder="Your name or app"
-                required
-              />
-
-              <label for="pricingCheckoutEmail">Email for hosted API key delivery</label>
-              <input
-                id="pricingCheckoutEmail"
-                name="email"
-                type="email"
-                autocomplete="email"
-                placeholder="you@example.com"
-                required
-              />
-
-              <label for="pricingCheckoutPackage">Credit package</label>
-              <select id="pricingCheckoutPackage" name="package_id" required>
-                <option value="beta_trial">$0 beta trial - 100 standard credits for 30 days</option>
-                <option value="standard_1000">$10 - 1,000 standard credits</option>
-                <option value="standard_3000">$25 - 3,000 standard credits</option>
-                <option value="standard_15000">$100 - 15,000 standard credits</option>
-              </select>
-
-              <button class="wi-btn" type="submit">Continue to Stripe</button>
-              <p id="pricingCheckoutStatus" class="beta-status" role="status" aria-live="polite">
-                Stripe setup-mode checkout verifies the beta trial payment
-                method at $0. Paid packages use payment checkout. In both cases,
-                Scout emails the API key after the signed webhook provisions access.
-              </p>
-            </form>
+            <a class="wi-btn" href="/beta#hosted-checkout">Generate beta key</a>
           </div>
         </section>
 
@@ -204,14 +156,13 @@
               <p>A one-time pass cannot economically support millions of calls. Hosted Scout must meter usage from day one and price from real costs.</p>
             </article>
             <article>
-              <span class="status-tag status-tag--primary">Local</span>
-              <h3>Local stays the default</h3>
-              <p>Use local Scout when you need private artifacts, user-browser capture, repeatable research, or low-cost experimentation.</p>
+              <span class="status-tag status-tag--primary">Operator</span>
+              <h3>Operator path stays separate</h3>
+              <p>Use local Scout only for internal verification, private debugging, or operator workflows outside the hosted beta.</p>
             </article>
           </div>
         </section>
       </main>
     </div>
-    <script src="./assets/pricing.js"></script>
   </body>
 </html>

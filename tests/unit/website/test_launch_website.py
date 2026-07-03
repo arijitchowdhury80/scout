@@ -44,15 +44,14 @@ def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
     assert "sk_test_" not in html
 
 
-def test_launch_website_handles_stripe_checkout_return_states_without_secrets() -> None:
+def test_launch_website_keeps_paid_checkout_paused_without_secrets() -> None:
     html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
-    checkout_source = html + (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
 
-    assert "checkout=success" in html
-    assert "checkout=cancelled" in html
-    assert "Stripe payment completed. Scout will email your hosted API key" in checkout_source
-    assert "Stripe checkout was cancelled." in checkout_source
-    assert "handleCheckoutReturnState" in checkout_source
+    assert "Paid credit checkout stays paused" in html
+    assert 'href="/beta#hosted-checkout"' in html
+    assert 'id="pricingCheckoutForm"' not in html
+    assert "/v1/billing/stripe/checkout-session" not in html
+    assert "window.location.assign" not in html
     assert "sk_live_" not in html
     assert "sk_test_" not in html
 
@@ -318,27 +317,27 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Open playground",
             "Call the live Scout API.",
             "Register for a beta API key.",
-            "Scout emails the API key after the hosted account is provisioned.",
+            "Scout emails the API key, or shows it once when response fallback is enabled",
             'href="/beta#hosted-checkout"',
             "API reference",
             "The endpoints testers actually need.",
-            "POST /v1/billing/stripe/checkout-session",
-            "POST /products",
-            "POST /run/{use_case}",
+            "POST /v1/hosted/beta-key",
+            "POST /v1/hosted/products",
+            "POST /v1/hosted/run/{use_case}",
             "https://scout.chowmes.com",
             "Do not use localhost for hosted calls.",
-            "codex/scout-platform-foundation",
-            'pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"',
+            "codex/scout-saas-prod-ready",
+            'pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-saas-prod-ready"',
             "SCOUT_WORKDIR",
             "Readiness check",
             "scout launch-readiness",
             "Private beta: ready_with_limits",
             "--require-public",
-            "Run the Scout HTTP server on your own machine.",
+            "Local package is not the tester beta path.",
             "SCOUT_HOSTED_API_KEY",
             "/v1/hosted/me",
             "/v1/hosted/scrape",
-            "email-based and metered",
+            "email-based or one-time-key-display based",
             "Examples",
             "Page to markdown",
             "Product category to records",
@@ -351,7 +350,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         ],
         "pricing.html": [
             "Scout Pricing",
-            "Local HTTP package",
+            "Operator local verification",
             "Beta trial",
             "Hosted beta tester key",
             "$10",
@@ -363,7 +362,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         ],
         "status.html": [
             "Scout Launch Status",
-            "Controlled beta: ready_with_limits",
+            "Hosted beta: ready_with_limits",
             "Launch readiness: ready",
             "What changed in the blocker burndown?",
             "Arijit decisions: closed",
@@ -398,7 +397,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         ],
         "beta.html": [
             "Scout Private Beta",
-            "Choose your beta path",
+            "Generate your hosted beta key",
             "Tester handoff packet",
             "docs/product/private-beta-tester-handoff.md",
             "Hosted beta API key",
@@ -407,7 +406,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "100 standard credits",
             "key_name",
             "/v1/hosted/beta-key",
-            "Private beta is limited",
+            "Private beta is hosted HTTP first",
             "Run the launch readiness checker.",
             "scout launch-readiness",
             "ready_with_limits",
@@ -459,7 +458,7 @@ def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
     localhost_index = html.index("http://localhost:8421")
 
     assert hosted_index < localhost_index
-    assert "Do not use localhost for hosted calls." in html
+    assert "not use localhost for hosted calls." in html
 
 
 def test_docs_beta_access_is_self_service_email_delivery_without_password() -> None:
@@ -473,7 +472,10 @@ def test_docs_beta_access_is_self_service_email_delivery_without_password() -> N
     assert 'type="password"' not in html
     assert 'id="copyHostedKey"' not in html
     assert "Register for a beta API key." in normalized_html
-    assert "Scout emails the API key after the hosted account is provisioned." in normalized_html
+    assert (
+        "Scout emails the API key, or shows it once when response fallback is enabled"
+        in normalized_html
+    )
     assert 'href="/beta#hosted-checkout"' in html
     assert "/v1/hosted/beta-key" in html
     assert ".hosted-key-card" in css
@@ -510,30 +512,16 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     assert 'id="pricingPackageGrid"' in html
     assert 'id="pricingCreditCosts"' in html
     assert 'id="pricingUnitEconomics"' in html
-    assert 'id="pricingCheckoutForm"' in html
-    assert 'id="pricingCheckoutReturnStatus"' in html
-    assert 'data-success-query="checkout=success"' in html
-    assert 'data-cancel-query="checkout=cancelled"' in html
-    assert 'name="name"' in html
-    assert 'name="email"' in html
-    assert 'name="package_id"' in html
-    assert 'value="beta_trial"' in html
-    assert 'value="standard_1000"' in html
-    assert 'value="standard_3000"' in html
-    assert 'value="standard_15000"' in html
-    assert "$0 beta trial" in normalized_html
-    assert "Stripe setup-mode checkout" in normalized_html
-    assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' in html
-    assert 'id="pricingCheckoutStatus"' in html
-    assert 'src="./assets/pricing.js"' in html
+    assert 'id="pricingCheckoutForm"' not in html
+    assert 'id="pricingCheckoutReturnStatus"' not in html
+    assert 'data-success-query="checkout=success"' not in html
+    assert 'data-cancel-query="checkout=cancelled"' not in html
+    assert "$0" in normalized_html
+    assert "Paid packages are shown for unit-economics visibility" in normalized_html
+    assert "Paid credit checkout stays paused" in normalized_html
+    assert "/v1/billing/stripe/checkout-session" not in html
+    assert 'href="/beta#hosted-checkout"' in html
     assert "/v1/billing/packages" in pricing_js
-    assert "/v1/billing/stripe/checkout-session" in pricing_js
-    assert "pricingCheckoutForm" in pricing_js
-    assert "handleCheckoutReturnState" in pricing_js
-    assert "pricingCheckoutReturnStatus" in pricing_js
-    assert "window.location.assign" in pricing_js
-    assert "package_id" in pricing_js
-    assert "name" in pricing_js
     assert "amount_cents" in pricing_js
     assert "gross_margin_percent" in pricing_js
     assert "sk_live_" not in pricing_js
@@ -551,8 +539,8 @@ def test_beta_signup_collects_name_and_email_without_password() -> None:
     assert 'data-endpoint="/v1/hosted/beta-key"' in html
     assert "Register your name and email" in normalized_html
     assert "Scout emails the API key" in normalized_html
-    assert "payload.raw_api_key" not in html
-    assert "Copy this API key now" not in html
+    assert "payload.raw_api_key" in html
+    assert "Copy it now; Scout will not show it again." in html
     assert "100 standard credits" in normalized_html
     assert "hostedBetaSignup" in html
     assert "/v1/hosted/beta-key" in html
@@ -664,7 +652,7 @@ def test_docs_page_links_to_playground_without_embedding_controls() -> None:
     assert "Try Scout in the homepage playground." in html
     assert 'href="/#playground"' in html
     assert "API setup" in html
-    assert "Local install" in html
+    assert "Operator verification" in html
     assert "Artifact contract" in html
     assert 'id="playgroundForm"' not in html
     assert 'id="playgroundWorkflow"' not in html

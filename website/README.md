@@ -35,13 +35,14 @@ Public website paths served by `scout serve`:
 - `/assets/scout-product-demo.gif` - beta-safe product demo GIF used by the homepage.
 - `/assets/flux-design-system/fonts.css` - Flux font imports.
 - `/assets/flux-design-system/tokens.css` - Flux tokens and primitives.
-- `/quickstart` - consolidated Docs page covering hosted API, local install,
-  Docker, examples, artifacts, workdir, first-run guidance, and the capped
-  hosted playground.
+- `/quickstart` - consolidated Docs page covering hosted API, the
+  Claude/Codex skill path, examples, artifacts, first-run guidance, and the
+  capped hosted playground. Local package references are operator verification
+  only.
 - `/guide` and `/examples` - compatibility aliases that serve the consolidated
   Docs page. Do not reintroduce them as primary navigation items.
-- `/pricing` - local-free and hosted-metered pricing posture.
-- `/beta` - local-vs-hosted beta path and hosted checkout form.
+- `/pricing` - hosted-metered pricing posture.
+- `/beta` - hosted HTTP and Claude/Codex skill beta path plus hosted key form.
 - `/account` - API-key based hosted account lookup for credits, usage, and
   purchase history. It does not create a login and does not persist the pasted
   key in browser storage.
@@ -52,11 +53,13 @@ Public website paths served by `scout serve`:
 
 Hosted beta registration:
 
-- The beta section posts to `/v1/hosted/beta-key`.
+- The beta section posts to `/v1/hosted/beta-key` with name and email for
+  finite-credit beta key generation.
 - The Scout API now serves this website at `/`, so the registration form and
   hosted API are same-origin when launched through `scout serve`.
 - The page never contains SMTP, Stripe, or Scout secret keys; it only collects
-  name and email, then relies on server-side key delivery.
+  name and email, then relies on server-side email delivery or one-time response
+  display.
 - The beta page also describes support expectations: GitHub private-beta issue
   templates for non-security feedback, private reporting for vulnerabilities,
   and no secrets in public issues.
@@ -78,7 +81,7 @@ Hosted playground:
 
 Next website tasks:
 
-- [x] Replace static hosted-beta CTA with checkout-session form.
+- [x] Replace static hosted-beta CTA with beta key generation form.
 - [x] Add quickstart, pricing, and private beta onboarding pages.
 - [x] Consolidate quickstart, guide, examples, and API-guide content into one
       Docs page while keeping `/docs` as Swagger.
