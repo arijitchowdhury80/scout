@@ -10,9 +10,9 @@
     return;
   }
 
-  const endpoint = form.dataset.endpoint || "/v1/hosted/beta-key";
-  const statusEndpoint = form.dataset.statusEndpoint || "/v1/billing/stripe/status";
-  const readyFlag = form.dataset.readyFlag || "ready_for_beta_key_delivery";
+  const endpoint = form?.dataset.endpoint || "/v1/hosted/beta-key";
+  const statusEndpoint = form?.dataset.statusEndpoint || "/v1/billing/stripe/status";
+  const readyFlag = form?.dataset.readyFlag || "ready_for_beta_key_delivery";
   const statusCheckEndpoint =
     statusForm?.dataset.statusCheckEndpoint || "/v1/hosted/beta-key/status";
   const reissueEndpoint =

@@ -201,7 +201,25 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert hosted_keygen.status_code == 200
     assert "javascript" in hosted_keygen.headers["content-type"]
     assert "/v1/hosted/beta-key" in hosted_keygen.text
+    assert "form?.dataset.endpoint" in hosted_keygen.text
+    assert "form.dataset.endpoint" not in hosted_keygen.text
     assert "payload.raw_api_key" not in hosted_keygen.text
+
+
+def test_beta_page_uses_stripe_setup_without_legacy_direct_key_form() -> None:
+    """The public beta page must not require the removed direct key form to exist."""
+    html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
+    hosted_keygen = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(encoding="utf-8")
+    pricing_js = (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
+
+    assert 'id="pricingCheckoutForm"' in html
+    assert 'value="beta_trial"' in html
+    assert 'data-ready-flag="ready_for_beta_checkout"' in html
+    assert 'id="hostedKeyForm"' not in html
+    assert "Continue To $0 Checkout" in html
+    assert "window.location.assign(payload.checkout_url)" in pricing_js
+    assert "form?.dataset.endpoint" in hosted_keygen
+    assert "form.dataset.endpoint" not in hosted_keygen
 
 
 def test_launch_website_uses_flux_not_warm_industrial() -> None:
