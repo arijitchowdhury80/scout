@@ -1,0 +1,259 @@
+#!/usr/bin/env python3
+"""Create Stripe one-time price IDs for Scout hosted paid packages.
+
+The helper never prints Stripe secret keys. It can dry-run from the canonical
+Scout pricing model, create prices through Stripe, and optionally write the
+returned price IDs back to the ignored production env file.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+from scout.core.platform.pricing import HostedCreditPackage, credit_packages
+
+
+STRIPE_PRICE_ENDPOINT = "https://api.stripe.com/v1/prices"
+SECRET_MARKERS = ("sk_test_", "sk_live_", "rk_test_", "rk_live_")
+PRICE_ENV_KEYS = {
+    "standard_1000": "STRIPE_STANDARD_1000_PRICE_ID",
+    "standard_3000": "STRIPE_STANDARD_3000_PRICE_ID",
+    "standard_15000": "STRIPE_STANDARD_15000_PRICE_ID",
+}
+
+
+def public_paid_packages() -> list[HostedCreditPackage]:
+    """Return hosted packages that need public Stripe price IDs."""
+    return [
+        package
+        for package in credit_packages()
+        if package.is_public_purchase and package.amount_cents > 0
+    ]
+
+
+def package_plan() -> list[dict[str, object]]:
+    """Return non-secret package metadata used for Stripe price creation."""
+    return [
+        {
+            "package_id": package.package_id,
+            "name": package.name,
+            "env_key": PRICE_ENV_KEYS[package.package_id],
+            "amount_cents": package.amount_cents,
+            "currency": package.currency,
+            "standard_credits": package.standard_credits,
+            "browser_credits": package.browser_credits,
+        }
+        for package in public_paid_packages()
+    ]
+
+
+def parse_env_file(path: Path) -> dict[str, str]:
+    """Parse a simple KEY=value env file."""
+    values: dict[str, str] = {}
+    if not path.exists():
+        return values
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = _strip_quotes(value.strip())
+    return values
+
+
+def _strip_quotes(value: str) -> str:
+    """Remove one matching shell-style quote wrapper."""
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+        return value[1:-1]
+    return value
+
+
+def create_prices(secret_key: str, *, fake_stripe: bool = False) -> list[dict[str, str]]:
+    """Create all public paid package prices and return non-secret IDs."""
+    created: list[dict[str, str]] = []
+    for package in public_paid_packages():
+        if fake_stripe:
+            price_id = f"price_scout_{package.package_id}_test"
+        else:
+            price_id = create_stripe_price(secret_key, package)
+        created.append(
+            {
+                "package_id": package.package_id,
+                "env_key": PRICE_ENV_KEYS[package.package_id],
+                "price_id": price_id,
+            }
+        )
+    return created
+
+
+def create_stripe_price(secret_key: str, package: HostedCreditPackage) -> str:
+    """Create one Stripe price and return its id."""
+    data = {
+        "currency": package.currency,
+        "unit_amount": str(package.amount_cents),
+        "nickname": package.name,
+        "product_data[name]": f"Scout {package.name}",
+        "metadata[product]": "scout_hosted",
+        "metadata[package_id]": package.package_id,
+        "metadata[standard_credits]": str(package.standard_credits),
+        "metadata[browser_credits]": str(package.browser_credits),
+    }
+    request = Request(
+        STRIPE_PRICE_ENDPOINT,
+        data=urlencode(data).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {secret_key}",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=30) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Stripe price creation failed: {_redact(detail)}") from exc
+    except (OSError, URLError, json.JSONDecodeError) as exc:
+        raise RuntimeError("Stripe price creation failed.") from exc
+    if not isinstance(payload, dict) or not str(payload.get("id", "")).startswith("price_"):
+        raise RuntimeError("Stripe price creation returned an invalid response.")
+    return str(payload["id"])
+
+
+def write_price_ids(path: Path, updates: dict[str, str]) -> None:
+    """Write created Stripe price IDs into an env file, preserving other keys."""
+    existing = path.read_text(encoding="utf-8") if path.exists() else ""
+    lines: list[str] = []
+    seen: set[str] = set()
+    for raw_line in existing.splitlines():
+        stripped = raw_line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            lines.append(raw_line)
+            continue
+        key = stripped.split("=", 1)[0].strip()
+        if key in updates:
+            lines.append(f"{key}={updates[key]}")
+            seen.add(key)
+        else:
+            lines.append(raw_line)
+    for key, value in updates.items():
+        if key not in seen:
+            lines.append(f"{key}={value}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """Build CLI parser."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--secrets-file",
+        default="secrets/scout-production.env",
+        help="Ignored hosted production env file. Default: secrets/scout-production.env.",
+    )
+    parser.add_argument("--dry-run", action="store_true", help="Print the price plan only.")
+    parser.add_argument("--json", action="store_true", help="Print JSON output.")
+    parser.add_argument("--yes", action="store_true", help="Required before creating prices.")
+    parser.add_argument("--fake-stripe", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--write-env",
+        action="store_true",
+        help="Write created price IDs back to --secrets-file.",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI entrypoint."""
+    args = build_parser().parse_args(argv)
+    secrets_file = Path(args.secrets_file)
+    if args.dry_run:
+        return _print(
+            {
+                "dry_run": True,
+                "packages": package_plan(),
+                "next_step": "Run with --secrets-file PATH --yes after STRIPE_SECRET_KEY is set.",
+            },
+            json_output=args.json,
+        )
+    if not args.yes:
+        print("--yes is required before creating Stripe prices.", file=sys.stderr)
+        return 2
+    values = parse_env_file(secrets_file)
+    secret_key = values.get("STRIPE_SECRET_KEY", "").strip()
+    if not secret_key:
+        print("Missing STRIPE_SECRET_KEY in secrets file.", file=sys.stderr)
+        return 2
+    created = create_prices(secret_key, fake_stripe=args.fake_stripe)
+    env_updates = [f"{item['env_key']}={item['price_id']}" for item in created]
+    if args.write_env:
+        write_price_ids(secrets_file, {item["env_key"]: item["price_id"] for item in created})
+    return _print(
+        {
+            "dry_run": False,
+            "created_prices": created,
+            "env_updates": env_updates,
+            "wrote_env": bool(args.write_env),
+        },
+        json_output=args.json,
+    )
+
+
+def _print(payload: dict[str, object], *, json_output: bool) -> int:
+    """Print a payload after checking for accidental secret leakage."""
+    if json_output:
+        output = json.dumps(payload, indent=2, sort_keys=True)
+    else:
+        output = _human_output(payload)
+    _assert_no_secret_leak(output)
+    print(output)
+    return 0
+
+
+def _human_output(payload: dict[str, object]) -> str:
+    """Render concise human-readable output."""
+    lines: list[str] = []
+    if payload.get("dry_run") is True:
+        lines.append("Scout Stripe price bootstrap dry run:")
+        for package in payload["packages"]:  # type: ignore[index]
+            lines.append(
+                "  - {package_id}: ${amount:.2f} -> {env_key}".format(
+                    package_id=package["package_id"],
+                    amount=int(package["amount_cents"]) / 100,
+                    env_key=package["env_key"],
+                )
+            )
+        lines.append(str(payload["next_step"]))
+        return "\n".join(lines)
+    lines.append("Created Stripe prices:")
+    for update in payload["env_updates"]:  # type: ignore[index]
+        lines.append(f"  - {update}")
+    if payload.get("wrote_env"):
+        lines.append("Updated secrets file with created price IDs.")
+    return "\n".join(lines)
+
+
+def _assert_no_secret_leak(text: str) -> None:
+    """Refuse to print output containing secret-looking values."""
+    leaked = [marker for marker in SECRET_MARKERS if marker in text]
+    if leaked:
+        raise RuntimeError("Refusing to print Stripe secret-looking output.")
+
+
+def _redact(text: str) -> str:
+    """Redact Stripe secret-like values from error payloads."""
+    redacted = text
+    for marker in SECRET_MARKERS:
+        if marker in redacted:
+            redacted = redacted.replace(marker, f"{marker[:3]}REDACTED_")
+    return redacted
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

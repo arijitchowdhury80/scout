@@ -23,6 +23,7 @@ SCRIPT_NAMES = [
     "scout-vps-disable-hosted-access",
     "scout-vps-configure-hosted-env",
     "scout-hosted-load-test",
+    "scout-stripe-bootstrap-prices",
 ]
 
 
@@ -53,7 +54,15 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "readiness",
             "validate-config",
             "write-config-template",
+            "bootstrap-stripe-prices",
             "configure-production-env",
+        ],
+        "scout-stripe-bootstrap-prices": [
+            "Create Stripe one-time price IDs",
+            "--secrets-file",
+            "--dry-run",
+            "--yes",
+            "--write-env",
         ],
         "scout-write-hosted-config-template": [
             "Write a Scout hosted SMTP and Stripe env template",

@@ -122,7 +122,6 @@ HOSTED_KEY_DELIVERY_SMTP_PASSWORD=...
 HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
 
 STRIPE_SECRET_KEY=sk_test_...
-STRIPE_BETA_PRICE_ID=price_...
 STRIPE_STANDARD_1000_PRICE_ID=price_...
 STRIPE_STANDARD_3000_PRICE_ID=price_...
 STRIPE_STANDARD_15000_PRICE_ID=price_...
@@ -130,6 +129,27 @@ STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success
 STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
+
+Create the paid package price IDs from Scout's canonical package model instead
+of hand-building mismatched Stripe prices:
+
+```bash
+scripts/scout-hosted-admin bootstrap-stripe-prices \
+  --secrets-file secrets/scout-production.env \
+  --dry-run
+
+scripts/scout-hosted-admin bootstrap-stripe-prices \
+  --secrets-file secrets/scout-production.env \
+  --yes \
+  --write-env
+```
+
+The bootstrap helper creates one-time Stripe prices for public paid packages
+only: `standard_1000`, `standard_3000`, and `standard_15000`. It excludes
+`beta_trial` because beta uses Stripe Checkout setup mode and excludes
+`browser_100` because browser-credit economics remain private. The helper
+prints price IDs and env key names only; it refuses to print Stripe secret
+keys.
 
 Install those values on the VPS with the allowlisted production env helper:
 
