@@ -17,11 +17,11 @@ Scout hosted beta has API-key based access, not a login system.
   Public browser/API signup never returns `raw_api_key`; operator CLI
   provisioning is the only flow that prints the raw key once. Scout stores only
   a hash.
-- Stripe checkout is available from `/pricing` for future payment-method
-  verification and paid credit packages once Stripe settings are configured.
-  The `$0` beta trial package can still use Stripe Checkout `mode=setup` with
-  card payment-method collection when the card-backed beta path is enabled, but
-  the current public beta key request path does not require Stripe.
+- Stripe checkout forms are available from `/pricing` for paid hosted credit
+  packages and from `/beta` for optional `$0` card-backed beta setup. Both
+  forms are readiness-gated by `/v1/billing/stripe/status` and stay disabled
+  until Stripe settings, signed webhook delivery, and SMTP key delivery are
+  configured. The current public beta key request path does not require Stripe.
 - The key-delivery email is signed by Arijit, explains the 100-credit/30-day
   beta boundary, includes credit meaning, links to docs/pricing, and asks users
   to reply with their use case, target site, and failing run ID for support.
@@ -32,8 +32,8 @@ Scout hosted beta has API-key based access, not a login system.
 - Public pricing and credit metadata is available through
   `/v1/billing/packages`; it contains no Stripe secrets.
 - The public pricing page can start Stripe Checkout for hosted credit packages
-  through `/v1/billing/stripe/checkout-session` when Stripe price IDs and
-  checkout settings are configured.
+  through `/v1/billing/stripe/checkout-session` when Stripe price IDs,
+  checkout settings, webhook signing, and SMTP key delivery are configured.
 - A successful paid Stripe webhook creates a hosted tenant for a first-time
   buyer, or adds the purchased credits to the existing tenant when the checkout
   email already has a hosted account. Existing-account top-ups do not email a
@@ -350,9 +350,10 @@ Pay-as-you-go pricing candidate:
 - A standard credit means one scrape, one returned crawl page, or one product/intelligence record.
 - Browser credits remain separately metered and are not included in the first public package.
 - Current default economics estimate $2.59 loaded cost, $7.41 gross profit, 74.1% gross margin, and break-even at 17 packs/month for the $10 package.
-- The pricing page exposes `$10`, `$25`, and `$100` hosted credit checkout
-  options. Successful checkout provisioning depends on configured Stripe price
-  IDs, signed webhook delivery, and SMTP key delivery.
+- The pricing page exposes readiness-gated `$10`, `$25`, and `$100` hosted
+  credit checkout options. The beta page exposes a separate readiness-gated
+  `$0` card-backed beta setup form. Successful checkout provisioning depends on
+  configured Stripe price IDs, signed webhook delivery, and SMTP key delivery.
 
 A production billing model should still add:
 

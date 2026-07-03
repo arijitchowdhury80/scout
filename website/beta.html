@@ -147,6 +147,59 @@ scout launch-readiness --require-public</code></pre>
           </div>
         </section>
 
+        <section class="section beta" aria-labelledby="beta-checkout-title">
+          <div>
+            <p class="wi-label wi-label--accent">Optional card-backed setup</p>
+            <h2 id="beta-checkout-title">$0 beta checkout.</h2>
+            <p>
+              This path verifies the hosted payment pipeline without charging
+              the tester. Use it when you want Stripe Checkout, signed webhook
+              provisioning, and API-key email delivery exercised together.
+            </p>
+          </div>
+          <div class="beta-panel" aria-label="Card-backed beta checkout">
+            <p id="pricingCheckoutReturnStatus" class="beta-status" role="status" hidden></p>
+            <form
+              id="pricingCheckoutForm"
+              class="beta-form"
+              data-endpoint="/v1/billing/stripe/checkout-session"
+              data-status-endpoint="/v1/billing/stripe/status"
+              data-ready-flag="ready_for_beta_checkout"
+            >
+              <input name="package_id" type="hidden" value="beta_trial" />
+              <label for="pricingCheckoutName">Name or app name</label>
+              <input
+                id="pricingCheckoutName"
+                name="name"
+                type="text"
+                autocomplete="name"
+                placeholder="Your name or app"
+                required
+              />
+
+              <label for="pricingCheckoutEmail">Email for API key delivery</label>
+              <input
+                id="pricingCheckoutEmail"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              />
+
+              <button class="wi-btn" type="submit">Continue To $0 Checkout</button>
+              <p id="pricingCheckoutStatus" class="beta-status" role="status" aria-live="polite">
+                Card-backed beta checkout stays disabled until Stripe, webhook,
+                and API-key email delivery are configured.
+              </p>
+            </form>
+            <p class="beta-note">
+              The beta trial includes 100 standard credits for 30 days. Scout
+              does not show raw API keys in the browser after checkout.
+            </p>
+          </div>
+        </section>
+
         <section class="section step-section" aria-labelledby="support-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Support</p>
@@ -188,5 +241,6 @@ scout launch-readiness --require-public</code></pre>
     </div>
     <script src="./assets/copy-code.js" defer></script>
     <script src="./assets/hosted-keygen.js" defer></script>
+    <script src="./assets/pricing.js" defer></script>
   </body>
 </html>

@@ -21,7 +21,6 @@
     checkoutForm?.dataset.statusEndpoint ||
     pricingSection?.dataset.checkoutStatusEndpoint ||
     "/v1/billing/stripe/status";
-  const checkoutReadyFlag = checkoutForm?.dataset.readyFlag || "ready_for_paid_key_delivery";
 
   if (pricingSection && packageGrid && creditCosts && unitEconomics) {
     fetch(endpoint, { headers: { Accept: "application/json" } })
@@ -39,6 +38,9 @@
 
   handleCheckoutReturnState();
   checkCheckoutReadiness();
+  checkoutForm
+    ?.querySelector("[name='package_id']")
+    ?.addEventListener("change", checkCheckoutReadiness);
 
   checkoutForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -195,22 +197,46 @@
   async function checkCheckoutReadiness() {
     if (!checkoutForm || !checkoutStatus) return;
     const submitButton = checkoutForm.querySelector("button[type='submit']");
+    const packageInput = checkoutForm.querySelector("[name='package_id']");
+    const packageId = packageInput ? String(packageInput.value || "") : "standard_1000";
+    const readyFlag = readyFlagForPackage(packageId);
     try {
       const response = await fetch(checkoutStatusEndpoint, {
         headers: { Accept: "application/json" },
       });
       if (!response.ok) return;
       const status = await response.json();
-      if (status[checkoutReadyFlag] !== true) {
+      if (status[readyFlag] === true) {
+        if (submitButton) submitButton.disabled = false;
+        setCheckoutStatus(checkoutReadyMessage(packageId), "success");
+      } else {
         if (submitButton) submitButton.disabled = true;
-        setCheckoutStatus(
-          "Hosted checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured. Existing keys still work.",
-          "error",
-        );
+        setCheckoutStatus(checkoutPausedMessage(packageId), "error");
       }
     } catch {
       // Static file previews cannot reach the API; keep the form interactive there.
     }
+  }
+
+  function readyFlagForPackage(packageId) {
+    if (checkoutForm?.dataset.readyFlag) {
+      return checkoutForm.dataset.readyFlag;
+    }
+    return packageId === "beta_trial" ? "ready_for_beta_checkout" : "ready_for_paid_key_delivery";
+  }
+
+  function checkoutReadyMessage(packageId) {
+    if (packageId === "beta_trial") {
+      return "Card-backed beta checkout is ready. Continue to Stripe to complete $0 beta setup.";
+    }
+    return "Hosted credit checkout is ready. Continue to Stripe to buy credits.";
+  }
+
+  function checkoutPausedMessage(packageId) {
+    if (packageId === "beta_trial") {
+      return "Card-backed beta checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured. Use the email beta key path if it is ready.";
+    }
+    return "Hosted checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured. Existing keys still work.";
   }
 
   function formatDollars(cents) {

@@ -106,9 +106,12 @@ HOSTED_KEY_DELIVERY_SMTP_PASSWORD=
 HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
 ```
 
-Paid checkout and card-backed beta setup use Stripe Checkout. The paid path
-requires Stripe Checkout settings, signed webhook delivery, and SMTP key
-delivery before it is live-ready:
+Paid checkout and card-backed beta setup use Stripe Checkout. `/pricing`
+contains the paid hosted-credit checkout form, and `/beta` contains the
+optional `$0` beta setup form beside direct email-key registration. These forms
+are readiness-gated by `/v1/billing/stripe/status`; they require Stripe
+Checkout settings, signed webhook delivery, and SMTP key delivery before they
+are live-ready:
 
 ```text
 STRIPE_SECRET_KEY=sk_test_...

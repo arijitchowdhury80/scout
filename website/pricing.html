@@ -75,19 +75,58 @@
         <section class="section beta" aria-labelledby="pricing-checkout-title">
           <div>
             <p class="wi-label wi-label--accent">Buy hosted credits</p>
-            <h2 id="pricing-checkout-title">Start with the beta key path.</h2>
+            <h2 id="pricing-checkout-title">Buy hosted credits online.</h2>
             <p>
-              For tomorrow's beta, register for a hosted API key from the beta
-              page. Paid credit checkout stays paused until Stripe webhook and
-              key-delivery smoke are closed.
+              Paid packages are shown with live checkout wiring. The form stays
+              disabled until Stripe Checkout, webhook provisioning, and API-key
+              email delivery are configured.
             </p>
           </div>
-          <div class="beta-panel" aria-label="Hosted beta key access">
-            <p class="beta-status" role="status">
-              Beta users receive 100 standard credits. Paid packages are shown
-              for unit-economics visibility, not live self-serve purchase.
+          <div class="beta-panel" aria-label="Hosted credit checkout">
+            <p id="pricingCheckoutReturnStatus" class="beta-status" role="status" hidden></p>
+            <form
+              id="pricingCheckoutForm"
+              class="beta-form"
+              data-endpoint="/v1/billing/stripe/checkout-session"
+              data-status-endpoint="/v1/billing/stripe/status"
+              data-ready-flag="ready_for_paid_key_delivery"
+            >
+              <label for="pricingCheckoutName">Name or app name</label>
+              <input
+                id="pricingCheckoutName"
+                name="name"
+                type="text"
+                autocomplete="name"
+                placeholder="Your name or app"
+                required
+              />
+
+              <label for="pricingCheckoutEmail">Email for API key delivery</label>
+              <input
+                id="pricingCheckoutEmail"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              />
+
+              <label for="pricingCheckoutPackage">Credit package</label>
+              <select id="pricingCheckoutPackage" name="package_id">
+                <option value="standard_1000">$10 - 1,000 standard credits</option>
+                <option value="standard_3000">$25 - 3,000 standard credits</option>
+                <option value="standard_15000">$100 - 15,000 standard credits</option>
+              </select>
+
+              <button class="wi-btn" type="submit">Continue To Secure Checkout</button>
+              <p id="pricingCheckoutStatus" class="beta-status" role="status" aria-live="polite">
+                Hosted checkout stays disabled until Stripe, webhook, and email delivery are configured.
+              </p>
+            </form>
+            <p class="beta-note">
+              Need a beta key before paid checkout opens?
+              <a href="/beta#beta-key">Register for hosted beta access</a>.
             </p>
-            <a class="wi-btn" href="/beta#beta-key">Get beta tester API key</a>
           </div>
         </section>
 
@@ -164,5 +203,6 @@
         </section>
       </main>
     </div>
+    <script src="./assets/pricing.js" defer></script>
   </body>
 </html>

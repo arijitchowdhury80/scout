@@ -47,11 +47,17 @@ def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
 def test_launch_website_keeps_paid_checkout_paused_without_secrets() -> None:
     html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
 
-    assert "Paid credit checkout stays paused" in html
-    assert 'href="/beta#beta-key"' in html
-    assert 'id="pricingCheckoutForm"' not in html
-    assert "/v1/billing/stripe/checkout-session" not in html
-    assert "window.location.assign" not in html
+    assert "Buy hosted credits online." in html
+    assert 'id="pricingCheckoutForm"' in html
+    assert 'data-endpoint="/v1/billing/stripe/checkout-session"' in html
+    assert 'data-status-endpoint="/v1/billing/stripe/status"' in html
+    assert 'data-ready-flag="ready_for_paid_key_delivery"' in html
+    assert 'name="package_id"' in html
+    assert 'value="standard_1000"' in html
+    assert 'value="standard_3000"' in html
+    assert 'value="standard_15000"' in html
+    assert 'id="pricingCheckoutReturnStatus"' in html
+    assert 'src="./assets/pricing.js"' in html
     assert "sk_live_" not in html
     assert "sk_test_" not in html
 
@@ -512,16 +518,20 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     assert 'id="pricingPackageGrid"' in html
     assert 'id="pricingCreditCosts"' in html
     assert 'id="pricingUnitEconomics"' in html
-    assert 'id="pricingCheckoutForm"' not in html
-    assert 'id="pricingCheckoutReturnStatus"' not in html
-    assert 'data-success-query="checkout=success"' not in html
-    assert 'data-cancel-query="checkout=cancelled"' not in html
+    assert 'id="pricingCheckoutForm"' in html
+    assert 'id="pricingCheckoutReturnStatus"' in html
+    assert 'data-ready-flag="ready_for_paid_key_delivery"' in html
     assert "$0" in normalized_html
-    assert "Paid packages are shown for unit-economics visibility" in normalized_html
-    assert "Paid credit checkout stays paused" in normalized_html
-    assert "/v1/billing/stripe/checkout-session" not in html
+    assert "Paid packages are shown with live checkout wiring" in normalized_html
+    assert (
+        "Hosted checkout stays disabled until Stripe, webhook, and email delivery are configured"
+        in normalized_html
+    )
+    assert "/v1/billing/stripe/checkout-session" in html
     assert 'href="/beta#beta-key"' in html
     assert "/v1/billing/packages" in pricing_js
+    assert "/v1/billing/stripe/checkout-session" in pricing_js
+    assert "window.location.assign" in pricing_js
     assert "amount_cents" in pricing_js
     assert "gross_margin_percent" in pricing_js
     assert "sk_live_" not in pricing_js
@@ -548,7 +558,11 @@ def test_beta_signup_collects_name_and_email_without_password() -> None:
     assert "/v1/hosted/beta-key" in html
     assert "/v1/billing/stripe/status" in html
     assert "ready_for_beta_key_delivery" in html
-    assert "/v1/billing/stripe/checkout-session" not in html
+    assert 'id="pricingCheckoutForm"' in html
+    assert 'name="package_id" type="hidden" value="beta_trial"' in html
+    assert 'data-ready-flag="ready_for_beta_checkout"' in html
+    assert "/v1/billing/stripe/checkout-session" in html
+    assert 'src="./assets/pricing.js"' in html
     assert "payload.raw_api_key" not in html
     assert "payload.raw_api_key" not in hosted_keygen_js
     assert "Scout emailed your beta tester API key" in hosted_keygen_js
