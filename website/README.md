@@ -42,6 +42,9 @@ Public website paths served by `scout serve`:
   Docs page. Do not reintroduce them as primary navigation items.
 - `/pricing` - local-free and hosted-metered pricing posture.
 - `/beta` - local-vs-hosted beta path and hosted checkout form.
+- `/account` - API-key based hosted account lookup for credits, usage, and
+  purchase history. It does not create a login and does not persist the pasted
+  key in browser storage.
 - `/legal` - third-party notices, attribution, legal-readiness boundaries, and
   beta use cautions.
 - `/docs` - FastAPI/Swagger API docs, intentionally preserved for exact API
@@ -57,6 +60,9 @@ Hosted beta checkout:
 - The beta page also describes support expectations: GitHub private-beta issue
   templates for non-security feedback, private reporting for vulnerabilities,
   and no secrets in public issues.
+- Hosted users can open `/account`, paste their delivered API key, and inspect
+  `/v1/hosted/me`, `/v1/hosted/usage`, and `/v1/hosted/purchases` without a
+  password gate.
 
 Hosted playground:
 
