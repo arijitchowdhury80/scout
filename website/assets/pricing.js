@@ -97,8 +97,11 @@
       packageGrid.innerHTML = publicPackages.map(packageCard).join("");
     }
 
+    const credit_policy = Array.isArray(data.credit_policy) ? data.credit_policy : [];
     const creditEntries = Object.entries(data.credit_costs || {});
-    if (creditEntries.length > 0) {
+    if (credit_policy.length > 0) {
+      creditCosts.innerHTML = credit_policy.map(creditPolicyCard).join("");
+    } else if (creditEntries.length > 0) {
       creditCosts.innerHTML = creditEntries.map(creditCard).join("");
     }
 
@@ -132,6 +135,27 @@
         <span class="status-tag status-tag--primary">${escapeHtml(action)}</span>
         <h3>${titleize(action)}</h3>
         <p>${escapeHtml(meaning)}</p>
+      </article>
+    `;
+  }
+
+  function creditPolicyCard(policy) {
+    const action = String(policy.action || "");
+    const creditType = String(policy.credit_type || "standard");
+    const credits = Number(policy.credits_per_unit || 0);
+    const unit = String(policy.metered_unit || "unit");
+    const included = Number(policy.included_in_standard_1000 || 0);
+    const includedText =
+      included > 0 ? `${included.toLocaleString()} per 1,000-credit pack` : "not in standard packs";
+    return `
+      <article>
+        <span class="status-tag status-tag--primary">${escapeHtml(creditType)}</span>
+        <h3>${titleize(action)}</h3>
+        <p>${credits.toLocaleString()} ${escapeHtml(creditType)} credit${
+          credits === 1 ? "" : "s"
+        } per ${escapeHtml(unit)}.</p>
+        <p>${escapeHtml(policy.customer_description || "")}</p>
+        <p><strong>Standard 1,000 pack:</strong> ${escapeHtml(includedText)}</p>
       </article>
     `;
   }

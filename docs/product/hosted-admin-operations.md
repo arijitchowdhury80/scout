@@ -41,7 +41,10 @@ Scout hosted beta has API-key based access, not a login system.
   returns balances, limits, usage totals, purchase totals, and links to deeper
   `/v1/hosted/usage` and `/v1/hosted/purchases` records.
 - Public pricing and credit metadata is available through
-  `/v1/billing/packages`; it contains no Stripe secrets.
+  `/v1/billing/packages`; it contains no Stripe secrets. The response includes
+  `credit_policy`, a structured metering table with action, credit bucket,
+  credits per unit, metered unit, `included_in_standard_1000`, and customer
+  description fields so consuming apps do not have to parse pricing prose.
 - The public pricing page can start Stripe Checkout for hosted credit packages
   through `/v1/billing/stripe/checkout-session` when Stripe price IDs,
   checkout settings, webhook signing, and SMTP key delivery are configured.
@@ -599,7 +602,10 @@ Today, Scout can answer:
 - Stripe checkout/package purchase records in `hosted_payment_checkouts`,
 - hosted run ownership through stored `tenant_id` and `key_id`,
 - per-response `credits_charged` for hosted API calls,
-- public package/credit/unit-economics metadata through `/v1/billing/packages`.
+- public package/credit/unit-economics metadata through `/v1/billing/packages`,
+- structured metering policy through `/v1/billing/packages` field
+  `credit_policy`, including `included_in_standard_1000` counts for the first
+  public 1,000-credit package.
 
 Scout cannot yet answer, as a polished product feature:
 

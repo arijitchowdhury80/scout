@@ -24,6 +24,17 @@ class HostedCreditPackage(BaseModel):
     customer_summary: str
 
 
+class HostedCreditPolicy(BaseModel):
+    """Structured customer-facing policy for one metered hosted action."""
+
+    action: str
+    credit_type: str
+    credits_per_unit: int
+    metered_unit: str
+    included_in_standard_1000: int
+    customer_description: str
+
+
 class UnitEconomicsAssumptions(BaseModel):
     """Editable assumptions used to test whether a package can make money."""
 
@@ -145,6 +156,37 @@ def credit_cost_table() -> dict[str, str]:
     }
 
 
+def credit_policy_table() -> list[HostedCreditPolicy]:
+    """Return structured metering rules for hosted packages and documentation."""
+    return [
+        _credit_policy(
+            HostedAction.SCRAPE,
+            "request",
+            "Fetch one public URL and return the requested hosted scrape formats.",
+        ),
+        _credit_policy(
+            HostedAction.CRAWL_PAGE,
+            "returned page",
+            "Return one discovered crawl/map page within hosted plan limits.",
+        ),
+        _credit_policy(
+            HostedAction.SCREENSHOT,
+            "screenshot",
+            "Capture one screenshot artifact for a public URL.",
+        ),
+        _credit_policy(
+            HostedAction.BROWSER_RENDER,
+            "browser render",
+            "Run one hosted browser render when browser credits are enabled.",
+        ),
+        _credit_policy(
+            HostedAction.BROWSER_MINUTE,
+            "browser minute",
+            "Consume one minute of hosted browser execution when browser credits are enabled.",
+        ),
+    ]
+
+
 def package_unit_economics(
     package_id: str,
     assumptions: UnitEconomicsAssumptions = DEFAULT_UNIT_ECONOMICS,
@@ -186,3 +228,22 @@ def _percent(numerator: int, denominator: int) -> float:
     if denominator <= 0:
         return 0.0
     return round(numerator / denominator * 100, 1)
+
+
+def _credit_policy(
+    action: HostedAction,
+    metered_unit: str,
+    customer_description: str,
+) -> HostedCreditPolicy:
+    """Build one structured policy row from the canonical hosted action enum."""
+    included_in_standard_1000 = 0
+    if action.credit_type == "standard":
+        included_in_standard_1000 = 1000 // action.credit_cost
+    return HostedCreditPolicy(
+        action=action.value,
+        credit_type=action.credit_type,
+        credits_per_unit=action.credit_cost,
+        metered_unit=metered_unit,
+        included_in_standard_1000=included_in_standard_1000,
+        customer_description=customer_description,
+    )

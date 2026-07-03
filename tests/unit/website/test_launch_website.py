@@ -191,6 +191,8 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert pricing.status_code == 200
     assert "javascript" in pricing.headers["content-type"]
     assert "/v1/billing/packages" in pricing.text
+    assert "credit_policy" in pricing.text
+    assert "included_in_standard_1000" in pricing.text
     assert account.status_code == 200
     assert "javascript" in account.headers["content-type"]
     assert "/v1/hosted/me" in account.text

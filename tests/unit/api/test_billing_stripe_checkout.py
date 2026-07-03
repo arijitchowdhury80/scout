@@ -341,6 +341,48 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
     assert standard_1000["browser_credits"] == 0
     assert data["credit_costs"]["scrape"] == "1 standard credit"
     assert data["credit_costs"]["screenshot"] == "3 standard credits"
+    assert data["credit_policy"] == [
+        {
+            "action": "scrape",
+            "credit_type": "standard",
+            "credits_per_unit": 1,
+            "metered_unit": "request",
+            "included_in_standard_1000": 1000,
+            "customer_description": "Fetch one public URL and return the requested hosted scrape formats.",
+        },
+        {
+            "action": "crawl_page",
+            "credit_type": "standard",
+            "credits_per_unit": 1,
+            "metered_unit": "returned page",
+            "included_in_standard_1000": 1000,
+            "customer_description": "Return one discovered crawl/map page within hosted plan limits.",
+        },
+        {
+            "action": "screenshot",
+            "credit_type": "standard",
+            "credits_per_unit": 3,
+            "metered_unit": "screenshot",
+            "included_in_standard_1000": 333,
+            "customer_description": "Capture one screenshot artifact for a public URL.",
+        },
+        {
+            "action": "browser_render",
+            "credit_type": "browser",
+            "credits_per_unit": 5,
+            "metered_unit": "browser render",
+            "included_in_standard_1000": 0,
+            "customer_description": "Run one hosted browser render when browser credits are enabled.",
+        },
+        {
+            "action": "browser_minute",
+            "credit_type": "browser",
+            "credits_per_unit": 10,
+            "metered_unit": "browser minute",
+            "included_in_standard_1000": 0,
+            "customer_description": "Consume one minute of hosted browser execution when browser credits are enabled.",
+        },
+    ]
     assert data["unit_economics"]["standard_1000"]["gross_margin_percent"] == 74.1
     assert data["unit_economics"]["standard_1000"]["break_even_packages_per_month"] == 17
     assert "sk_" not in response.text
