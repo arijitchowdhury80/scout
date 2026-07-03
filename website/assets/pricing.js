@@ -266,20 +266,14 @@
     if (checkoutForm?.dataset.readyFlag) {
       return checkoutForm.dataset.readyFlag;
     }
-    return packageId === "beta_trial" ? "ready_for_beta_checkout" : "ready_for_paid_key_delivery";
+    return "ready_for_paid_key_delivery";
   }
 
   function checkoutReadyMessage(packageId) {
-    if (packageId === "beta_trial") {
-      return "Card-backed beta checkout is ready. Continue to Stripe to complete $0 beta setup.";
-    }
     return "Hosted credit checkout is ready. Continue to Stripe to buy credits.";
   }
 
   function checkoutPausedMessage(packageId) {
-    if (packageId === "beta_trial") {
-      return "Card-backed beta checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured.";
-    }
     return "Hosted checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured. Existing keys still work.";
   }
 

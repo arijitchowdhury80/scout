@@ -384,8 +384,8 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "SCOUT_HOSTED_API_KEY",
             "/v1/hosted/me",
             "/v1/hosted/scrape",
-            "card-backed when checkout is ready",
-            "queued email registration while checkout is paused",
+            "email-first registration through `/beta`",
+            "API key delivered by email",
             "Examples",
             "Page to markdown",
             "Product category to records",
@@ -401,7 +401,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Operator local verification",
             "Beta trial",
             "Hosted beta tester key",
-            "Beta setup uses $0 Stripe Checkout",
+            "Beta access starts with email-first registration",
             "$10",
             "1,000 standard credits",
             "Pay-as-you-go candidate",
@@ -553,7 +553,7 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
         "Beta trial",
         "30 days",
         "100 standard credits",
-        "Beta setup uses $0 Stripe Checkout",
+        "Beta access starts with email-first registration",
     ]
 
     for expected in expected_strings:
@@ -585,6 +585,9 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     assert "Payment fee" in pricing_js
     assert "sk_live_" not in pricing_js
     assert "sk_test_" not in pricing_js
+    assert "Card-backed beta checkout is ready" not in pricing_js
+    assert "ready_for_beta_checkout" not in pricing_js
+    assert "Beta setup uses $0 Stripe Checkout" not in normalized_html
 
 
 def test_beta_signup_uses_email_registration_with_checkout_hook_without_password_or_browser_key_display() -> (

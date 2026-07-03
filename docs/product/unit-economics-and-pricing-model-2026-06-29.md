@@ -8,7 +8,7 @@ Status: Launch candidate model defined; final paid launch still requires founder
 Recommended launch candidate as of 2026-07-03:
 
 - Local Scout remains free.
-- Beta trial: 30 days, 100 standard credits, $0 card-backed Stripe setup when configured, with queued email registration as the temporary fallback while checkout is paused.
+- Beta trial: 30 days, 100 standard credits, email-first API-key registration while hosted beta is invite-controlled.
 - First pay-as-you-go package: $10 for 1,000 standard credits.
 - Browser-heavy work is not included in the first public pay-as-you-go package.
 - Browser credits remain private/controlled until browser-worker cost is measured.
