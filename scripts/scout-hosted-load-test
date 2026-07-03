@@ -350,7 +350,12 @@ def perform_request(
 ) -> dict[str, Any]:
     started = time.monotonic()
     url = f"{base_url}{planned.path}"
-    headers = {"Authorization": f"Bearer {key}", "User-Agent": "scout-hosted-load-test/1.0"}
+    simulated_ip = f"198.51.{user_index // 250}.{(user_index % 250) + 1}"
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "User-Agent": "scout-hosted-load-test/1.0",
+        "X-Forwarded-For": simulated_ip,
+    }
     data = None
     if planned.body is not None:
         body = dict(planned.body)
