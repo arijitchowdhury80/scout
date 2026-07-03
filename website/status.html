@@ -68,6 +68,42 @@
           </div>
         </section>
 
+        <section
+          class="section launch-status"
+          id="liveHostedReadiness"
+          data-status-endpoint="/v1/billing/stripe/status"
+          aria-labelledby="live-hosted-readiness-title"
+        >
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Live hosted readiness</p>
+            <h2 id="live-hosted-readiness-title">Current beta and billing gates from production.</h2>
+            <p id="liveReadinessSummary" role="status" aria-live="polite">
+              Loading live hosted readiness from `/v1/billing/stripe/status`.
+            </p>
+          </div>
+          <div id="liveReadinessCards" class="status-grid">
+            <article>
+              <span class="status-tag status-tag--limited">Loading</span>
+              <h3>Checking hosted status</h3>
+              <p>Scout is reading the non-secret billing readiness endpoint.</p>
+            </article>
+          </div>
+          <div class="note-grid">
+            <article>
+              <h3>Missing configuration</h3>
+              <ul id="liveMissingKeys" class="status-list">
+                <li>Loading missing environment variable names.</li>
+              </ul>
+            </article>
+            <article>
+              <h3>Operator next actions</h3>
+              <ul id="liveOperatorActions" class="status-list">
+                <li>Loading operator actions.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
         <section class="section step-section" aria-labelledby="owner-summary-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">Owner summary</p>
@@ -241,5 +277,6 @@ scout launch-decision-check --check-drafts</code></pre>
       </main>
     </div>
     <script src="./assets/copy-code.js" defer></script>
+    <script src="./assets/status.js" defer></script>
   </body>
 </html>
