@@ -666,6 +666,53 @@ def test_validate_hosted_config_warns_on_non_https_beta_redirects(tmp_path: Path
     assert "whsec_should_not_print" not in output
 
 
+def test_validate_hosted_config_rejects_obsolete_beta_price_id(tmp_path: Path) -> None:
+    secrets_file = tmp_path / "scout-production.env"
+    secrets_file.write_text(
+        "\n".join(
+            [
+                "HOSTED_BETA_SIGNUP_ENABLED=true",
+                "HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com",
+                "HOSTED_KEY_DELIVERY_SMTP_PORT=587",
+                "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL=scout@chowmes.com",
+                "HOSTED_KEY_DELIVERY_SMTP_USERNAME=scout@chowmes.com",
+                "HOSTED_KEY_DELIVERY_SMTP_PASSWORD=smtp-secret-value",
+                "STRIPE_SECRET_KEY=sk_test_should_not_print",
+                "STRIPE_BETA_PRICE_ID=price_obsolete_should_not_print",
+                "STRIPE_STANDARD_1000_PRICE_ID=price_1000",
+                "STRIPE_STANDARD_3000_PRICE_ID=price_3000",
+                "STRIPE_STANDARD_15000_PRICE_ID=price_15000",
+                "STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success",
+                "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled",
+                "STRIPE_PORTAL_RETURN_URL=https://scout.chowmes.com/account",
+                "STRIPE_WEBHOOK_SECRET=whsec_should_not_print",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            str(REPO_ROOT / "scripts" / "scout-validate-hosted-config"),
+            "--secrets-file",
+            str(secrets_file),
+            "--require",
+            "all",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+
+    assert result.returncode == 2
+    assert "STRIPE_BETA_PRICE_ID is obsolete" in output
+    assert "price_obsolete_should_not_print" not in output
+    assert "smtp-secret-value" not in output
+    assert "sk_test_should_not_print" not in output
+    assert "whsec_should_not_print" not in output
+
+
 def test_configure_hosted_env_uses_allowlist_and_never_echoes_secret_values() -> None:
     script_text = (REPO_ROOT / "scripts" / "scout-vps-configure-hosted-env").read_text(
         encoding="utf-8"

@@ -43,6 +43,13 @@ HOSTED_URL_KEYS = [
     "STRIPE_PORTAL_RETURN_URL",
 ]
 
+OBSOLETE_KEYS = {
+    "STRIPE_BETA_PRICE_ID": (
+        "STRIPE_BETA_PRICE_ID is obsolete; beta uses direct email key delivery "
+        "or Stripe setup mode and does not need a price ID."
+    ),
+}
+
 SECRET_MARKERS = ("sk_test_", "sk_live_", "whsec_", "smtp-secret", "scout_live_")
 
 
@@ -85,6 +92,10 @@ def validate_config(values: dict[str, str], requirement: str) -> tuple[list[str]
         if value and value.casefold() not in {"true", "false", "1", "0", "yes", "no"}:
             warnings.append(f"{key} should be true or false.")
 
+    for key, message in OBSOLETE_KEYS.items():
+        if key in values:
+            warnings.append(message)
+
     username = values.get("HOSTED_KEY_DELIVERY_SMTP_USERNAME", "")
     password = values.get("HOSTED_KEY_DELIVERY_SMTP_PASSWORD", "")
     if username and not password:
@@ -122,7 +133,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-epilog="""Required key groups:
+        epilog="""Required key groups:
   beta: HOSTED_BETA_SIGNUP_ENABLED, HOSTED_KEY_DELIVERY_SMTP_HOST,
         HOSTED_KEY_DELIVERY_SMTP_PORT, HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL,
         HOSTED_KEY_DELIVERY_SMTP_USERNAME, HOSTED_KEY_DELIVERY_SMTP_PASSWORD
