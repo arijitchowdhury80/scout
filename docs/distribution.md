@@ -11,8 +11,9 @@ distribution paths.
 
 ## Hosted HTTP Beta
 
-Beta testers generate a finite-credit hosted key from `/beta`, then call hosted
-routes with Bearer auth:
+Beta testers request finite-credit hosted access from `/beta`. The public beta
+flow opens Stripe Checkout, provisions access from the signed webhook, and
+emails the API key. Public browser/API signup never returns raw API keys.
 
 ```bash
 export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
@@ -22,9 +23,8 @@ curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
 ```
 
-If SMTP delivery is configured, Scout emails the API key. If the launch fallback
-`HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK=true` is enabled, Scout shows the
-key once in the beta registration response and stores only the hash afterward.
+Operator-only key generation may still print a raw key once in a trusted admin
+shell. That path is not exposed through the public beta website.
 
 ## Claude/Codex Skill
 

@@ -395,20 +395,20 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Only after validation passes",
             "docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md",
         ],
-        "beta.html": [
-            "Scout Private Beta",
-            "Generate your hosted beta key",
-            "Tester handoff packet",
-            "docs/product/private-beta-tester-handoff.md",
-            "Hosted beta API key",
-            "Register for hosted API access.",
-            "Scout emails the API key after provisioning the hosted beta",
-            "100 standard credits",
-            "key_name",
-            "/v1/hosted/beta-key",
-            "Private beta is hosted HTTP first",
-            "Run the launch readiness checker.",
-            "scout launch-readiness",
+            "beta.html": [
+                "Scout Private Beta",
+                "Generate your hosted beta key",
+                "Tester handoff packet",
+                "docs/product/private-beta-tester-handoff.md",
+                "Hosted beta checkout",
+                "Request hosted API access.",
+                "Scout provisions the beta trial after Stripe confirms the setup",
+                "100 standard credits",
+                "beta_trial",
+                "/v1/billing/stripe/checkout-session",
+                "Private beta is hosted HTTP first",
+                "Run the launch readiness checker.",
+                "scout launch-readiness",
             "ready_with_limits",
             "--require-public",
             "Beta support is evidence-first.",
@@ -530,24 +530,27 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
 
 def test_beta_signup_collects_name_and_email_without_password() -> None:
     html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
+    pricing_js = (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
-    assert 'id="hostedBetaSignup"' in html
+    assert 'id="pricingCheckoutForm"' in html
     assert 'name="name"' in html
     assert 'name="email"' in html
-    assert 'name="key_name"' in html
-    assert 'data-endpoint="/v1/hosted/beta-key"' in html
-    assert "Register your name and email" in normalized_html
-    assert "Scout emails the API key" in normalized_html
-    assert "payload.raw_api_key" in html
-    assert "Copy it now; Scout will not show it again." in html
+    assert 'name="package_id"' in html
+    assert 'value="beta_trial"' in html
+    assert 'data-endpoint="/v1/billing/stripe/checkout-session"' in html
+    assert 'data-ready-flag="ready_for_beta_checkout"' in html
+    assert "through the hosted checkout flow" in normalized_html
+    assert "Public signup never shows raw keys" in normalized_html
+    assert "Scout opens Stripe Checkout" in normalized_html
     assert "100 standard credits" in normalized_html
-    assert "hostedBetaSignup" in html
-    assert "/v1/hosted/beta-key" in html
+    assert "pricingCheckoutForm" in html
+    assert "/v1/hosted/beta-key" not in html
     assert "/v1/billing/stripe/status" in html
-    assert "ready_for_beta_key_delivery" in html
-    assert "registration is temporarily paused" in html
-    assert "/v1/billing/stripe/checkout-session" not in html
+    assert "ready_for_beta_checkout" in html
+    assert "/v1/billing/stripe/checkout-session" in html
+    assert "payload.raw_api_key" not in html
+    assert "Hosted beta checkout is paused" in pricing_js
     assert 'type="password"' not in html
     assert 'name="invite_password"' not in html
 

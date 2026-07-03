@@ -188,7 +188,7 @@ def test_hosted_beta_key_generation_requires_configured_delivery_service(
     assert account_service.store.find_tenant_by_email("no-email@example.com") is None
 
 
-def test_hosted_beta_key_generation_can_show_key_once_when_fallback_is_enabled(
+def test_hosted_beta_key_generation_rejects_response_fallback_even_when_env_set(
     monkeypatch,
 ) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
@@ -208,34 +208,22 @@ def test_hosted_beta_key_generation_can_show_key_once_when_fallback_is_enabled(
                 "key_name": "Fallback beta key",
             },
         )
-        data = resp.json()
-        me_resp = client.get(
-            "/v1/hosted/me",
-            headers={"Authorization": f"Bearer {data['raw_api_key']}"},
-        )
     finally:
         app.dependency_overrides.clear()
 
-    assert resp.status_code == 200
-    assert data["success"] is True
-    assert data["email"] == "fallback@example.com"
-    assert data["delivery_status"] == "shown_once"
-    assert data["raw_api_key"].startswith("scout_live_")
-    assert "Copy this API key now" in data["warning"]
-    assert delivery.requests == []
-    assert me_resp.status_code == 200
-    assert me_resp.json()["tenant_id"] == data["tenant_id"]
-    assert data["raw_api_key"] not in me_resp.text
+    assert resp.status_code == 503
+    assert resp.json()["detail"] == "Hosted API key delivery is not configured."
+    assert account_service.store.find_tenant_by_email("fallback@example.com") is None
 
 
-def test_hosted_beta_key_response_schema_advertises_one_time_raw_key_fallback() -> None:
+def test_hosted_beta_key_response_schema_does_not_expose_raw_key() -> None:
     client = TestClient(app)
 
     response = client.get("/openapi.json")
     schema = response.json()["components"]["schemas"]["HostedBetaKeyResponse"]
 
     assert response.status_code == 200
-    assert "raw_api_key" in schema["properties"]
+    assert "raw_api_key" not in schema["properties"]
 
 
 def test_hosted_beta_key_generation_rolls_back_when_delivery_fails(monkeypatch) -> None:

@@ -94,7 +94,7 @@ def run_readiness(base_url: str, timeout: float = 20.0) -> HostedReadinessResult
         if isinstance(package, dict)
     }
     packages_ok = {"beta_trial", "standard_1000"}.issubset(package_ids)
-    ready_for_beta_signup = billing.get("ready_for_beta_key_delivery") is True
+    ready_for_beta_signup = billing.get("ready_for_beta_checkout") is True
     ready_for_paid_checkout = billing.get("ready_for_paid_key_delivery") is True
 
     blockers: list[str] = []
@@ -104,15 +104,14 @@ def run_readiness(base_url: str, timeout: float = 20.0) -> HostedReadinessResult
         blockers.append("billing packages are missing beta_trial or standard_1000")
     if billing.get("beta_signup_enabled") is not True:
         blockers.append("hosted beta signup disabled")
-    if (
-        billing.get("key_delivery_configured") is not True
-        and billing.get("key_delivery_response_fallback_enabled") is not True
-    ):
+    if billing.get("key_delivery_configured") is not True:
         blockers.append("hosted API key email delivery not configured")
     if billing.get("checkout_configured") is not True:
         blockers.append("Stripe Checkout not configured")
     if billing.get("webhook_configured") is not True:
         blockers.append("Stripe webhook secret not configured")
+    if not ready_for_beta_signup:
+        blockers.append("hosted beta checkout/key delivery not ready")
     if not ready_for_paid_checkout:
         blockers.append("paid checkout/key delivery not ready")
 

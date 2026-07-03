@@ -95,24 +95,27 @@ scout launch-readiness --require-public</code></pre>
 
         <section class="section beta" id="hosted-checkout">
           <div>
-            <p class="wi-label wi-label--accent">Hosted beta API key</p>
-            <h2>Register for hosted API access.</h2>
+            <p class="wi-label wi-label--accent">Hosted beta checkout</p>
+            <h2>Request hosted API access.</h2>
             <p>
-              Register your name and email. Scout records the beta account,
-              provisions 100 standard credits, and either emails the API key or
-              shows it once when response fallback is enabled. Paid credit packs
-              stay on the pricing page.
+              Register your name and email through the hosted checkout flow.
+              Scout provisions the beta trial after Stripe confirms the setup
+              session and emails the API key. Public signup never shows raw keys
+              in the browser.
             </p>
           </div>
-          <div class="beta-panel" aria-label="Hosted beta API key registration">
+          <div class="beta-panel" aria-label="Hosted beta checkout registration">
             <form
-              id="hostedBetaSignup"
+              id="pricingCheckoutForm"
               class="beta-form"
-              data-endpoint="/v1/hosted/beta-key"
+              data-endpoint="/v1/billing/stripe/checkout-session"
+              data-status-endpoint="/v1/billing/stripe/status"
+              data-ready-flag="ready_for_beta_checkout"
             >
-              <label for="hostedBetaName">Name or app name</label>
+              <input id="pricingPackageId" name="package_id" type="hidden" value="beta_trial" />
+              <label for="pricingCheckoutName">Name or app name</label>
               <input
-                id="hostedBetaName"
+                id="pricingCheckoutName"
                 name="name"
                 type="text"
                 autocomplete="name"
@@ -120,22 +123,21 @@ scout launch-readiness --require-public</code></pre>
                 required
               />
 
-              <label for="hostedBetaEmail">Email for hosted API key delivery</label>
+              <label for="pricingCheckoutEmail">Email for hosted API key delivery</label>
               <div class="beta-form-row">
                 <input
-                  id="hostedBetaEmail"
+                  id="pricingCheckoutEmail"
                   name="email"
                   type="email"
                   autocomplete="email"
                   placeholder="you@example.com"
                   required
                 />
-                <input id="hostedBetaKeyName" name="key_name" type="hidden" value="Hosted beta key" />
-                <button class="wi-btn" type="submit">Register for Beta Tester API Key</button>
+                <button class="wi-btn" type="submit">Start Hosted Beta Checkout</button>
               </div>
-              <p id="hostedBetaStatus" class="beta-status" role="status" aria-live="polite">
-                Scout emails the API key after provisioning the hosted beta
-                account, or shows it once if email delivery is not configured.
+              <p id="pricingCheckoutStatus" class="beta-status" role="status" aria-live="polite">
+                Scout opens Stripe Checkout for beta registration, then emails
+                the API key after webhook provisioning succeeds.
                 The beta trial includes 100 standard credits.
               </p>
               <p class="beta-note">
@@ -187,77 +189,6 @@ scout launch-readiness --require-public</code></pre>
       </main>
     </div>
     <script src="./assets/copy-code.js" defer></script>
-    <script>
-      const signupForm = document.getElementById("hostedBetaSignup");
-      const signupStatus = document.getElementById("hostedBetaStatus");
-      const signupButton = signupForm?.querySelector("button[type='submit']");
-      const betaReadinessEndpoint = "/v1/billing/stripe/status";
-
-      async function checkBetaRegistrationReadiness() {
-        if (!signupButton || !signupStatus) return;
-        try {
-          const response = await fetch(betaReadinessEndpoint, { headers: { accept: "application/json" } });
-          if (!response.ok) return;
-          const status = await response.json();
-          if (!status.ready_for_beta_key_delivery) {
-            signupButton.disabled = true;
-            signupStatus.textContent =
-              "Hosted beta registration is temporarily paused while API-key delivery or one-time key display is configured. Existing keys still work.";
-            signupStatus.dataset.state = "error";
-          }
-        } catch {
-          // Static-file previews cannot reach the API; keep the form interactive there.
-        }
-      }
-
-      signupForm?.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        if (!signupButton || !signupStatus) return;
-        const name = document.getElementById("hostedBetaName")?.value.trim() || "";
-        const email = document.getElementById("hostedBetaEmail")?.value.trim() || "";
-        const keyName = document.getElementById("hostedBetaKeyName")?.value || "Hosted beta key";
-        const endpoint = signupForm.dataset.endpoint || "/v1/hosted/beta-key";
-        if (!name) {
-          signupStatus.textContent = "Enter your name or app name for API key registration.";
-          signupStatus.dataset.state = "error";
-          return;
-        }
-        if (!email) {
-          signupStatus.textContent = "Enter an email address for API key delivery.";
-          signupStatus.dataset.state = "error";
-          return;
-        }
-        signupStatus.textContent = "Registering hosted beta account...";
-        signupStatus.dataset.state = "loading";
-        signupButton.disabled = true;
-        try {
-          const response = await fetch(endpoint, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ name, email, key_name: keyName }),
-          });
-          const payload = await response.json().catch(() => ({}));
-          if (!response.ok) throw new Error(payload.detail || "Hosted beta registration is not available yet.");
-          if (payload.raw_api_key) {
-            signupStatus.innerHTML = "";
-            const message = document.createElement("span");
-            message.textContent = `API key generated for ${payload.email}. Copy it now; Scout will not show it again. `;
-            const key = document.createElement("code");
-            key.textContent = payload.raw_api_key;
-            signupStatus.append(message, key);
-          } else {
-            signupStatus.textContent = `API key email queued for ${payload.email}. Check your inbox, then open /account to inspect credits.`;
-          }
-          signupStatus.dataset.state = "success";
-        } catch (error) {
-          signupStatus.textContent =
-            error instanceof Error ? error.message : "Hosted beta registration is not available yet.";
-          signupStatus.dataset.state = "error";
-        }
-        signupButton.disabled = false;
-      });
-
-      checkBetaRegistrationReadiness();
-    </script>
+    <script src="./assets/pricing.js" defer></script>
   </body>
 </html>

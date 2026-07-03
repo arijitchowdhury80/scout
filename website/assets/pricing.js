@@ -7,29 +7,38 @@
   const checkoutStatus = document.getElementById("pricingCheckoutStatus");
   const checkoutReturnStatus = document.getElementById("pricingCheckoutReturnStatus");
 
-  if (!pricingSection || !packageGrid || !creditCosts || !unitEconomics) {
+  if (!pricingSection && !checkoutForm) {
     return;
   }
 
-  const endpoint = pricingSection.dataset.packagesEndpoint || "/v1/billing/packages";
+  const endpoint = pricingSection?.dataset.packagesEndpoint || "/v1/billing/packages";
   const checkoutEndpoint =
+    checkoutForm?.dataset.endpoint ||
     checkoutForm?.dataset.checkoutEndpoint ||
-    pricingSection.dataset.checkoutEndpoint ||
+    pricingSection?.dataset.checkoutEndpoint ||
     "/v1/billing/stripe/checkout-session";
+  const checkoutStatusEndpoint =
+    checkoutForm?.dataset.statusEndpoint ||
+    pricingSection?.dataset.checkoutStatusEndpoint ||
+    "/v1/billing/stripe/status";
+  const checkoutReadyFlag = checkoutForm?.dataset.readyFlag || "ready_for_paid_key_delivery";
 
-  fetch(endpoint, { headers: { Accept: "application/json" } })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Pricing endpoint unavailable");
-      }
-      return response.json();
-    })
-    .then((data) => renderPricing(data))
-    .catch(() => {
-      packageGrid.dataset.pricingStatus = "fallback";
-    });
+  if (pricingSection && packageGrid && creditCosts && unitEconomics) {
+    fetch(endpoint, { headers: { Accept: "application/json" } })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Pricing endpoint unavailable");
+        }
+        return response.json();
+      })
+      .then((data) => renderPricing(data))
+      .catch(() => {
+        packageGrid.dataset.pricingStatus = "fallback";
+      });
+  }
 
   handleCheckoutReturnState();
+  checkCheckoutReadiness();
 
   checkoutForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -180,6 +189,27 @@
       checkoutReturnStatus.dataset.state = "error";
       checkoutReturnStatus.textContent =
         "Stripe checkout was cancelled. No hosted credits were provisioned; local Scout remains available.";
+    }
+  }
+
+  async function checkCheckoutReadiness() {
+    if (!checkoutForm || !checkoutStatus) return;
+    const submitButton = checkoutForm.querySelector("button[type='submit']");
+    try {
+      const response = await fetch(checkoutStatusEndpoint, {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) return;
+      const status = await response.json();
+      if (status[checkoutReadyFlag] !== true) {
+        if (submitButton) submitButton.disabled = true;
+        setCheckoutStatus(
+          "Hosted beta checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured. Existing keys still work.",
+          "error",
+        );
+      }
+    } catch {
+      // Static file previews cannot reach the API; keep the form interactive there.
     }
   }
 
