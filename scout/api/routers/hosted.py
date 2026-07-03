@@ -147,6 +147,9 @@ class HostedAccountSummaryResponse(BaseModel):
     account_status: str
     balance: HostedUsageBalance
     limits: HostedPlanLimits
+    usage_summary: dict[str, object]
+    purchase_summary: dict[str, object]
+    links: dict[str, str]
 
 
 class HostedBetaKeyRequest(BaseModel):
@@ -178,6 +181,9 @@ async def hosted_me(
     authorization: str = Header(default=""),
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+    payment_service: HostedPaymentProvisioningService = Depends(
+        get_hosted_payment_provisioning_service
+    ),
 ) -> HostedAccountSummaryResponse:
     """Return hosted account limits and remaining credits for a Bearer key."""
     raw_key = _bearer_token(authorization)
@@ -195,6 +201,9 @@ async def hosted_me(
         account_status=tenant.status.value,
         balance=account_service.get_balance(auth.tenant_id),
         limits=plan_limits(tenant.plan),
+        usage_summary=_usage_summary(account_service, auth.tenant_id),
+        purchase_summary=_purchase_summary(payment_service, auth.tenant_id),
+        links=_hosted_account_links(),
     )
 
 
@@ -233,6 +242,51 @@ async def hosted_purchases(
     return {
         "total": len(purchases),
         "purchases": [purchase.model_dump(mode="json") for purchase in purchases],
+    }
+
+
+def _usage_summary(
+    account_service: HostedAccountService,
+    tenant_id: str,
+) -> dict[str, object]:
+    """Return compact usage telemetry for the hosted account summary."""
+    entries = account_service.list_usage(tenant_id, limit=500)
+    standard_credits_used = sum(
+        entry.credits for entry in entries if entry.credit_type == "standard"
+    )
+    browser_credits_used = sum(entry.credits for entry in entries if entry.credit_type == "browser")
+    return {
+        "total_events": len(entries),
+        "standard_credits_used": standard_credits_used,
+        "browser_credits_used": browser_credits_used,
+        "usage_url": "/v1/hosted/usage",
+    }
+
+
+def _purchase_summary(
+    payment_service: HostedPaymentProvisioningService,
+    tenant_id: str,
+) -> dict[str, object]:
+    """Return compact purchase telemetry for the hosted account summary."""
+    purchases = payment_service.payment_store.list_checkouts(tenant_id=tenant_id, limit=500)
+    total_amount_cents = sum(purchase.amount_total_cents for purchase in purchases)
+    last_purchase = purchases[0] if purchases else None
+    return {
+        "total_purchases": len(purchases),
+        "total_amount_cents": total_amount_cents,
+        "currency": last_purchase.currency if last_purchase is not None else "",
+        "last_package_id": last_purchase.package_id if last_purchase is not None else "",
+        "purchases_url": "/v1/hosted/purchases",
+    }
+
+
+def _hosted_account_links() -> dict[str, str]:
+    """Return stable self-service links for hosted API callers."""
+    return {
+        "usage": "/v1/hosted/usage",
+        "purchases": "/v1/hosted/purchases",
+        "docs": "https://scout.chowmes.com/docs",
+        "pricing": "https://scout.chowmes.com/pricing",
     }
 
 

@@ -18,9 +18,9 @@ Scout hosted beta has API-key based access, not a login system.
   beta boundary, includes credit meaning, links to docs/pricing, and asks users
   to reply with their use case, target site, and failing run ID for support.
 - Hosted calls use `Authorization: Bearer scout_live_...`.
-- Users can inspect their current hosted account, recent usage, and purchase
-  records with `/v1/hosted/me`, `/v1/hosted/usage`, and
-  `/v1/hosted/purchases`.
+- Users can inspect their current hosted account with `/v1/hosted/me`, which
+  returns balances, limits, usage totals, purchase totals, and links to deeper
+  `/v1/hosted/usage` and `/v1/hosted/purchases` records.
 - Public pricing and credit metadata is available through
   `/v1/billing/packages`; it contains no Stripe secrets.
 - The public pricing page can start Stripe Checkout for hosted credit packages
@@ -148,8 +148,8 @@ keys, not user sessions:
 - admin provisioning captures name and email through the operator command and
   prints the raw API key once;
 - API callers identify themselves only by `Authorization: Bearer scout_live_...`;
-- `/v1/hosted/me`, `/v1/hosted/usage`, and `/v1/hosted/purchases` are the
-  current account-inspection surfaces.
+- `/v1/hosted/me` is the current account snapshot surface; `/v1/hosted/usage`
+  and `/v1/hosted/purchases` provide deeper ledger/history rows.
 
 A future account portal should add email verification, login, key rotation,
 downloadable invoices, credit top-up, and Stripe customer portal links.
@@ -223,7 +223,9 @@ Today, Scout can answer:
 - the plan attached to each tenant,
 - current standard/browser credit balances,
 - recent per-tenant usage through `/v1/hosted/usage`,
+- usage totals in `/v1/hosted/me`,
 - per-tenant Stripe checkout/package purchase history through `/v1/hosted/purchases`,
+- purchase totals in `/v1/hosted/me`,
 - every successful hosted credit debit in the `hosted_credit_ledger` table,
 - Stripe checkout/package purchase records in `hosted_payment_checkouts`,
 - hosted run ownership through stored `tenant_id` and `key_id`,

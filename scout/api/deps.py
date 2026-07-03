@@ -7,12 +7,16 @@ from scout.api.db import RunDB
 from scout.api.hosted_jobs import HostedJobQueue
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
+from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
 from scout.core.platform.admission import AdmissionController
 from scout.core.platform.key_delivery import (
     DisabledHostedApiKeyDeliveryService,
     HostedApiKeyDeliveryService,
 )
-from scout.core.platform.payment_provisioning import HostedPaymentProvisioningService
+from scout.core.platform.payment_provisioning import (
+    HostedPaymentProvisioningService,
+    SQLiteHostedPaymentStore,
+)
 from scout.core.platform.hosted_rate_limit import HostedRateLimitConfig, HostedRateLimiter
 from scout.core.platform.stripe_checkout import StripeCheckoutConfig, StripeCheckoutService
 
@@ -44,7 +48,17 @@ def get_hosted_payment_provisioning_service(
     request: Request,
 ) -> HostedPaymentProvisioningService:
     """Return the hosted payment provisioning service stored on app.state."""
-    service: HostedPaymentProvisioningService = request.app.state.hosted_payment_service
+    service: HostedPaymentProvisioningService | None = getattr(
+        request.app.state,
+        "hosted_payment_service",
+        None,
+    )
+    if service is None:
+        db_path = settings.resolve_hosted_account_db_path()
+        service = HostedPaymentProvisioningService(
+            HostedAccountService(SQLiteHostedAccountStore(db_path)),
+            SQLiteHostedPaymentStore(db_path),
+        )
     return service
 
 

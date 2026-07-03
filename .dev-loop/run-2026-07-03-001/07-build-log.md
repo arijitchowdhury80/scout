@@ -333,6 +333,40 @@ Boundary: this is a successful hosted async-acceptance load test. It is still
 not proof that the 2-vCPU VPS can execute 250 simultaneous long-running browser
 or crawler jobs to completion without separate worker capacity.
 
+## Hosted Account Snapshot Monitoring Slice
+
+Implemented:
+
+- `/v1/hosted/me` now returns compact `usage_summary`, `purchase_summary`, and
+  stable account links alongside plan limits and balances.
+- The payment provisioning dependency now has a safe no-lifespan fallback for
+  tests and local direct app construction, while production still uses the
+  app-state service created during FastAPI lifespan startup.
+- Hosted operations docs now identify `/v1/hosted/me` as the account snapshot
+  surface and `/v1/hosted/usage` plus `/v1/hosted/purchases` as deeper ledgers.
+
+Verification:
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_purchases.py tests/unit/api/test_hosted_scrape.py tests/unit/api/test_hosted_crawl.py tests/unit/api/test_hosted_products.py tests/unit/api/test_hosted_run.py -q
+```
+
+Result: 33 passed, 2 warnings.
+
+```bash
+python3 -m pyright scout/
+ruff check scout/ tests/ scripts/*.py scripts/scout-hosted-load-test
+ruff format --check scout/ tests/ scripts/*.py scripts/scout-hosted-load-test
+```
+
+Result: pyright 0 errors; Ruff passed; format check passed.
+
+```bash
+python3 -m pytest tests/unit/ -q
+```
+
+Result: 705 passed, 8 warnings.
+
 ## Payment-Method-First Beta Access Slice
 
 Implemented:
