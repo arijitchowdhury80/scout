@@ -31,8 +31,8 @@ HOSTED_KEY_DELIVERY_SMTP_PASSWORD=
 HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
 
 # Stripe Checkout for paid credit packages and beta card setup.
+# Beta card-backed trials use Stripe setup mode, so no beta price id is needed.
 STRIPE_SECRET_KEY=
-STRIPE_BETA_PRICE_ID=
 STRIPE_STANDARD_1000_PRICE_ID=
 STRIPE_STANDARD_3000_PRICE_ID=
 STRIPE_STANDARD_15000_PRICE_ID=

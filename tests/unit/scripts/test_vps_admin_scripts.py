@@ -184,6 +184,21 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             assert fragment in output
 
 
+def test_hosted_config_template_and_vps_config_do_not_request_beta_price_id() -> None:
+    """Beta checkout uses Stripe setup mode; no beta price id should be configured."""
+    template_text = (REPO_ROOT / "scripts" / "scout-write-hosted-config-template").read_text(
+        encoding="utf-8"
+    )
+    configure_text = (REPO_ROOT / "scripts" / "scout-vps-configure-hosted-env").read_text(
+        encoding="utf-8"
+    )
+
+    assert "STRIPE_BETA_PRICE_ID" not in template_text
+    assert "STRIPE_BETA_PRICE_ID" not in configure_text
+    assert "STRIPE_STANDARD_1000_PRICE_ID" in template_text
+    assert "STRIPE_STANDARD_1000_PRICE_ID" in configure_text
+
+
 def test_list_accounts_script_never_selects_or_prints_key_hash() -> None:
     script_text = (REPO_ROOT / "scripts" / "scout-vps-list-hosted-accounts").read_text()
 
