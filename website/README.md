@@ -50,13 +50,13 @@ Public website paths served by `scout serve`:
 - `/docs` - FastAPI/Swagger API docs, intentionally preserved for exact API
   schemas.
 
-Hosted beta checkout:
+Hosted beta registration:
 
-- The beta section posts to `/v1/billing/stripe/checkout-session`.
-- The Scout API now serves this website at `/`, so the checkout form and billing
-  API are same-origin when launched through `scout serve`.
-- The page never contains Stripe secret keys; it only handles the returned
-  `checkout_url` and redirects the user to Stripe.
+- The beta section posts to `/v1/hosted/beta-key`.
+- The Scout API now serves this website at `/`, so the registration form and
+  hosted API are same-origin when launched through `scout serve`.
+- The page never contains SMTP, Stripe, or Scout secret keys; it only collects
+  name and email, then relies on server-side key delivery.
 - The beta page also describes support expectations: GitHub private-beta issue
   templates for non-security feedback, private reporting for vulnerabilities,
   and no secrets in public issues.

@@ -45,19 +45,16 @@ def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
 
 
 def test_launch_website_handles_stripe_checkout_return_states_without_secrets() -> None:
-    for page_name in ("beta.html", "pricing.html"):
-        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
-        checkout_source = html
-        if page_name == "pricing.html":
-            checkout_source += (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
+    html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
+    checkout_source = html + (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
 
-        assert "checkout=success" in html
-        assert "checkout=cancelled" in html
-        assert "Stripe payment completed. Scout will email your hosted API key" in checkout_source
-        assert "Stripe checkout was cancelled." in checkout_source
-        assert "handleCheckoutReturnState" in checkout_source
-        assert "sk_live_" not in html
-        assert "sk_test_" not in html
+    assert "checkout=success" in html
+    assert "checkout=cancelled" in html
+    assert "Stripe payment completed. Scout will email your hosted API key" in checkout_source
+    assert "Stripe checkout was cancelled." in checkout_source
+    assert "handleCheckoutReturnState" in checkout_source
+    assert "sk_live_" not in html
+    assert "sk_test_" not in html
 
 
 def test_launch_website_states_current_launch_readiness_boundaries() -> None:
@@ -320,8 +317,8 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "The hosted playground lives under the demo flow",
             "Open playground",
             "Call the live Scout API.",
-            "Start hosted beta checkout.",
-            "Beta testers use the $0 Stripe checkout path",
+            "Register for a beta API key.",
+            "Scout emails the API key after the hosted account is provisioned.",
             'href="/beta#hosted-checkout"',
             "API reference",
             "The endpoints testers actually need.",
@@ -371,7 +368,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "What changed in the blocker burndown?",
             "Arijit decisions: closed",
             "Codex gates: closed",
-            "Stripe paid checkout: deferred",
+            "Self-service beta keys: active",
             "Current blockers: 0",
             "Blocker summary",
             "Future public registry work",
@@ -381,7 +378,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "License: Apache-2.0 for Scout local/core",
             "Pricing: controlled beta posture",
             "Publishing: artifact-only private-beta v* tag first",
-            "Hosted: invite-only keys",
+            "Hosted: self-service beta keys",
             "public-pricing-and-hosted-usage-limits",
             "stripe-real-test-mode-smoke",
             "scout launch-readiness --owner Arijit",
@@ -404,13 +401,12 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Choose your beta path",
             "Tester handoff packet",
             "docs/product/private-beta-tester-handoff.md",
-            "Hosted beta checkout",
-            "Beta trial checkout collects a payment method",
-            "charges $0",
+            "Hosted beta API key",
+            "Register for hosted API access.",
+            "Scout emails the API key after provisioning the hosted beta",
             "100 standard credits",
-            "package_id",
-            "beta_trial",
-            "/v1/billing/stripe/checkout-session",
+            "key_name",
+            "/v1/hosted/beta-key",
             "Private beta is limited",
             "Run the launch readiness checker.",
             "scout launch-readiness",
@@ -466,25 +462,20 @@ def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
     assert "Do not use localhost for hosted calls." in html
 
 
-def test_docs_beta_access_is_payment_method_first() -> None:
+def test_docs_beta_access_is_self_service_email_delivery_without_password() -> None:
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
     css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
 
     assert '<form id="hostedKeyForm"' not in html
     assert 'src="./assets/hosted-keygen.js"' not in html
-    assert "/v1/hosted/beta-key" not in html
     assert 'name="invite_password"' not in html
     assert 'type="password"' not in html
     assert 'id="copyHostedKey"' not in html
-    assert "Start hosted beta checkout." in normalized_html
-    assert "Beta testers use the $0 Stripe checkout path" in normalized_html
-    assert (
-        "Scout emails the API key after the signed Stripe webhook provisions access."
-        in normalized_html
-    )
+    assert "Register for a beta API key." in normalized_html
+    assert "Scout emails the API key after the hosted account is provisioned." in normalized_html
     assert 'href="/beta#hosted-checkout"' in html
-    assert "/v1/billing/stripe/checkout-session" in html
+    assert "/v1/hosted/beta-key" in html
     assert ".hosted-key-card" in css
     assert ".hosted-key-result" in css
     assert "Only after `scout serve` is running on your own machine" in html
@@ -546,17 +537,21 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     assert "sk_test_" not in pricing_js
 
 
-def test_beta_checkout_collects_name_and_email_without_password() -> None:
+def test_beta_signup_collects_name_and_email_without_password() -> None:
     html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
-    assert 'id="hostedBetaCheckout"' in html
+    assert 'id="hostedBetaSignup"' in html
     assert 'name="name"' in html
     assert 'name="email"' in html
-    assert 'name="package_id"' in html
+    assert 'name="key_name"' in html
+    assert 'data-endpoint="/v1/hosted/beta-key"' in html
     assert "Register your name and email" in normalized_html
-    assert "charges $0" in normalized_html
+    assert "Scout emails the API key" in normalized_html
     assert "100 standard credits" in normalized_html
+    assert "hostedBetaSignup" in html
+    assert "/v1/hosted/beta-key" in html
+    assert "/v1/billing/stripe/checkout-session" not in html
     assert 'type="password"' not in html
     assert 'name="invite_password"' not in html
 

@@ -141,17 +141,16 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
           <div class="hosted-key-card" aria-labelledby="hosted-key-title">
             <div>
               <p class="wi-label wi-label--accent">Private beta access</p>
-              <h3 id="hosted-key-title">Start hosted beta checkout.</h3>
+              <h3 id="hosted-key-title">Register for a beta API key.</h3>
               <p>
-                Beta testers use the $0 Stripe checkout path so Scout can verify
-                the payment pipeline without charging you. Scout emails the API
-                key after the signed Stripe webhook provisions access.
+                Beta testers register with name and email. Scout emails the API
+                key after the hosted account is provisioned.
               </p>
             </div>
-            <a class="wi-btn" href="/beta#hosted-checkout">Open hosted beta checkout</a>
+            <a class="wi-btn" href="/beta#hosted-checkout">Open beta key registration</a>
             <div id="hostedKeyResult" class="hosted-key-result" aria-live="polite">
               <p>
-                Use the beta checkout form for key delivery. Existing keys still
+                Use the beta registration form for key delivery. Existing keys still
                 work with the hosted API examples below.
               </p>
             </div>
@@ -172,7 +171,7 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
             </article>
             <article>
               <h3>Keys</h3>
-              <p>Never paste hosted API keys into frontend code, public repos, screenshots, tickets, or shared logs.</p>
+              <p>Beta key registration posts to `/v1/hosted/beta-key`. Never paste hosted API keys into frontend code, public repos, screenshots, tickets, or shared logs.</p>
             </article>
           </div>
         </section>

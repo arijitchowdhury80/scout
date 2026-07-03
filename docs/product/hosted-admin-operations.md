@@ -139,9 +139,9 @@ references, tenant id, key id, and creation time. It does not print raw keys or
 stored key hashes.
 
 Hosted self-service key generation intentionally does not use a shared password
-gate. The beta flow is name plus email capture, Stripe beta checkout or
-operator-approved provisioning, account registration, key generation, and
-one-time API-key email delivery.
+gate. The beta flow is name plus email capture, account registration, key
+generation, and one-time API-key email delivery. Paid Stripe checkout remains
+the separate credit-package path.
 
 ## Login And Signup Status
 

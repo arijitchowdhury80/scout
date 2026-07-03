@@ -59,7 +59,7 @@ before those surfaces are enabled.
 | Published Docker image smoke | Closed | None | Codex | Not applicable until public registry image publishing is approved | `docs/product/founder-decision-record-SCOUT-DEC-20260629-04.md` |
 | Crawl4AI/lxml risk decision | Closed | None | Arijit | Private-beta exception approved; no security-clean claim | `docs/product/founder-decision-record-SCOUT-DEC-20260629-05.md` |
 | Dependency audit clean and blocking in CI | Closed | None | Codex plus upstream | Visible/non-blocking under private-beta exception; reopen before public registry/self-serve launch | `docs/product/founder-decision-record-SCOUT-DEC-20260629-05.md` |
-| Stripe real test-mode smoke | Closed | None | Arijit plus Codex | Paid checkout deferred; manual hosted beta key provisioning remains current path | `docs/product/stripe-test-mode-readiness-2026-06-29.md` |
+| Stripe real test-mode smoke | Closed | None | Arijit plus Codex | Paid checkout deferred; hosted beta key registration now uses name/email capture plus one-time API-key email delivery | `docs/product/stripe-test-mode-readiness-2026-06-29.md` |
 | Final hosted terms/privacy | Open | Legal/commercial review | Arijit/legal | Replace beta placeholders before broad commercial hosted access | `docs/legal/beta-terms-placeholder.md`, `docs/legal/beta-privacy-placeholder.md` |
 
 ## Codex-Executable Work Remaining

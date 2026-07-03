@@ -6,7 +6,7 @@
     <title>Scout Private Beta - Local install or hosted pass</title>
     <meta
       name="description"
-      content="Join the Scout private beta through local install or a limited hosted beta checkout."
+      content="Join the Scout private beta through local install or limited hosted API-key registration."
     />
     <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
@@ -54,16 +54,15 @@
               <a class="wi-btn" href="/quickstart">Open quickstart</a>
             </article>
             <article>
-              <h3>Hosted beta checkout</h3>
-              <p>Creates a Stripe checkout session only after hosted pricing and payment configuration are approved.</p>
+              <h3>Hosted beta API key</h3>
+              <p>Registers your name and email, provisions finite beta credits, and emails your hosted API key.</p>
               <p class="beta-note">
                 Limited credits, not unlimited crawling. Hosted beta is capped
                 and metered so tester activity cannot create an unbounded bill.
               </p>
               <p>
-                Current hosted beta is invite-only while unit economics are
-                validated. Final credits, price, retention, and overage rules
-                require founder approval.
+                Paid packages and overage rules remain separate from this beta
+                registration path and require founder approval before public launch.
               </p>
             </article>
           </div>
@@ -95,31 +94,19 @@ scout launch-readiness --require-public</code></pre>
 
         <section class="section beta" id="hosted-checkout">
           <div>
-            <p class="wi-label wi-label--accent">Hosted beta checkout</p>
-            <h2>Request hosted API access.</h2>
+            <p class="wi-label wi-label--accent">Hosted beta API key</p>
+            <h2>Register for hosted API access.</h2>
             <p>
-              Register your name and email. Scout will only redirect to Stripe
-              if hosted beta payment is configured. Otherwise, the page tells
-              you to use the local beta path and try again later.
+              Register your name and email. Scout records the beta account,
+              provisions 100 standard credits, and emails your API key. Paid
+              credit packs stay on the pricing page.
             </p>
           </div>
-          <div class="beta-panel" aria-label="Hosted beta checkout">
-            <p
-              id="hostedBetaReturnStatus"
-              class="beta-status checkout-return-status"
-              role="status"
-              aria-live="polite"
-              data-success-query="checkout=success"
-              data-cancel-query="checkout=cancelled"
-              hidden
-            >
-              Stripe checkout return status appears here.
-            </p>
+          <div class="beta-panel" aria-label="Hosted beta API key registration">
             <form
-              id="hostedBetaCheckout"
+              id="hostedBetaSignup"
               class="beta-form"
-              data-endpoint="/v1/billing/stripe/checkout-session"
-              data-status-endpoint="/v1/billing/stripe/status"
+              data-endpoint="/v1/hosted/beta-key"
             >
               <label for="hostedBetaName">Name or app name</label>
               <input
@@ -141,12 +128,12 @@ scout launch-readiness --require-public</code></pre>
                   placeholder="you@example.com"
                   required
                 />
-                <input id="hostedBetaPackage" name="package_id" type="hidden" value="beta_trial" />
-                <button class="wi-btn" type="submit">Create hosted beta checkout</button>
+                <input id="hostedBetaKeyName" name="key_name" type="hidden" value="Hosted beta key" />
+                <button class="wi-btn" type="submit">Register for Beta Tester API Key</button>
               </div>
               <p id="hostedBetaStatus" class="beta-status" role="status" aria-live="polite">
-                Beta trial checkout collects a payment method, charges $0, and
-                provisions 100 standard credits after the signed Stripe webhook.
+                Scout emails the API key after provisioning the hosted beta
+                account. The beta trial includes 100 standard credits.
               </p>
               <p class="beta-note">
                 By requesting hosted access, you acknowledge the
@@ -198,85 +185,47 @@ scout launch-readiness --require-public</code></pre>
     </div>
     <script src="./assets/copy-code.js" defer></script>
     <script>
-      const checkoutForm = document.getElementById("hostedBetaCheckout");
-      const checkoutStatus = document.getElementById("hostedBetaStatus");
-      const checkoutButton = checkoutForm?.querySelector("button[type='submit']");
-      const checkoutReturnStatus = document.getElementById("hostedBetaReturnStatus");
+      const signupForm = document.getElementById("hostedBetaSignup");
+      const signupStatus = document.getElementById("hostedBetaStatus");
+      const signupButton = signupForm?.querySelector("button[type='submit']");
 
-      function handleCheckoutReturnState() {
-        if (!checkoutReturnStatus) return;
-        const checkoutState = new URLSearchParams(window.location.search).get("checkout");
-        if (checkoutState === "success") {
-          checkoutReturnStatus.hidden = false;
-          checkoutReturnStatus.dataset.state = "success";
-          checkoutReturnStatus.textContent =
-            "Stripe payment completed. Scout will email your hosted API key after the signed webhook provisions access.";
-        } else if (checkoutState === "cancelled") {
-          checkoutReturnStatus.hidden = false;
-          checkoutReturnStatus.dataset.state = "error";
-          checkoutReturnStatus.textContent =
-            "Stripe checkout was cancelled. No hosted credits were provisioned; local Scout remains available.";
-        }
-      }
-
-      async function loadCheckoutReadiness() {
-        if (!checkoutForm || !checkoutStatus || !checkoutButton) return;
-        const endpoint = checkoutForm.dataset.statusEndpoint || "/v1/billing/stripe/status";
-        try {
-          const response = await fetch(endpoint);
-          const status = await response.json();
-          checkoutButton.disabled = !status.checkout_configured;
-          checkoutStatus.textContent = status.checkout_configured
-            ? "Hosted beta payment is configured. Stripe confirms payment before key delivery."
-            : "Hosted beta payment is not configured yet. Install locally today or check back for hosted access.";
-          checkoutStatus.dataset.state = status.checkout_configured ? "success" : "error";
-        } catch (_error) {
-          checkoutStatus.textContent = "Hosted beta payment status is temporarily unavailable.";
-          checkoutStatus.dataset.state = "error";
-          checkoutButton.disabled = true;
-        }
-      }
-
-      checkoutForm?.addEventListener("submit", async (event) => {
+      signupForm?.addEventListener("submit", async (event) => {
         event.preventDefault();
-        if (!checkoutButton) return;
+        if (!signupButton || !signupStatus) return;
         const name = document.getElementById("hostedBetaName")?.value.trim() || "";
         const email = document.getElementById("hostedBetaEmail")?.value.trim() || "";
-        const packageId = document.getElementById("hostedBetaPackage")?.value || "beta_trial";
-        const endpoint = checkoutForm.dataset.endpoint || "/v1/billing/stripe/checkout-session";
+        const keyName = document.getElementById("hostedBetaKeyName")?.value || "Hosted beta key";
+        const endpoint = signupForm.dataset.endpoint || "/v1/hosted/beta-key";
         if (!name) {
-          checkoutStatus.textContent = "Enter your name or app name for API key registration.";
-          checkoutStatus.dataset.state = "error";
+          signupStatus.textContent = "Enter your name or app name for API key registration.";
+          signupStatus.dataset.state = "error";
           return;
         }
         if (!email) {
-          checkoutStatus.textContent = "Enter an email address for API key delivery.";
-          checkoutStatus.dataset.state = "error";
+          signupStatus.textContent = "Enter an email address for API key delivery.";
+          signupStatus.dataset.state = "error";
           return;
         }
-        checkoutStatus.textContent = "Creating Stripe Checkout Session...";
-        checkoutStatus.dataset.state = "loading";
-        checkoutButton.disabled = true;
+        signupStatus.textContent = "Registering hosted beta account...";
+        signupStatus.dataset.state = "loading";
+        signupButton.disabled = true;
         try {
           const response = await fetch(endpoint, {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ name, email, package_id: packageId }),
+            body: JSON.stringify({ name, email, key_name: keyName }),
           });
           const payload = await response.json().catch(() => ({}));
-          if (!response.ok) throw new Error(payload.detail || "Hosted beta is not configured yet.");
-          if (!payload.checkout_url) throw new Error("Stripe did not return a checkout URL.");
-          window.location.assign(payload.checkout_url);
+          if (!response.ok) throw new Error(payload.detail || "Hosted beta registration is not available yet.");
+          signupStatus.textContent = `API key email queued for ${payload.email}. Check your inbox, then open /account to inspect credits.`;
+          signupStatus.dataset.state = "success";
         } catch (error) {
-          checkoutStatus.textContent =
-            error instanceof Error ? error.message : "Hosted beta is not configured yet.";
-          checkoutStatus.dataset.state = "error";
-          checkoutButton.disabled = false;
+          signupStatus.textContent =
+            error instanceof Error ? error.message : "Hosted beta registration is not available yet.";
+          signupStatus.dataset.state = "error";
         }
+        signupButton.disabled = false;
       });
-
-      handleCheckoutReturnState();
-      loadCheckoutReadiness();
     </script>
   </body>
 </html>
