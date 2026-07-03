@@ -144,6 +144,7 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     copy_code = client.get("/assets/copy-code.js")
     hosted_keygen = client.get("/assets/hosted-keygen.js")
     playground = client.get("/assets/playground.js")
+    pricing = client.get("/assets/pricing.js")
 
     assert styles.status_code == 200
     assert "text/css" in styles.headers["content-type"]
@@ -178,6 +179,9 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert "javascript" in playground.headers["content-type"]
     assert "/v1/playground/run" in playground.text
     assert "Download JSON" not in playground.text
+    assert pricing.status_code == 200
+    assert "javascript" in pricing.headers["content-type"]
+    assert "/v1/billing/packages" in pricing.text
 
 
 def test_launch_website_uses_flux_not_warm_industrial() -> None:
@@ -484,6 +488,7 @@ def test_docs_key_generation_form_is_email_delivery_based() -> None:
 
 def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
+    pricing_js = (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
     expected_strings = [
@@ -503,6 +508,29 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
 
     for expected in expected_strings:
         assert expected in normalized_html
+
+    assert 'data-packages-endpoint="/v1/billing/packages"' in html
+    assert 'id="pricingPackageGrid"' in html
+    assert 'id="pricingCreditCosts"' in html
+    assert 'id="pricingUnitEconomics"' in html
+    assert 'id="pricingCheckoutForm"' in html
+    assert 'name="email"' in html
+    assert 'name="package_id"' in html
+    assert 'value="standard_1000"' in html
+    assert 'value="standard_3000"' in html
+    assert 'value="standard_15000"' in html
+    assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' in html
+    assert 'id="pricingCheckoutStatus"' in html
+    assert 'src="./assets/pricing.js"' in html
+    assert "/v1/billing/packages" in pricing_js
+    assert "/v1/billing/stripe/checkout-session" in pricing_js
+    assert "pricingCheckoutForm" in pricing_js
+    assert "window.location.assign" in pricing_js
+    assert "package_id" in pricing_js
+    assert "amount_cents" in pricing_js
+    assert "gross_margin_percent" in pricing_js
+    assert "sk_live_" not in pricing_js
+    assert "sk_test_" not in pricing_js
 
 
 def test_command_docs_include_copy_code_behavior() -> None:

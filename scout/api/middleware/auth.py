@@ -22,6 +22,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         always_public_paths = {
             "/",
             "/assets/playground.js",
+            "/assets/pricing.js",
             "/beta",
             "/beta.html",
             "/docs",
@@ -66,6 +67,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.url.path.startswith("/v1/hosted/"):
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/v1/playground/"):
+            return await call_next(request)  # type: ignore[misc]
+        if request.url.path == "/v1/billing/packages":
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/v1/billing/stripe/"):
             return await call_next(request)  # type: ignore[misc]

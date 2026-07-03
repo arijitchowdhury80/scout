@@ -2,7 +2,7 @@
 set -eu
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-DEFAULT_SECRET_LABEL="HOSTED_BETA_INVITE_PASSWORD"
+DEFAULT_SECRET_LABEL="HOSTED_ADMIN_TOKEN"
 
 usage() {
   cat <<EOF
@@ -55,8 +55,8 @@ generate_secret() {
 usage: scout-hosted-admin generate-secret [--label NAME] [--bytes N]
 
 Generate a strong secret/password and print a copyable shell export.
-Use this for beta invite passwords, admin tokens, SMTP app secrets, or other
-environment-only secrets. Do not commit the generated value.
+Use this for admin tokens, SMTP app secrets, or other environment-only secrets.
+Do not commit the generated value.
 EOF
         exit 0
         ;;

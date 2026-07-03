@@ -18,6 +18,7 @@ from scout.api.deps import (
     get_hosted_account_service,
     get_hosted_job_queue,
     get_hosted_key_delivery_service,
+    get_hosted_payment_provisioning_service,
     get_hosted_rate_limiter,
 )
 from scout.api.hosted_jobs import HostedJobQueue, HostedQueueFull
@@ -39,6 +40,7 @@ from scout.core.platform.key_delivery import (
     HostedApiKeyDeliveryRequest,
     HostedApiKeyDeliveryService,
 )
+from scout.core.platform.payment_provisioning import HostedPaymentProvisioningService
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest, RunResponse
 from scout.core.platform.url_safety import validate_hosted_url_fields
@@ -212,6 +214,28 @@ async def hosted_usage(
     }
 
 
+@router.get("/purchases")
+async def hosted_purchases(
+    limit: int = 100,
+    authorization: str = Header(default=""),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+    payment_service: HostedPaymentProvisioningService = Depends(
+        get_hosted_payment_provisioning_service
+    ),
+) -> dict[str, Any]:
+    """Return hosted checkout/package purchase records for the Bearer key tenant."""
+    auth = _hosted_auth_for_read(authorization, account_service, rate_limiter)
+    purchases = payment_service.payment_store.list_checkouts(
+        tenant_id=auth.tenant_id,
+        limit=limit,
+    )
+    return {
+        "total": len(purchases),
+        "purchases": [purchase.model_dump(mode="json") for purchase in purchases],
+    }
+
+
 @router.post("/beta-key", response_model=HostedBetaKeyResponse)
 async def hosted_beta_key(
     req: HostedBetaKeyRequest,
@@ -288,6 +312,15 @@ async def hosted_scrape(
         raise HTTPException(status_code=403, detail=auth.reason)
     _enforce_hosted_url_safety(req.url)
     _enforce_rate_limit(rate_limiter, auth.key_id)
+    if settings.hosted_async_first:
+        return _queue_hosted_job(
+            job_queue,
+            kind="scrape",
+            tenant_id=auth.tenant_id,
+            key_id=auth.key_id,
+            retry_after_seconds=settings.capacity_retry_after_seconds,
+            work=lambda: _execute_hosted_scrape(req, raw_key, crawler, account_service),
+        )
     try:
         async with admission.admit():
             return await _execute_hosted_scrape(req, raw_key, crawler, account_service)
@@ -325,6 +358,21 @@ async def hosted_crawl(
     _enforce_crawl_page_limit(req.max_pages, limits)
     _enforce_standard_credit_preflight(account_service, auth.tenant_id, req.max_pages)
     _enforce_rate_limit(rate_limiter, auth.key_id)
+    if settings.hosted_async_first:
+        return _queue_hosted_job(
+            job_queue,
+            kind="crawl",
+            tenant_id=auth.tenant_id,
+            key_id=auth.key_id,
+            retry_after_seconds=settings.capacity_retry_after_seconds,
+            work=lambda: _execute_hosted_crawl(
+                req,
+                auth.tenant_id,
+                auth.key_id,
+                crawler,
+                account_service,
+            ),
+        )
 
     try:
         async with admission.admit():
@@ -372,6 +420,21 @@ async def hosted_products(
     _enforce_product_limit(req.max_products, limits)
     _enforce_standard_credit_preflight(account_service, auth.tenant_id, req.max_products)
     _enforce_rate_limit(rate_limiter, auth.key_id)
+    if settings.hosted_async_first:
+        return _queue_hosted_job(
+            job_queue,
+            kind="products",
+            tenant_id=auth.tenant_id,
+            key_id=auth.key_id,
+            retry_after_seconds=settings.capacity_retry_after_seconds,
+            work=lambda: _execute_hosted_products(
+                req,
+                auth.tenant_id,
+                auth.key_id,
+                crawler,
+                account_service,
+            ),
+        )
 
     try:
         async with admission.admit():
@@ -435,6 +498,21 @@ async def hosted_run(
             ),
         }
     )
+    if settings.hosted_async_first:
+        return _queue_hosted_job(
+            job_queue,
+            kind=f"run:{use_case}",
+            tenant_id=auth.tenant_id,
+            key_id=auth.key_id,
+            retry_after_seconds=settings.capacity_retry_after_seconds,
+            work=lambda: _execute_hosted_run(
+                hosted_req,
+                auth.tenant_id,
+                auth.key_id,
+                account_service,
+                crawler,
+            ),
+        )
     try:
         async with admission.admit():
             return await _execute_hosted_run(

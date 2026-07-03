@@ -37,7 +37,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "provision-key",
             "list-accounts",
             "list-purchases",
-            "HOSTED_BETA_INVITE_PASSWORD",
+            "HOSTED_ADMIN_TOKEN",
         ],
         "scout-vps-provision-hosted-key": [
             "scout hosted-provision",
@@ -119,3 +119,22 @@ def test_hosted_admin_generate_secret_outputs_shell_export() -> None:
     assert "HOSTED_ADMIN_TOKEN=" in output
     assert "export HOSTED_ADMIN_TOKEN=" in output
     assert "openssl rand -base64" not in output
+
+
+def test_hosted_admin_has_no_beta_invite_password_flow() -> None:
+    script = REPO_ROOT / "scripts" / "scout-hosted-admin"
+    help_result = subprocess.run(
+        [str(script), "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    script_text = script.read_text(encoding="utf-8")
+    docs_text = (REPO_ROOT / "docs" / "product" / "hosted-admin-operations.md").read_text(
+        encoding="utf-8"
+    )
+    combined = help_result.stdout + help_result.stderr + script_text + docs_text
+
+    assert "HOSTED_BETA_INVITE_PASSWORD" not in combined
+    assert "beta invite password" not in combined.lower()
+    assert "invite-password" not in combined.lower()

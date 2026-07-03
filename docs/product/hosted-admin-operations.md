@@ -12,7 +12,11 @@ Scout hosted beta has API-key based access, not a login system.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
 - Self-service signup emails the raw API key and never returns it in the HTTP response. Operator CLI provisioning still prints the raw key once. Scout stores only a hash.
 - Hosted calls use `Authorization: Bearer scout_live_...`.
-- Users can inspect their current hosted account and recent usage with `/v1/hosted/me` and `/v1/hosted/usage`.
+- Users can inspect their current hosted account, recent usage, and purchase
+  records with `/v1/hosted/me`, `/v1/hosted/usage`, and
+  `/v1/hosted/purchases`.
+- Public pricing and credit metadata is available through
+  `/v1/billing/packages`; it contains no Stripe secrets.
 
 ## What Does Not Exist Yet
 
@@ -102,20 +106,19 @@ This shows email, package id, amount, currency, Stripe checkout/customer/payment
 references, tenant id, key id, and creation time. It does not print raw keys or
 stored key hashes.
 
-### Generate A Strong Password Or Secret
+### Generate A Strong Admin Secret
 
-For beta invite passwords, admin tokens, SMTP app secrets, or temporary shared
-operator secrets, generate a strong local value and paste it into the target
-environment file manually:
+For admin tokens, SMTP app secrets, or temporary shared operator secrets,
+generate a strong local value and paste it into the target environment file
+manually:
 
 ```bash
 scripts/scout-hosted-admin generate-secret --label HOSTED_ADMIN_TOKEN
-scripts/scout-hosted-admin generate-secret --label HOSTED_BETA_INVITE_PASSWORD
 ```
 
-Current hosted self-service key generation does not require an invite password.
-If an invite-password gate is reintroduced later, store that password only in
-the VPS environment, not in Git.
+Hosted self-service key generation intentionally does not use a shared password
+gate. The beta flow is name plus email capture, account registration, key
+generation, and one-time API-key email delivery.
 
 ## Login And Signup Status
 
@@ -127,8 +130,8 @@ keys, not user sessions:
 - admin provisioning captures name and email through the operator command and
   prints the raw API key once;
 - API callers identify themselves only by `Authorization: Bearer scout_live_...`;
-- `/v1/hosted/me` and `/v1/hosted/usage` are the current account-inspection
-  surfaces.
+- `/v1/hosted/me`, `/v1/hosted/usage`, and `/v1/hosted/purchases` are the
+  current account-inspection surfaces.
 
 A future account portal should add email verification, login, key rotation,
 downloadable invoices, credit top-up, and Stripe customer portal links.
@@ -172,6 +175,7 @@ HOSTED_RATE_LIMIT_WINDOW_SECONDS=60
 HOSTED_MAX_ACTIVE_REQUESTS=8
 HOSTED_JOB_QUEUE_MAX_SIZE=250
 HOSTED_JOB_QUEUE_WORKERS=2
+HOSTED_ASYNC_FIRST=false
 CAPACITY_RETRY_AFTER_SECONDS=5
 ```
 
@@ -181,6 +185,11 @@ when queue space is available. The response includes `job_id`, `job_url`, and
 `Retry-After`; callers poll `/v1/hosted/jobs/{job_id}` with the same Bearer key.
 Queued jobs spend credits only when execution starts and produces the same
 hosted result shape as the synchronous path. Queue overflow returns `429`.
+
+For 250-user public beta bursts on the current small VPS, run with
+`HOSTED_ASYNC_FIRST=true` and a queue large enough for the planned burst. That
+keeps the HTTP path responsive by accepting expensive work as jobs before live
+crawler/browser execution starts.
 
 This queue is in-process and single-node. It is appropriate for the current VPS
 private beta, but a larger public launch should replace it with a durable queue,
@@ -196,10 +205,12 @@ Today, Scout can answer:
 - the plan attached to each tenant,
 - current standard/browser credit balances,
 - recent per-tenant usage through `/v1/hosted/usage`,
+- per-tenant Stripe checkout/package purchase history through `/v1/hosted/purchases`,
 - every successful hosted credit debit in the `hosted_credit_ledger` table,
 - Stripe checkout/package purchase records in `hosted_payment_checkouts`,
 - hosted run ownership through stored `tenant_id` and `key_id`,
 - per-response `credits_charged` for hosted API calls.
+- public package/credit/unit-economics metadata through `/v1/billing/packages`.
 
 Scout cannot yet answer, as a polished product feature:
 

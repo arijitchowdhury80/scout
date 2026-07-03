@@ -116,6 +116,7 @@ capacity is saturated. Configure it with:
 HOSTED_MAX_ACTIVE_REQUESTS=8
 HOSTED_JOB_QUEUE_MAX_SIZE=250
 HOSTED_JOB_QUEUE_WORKERS=2
+HOSTED_ASYNC_FIRST=false
 CAPACITY_RETRY_AFTER_SECONDS=5
 ```
 
@@ -124,6 +125,11 @@ When all synchronous workers are busy, `/v1/hosted/scrape`, `/crawl`,
 `job_url`. Poll `/v1/hosted/jobs/{job_id}` with the same Bearer key for status
 and result. Credits are charged only when the queued job actually executes.
 If the queue is also full, Scout returns `429` with `Retry-After`.
+
+For public beta bursts on a small VPS, set `HOSTED_ASYNC_FIRST=true`. In that
+mode expensive hosted endpoints return `202 Accepted` immediately after auth,
+URL safety, plan-limit, and credit-preflight checks. Worker processes then drain
+the queue behind the HTTP request path.
 
 Scout exposes a non-secret readiness check for the website:
 

@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     hosted_max_active_requests: int = 8
     hosted_job_queue_max_size: int = 250
     hosted_job_queue_workers: int = 2
+    hosted_async_first: bool = False
     playground_max_active_requests: int = 4
     capacity_retry_after_seconds: int = 5
     hosted_beta_signup_enabled: bool = False

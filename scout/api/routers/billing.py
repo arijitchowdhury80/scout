@@ -28,6 +28,12 @@ from scout.core.platform.payment_provisioning import (
     HostedPaymentProvider,
     HostedPaymentProvisioningService,
 )
+from scout.core.platform.pricing import (
+    PackageUnitEconomics,
+    credit_cost_table,
+    credit_packages,
+    package_unit_economics,
+)
 from scout.core.platform.stripe_checkout import (
     StripeCheckoutRequest,
     StripeCheckoutResult,
@@ -74,6 +80,29 @@ class StripeBillingStatusResponse(BaseModel):
     webhook_configured: bool
     key_delivery_configured: bool
     ready_for_paid_key_delivery: bool
+
+
+class HostedBillingPackagesResponse(BaseModel):
+    """Public non-secret hosted package and credit metadata."""
+
+    packages: list[dict[str, object]]
+    credit_costs: dict[str, str]
+    unit_economics: dict[str, PackageUnitEconomics]
+
+
+@router.get("/packages", response_model=HostedBillingPackagesResponse)
+async def billing_packages() -> HostedBillingPackagesResponse:
+    """Return public hosted credit packages, credit meanings, and economics."""
+    packages = [package.model_dump(mode="json") for package in credit_packages()]
+    economics = {
+        package["package_id"]: package_unit_economics(str(package["package_id"]))
+        for package in packages
+    }
+    return HostedBillingPackagesResponse(
+        packages=packages,
+        credit_costs=credit_cost_table(),
+        unit_economics=economics,
+    )
 
 
 @router.get("/stripe/status", response_model=StripeBillingStatusResponse)

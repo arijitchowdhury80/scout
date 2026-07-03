@@ -118,6 +118,86 @@ def test_hosted_expensive_endpoints_queue_when_worker_capacity_is_full() -> None
     assert mock_crawler.products.await_count == 0
 
 
+def test_hosted_scrape_async_first_queues_without_waiting_for_capacity(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr("scout.api.routers.hosted.settings.hosted_async_first", True)
+    account_service, raw_key, tenant_id = _account_service_with_key()
+    admission = AdmissionController(max_active=100, retry_after_seconds=3)
+    queue = HostedJobQueue(max_queued=2, worker_count=0)
+    mock_crawler = MagicMock()
+    mock_crawler.scrape = AsyncMock()
+    app.dependency_overrides[get_crawler] = lambda: mock_crawler
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_admission_controller] = lambda: admission
+    app.dependency_overrides[get_hosted_job_queue] = lambda: queue
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/scrape",
+            json={"url": "https://example.com"},
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    balance = account_service.get_balance(tenant_id)
+    assert resp.status_code == 202
+    data = resp.json()
+    assert data["kind"] == "scrape"
+    assert data["status"] == "queued"
+    assert data["hosted"]["credits_charged"] == 0
+    assert mock_crawler.scrape.await_count == 0
+    assert (
+        balance.standard_credits_remaining
+        == plan_limits(HostedPlan.HOSTED_BETA_PASS).standard_credits
+    )
+
+
+def test_hosted_async_first_queues_all_expensive_endpoint_types(monkeypatch) -> None:
+    monkeypatch.setattr("scout.api.routers.hosted.settings.hosted_async_first", True)
+    account_service, raw_key, _tenant_id = _account_service_with_key()
+    admission = AdmissionController(max_active=100, retry_after_seconds=3)
+    queue = HostedJobQueue(max_queued=4, worker_count=0)
+    mock_crawler = MagicMock()
+    mock_crawler.crawl = AsyncMock()
+    mock_crawler.products = AsyncMock()
+    app.dependency_overrides[get_crawler] = lambda: mock_crawler
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_admission_controller] = lambda: admission
+    app.dependency_overrides[get_hosted_job_queue] = lambda: queue
+    try:
+        client = TestClient(app)
+        responses = [
+            client.post(
+                "/v1/hosted/crawl",
+                json={"url": "https://example.com", "max_pages": 2},
+                headers={"Authorization": f"Bearer {raw_key}"},
+            ),
+            client.post(
+                "/v1/hosted/products",
+                json={"start_url": "https://shop.example.com/products", "max_products": 2},
+                headers={"Authorization": f"Bearer {raw_key}"},
+            ),
+            client.post(
+                "/v1/hosted/run/company",
+                json={"query": "Microsoft", "mode": "saved", "max_records": 2},
+                headers={"Authorization": f"Bearer {raw_key}"},
+            ),
+        ]
+    finally:
+        app.dependency_overrides.clear()
+
+    assert [response.status_code for response in responses] == [202, 202, 202]
+    assert [response.json()["kind"] for response in responses] == [
+        "crawl",
+        "products",
+        "run:company",
+    ]
+    assert mock_crawler.crawl.await_count == 0
+    assert mock_crawler.products.await_count == 0
+
+
 def test_hosted_job_polling_returns_result_after_worker_completes() -> None:
     account_service, raw_key, tenant_id = _account_service_with_key()
     admission = AdmissionController(max_active=0, retry_after_seconds=3)

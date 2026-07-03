@@ -43,8 +43,17 @@
           </p>
         </section>
 
-        <section class="section pricing">
-          <div class="pricing-grid">
+        <section
+          class="section pricing"
+          data-packages-endpoint="/v1/billing/packages"
+          data-checkout-endpoint="/v1/billing/stripe/checkout-session"
+          aria-labelledby="pricing-packages-title"
+        >
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Hosted packages</p>
+            <h2 id="pricing-packages-title">Packages are loaded from Scout's billing model.</h2>
+          </div>
+          <div id="pricingPackageGrid" class="pricing-grid">
             <article>
               <span class="price">$0</span>
               <h3>Local HTTP package</h3>
@@ -65,12 +74,53 @@
           </div>
         </section>
 
+        <section class="section beta" aria-labelledby="pricing-checkout-title">
+          <div>
+            <p class="wi-label wi-label--accent">Buy hosted credits</p>
+            <h2 id="pricing-checkout-title">Start a hosted Scout checkout.</h2>
+            <p>
+              Choose a pay-as-you-go package and enter the email where Scout
+              should deliver your hosted API key after Stripe confirms payment.
+            </p>
+          </div>
+          <div class="beta-panel" aria-label="Hosted credit checkout">
+            <form
+              id="pricingCheckoutForm"
+              class="beta-form"
+              data-checkout-endpoint="/v1/billing/stripe/checkout-session"
+            >
+              <label for="pricingCheckoutEmail">Email for hosted API key delivery</label>
+              <input
+                id="pricingCheckoutEmail"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              />
+
+              <label for="pricingCheckoutPackage">Credit package</label>
+              <select id="pricingCheckoutPackage" name="package_id" required>
+                <option value="standard_1000">$10 - 1,000 standard credits</option>
+                <option value="standard_3000">$25 - 3,000 standard credits</option>
+                <option value="standard_15000">$100 - 15,000 standard credits</option>
+              </select>
+
+              <button class="wi-btn" type="submit">Continue to Stripe</button>
+              <p id="pricingCheckoutStatus" class="beta-status" role="status" aria-live="polite">
+                Stripe Checkout creates the hosted account, records the purchase,
+                and emails the API key after the signed webhook provisions access.
+              </p>
+            </form>
+          </div>
+        </section>
+
         <section class="section launch-status" aria-labelledby="credit-meaning-title">
           <div class="section-heading">
             <p class="wi-label wi-label--accent">What one credit means</p>
             <h2 id="credit-meaning-title">Credits map to resource cost, not marketing magic.</h2>
           </div>
-          <div class="status-grid">
+          <div id="pricingCreditCosts" class="status-grid">
             <article>
               <span class="status-tag status-tag--primary">Standard</span>
               <h3>Light acquisition</h3>
@@ -94,7 +144,7 @@
             <p class="wi-label wi-label--accent">Unit economics v1</p>
             <h2 id="unit-economics-title">The first paid package must clear margin before launch.</h2>
           </div>
-          <div class="status-grid">
+          <div id="pricingUnitEconomics" class="status-grid">
             <article>
               <span class="status-tag status-tag--primary">$10 package</span>
               <h3>1,000 standard credits</h3>
@@ -138,5 +188,6 @@
         </section>
       </main>
     </div>
+    <script src="./assets/pricing.js"></script>
   </body>
 </html>

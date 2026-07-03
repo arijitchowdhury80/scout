@@ -120,6 +120,32 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
     }
 
 
+def test_billing_packages_returns_credit_meanings_and_unit_economics_without_secrets() -> None:
+    client = TestClient(app)
+
+    response = client.get("/v1/billing/packages")
+
+    assert response.status_code == 200
+    data = response.json()
+    package_ids = {package["package_id"] for package in data["packages"]}
+    standard_1000 = next(
+        package for package in data["packages"] if package["package_id"] == "standard_1000"
+    )
+
+    assert "beta_trial" in package_ids
+    assert "standard_1000" in package_ids
+    assert "browser_100" in package_ids
+    assert standard_1000["amount_cents"] == 1000
+    assert standard_1000["standard_credits"] == 1000
+    assert standard_1000["browser_credits"] == 0
+    assert data["credit_costs"]["scrape"] == "1 standard credit"
+    assert data["credit_costs"]["screenshot"] == "3 standard credits"
+    assert data["unit_economics"]["standard_1000"]["gross_margin_percent"] == 74.1
+    assert data["unit_economics"]["standard_1000"]["break_even_packages_per_month"] == 17
+    assert "sk_" not in response.text
+    assert "whsec_" not in response.text
+
+
 def _client(service: StripeCheckoutService) -> TestClient:
     """Build a test client with the checkout service dependency overridden."""
     app.dependency_overrides[get_stripe_checkout_service] = lambda: service

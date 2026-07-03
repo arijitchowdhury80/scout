@@ -85,7 +85,11 @@ class HostedPaymentStore(Protocol):
 
     def save_checkout(self, record: HostedCheckoutProvisioningRecord) -> None: ...
 
-    def list_checkouts(self, limit: int = 100) -> list[HostedCheckoutProvisioningRecord]: ...
+    def list_checkouts(
+        self,
+        limit: int = 100,
+        tenant_id: str = "",
+    ) -> list[HostedCheckoutProvisioningRecord]: ...
 
 
 class SQLiteHostedPaymentStore:
@@ -129,19 +133,32 @@ class SQLiteHostedPaymentStore:
                 _record_values(record),
             )
 
-    def list_checkouts(self, limit: int = 100) -> list[HostedCheckoutProvisioningRecord]:
+    def list_checkouts(
+        self,
+        limit: int = 100,
+        tenant_id: str = "",
+    ) -> list[HostedCheckoutProvisioningRecord]:
         """Return recent checkout purchase records without secret material."""
         safe_limit = max(1, min(limit, 500))
+        tenant_filter = tenant_id.strip()
         with self._connect() as conn:
+            params: tuple[object, ...]
+            where_clause = ""
+            if tenant_filter:
+                where_clause = "WHERE tenant_id = ?"
+                params = (tenant_filter, safe_limit)
+            else:
+                params = (safe_limit,)
             rows = conn.execute(
-                """
+                f"""
                 SELECT provider, checkout_session_id, tenant_id, key_id, email, package_id, plan,
                        amount_total_cents, currency, customer_id, payment_intent_id, created_at
                 FROM hosted_payment_checkouts
+                {where_clause}
                 ORDER BY created_at DESC, checkout_session_id DESC
                 LIMIT ?
                 """,
-                (safe_limit,),
+                params,
             ).fetchall()
         return [_record_from_row(row) for row in rows]
 

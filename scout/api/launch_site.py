@@ -47,6 +47,7 @@ async def launch_site_asset(asset_name: str) -> FileResponse:
         "copy-code.js",
         "hosted-keygen.js",
         "playground.js",
+        "pricing.js",
         "scout-mark.svg",
         "scout-product-demo.gif",
         "scout-wordmark.svg",
