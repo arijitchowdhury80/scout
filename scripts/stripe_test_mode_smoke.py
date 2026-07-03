@@ -76,6 +76,7 @@ def run_smoke(
     base_url: str,
     email: str,
     create_checkout: bool,
+    package_id: str,
     timeout: float = 20.0,
 ) -> StripeSmokeResult:
     """Run the non-secret Stripe readiness and optional Checkout smoke."""
@@ -85,12 +86,7 @@ def run_smoke(
         urljoin(normalized_base, "v1/billing/stripe/status"),
         timeout=timeout,
     )
-    required_flags = [
-        "checkout_configured",
-        "webhook_configured",
-        "key_delivery_configured",
-        "ready_for_paid_key_delivery",
-    ]
+    required_flags = _required_readiness_flags(package_id)
     missing_flags = [flag for flag in required_flags if status.get(flag) is not True]
     if missing_flags:
         raise StripeSmokeError(
@@ -102,7 +98,7 @@ def run_smoke(
     checkout = request_json(
         "POST",
         urljoin(normalized_base, "v1/billing/stripe/checkout-session"),
-        payload={"email": email},
+        payload={"email": email, "package_id": package_id},
         timeout=timeout,
     )
     if checkout.get("success") is not True:
@@ -119,6 +115,20 @@ def run_smoke(
     )
 
 
+def _required_readiness_flags(package_id: str) -> list[str]:
+    """Return readiness flags required before creating a checkout for a package."""
+    flags = [
+        "checkout_configured",
+        "webhook_configured",
+        "key_delivery_configured",
+    ]
+    if package_id == "beta_trial":
+        flags.append("ready_for_beta_checkout")
+    else:
+        flags.append("ready_for_paid_key_delivery")
+    return flags
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the CLI parser."""
     parser = argparse.ArgumentParser(
@@ -126,6 +136,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--base-url", default="http://127.0.0.1:8421")
     parser.add_argument("--email", default="scout-beta-test@example.com")
+    parser.add_argument(
+        "--package-id",
+        default="standard_1000",
+        help="Hosted package to test, for example standard_1000 or beta_trial.",
+    )
     parser.add_argument(
         "--create-checkout",
         action="store_true",
@@ -143,6 +158,7 @@ def main(argv: list[str] | None = None) -> int:
             base_url=args.base_url,
             email=args.email,
             create_checkout=args.create_checkout,
+            package_id=args.package_id,
             timeout=args.timeout,
         )
     except (StripeSmokeError, json.JSONDecodeError) as exc:

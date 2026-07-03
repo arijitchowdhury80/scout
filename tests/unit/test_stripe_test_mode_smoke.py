@@ -51,6 +51,7 @@ def test_stripe_smoke_status_only_passes_when_all_readiness_flags_are_true(
         base_url="http://scout.test",
         email="beta@example.com",
         create_checkout=False,
+        package_id="standard_1000",
     )
 
     assert result.ready is True
@@ -79,6 +80,7 @@ def test_stripe_smoke_fails_when_paid_key_delivery_is_not_ready(
             base_url="http://scout.test",
             email="beta@example.com",
             create_checkout=False,
+            package_id="standard_1000",
         )
 
 
@@ -112,6 +114,7 @@ def test_stripe_smoke_can_create_checkout_without_printing_secrets(
         base_url="http://scout.test",
         email="beta@example.com",
         create_checkout=True,
+        package_id="standard_1000",
     )
 
     assert result.ready is True
@@ -119,7 +122,47 @@ def test_stripe_smoke_can_create_checkout_without_printing_secrets(
     assert result.checkout_session_id == "cs_test_123"
     assert result.checkout_url == "https://checkout.stripe.com/c/pay/cs_test_123"
     assert payloads[0] is None
-    assert payloads[1] == b'{"email": "beta@example.com"}'
+    assert payloads[1] == b'{"email": "beta@example.com", "package_id": "standard_1000"}'
+
+
+def test_stripe_smoke_uses_beta_checkout_readiness_for_beta_trial(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    responses = [
+        {
+            "checkout_configured": True,
+            "webhook_configured": True,
+            "key_delivery_configured": True,
+            "ready_for_beta_checkout": True,
+            "ready_for_paid_key_delivery": False,
+        },
+        {
+            "success": True,
+            "checkout_session_id": "cs_test_setup_123",
+            "checkout_url": "https://checkout.stripe.com/c/setup/cs_test_setup_123",
+            "reason": "",
+        },
+    ]
+    payloads: list[bytes | None] = []
+
+    def fake_urlopen(request: object, timeout: float) -> FakeResponse:
+        del timeout
+        payloads.append(getattr(request, "data", None))
+        return FakeResponse(responses.pop(0))
+
+    monkeypatch.setattr(stripe_test_mode_smoke, "urlopen", fake_urlopen)
+
+    result = stripe_test_mode_smoke.run_smoke(
+        base_url="http://scout.test",
+        email="beta@example.com",
+        create_checkout=True,
+        package_id="beta_trial",
+    )
+
+    assert result.ready is True
+    assert result.checkout_created is True
+    assert result.checkout_session_id == "cs_test_setup_123"
+    assert payloads[1] == b'{"email": "beta@example.com", "package_id": "beta_trial"}'
 
 
 def test_stripe_smoke_main_reports_checkout_next_steps(

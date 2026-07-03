@@ -12,8 +12,9 @@ distribution paths.
 ## Hosted HTTP Beta
 
 Beta testers request finite-credit hosted access from `/beta`. The public beta
-flow opens Stripe Checkout, provisions access from the signed webhook, and
-emails the API key. Public browser/API signup never returns raw API keys.
+flow collects name and email, provisions a finite-credit account only when SMTP
+delivery is configured, and emails the API key once. Public browser/API signup
+never returns raw API keys.
 
 ```bash
 export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
@@ -89,28 +90,42 @@ does not pass an exact `--output-dir` or JSON `output_dir`.
 
 ## Hosted Beta Configuration
 
-Local use does not require Stripe or SMTP. Hosted beta signup now starts through
-Stripe Checkout and requires webhook-confirmed provisioning plus SMTP key
-delivery before it is live-ready. Public signup never returns raw API keys in
-the browser.
+Local use does not require Stripe or SMTP. Hosted beta key registration starts
+through `POST /v1/hosted/beta-key` and requires SMTP delivery before it is
+live-ready. Public signup never returns raw API keys in the browser.
 
-Minimum Stripe Checkout settings:
+Direct beta key registration requires:
+
+```text
+HOSTED_BETA_SIGNUP_ENABLED=true
+HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com
+HOSTED_KEY_DELIVERY_SMTP_PORT=587
+HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL=scout@example.com
+HOSTED_KEY_DELIVERY_SMTP_USERNAME=
+HOSTED_KEY_DELIVERY_SMTP_PASSWORD=
+HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
+```
+
+Paid checkout and card-backed beta setup use Stripe Checkout. The paid path
+requires Stripe Checkout settings, signed webhook delivery, and SMTP key
+delivery before it is live-ready:
 
 ```text
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_STANDARD_1000_PRICE_ID=price_...
-STRIPE_SUCCESS_URL=https://your-domain.example/?checkout=success
-STRIPE_CANCEL_URL=https://your-domain.example/?checkout=cancelled
+STRIPE_SUCCESS_URL=https://your-domain.example/pricing?checkout=success
+STRIPE_CANCEL_URL=https://your-domain.example/pricing?checkout=cancelled
+STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
-Paid checkout also uses Stripe Checkout. The legacy `/v1/hosted/beta-key` path
-is not the public self-service route; it remains fail-closed unless operator
-configuration explicitly enables SMTP-backed delivery.
+The `$0` `beta_trial` package can also run through Stripe Checkout setup mode
+when `--package-id beta_trial` is used for test-mode smoke validation. That
+validates payment-method collection and webhook provisioning without charging
+the beta tester, but it is separate from the direct `/beta` email-key form.
 
-Email delivery or payment-confirmed provisioning needs:
+All key delivery paths use the same SMTP settings:
 
 ```text
-STRIPE_WEBHOOK_SECRET=whsec_...
 HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com
 HOSTED_KEY_DELIVERY_SMTP_PORT=587
 HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL=scout@example.com
@@ -185,13 +200,24 @@ settings above, then run:
 python3 scripts/stripe_test_mode_smoke.py \
   --base-url http://127.0.0.1:8421 \
   --email scout-beta-test@example.com \
+  --package-id standard_1000 \
   --create-checkout
 ```
 
-The helper verifies non-secret readiness, creates a Checkout Session, and
-prints the Checkout URL. Complete the test payment in Stripe Checkout, deliver
-the webhook to `/v1/billing/stripe/webhook`, then confirm the delivered hosted
-key works against `/v1/hosted/me`.
+The helper verifies non-secret paid-readiness flags, creates a Checkout
+Session, and prints the Checkout URL. Complete the test payment in Stripe Checkout,
+deliver the webhook to `/v1/billing/stripe/webhook`, then confirm the delivered
+hosted key works against `/v1/hosted/me`.
+
+To verify the card-backed `$0` beta setup path instead:
+
+```bash
+python3 scripts/stripe_test_mode_smoke.py \
+  --base-url http://127.0.0.1:8421 \
+  --email scout-beta-test@example.com \
+  --package-id beta_trial \
+  --create-checkout
+```
 
 After a hosted beta user receives a `scout_live_...` API key, they can inspect
 their plan limits and remaining credits:
