@@ -206,8 +206,8 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert "payload.raw_api_key" not in hosted_keygen.text
 
 
-def test_beta_page_uses_card_backed_beta_checkout_with_email_fallback_without_password() -> None:
-    """The public beta page starts $0 checkout when ready and falls back to email queue."""
+def test_beta_page_is_email_registration_first_with_checkout_hook_without_password() -> None:
+    """The public beta page should not advertise checkout as the live primary path."""
     html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
     hosted_keygen = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(encoding="utf-8")
 
@@ -216,8 +216,10 @@ def test_beta_page_uses_card_backed_beta_checkout_with_email_fallback_without_pa
     assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' in html
     assert 'data-ready-flag="ready_for_beta_checkout"' in html
     assert 'id="pricingCheckoutForm"' not in html
-    assert "Start $0 Beta Checkout" in html
-    assert "email queue fallback" in html
+    assert "Register for Beta API Key" in html
+    assert "Start $0 Beta Checkout" not in html
+    assert "Register with your name and email" in html
+    assert "email queue fallback" not in html
     assert 'src="./assets/pricing.js"' not in html
     assert "window.location.assign" in hosted_keygen
     assert "checkout_url" in hosted_keygen
@@ -445,10 +447,10 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Tester handoff packet",
             "docs/product/private-beta-tester-handoff.md",
             "Hosted beta registration",
-            "Complete $0 card-backed beta setup.",
+            "Register and receive your API key by email.",
             "Scout records the tester",
-            "Start $0 Beta Checkout",
-            "email queue fallback",
+            "Register for Beta API Key",
+            "card-backed beta verification once checkout is fully configured",
             "100 standard credits",
             "/v1/hosted/beta-key",
             "/v1/billing/stripe/checkout-session",
@@ -581,7 +583,9 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     assert "sk_test_" not in pricing_js
 
 
-def test_beta_signup_uses_card_backed_trial_without_password_or_browser_key_display() -> None:
+def test_beta_signup_uses_email_registration_with_checkout_hook_without_password_or_browser_key_display() -> (
+    None
+):
     html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
     hosted_keygen_js = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(encoding="utf-8")
     pricing_js = (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
@@ -590,14 +594,15 @@ def test_beta_signup_uses_card_backed_trial_without_password_or_browser_key_disp
     assert 'id="hostedKeyForm"' in html
     assert 'data-endpoint="/v1/hosted/beta-key"' in html
     assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' in html
-    assert "Start $0 Beta Checkout" in normalized_html
+    assert "Register for Beta API Key" in normalized_html
+    assert "Start $0 Beta Checkout" not in normalized_html
     assert 'name="name"' in html
     assert 'name="email"' in html
     assert 'data-status-endpoint="/v1/billing/stripe/status"' in html
     assert 'name="package_id" type="hidden" value="beta_trial"' in html
     assert "Register for your beta tester API key." in normalized_html
-    assert "Complete $0 card-backed beta setup" in normalized_html
-    assert "email queue fallback" in normalized_html
+    assert "Register and receive your API key by email" in normalized_html
+    assert "email queue fallback" not in normalized_html
     assert "Scout records the tester" in normalized_html
     assert "100 standard credits" in normalized_html
     assert "/v1/billing/stripe/status" in html

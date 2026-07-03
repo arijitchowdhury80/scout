@@ -270,7 +270,7 @@ async def stripe_status(
         checkout_configured=checkout_configured,
         webhook_configured=webhook_configured,
         key_delivery_configured=key_delivery_configured,
-        public_self_service_path="stripe_beta_checkout_with_email_queue_fallback",
+        public_self_service_path="email_beta_registration_with_checkout_hook",
         public_beta_key_endpoint="/v1/hosted/beta-key",
         public_beta_checkout_endpoint="/v1/billing/stripe/checkout-session",
         public_paid_checkout_endpoint="/v1/billing/stripe/checkout-session",
@@ -293,8 +293,8 @@ async def stripe_status(
         operator_next_actions=diagnostics["operator_next_actions"],
         customer_next_actions=[
             (
-                "Use /beta for $0 card-backed beta checkout when ready; Scout falls "
-                "back to email queued registration while checkout is paused."
+                "Use /beta for email-first beta registration; Scout may route through "
+                "$0 Stripe setup once checkout is fully configured."
             ),
             "Use /pricing to buy paid credit packages when paid checkout readiness is true.",
         ],

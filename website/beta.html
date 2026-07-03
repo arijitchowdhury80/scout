@@ -96,15 +96,13 @@ scout launch-readiness --require-public</code></pre>
         <section class="section beta" id="beta-key">
           <div>
             <p class="wi-label wi-label--accent">Hosted beta registration</p>
-            <h2>Complete $0 card-backed beta setup.</h2>
+            <h2>Register and receive your API key by email.</h2>
             <p>
-              Register with your name and email. When checkout is ready, Scout
-              sends you through a $0 Stripe setup flow so the beta pipeline is
-              verified without charging you. Scout records the tester before
-              provisioning access. While checkout is paused, Scout uses an
-              email queue fallback: it records the tester and emails the API
-              key after delivery is configured. Public signup never shows raw
-              keys in the browser.
+              Register with your name and email. Scout records the tester,
+              provisions a finite-credit hosted beta key, and emails the API
+              key to the address you provide. Public signup never shows raw
+              keys in the browser. The $0 Stripe setup hook remains wired for
+              card-backed beta verification once checkout is fully configured.
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted beta API key registration">
@@ -145,17 +143,17 @@ scout launch-readiness --require-public</code></pre>
               />
               <input name="package_id" type="hidden" value="beta_trial" />
 
-              <button class="wi-btn" type="submit">Start $0 Beta Checkout</button>
+              <button class="wi-btn" type="submit">Register for Beta API Key</button>
               <p id="hostedKeyStatus" class="beta-status" role="status" aria-live="polite">
-                Hosted beta uses $0 Stripe setup when checkout is ready. If
-                checkout is temporarily unavailable, Scout falls back to queued
-                email registration.
+                Hosted beta registration uses email delivery first. If the
+                card-backed beta setup gate is enabled, Scout may route you
+                through a $0 Stripe verification step before key delivery.
               </p>
               <p class="beta-note">
                 The beta trial includes 100 standard credits for 30 days.
                 Scout does not show raw API keys in the browser. The email
-                queue fallback exists only so testers can still register while
-                hosted checkout is being configured.
+                delivery path exists so testers can self-register without
+                waiting for manual operator provisioning.
               </p>
             </form>
             <form

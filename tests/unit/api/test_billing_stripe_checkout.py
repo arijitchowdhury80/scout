@@ -341,11 +341,11 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
 
     assert response.status_code == 200
     data = response.json()
-    assert data["public_self_service_path"] == "stripe_beta_checkout_with_email_queue_fallback"
+    assert data["public_self_service_path"] == "email_beta_registration_with_checkout_hook"
     assert data["public_beta_key_endpoint"] == "/v1/hosted/beta-key"
     assert data["public_beta_checkout_endpoint"] == "/v1/billing/stripe/checkout-session"
     assert data["customer_next_actions"] == [
-        "Use /beta for $0 card-backed beta checkout when ready; Scout falls back to email queued registration while checkout is paused.",
+        "Use /beta for email-first beta registration; Scout may route through $0 Stripe setup once checkout is fully configured.",
         "Use /pricing to buy paid credit packages when paid checkout readiness is true.",
     ]
     assert data["missing_environment_keys"] == [

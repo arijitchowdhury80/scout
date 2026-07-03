@@ -379,9 +379,9 @@ actionable. In addition to backward-compatible booleans such as
 `ready_for_beta_checkout` and `ready_for_paid_key_delivery`, it returns:
 
 - `public_self_service_path`: currently
-  `stripe_beta_checkout_with_email_queue_fallback`; beta testers should start
-  at `/beta`, use $0 Stripe setup when ready, and fall back to queued email
-  registration while checkout is paused.
+  `email_beta_registration_with_checkout_hook`; beta testers should start at
+  `/beta` with name/email registration. Scout may route through $0 Stripe setup
+  once checkout is fully configured.
 - `public_beta_key_endpoint`: the API endpoint used by `/beta` to register a
   beta tester and deliver the API key by email.
 - `public_beta_checkout_endpoint` and `public_paid_checkout_endpoint`: the

@@ -232,7 +232,7 @@ It returns booleans for checkout, webhook, key delivery, and end-to-end paid key
 delivery readiness plus the public self-service path and exact non-secret
 environment variable names that still need configuration. Production
 self-service should report
-`public_self_service_path: "stripe_beta_checkout_with_email_queue_fallback"`
+`public_self_service_path: "email_beta_registration_with_checkout_hook"`
 for beta access. It never returns Stripe, SMTP, or Scout API secret values.
 
 For a real Stripe test-mode smoke, start Scout with the Stripe and SMTP
