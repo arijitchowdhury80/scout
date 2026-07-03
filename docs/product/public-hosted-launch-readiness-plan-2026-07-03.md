@@ -50,8 +50,8 @@ Production domain: `https://scout.chowmes.com/`
 - `/api/docs` returns `403`, consistent with hosted-only production guard.
 - `/assets/hosted-keygen.js` is no longer part of the public beta website.
 - `/beta` exposes the public beta registration form and posts to
-  `POST /v1/hosted/beta-key`; the path requires either SMTP delivery to email
-  the raw API key or the explicit one-time HTTPS response fallback.
+  `POST /v1/hosted/beta-key`; the path requires SMTP delivery to email the raw
+  API key and fails closed without it.
 - `/pricing` exposes `$0` beta trial and paid credit checkout options; the
   Stripe path requires Stripe price IDs, checkout URLs, webhook secret, and SMTP
   delivery before it is live-ready.
@@ -192,20 +192,17 @@ Current reality:
   `/v1/hosted/beta-key`.
 - Hosted beta can also use `$0` Stripe setup-mode checkout from `/pricing` with
   `package_id=beta_trial` once Stripe is configured.
-- Direct `/beta` signup is live-ready only when SMTP delivery is configured or
-  `HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK=true` is intentionally enabled.
-  Stripe checkout still requires SMTP delivery because the raw key must be
+- Direct `/beta` signup is live-ready only when SMTP delivery is configured.
+  Stripe checkout also requires SMTP delivery because the raw key must be
   delivered after the signed webhook provisions access.
 
 Tomorrow options:
 
 1. Controlled hosted beta, fastest:
-   - Configure SMTP delivery, or temporarily enable
-     `HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK=true`, and keep beta credits
-     low.
+   - Configure SMTP delivery and keep beta credits low.
    - Send testers to `/beta`.
-   - Users enter name/email and receive one API key by email, or see it once on
-     screen when the fallback is enabled, after Scout records the hosted account.
+   - Users enter name/email and receive one API key by email after Scout records
+     the hosted account.
    - This is not real login. It is email-captured key issuance.
 
 2. Payment-method-backed beta:
@@ -228,10 +225,9 @@ Tomorrow options:
    - Add tenant dashboard.
    - Add email verification and abuse controls.
 
-Recommendation for tomorrow: direct `/beta` registration with SMTP if it is
-configured and verified; otherwise use the explicit one-time response fallback
-with low beta credits and rate limits. Use Stripe only after a full test-mode
-checkout/webhook/email/key verification pass.
+Recommendation for tomorrow: direct `/beta` registration only after SMTP is
+configured and verified. Do not use an on-screen raw-key fallback. Use Stripe
+only after a full test-mode checkout/webhook/email/key verification pass.
 
 ## Release Plan For Tomorrow
 
@@ -270,8 +266,7 @@ Verification:
 - Production `curl` confirms:
   - `/beta#hosted-checkout` is the public beta access path
   - `/v1/billing/stripe/checkout-session` creates a `beta_trial` checkout when configured
-  - `/v1/hosted/beta-key` remains disabled unless an operator explicitly enables
-    SMTP delivery or `HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK=true`
+  - `/v1/hosted/beta-key` remains disabled unless SMTP delivery is configured
   - generated key can call `/v1/hosted/me`
   - generated key can run one capped hosted workflow
   - credits decrement
