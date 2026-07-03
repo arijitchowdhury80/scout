@@ -1,0 +1,206 @@
+#!/bin/sh
+set -eu
+
+HELPER_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/scripts/chowmes-ssh-helper"
+ENV_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/.env.local"
+HOSTED_DB="/data/hosted_accounts.sqlite"
+
+usage() {
+  cat <<EOF
+usage: scout-vps-list-hosted-signups [--format table|json] [--limit N] [--status delivered|failed|duplicate] [--email EMAIL] [--env PATH] [--helper PATH]
+
+List Scout hosted beta signup requests and API-key delivery outcomes from:
+  $HOSTED_DB
+
+Tables used:
+  hosted_signup_events
+
+Fields shown:
+  email, name, status, source, delivery_status, reason,
+  tenant_id, key_id, event_id, created_at
+
+Typical source:
+  direct_beta_key
+
+Options:
+  --format FORMAT  table or json. Default: table
+  --limit N        Maximum rows. Default: 100
+  --status STATUS  Filter to delivered, failed, or duplicate.
+  --email EMAIL    Filter to one signup email.
+  --env PATH       SSH env file for the ChowMes SSH helper. Default: $ENV_DEFAULT
+  --helper PATH    SSH helper path. Default: $HELPER_DEFAULT
+  -h, --help       Show this help.
+
+Secret safety:
+  This script does not print raw API keys or stored API-key hashes.
+EOF
+}
+
+helper="$HELPER_DEFAULT"
+env_file="$ENV_DEFAULT"
+format="table"
+limit="100"
+status=""
+email=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --format)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      format="$2"
+      shift 2
+      ;;
+    --limit)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      limit="$2"
+      shift 2
+      ;;
+    --status)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      status="$2"
+      shift 2
+      ;;
+    --email)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      email="$2"
+      shift 2
+      ;;
+    --env)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      env_file="$2"
+      shift 2
+      ;;
+    --helper)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      helper="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+case "$format" in
+  table|json) ;;
+  *)
+    echo "Unsupported --format: $format" >&2
+    exit 2
+    ;;
+esac
+
+case "$status" in
+  ""|delivered|failed|duplicate) ;;
+  *)
+    echo "Unsupported --status: $status" >&2
+    exit 2
+    ;;
+esac
+
+case "$limit" in
+  ''|*[!0-9]*)
+    echo "--limit must be a positive integer." >&2
+    exit 2
+    ;;
+esac
+
+if [ "$limit" -lt 1 ]; then
+  echo "--limit must be a positive integer." >&2
+  exit 2
+fi
+
+if [ ! -x "$helper" ]; then
+  echo "SSH helper is not executable: $helper" >&2
+  exit 1
+fi
+
+"$helper" --env "$env_file" "sudo docker exec -i scout python3 - '$limit' '$format' '$status' '$email' <<'PY'
+import json
+import sqlite3
+import sys
+
+limit = int(sys.argv[1])
+output_format = sys.argv[2]
+status_filter = sys.argv[3].strip().lower()
+email_filter = sys.argv[4].strip().lower()
+
+clauses = []
+params = []
+if status_filter:
+    clauses.append('lower(status) = lower(?)')
+    params.append(status_filter)
+if email_filter:
+    clauses.append('lower(email) = lower(?)')
+    params.append(email_filter)
+
+where_sql = ''
+if clauses:
+    where_sql = 'WHERE ' + ' AND '.join(clauses)
+
+params.append(limit)
+conn = sqlite3.connect('$HOSTED_DB')
+conn.row_factory = sqlite3.Row
+rows = conn.execute(
+    f'''
+    SELECT
+      email,
+      name,
+      status,
+      source,
+      delivery_status,
+      reason,
+      tenant_id,
+      key_id,
+      event_id,
+      created_at
+    FROM hosted_signup_events
+    {where_sql}
+    ORDER BY created_at DESC, event_id DESC
+    LIMIT ?
+    ''',
+    params,
+).fetchall()
+records = [dict(row) for row in rows]
+if output_format == 'json':
+    print(json.dumps(records, indent=2, sort_keys=True))
+else:
+    headers = [
+        'email',
+        'name',
+        'status',
+        'source',
+        'delivery_status',
+        'reason',
+        'tenant_id',
+        'key_id',
+        'event_id',
+        'created_at',
+    ]
+    print('\\t'.join(headers))
+    for record in records:
+        print('\\t'.join(str(record.get(header) or '') for header in headers))
+PY"

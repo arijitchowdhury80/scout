@@ -15,6 +15,7 @@ Commands:
   list-accounts     List hosted tenants, API-key metadata, and balances.
   list-usage        List hosted credit usage ledger entries.
   list-purchases    List Stripe checkout/package purchase records.
+  list-signups      List beta API-key signup requests and delivery outcomes.
   configure-production-env
                     Install allowlisted SMTP/Stripe settings on the VPS.
 
@@ -25,6 +26,7 @@ Examples:
   scripts/scout-hosted-admin list-usage --format table --limit 100
   scripts/scout-hosted-admin list-usage --summary
   scripts/scout-hosted-admin list-purchases --format table
+  scripts/scout-hosted-admin list-signups --format table --limit 100
   scripts/scout-hosted-admin configure-production-env --secrets-file secrets/scout-production.env --restart
 EOF
 }
@@ -43,6 +45,10 @@ list_usage() {
 
 list_purchases() {
   exec "$SCRIPT_DIR/scout-vps-list-hosted-purchases" "$@"
+}
+
+list_signups() {
+  exec "$SCRIPT_DIR/scout-vps-list-hosted-signups" "$@"
 }
 
 configure_production_env() {
@@ -78,6 +84,10 @@ case "$1" in
   list-purchases)
     shift
     list_purchases "$@"
+    ;;
+  list-signups)
+    shift
+    list_signups "$@"
     ;;
   configure-production-env)
     shift

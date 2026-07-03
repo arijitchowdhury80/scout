@@ -15,6 +15,7 @@ SCRIPT_NAMES = [
     "scout-vps-list-hosted-accounts",
     "scout-vps-list-hosted-usage",
     "scout-vps-list-hosted-purchases",
+    "scout-vps-list-hosted-signups",
     "scout-vps-configure-hosted-env",
     "scout-hosted-load-test",
 ]
@@ -40,6 +41,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "list-accounts",
             "list-usage",
             "list-purchases",
+            "list-signups",
             "configure-production-env",
         ],
         "scout-vps-configure-hosted-env": [
@@ -81,6 +83,14 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "hosted_payment_checkouts",
             "package_id",
             "amount_total_cents",
+            "/data/hosted_accounts.sqlite",
+        ],
+        "scout-vps-list-hosted-signups": [
+            "hosted_signup_events",
+            "delivery_status",
+            "direct_beta_key",
+            "--status",
+            "--email",
             "/data/hosted_accounts.sqlite",
         ],
         "scout-hosted-load-test": [
@@ -141,6 +151,17 @@ def test_list_usage_script_never_prints_raw_keys_or_key_hashes() -> None:
     assert "standard_balance_after" in script_text
     assert "credits_spent" in script_text
     assert "--summary" in script_text
+    assert "key_hash" not in script_text
+    assert "raw_api_key" not in script_text
+
+
+def test_list_signups_script_never_prints_raw_keys_or_key_hashes() -> None:
+    script_text = (REPO_ROOT / "scripts" / "scout-vps-list-hosted-signups").read_text()
+
+    assert "docker exec -i scout" in script_text
+    assert "hosted_signup_events" in script_text
+    assert "delivery_status" in script_text
+    assert "direct_beta_key" in script_text
     assert "key_hash" not in script_text
     assert "raw_api_key" not in script_text
 

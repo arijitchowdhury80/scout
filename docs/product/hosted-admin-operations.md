@@ -252,6 +252,36 @@ This shows email, package id, amount, currency, Stripe checkout/customer/payment
 references, tenant id, key id, and creation time. It does not print raw keys or
 stored key hashes.
 
+### List Beta Signup Requests And Delivery Outcomes
+
+```bash
+scripts/scout-hosted-admin list-signups
+```
+
+JSON output:
+
+```bash
+scripts/scout-hosted-admin list-signups --format json --limit 100
+```
+
+Filter failed delivery attempts:
+
+```bash
+scripts/scout-hosted-admin list-signups --status failed
+```
+
+Filter one email:
+
+```bash
+scripts/scout-hosted-admin list-signups --email tester@example.com
+```
+
+This shows each self-service beta API-key request, including email, name,
+status, source, delivery status, reason, tenant id, key id, event id, and
+timestamp. It is the fastest operator view for answering who requested a hosted
+key, whether it was delivered, whether it was a duplicate, and why it failed.
+It does not print raw keys or stored key hashes.
+
 ### Hosted Billing Admin Metrics API
 
 Operators can also inspect non-secret hosted beta metrics through the live
@@ -381,6 +411,8 @@ Today, Scout can answer:
   matches an existing account,
 - operator-level signup-attempt, delivery, duplicate, failure, credit, usage,
   purchase, and revenue summaries through `/v1/billing/admin/metrics`,
+- self-service signup event review from the Mac with
+  `scripts/scout-hosted-admin list-signups`,
 - every direct beta key request outcome in the `hosted_signup_events` table,
 - every successful hosted credit debit in the `hosted_credit_ledger` table,
 - Stripe checkout/package purchase records in `hosted_payment_checkouts`,
