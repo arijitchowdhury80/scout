@@ -21,7 +21,11 @@ from scout.api.deps import (
 from scout.api.config import settings
 from scout.api.main import app
 from scout.core.platform.stripe_checkout import (
+    StripeCheckoutConfig,
+    StripeCheckoutRequest,
+    StripeCheckoutService,
     StripeCheckoutResult,
+    StripeCheckoutSession,
 )
 
 
@@ -476,6 +480,79 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
     assert "whsec_" not in response.text
 
 
+def test_beta_trial_checkout_uses_stripe_setup_mode_without_payment_only_customer_creation() -> (
+    None
+):
+    transport = RecordingStripeTransport()
+    service = StripeCheckoutService(
+        StripeCheckoutConfig(
+            secret_key="sk_test_redacted",
+            success_url="https://scout.chowmes.com/pricing?checkout=success",
+            cancel_url="https://scout.chowmes.com/pricing?checkout=cancelled",
+        ),
+        transport=transport,
+    )
+
+    result = service.create_checkout_session(
+        StripeCheckoutRequest(
+            email="beta@example.com",
+            name="Beta Tester",
+            package_id="beta_trial",
+        )
+    )
+
+    assert result.success is True
+    assert transport.data[0] == {
+        "mode": "setup",
+        "payment_method_types[0]": "card",
+        "success_url": "https://scout.chowmes.com/pricing?checkout=success",
+        "cancel_url": "https://scout.chowmes.com/pricing?checkout=cancelled",
+        "metadata[package_id]": "beta_trial",
+        "metadata[plan]": "hosted_beta_pass",
+        "metadata[product]": "scout_hosted",
+        "customer_email": "beta@example.com",
+        "metadata[name]": "Beta Tester",
+    }
+    assert "customer_creation" not in transport.data[0]
+    assert transport.headers[0]["Authorization"] == "Bearer sk_test_redacted"
+
+
+def test_paid_checkout_uses_payment_mode_price_line_item_and_customer_creation() -> None:
+    transport = RecordingStripeTransport()
+    service = StripeCheckoutService(
+        StripeCheckoutConfig(
+            secret_key="sk_test_redacted",
+            standard_1000_price_id="price_standard_1000",
+            success_url="https://scout.chowmes.com/pricing?checkout=success",
+            cancel_url="https://scout.chowmes.com/pricing?checkout=cancelled",
+        ),
+        transport=transport,
+    )
+
+    result = service.create_checkout_session(
+        StripeCheckoutRequest(
+            email="buyer@example.com",
+            name="Buyer Person",
+            package_id="standard_1000",
+        )
+    )
+
+    assert result.success is True
+    assert transport.data[0] == {
+        "mode": "payment",
+        "customer_creation": "always",
+        "line_items[0][price]": "price_standard_1000",
+        "line_items[0][quantity]": "1",
+        "success_url": "https://scout.chowmes.com/pricing?checkout=success",
+        "cancel_url": "https://scout.chowmes.com/pricing?checkout=cancelled",
+        "metadata[package_id]": "standard_1000",
+        "metadata[plan]": "hosted_beta_pass",
+        "metadata[product]": "scout_hosted",
+        "customer_email": "buyer@example.com",
+        "metadata[name]": "Buyer Person",
+    }
+
+
 def _client(
     service: object,
     *,
@@ -521,3 +598,26 @@ class RecordingDeliveryService:
 
     def __init__(self, enabled: bool) -> None:
         self.enabled = enabled
+
+
+class RecordingStripeTransport:
+    """Capture Stripe form posts without making network calls."""
+
+    def __init__(self) -> None:
+        self.urls: list[str] = []
+        self.data: list[dict[str, str]] = []
+        self.headers: list[dict[str, str]] = []
+
+    def post_form(
+        self,
+        url: str,
+        data: dict[str, str],
+        headers: dict[str, str],
+    ) -> StripeCheckoutSession:
+        self.urls.append(url)
+        self.data.append(data)
+        self.headers.append(headers)
+        return StripeCheckoutSession(
+            id="cs_test_payload",
+            url="https://checkout.stripe.com/c/pay/cs_test_payload",
+        )

@@ -31,6 +31,11 @@ Scout hosted beta has API-key based access, not a login system.
   readiness-gated by `/v1/billing/stripe/status` and stay disabled until
   Stripe settings, signed webhook delivery, and SMTP key delivery are
   configured.
+- The `$0` beta trial uses Stripe Checkout `mode=setup` with card collection,
+  `customer_email`, and metadata. It intentionally does not send
+  `customer_creation=always`, which is reserved for payment-mode customer
+  creation. Paid credit packages use Checkout `mode=payment`,
+  `customer_creation=always`, and package price line items.
 - The key-delivery email subject is `Your Scout beta tester API key is ready`.
   It is signed by Arijit Chowdhury, Founder, Chowmes; explains the
   100-credit/30-day beta boundary; says hosted access is not unlimited
