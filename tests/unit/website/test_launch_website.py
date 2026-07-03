@@ -641,6 +641,29 @@ def test_beta_signup_uses_email_registration_without_password_or_browser_key_dis
     assert 'name="invite_password"' not in html
 
 
+def test_public_website_describes_self_service_beta_not_invite_only() -> None:
+    """Public website copy should match the no-password self-service beta model."""
+    pages = [
+        "index.html",
+        "beta.html",
+        "pricing.html",
+        "quickstart.html",
+        "status.html",
+    ]
+    banned_phrases = [
+        "invite-only",
+        "approved testers",
+        "approved private beta testers",
+        "waiting for manual operator provisioning",
+        "shows the key once",
+    ]
+
+    for page_name in pages:
+        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8").lower()
+        for phrase in banned_phrases:
+            assert phrase not in html
+
+
 def test_account_page_lets_hosted_users_inspect_usage_without_login() -> None:
     html = (_WEBSITE_DIR / "account.html").read_text(encoding="utf-8")
     account_js = (_WEBSITE_DIR / "assets" / "account.js").read_text(encoding="utf-8")

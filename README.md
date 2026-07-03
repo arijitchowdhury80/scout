@@ -87,9 +87,10 @@ curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
 ```
 
-Open `/beta` on the hosted site to generate a finite-credit beta key with your
-name and email. If SMTP delivery is not configured, Scout shows the key once in
-the response and stores only the hash afterward.
+Open `/beta` on the hosted site to register for a finite-credit beta key with
+your name and email. Scout emails the one-time API key when SMTP delivery is
+configured; if delivery is not configured yet, Scout records the request for
+follow-up. The browser response never shows raw API keys.
 
 Operator-only local verification:
 
