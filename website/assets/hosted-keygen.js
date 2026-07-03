@@ -1,6 +1,8 @@
 (function () {
   const form = document.getElementById("hostedKeyForm");
   const statusEl = document.getElementById("hostedKeyStatus");
+  const statusForm = document.getElementById("hostedKeyStatusForm");
+  const lookupStatusEl = document.getElementById("hostedKeyLookupStatus");
 
   if (!form || !statusEl) {
     return;
@@ -9,6 +11,8 @@
   const endpoint = form.dataset.endpoint || "/v1/hosted/beta-key";
   const statusEndpoint = form.dataset.statusEndpoint || "/v1/billing/stripe/status";
   const readyFlag = form.dataset.readyFlag || "ready_for_beta_key_delivery";
+  const statusCheckEndpoint =
+    statusForm?.dataset.statusCheckEndpoint || "/v1/hosted/beta-key/status";
 
   checkReadiness();
 
@@ -64,6 +68,40 @@
     }
   });
 
+  statusForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submitButton = statusForm.querySelector("button[type='submit']");
+    const formData = new FormData(statusForm);
+    const email = String(formData.get("email") || "").trim();
+
+    if (!email) {
+      setLookupStatus("Enter the email used for beta registration.", "error");
+      return;
+    }
+
+    setLookupStatus("Checking beta request status...", "running");
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+      const response = await fetch(statusCheckEndpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.detail || "Could not check beta request status.");
+      }
+      setLookupStatus(statusMessage(payload), payload.status === "not_found" ? "error" : "success");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not check beta request status.";
+      setLookupStatus(message, "error");
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
+  });
+
   async function checkReadiness() {
     const submitButton = form.querySelector("button[type='submit']");
     try {
@@ -92,5 +130,17 @@
   function setStatus(message, state) {
     statusEl.textContent = message;
     statusEl.dataset.state = state;
+  }
+
+  function setLookupStatus(message, state) {
+    if (!lookupStatusEl) return;
+    lookupStatusEl.textContent = message;
+    lookupStatusEl.dataset.state = state;
+  }
+
+  function statusMessage(payload) {
+    const message = payload.message || "Scout returned the current beta request status.";
+    const status = payload.status ? `Status: ${payload.status}. ` : "";
+    return `${status}${message}`;
   }
 })();

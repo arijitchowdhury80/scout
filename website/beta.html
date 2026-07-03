@@ -144,6 +144,28 @@ scout launch-readiness --require-public</code></pre>
                 <a href="/privacy">beta privacy placeholder</a>.
               </p>
             </form>
+            <form
+              id="hostedKeyStatusForm"
+              class="beta-form beta-form--secondary"
+              data-status-check-endpoint="/v1/hosted/beta-key/status"
+            >
+              <label for="hostedKeyStatusEmail">Already registered?</label>
+              <div class="beta-form-row">
+                <input
+                  id="hostedKeyStatusEmail"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="you@example.com"
+                  required
+                />
+                <button class="wi-btn wi-btn--secondary" type="submit">Check beta request status</button>
+              </div>
+              <p id="hostedKeyLookupStatus" class="beta-status" role="status" aria-live="polite">
+                Use the same email you used for beta registration. Scout will
+                never show an API key in the browser.
+              </p>
+            </form>
           </div>
         </section>
 

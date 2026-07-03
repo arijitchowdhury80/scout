@@ -337,11 +337,106 @@ def test_hosted_beta_key_generation_does_not_duplicate_pending_delivery_requests
     assert signup_events[0].status == "pending_delivery"
 
 
+def test_hosted_beta_key_status_reports_pending_request_without_raw_key(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "Pending Status", "email": "pending-status@example.com"},
+        )
+        response = client.post(
+            "/v1/hosted/beta-key/status",
+            json={"email": "pending-status@example.com"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["email"] == "pending-status@example.com"
+    assert data["status"] == "pending_delivery"
+    assert data["delivery_status"] == "pending_delivery"
+    assert data["has_account"] is False
+    assert data["tenant_id"] == ""
+    assert data["key_id"] == ""
+    assert "raw_api_key" not in data
+    assert "scout_live_" not in response.text
+
+
+def test_hosted_beta_key_status_reports_delivered_account_without_raw_key(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "Delivered Status", "email": "delivered-status@example.com"},
+        )
+        response = client.post(
+            "/v1/hosted/beta-key/status",
+            json={"email": "delivered-status@example.com"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["email"] == "delivered-status@example.com"
+    assert data["status"] == "delivered"
+    assert data["delivery_status"] == "delivered"
+    assert data["has_account"] is True
+    assert data["tenant_id"].startswith("tenant_")
+    assert data["key_id"].startswith("key_")
+    assert delivery.requests[0].raw_api_key not in response.text
+
+
+def test_hosted_beta_key_status_unknown_email_is_non_enumerating() -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/v1/hosted/beta-key/status",
+            json={"email": "unknown@example.com"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["email"] == "unknown@example.com"
+    assert data["status"] == "not_found"
+    assert data["delivery_status"] == ""
+    assert data["has_account"] is False
+    assert data["message"] == (
+        "No hosted beta request is recorded for this email. You can register for beta access."
+    )
+
+
 def test_hosted_beta_key_response_schema_does_not_expose_raw_key() -> None:
     client = TestClient(app)
 
     response = client.get("/openapi.json")
     schema = response.json()["components"]["schemas"]["HostedBetaKeyResponse"]
+
+    assert response.status_code == 200
+    assert "raw_api_key" not in schema["properties"]
+
+
+def test_hosted_beta_key_status_response_schema_does_not_expose_raw_key() -> None:
+    client = TestClient(app)
+
+    response = client.get("/openapi.json")
+    schema = response.json()["components"]["schemas"]["HostedBetaKeyStatusResponse"]
 
     assert response.status_code == 200
     assert "raw_api_key" not in schema["properties"]

@@ -893,3 +893,33 @@ Result: `6 passed, 2 warnings`.
 Still pending: SMTP credentials are still not configured on production, so the
 processor can be dry-run now but real queued key delivery still depends on
 external email configuration.
+
+## 2026-07-03 — self-service beta request status lookup
+
+Implemented:
+
+- Added `POST /v1/hosted/beta-key/status` so testers can check a beta request
+  using only the registration email before they have an API key.
+- The endpoint returns non-secret state only: `pending_delivery`, `delivered`,
+  `failed`, `duplicate`, `account_exists`, or `not_found`, plus a user-facing
+  message.
+- The endpoint never returns raw API keys or key hashes.
+- The lookup is rate-limited through the same public beta signup limiter.
+- The `/beta` page now includes an "Already registered?" status-check form
+  wired to the new endpoint.
+
+Verification RED:
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_status_reports_pending_request_without_raw_key tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_status_reports_delivered_account_without_raw_key tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_status_unknown_email_is_non_enumerating tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_status_response_schema_does_not_expose_raw_key tests/unit/website/test_launch_website.py::test_beta_signup_collects_name_and_email_without_password -q
+```
+
+Result: `5 failed` for missing route/schema/page controls.
+
+Verification GREEN:
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_status_reports_pending_request_without_raw_key tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_status_reports_delivered_account_without_raw_key tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_status_unknown_email_is_non_enumerating tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_status_response_schema_does_not_expose_raw_key tests/unit/website/test_launch_website.py::test_beta_signup_collects_name_and_email_without_password -q
+```
+
+Result: `5 passed, 2 warnings`.

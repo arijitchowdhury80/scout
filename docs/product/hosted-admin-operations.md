@@ -21,6 +21,9 @@ Scout hosted beta has API-key based access, not a login system.
   a hash.
 - Queued beta signups can be inspected with `list-signups` and processed after
   SMTP configuration with `process-pending-signups`.
+- Testers can check non-secret registration state from `/beta` or
+  `POST /v1/hosted/beta-key/status` using only the registration email. The
+  status lookup never returns raw API keys or key hashes.
 - Stripe checkout forms are available from `/pricing` for paid hosted credit
   packages and from `/beta` for optional `$0` card-backed beta setup. Both
   forms are readiness-gated by `/v1/billing/stripe/status` and stay disabled
@@ -178,6 +181,30 @@ sends the raw API key by SMTP, records a `delivered` signup event on success,
 and deletes the account plus records `failed` if delivery fails. It refuses to
 mutate anything unless `--yes` or `--dry-run` is provided, and it never prints
 raw API keys, key hashes, or SMTP passwords.
+
+### Let Testers Check Beta Request Status
+
+The beta page includes a self-service status lookup for testers who submitted
+the form but have not received a key yet. It calls:
+
+```bash
+curl -X POST https://scout.chowmes.com/v1/hosted/beta-key/status \
+  -H "Content-Type: application/json" \
+  -d '{"email":"tester@example.com"}'
+```
+
+Possible non-secret statuses include:
+
+- `pending_delivery`: request recorded; API key will be emailed after delivery
+  configuration is ready.
+- `delivered`: Scout already emailed the key to that inbox.
+- `failed`: delivery failed; support should inspect the signup event.
+- `duplicate` or `account_exists`: an account/key already exists for that email.
+- `not_found`: no request is recorded for that email.
+
+The endpoint does not authenticate because it is used before a tester has an
+API key. It is rate-limited through the same public beta signup limiter and
+returns only non-secret metadata.
 
 ### Disable Hosted Access
 

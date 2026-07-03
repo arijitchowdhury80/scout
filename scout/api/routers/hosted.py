@@ -192,6 +192,12 @@ class HostedBetaKeyRequest(BaseModel):
         return stripped
 
 
+class HostedBetaKeyStatusRequest(BaseModel):
+    """Non-secret hosted beta key status lookup request."""
+
+    email: EmailStr
+
+
 class HostedBetaKeyResponse(BaseModel):
     """Hosted beta key registration response without raw secret material."""
 
@@ -206,6 +212,19 @@ class HostedBetaKeyResponse(BaseModel):
     browser_credits_remaining: int
     delivery_status: str
     warning: str
+
+
+class HostedBetaKeyStatusResponse(BaseModel):
+    """Non-secret hosted beta request/account status response."""
+
+    success: bool = True
+    email: str
+    status: str
+    delivery_status: str = ""
+    has_account: bool
+    tenant_id: str = ""
+    key_id: str = ""
+    message: str
 
 
 @router.get("/me", response_model=HostedAccountSummaryResponse)
@@ -431,6 +450,22 @@ async def hosted_beta_key(
     )
 
 
+@router.post(
+    "/beta-key/status",
+    response_model=HostedBetaKeyStatusResponse,
+    response_model_exclude_none=True,
+)
+async def hosted_beta_key_status(
+    req: HostedBetaKeyStatusRequest,
+    request: Request,
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    signup_rate_limiter: HostedRateLimiter = Depends(get_hosted_beta_signup_rate_limiter),
+) -> HostedBetaKeyStatusResponse:
+    """Return non-secret status for a hosted beta key request by email."""
+    _enforce_beta_signup_rate_limit(signup_rate_limiter, request)
+    return _beta_key_status_response(account_service, str(req.email))
+
+
 def _signup_event(
     req: HostedBetaKeyRequest,
     *,
@@ -451,6 +486,72 @@ def _signup_event(
         delivery_status=delivery_status,
         reason=reason,
     )
+
+
+def _beta_key_status_response(
+    account_service: HostedAccountService,
+    email: str,
+) -> HostedBetaKeyStatusResponse:
+    """Build a non-secret beta request status response for one email."""
+    normalized = email.strip().lower()
+    tenant = account_service.find_tenant_by_email(normalized)
+    key_id = account_service.latest_key_id_for_tenant(tenant.tenant_id) if tenant else ""
+    latest_event = _latest_signup_event_for_email(account_service, normalized)
+    if latest_event is not None:
+        status = latest_event.status
+        delivery_status = latest_event.delivery_status or status
+        return HostedBetaKeyStatusResponse(
+            email=normalized,
+            status=status,
+            delivery_status=delivery_status,
+            has_account=tenant is not None,
+            tenant_id=tenant.tenant_id if tenant is not None else "",
+            key_id=key_id,
+            message=_beta_key_status_message(status, tenant is not None),
+        )
+    if tenant is not None:
+        return HostedBetaKeyStatusResponse(
+            email=normalized,
+            status="account_exists",
+            delivery_status="",
+            has_account=True,
+            tenant_id=tenant.tenant_id,
+            key_id=key_id,
+            message=(
+                "A hosted Scout account exists for this email. Use the API key originally "
+                "delivered to that inbox."
+            ),
+        )
+    return HostedBetaKeyStatusResponse(
+        email=normalized,
+        status="not_found",
+        has_account=False,
+        message="No hosted beta request is recorded for this email. You can register for beta access.",
+    )
+
+
+def _latest_signup_event_for_email(
+    account_service: HostedAccountService,
+    normalized_email: str,
+) -> HostedSignupEvent | None:
+    """Return the newest signup event for a normalized email."""
+    for event in account_service.list_signup_events(limit=10_000):
+        if str(event.email).strip().lower() == normalized_email:
+            return event
+    return None
+
+
+def _beta_key_status_message(status: str, has_account: bool) -> str:
+    """Return user-facing copy for beta request state."""
+    if status == "pending_delivery":
+        return "Your beta request is recorded. Scout will email your API key after key delivery is configured."
+    if status == "delivered":
+        return "Scout already emailed the API key. Check that inbox and keep the key private."
+    if status == "failed":
+        return "Scout recorded your request, but API-key email delivery failed. Reply to support with this email."
+    if status == "duplicate" or has_account:
+        return "A hosted Scout account already exists for this email. Use the API key originally delivered to that inbox."
+    return "Scout has recorded this beta request state."
 
 
 def _pending_signup_exists(account_service: HostedAccountService, email: str) -> bool:

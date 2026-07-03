@@ -567,6 +567,11 @@ def test_beta_signup_collects_name_and_email_without_password() -> None:
     assert "payload.raw_api_key" not in hosted_keygen_js
     assert "Scout emailed your beta tester API key" in hosted_keygen_js
     assert "Scout recorded your beta request" in hosted_keygen_js
+    assert 'id="hostedKeyStatusForm"' in html
+    assert 'data-status-check-endpoint="/v1/hosted/beta-key/status"' in html
+    assert "Check beta request status" in normalized_html
+    assert "/v1/hosted/beta-key/status" in hosted_keygen_js
+    assert "Checking beta request status" in hosted_keygen_js
     assert "beta_signup_enabled" in hosted_keygen_js
     assert "Hosted beta key registration is paused" not in hosted_keygen_js
     assert 'type="password"' not in html
