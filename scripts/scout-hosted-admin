@@ -26,6 +26,8 @@ Commands:
   validate-config   Validate local SMTP/Stripe env before pushing to the VPS.
   write-config-template
                     Write a local SMTP/Stripe env template with no secrets.
+  setup-report      Build a non-secret grouped setup report for beta email,
+                    beta Stripe setup, and paid checkout.
   bootstrap-stripe-prices
                     Create Stripe one-time price IDs for Scout paid packages.
   configure-production-env
@@ -48,6 +50,7 @@ Examples:
   scripts/scout-hosted-admin production-smoke --json
   scripts/scout-hosted-admin write-config-template --output secrets/scout-production.env
   scripts/scout-hosted-admin validate-config --secrets-file secrets/scout-production.env --require all
+  scripts/scout-hosted-admin setup-report --secrets-file secrets/scout-production.env
   scripts/scout-hosted-admin bootstrap-stripe-prices --secrets-file secrets/scout-production.env --dry-run
   scripts/scout-hosted-admin bootstrap-stripe-prices --secrets-file secrets/scout-production.env --yes --write-env
   scripts/scout-hosted-admin configure-production-env --secrets-file secrets/scout-production.env --restart
@@ -104,6 +107,10 @@ validate_config() {
 
 write_config_template() {
   exec "$SCRIPT_DIR/scout-write-hosted-config-template" "$@"
+}
+
+setup_report() {
+  exec "$SCRIPT_DIR/scout-hosted-setup-report" "$@"
 }
 
 bootstrap_stripe_prices() {
@@ -179,6 +186,10 @@ case "$1" in
   write-config-template)
     shift
     write_config_template "$@"
+    ;;
+  setup-report)
+    shift
+    setup_report "$@"
     ;;
   bootstrap-stripe-prices)
     shift

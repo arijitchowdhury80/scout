@@ -12,6 +12,7 @@ SCRIPT_NAMES = [
     "scout-hosted-admin",
     "scout-validate-hosted-config",
     "scout-write-hosted-config-template",
+    "scout-hosted-setup-report",
     "scout-generate-api-key",
     "scout-vps-provision-hosted-key",
     "scout-vps-list-hosted-accounts",
@@ -58,6 +59,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "production-smoke",
             "validate-config",
             "write-config-template",
+            "setup-report",
             "bootstrap-stripe-prices",
             "configure-production-env",
         ],
@@ -88,6 +90,18 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "HOSTED_KEY_DELIVERY_SMTP_HOST=",
             "STRIPE_SECRET_KEY=",
             "STRIPE_WEBHOOK_SECRET=",
+        ],
+        "scout-hosted-setup-report": [
+            "Build a non-secret Scout hosted production setup report",
+            "--secrets-file",
+            "--base-url",
+            "--json",
+            "beta_email_delivery",
+            "beta_stripe_setup",
+            "paid_checkout",
+            "scout-hosted-admin configure-production-env",
+            "scout-hosted-admin send-test-email",
+            "hosted_beta_signup_smoke.py",
         ],
         "scout-validate-hosted-config": [
             "Validate Scout hosted SMTP and Stripe config",
@@ -429,6 +443,111 @@ def test_hosted_admin_write_config_template_command_wraps_template_writer() -> N
     assert "--output" in output
     assert "--force" in output
     assert "scout-write-hosted-config-template" in script_text
+
+
+def test_hosted_admin_setup_report_command_wraps_setup_report() -> None:
+    script = REPO_ROOT / "scripts" / "scout-hosted-admin"
+    result = subprocess.run(
+        [str(script), "setup-report", "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+    script_text = script.read_text(encoding="utf-8")
+
+    assert "--secrets-file" in output
+    assert "--base-url" in output
+    assert "--json" in output
+    assert "scout-hosted-setup-report" in script_text
+
+
+def test_hosted_setup_report_groups_missing_operator_work_without_secret_values(
+    tmp_path: Path,
+) -> None:
+    secrets_file = tmp_path / "scout-production.env"
+    secrets_file.write_text(
+        "\n".join(
+            [
+                "HOSTED_BETA_SIGNUP_ENABLED=true",
+                "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL=scout@chowmes.com",
+                "STRIPE_PORTAL_RETURN_URL=https://scout.chowmes.com/account",
+                "STRIPE_SECRET_KEY=sk_test_should_not_print",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            str(REPO_ROOT / "scripts" / "scout-hosted-setup-report"),
+            "--secrets-file",
+            str(secrets_file),
+            "--base-url",
+            "https://scout.chowmes.com",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+
+    assert result.returncode == 2
+    assert "Scout hosted production setup report" in output
+    assert "beta_email_delivery: blocked" in output
+    assert "beta_stripe_setup: blocked" in output
+    assert "paid_checkout: blocked" in output
+    assert "HOSTED_KEY_DELIVERY_SMTP_HOST" in output
+    assert "STRIPE_WEBHOOK_SECRET" in output
+    assert "scout-hosted-admin configure-production-env" in output
+    assert "scout-hosted-admin send-test-email" in output
+    assert "hosted_beta_signup_smoke.py" in output
+    assert "sk_test_should_not_print" not in output
+
+
+def test_hosted_setup_report_json_never_prints_secret_values(tmp_path: Path) -> None:
+    secrets_file = tmp_path / "scout-production.env"
+    secrets_file.write_text(
+        "\n".join(
+            [
+                "HOSTED_BETA_SIGNUP_ENABLED=true",
+                "HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com",
+                "HOSTED_KEY_DELIVERY_SMTP_PORT=587",
+                "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL=scout@chowmes.com",
+                "HOSTED_KEY_DELIVERY_SMTP_USERNAME=scout@chowmes.com",
+                "HOSTED_KEY_DELIVERY_SMTP_PASSWORD=smtp-secret-value",
+                "STRIPE_SECRET_KEY=sk_test_should_not_print",
+                "STRIPE_STANDARD_1000_PRICE_ID=price_1000",
+                "STRIPE_STANDARD_3000_PRICE_ID=price_3000",
+                "STRIPE_STANDARD_15000_PRICE_ID=price_15000",
+                "STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success",
+                "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled",
+                "STRIPE_PORTAL_RETURN_URL=https://scout.chowmes.com/account",
+                "STRIPE_WEBHOOK_SECRET=whsec_should_not_print",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            str(REPO_ROOT / "scripts" / "scout-hosted-setup-report"),
+            "--secrets-file",
+            str(secrets_file),
+            "--json",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+
+    assert '"capability": "beta_email_delivery"' in output
+    assert '"status": "configured"' in output
+    assert '"capability": "paid_checkout"' in output
+    assert "smtp-secret-value" not in output
+    assert "sk_test_should_not_print" not in output
+    assert "whsec_should_not_print" not in output
 
 
 def test_write_hosted_config_template_creates_non_secret_template(tmp_path: Path) -> None:

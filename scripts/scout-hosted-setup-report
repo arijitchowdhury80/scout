@@ -1,0 +1,280 @@
+#!/usr/bin/env python3
+"""Build a non-secret Scout hosted production setup report."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from dataclasses import asdict, dataclass
+from pathlib import Path
+
+
+SECRET_MARKERS = ("sk_test_", "sk_live_", "whsec_", "smtp-secret", "scout_live_")
+
+BETA_EMAIL_KEYS = [
+    "HOSTED_BETA_SIGNUP_ENABLED",
+    "HOSTED_KEY_DELIVERY_SMTP_HOST",
+    "HOSTED_KEY_DELIVERY_SMTP_PORT",
+    "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL",
+    "HOSTED_KEY_DELIVERY_SMTP_USERNAME",
+    "HOSTED_KEY_DELIVERY_SMTP_PASSWORD",
+]
+
+BETA_STRIPE_KEYS = [
+    *BETA_EMAIL_KEYS,
+    "STRIPE_SECRET_KEY",
+    "STRIPE_SUCCESS_URL",
+    "STRIPE_CANCEL_URL",
+    "STRIPE_WEBHOOK_SECRET",
+]
+
+PAID_CHECKOUT_KEYS = [
+    *BETA_STRIPE_KEYS,
+    "STRIPE_PORTAL_RETURN_URL",
+    "STRIPE_STANDARD_1000_PRICE_ID",
+    "STRIPE_STANDARD_3000_PRICE_ID",
+    "STRIPE_STANDARD_15000_PRICE_ID",
+]
+
+URL_KEYS = [
+    "STRIPE_SUCCESS_URL",
+    "STRIPE_CANCEL_URL",
+    "STRIPE_BETA_SUCCESS_URL",
+    "STRIPE_BETA_CANCEL_URL",
+    "STRIPE_PORTAL_RETURN_URL",
+]
+
+
+@dataclass(frozen=True)
+class CapabilityReport:
+    """Readiness for one hosted production capability group."""
+
+    capability: str
+    status: str
+    required_keys: list[str]
+    present_keys: list[str]
+    missing_keys: list[str]
+    warnings: list[str]
+    next_commands: list[str]
+
+
+@dataclass(frozen=True)
+class SetupReport:
+    """Operator-safe Scout hosted setup report."""
+
+    base_url: str
+    secrets_file: str
+    overall_status: str
+    capabilities: list[CapabilityReport]
+
+
+def parse_env_file(path: Path) -> dict[str, str]:
+    """Parse a simple KEY=value env file without interpreting shell syntax."""
+    values: dict[str, str] = {}
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = _strip_quotes(value.strip())
+    return values
+
+
+def _strip_quotes(value: str) -> str:
+    """Remove matching wrapper quotes."""
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+        return value[1:-1]
+    return value
+
+
+def build_report(secrets_file: Path, base_url: str) -> SetupReport:
+    """Build the setup report from local non-secret key presence checks."""
+    values = parse_env_file(secrets_file)
+    capabilities = [
+        _capability(
+            capability="beta_email_delivery",
+            keys=BETA_EMAIL_KEYS,
+            values=values,
+            next_commands=[
+                (
+                    "scripts/scout-hosted-admin configure-production-env "
+                    "--secrets-file secrets/scout-production.env --require beta --restart"
+                ),
+                (
+                    "scripts/scout-hosted-admin send-test-email "
+                    "--email you@example.com --name 'Your Name'"
+                ),
+                (
+                    "python3 scripts/hosted_beta_signup_smoke.py "
+                    f"--base-url {base_url} --email beta-smoke@example.com "
+                    "--name 'Beta Smoke'"
+                ),
+            ],
+        ),
+        _capability(
+            capability="beta_stripe_setup",
+            keys=BETA_STRIPE_KEYS,
+            values=values,
+            next_commands=[
+                (
+                    "scripts/scout-hosted-admin configure-production-env "
+                    "--secrets-file secrets/scout-production.env --require all --restart"
+                ),
+                (
+                    "python3 scripts/stripe_test_mode_smoke.py "
+                    f"--base-url {base_url} --package-id beta_trial"
+                ),
+            ],
+        ),
+        _capability(
+            capability="paid_checkout",
+            keys=PAID_CHECKOUT_KEYS,
+            values=values,
+            next_commands=[
+                (
+                    "scripts/scout-hosted-admin bootstrap-stripe-prices "
+                    "--secrets-file secrets/scout-production.env --yes --write-env"
+                ),
+                (
+                    "scripts/scout-hosted-admin configure-production-env "
+                    "--secrets-file secrets/scout-production.env --require all --restart"
+                ),
+                (
+                    "python3 scripts/stripe_test_mode_smoke.py "
+                    f"--base-url {base_url} --package-id standard_1000"
+                ),
+            ],
+        ),
+    ]
+    overall_status = (
+        "configured"
+        if all(capability.status == "configured" for capability in capabilities)
+        else "blocked"
+    )
+    return SetupReport(
+        base_url=base_url.rstrip("/"),
+        secrets_file=str(secrets_file),
+        overall_status=overall_status,
+        capabilities=capabilities,
+    )
+
+
+def _capability(
+    *,
+    capability: str,
+    keys: list[str],
+    values: dict[str, str],
+    next_commands: list[str],
+) -> CapabilityReport:
+    """Build one capability block."""
+    missing = [key for key in keys if values.get(key, "").strip() == ""]
+    warnings: list[str] = []
+    signup_enabled = values.get("HOSTED_BETA_SIGNUP_ENABLED", "").casefold()
+    if signup_enabled not in {"true", "1", "yes"}:
+        missing.append("HOSTED_BETA_SIGNUP_ENABLED=true")
+    smtp_port = values.get("HOSTED_KEY_DELIVERY_SMTP_PORT", "")
+    if smtp_port and not smtp_port.isdigit():
+        warnings.append("HOSTED_KEY_DELIVERY_SMTP_PORT should be an integer.")
+    for key in URL_KEYS:
+        value = values.get(key, "")
+        if value and not value.startswith("https://"):
+            warnings.append(f"{key} should use https:// for hosted production.")
+    if "STRIPE_BETA_PRICE_ID" in values:
+        warnings.append("STRIPE_BETA_PRICE_ID is obsolete; beta uses Stripe setup mode.")
+
+    missing = sorted(set(missing))
+    status = "configured" if not missing and not warnings else "blocked"
+    return CapabilityReport(
+        capability=capability,
+        status=status,
+        required_keys=keys,
+        present_keys=[key for key in keys if values.get(key, "").strip()],
+        missing_keys=missing,
+        warnings=warnings,
+        next_commands=[] if status == "configured" else next_commands,
+    )
+
+
+def report_to_json(report: SetupReport) -> str:
+    """Serialize setup report as JSON."""
+    return json.dumps(asdict(report), indent=2, sort_keys=True)
+
+
+def report_to_text(report: SetupReport) -> str:
+    """Render setup report for operators."""
+    lines = [
+        "Scout hosted production setup report",
+        f"Base URL: {report.base_url}",
+        f"Secrets file: {report.secrets_file}",
+        f"Overall: {report.overall_status}",
+        "",
+    ]
+    for capability in report.capabilities:
+        lines.append(f"{capability.capability}: {capability.status}")
+        if capability.missing_keys:
+            lines.append("  Missing keys:")
+            lines.extend(f"    - {key}" for key in capability.missing_keys)
+        if capability.warnings:
+            lines.append("  Warnings:")
+            lines.extend(f"    - {warning}" for warning in capability.warnings)
+        if capability.next_commands:
+            lines.append("  Next commands:")
+            lines.extend(f"    - {command}" for command in capability.next_commands)
+        lines.append("")
+    return "\n".join(lines).rstrip()
+
+
+def assert_no_secret_leak(text: str) -> None:
+    """Refuse to print obvious secret material."""
+    leaked = [marker for marker in SECRET_MARKERS if marker in text]
+    if leaked:
+        raise RuntimeError("Refusing to print secret-looking hosted setup output.")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """Build CLI parser."""
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""Capability groups:
+  beta_email_delivery: beta signup plus SMTP key delivery.
+  beta_stripe_setup: beta email delivery plus Stripe setup-mode validation.
+  paid_checkout: paid package price IDs, customer portal, webhook, and key delivery.
+
+Typical next commands:
+  scripts/scout-hosted-admin configure-production-env --secrets-file secrets/scout-production.env --require beta --restart
+  scripts/scout-hosted-admin send-test-email --email you@example.com --name 'Your Name'
+  python3 scripts/hosted_beta_signup_smoke.py --base-url https://scout.chowmes.com --email beta-smoke@example.com --name 'Beta Smoke'
+""",
+    )
+    parser.add_argument(
+        "--secrets-file",
+        required=True,
+        help="Local hosted env file to inspect without printing values.",
+    )
+    parser.add_argument("--base-url", default="https://scout.chowmes.com")
+    parser.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Run the setup report."""
+    args = build_parser().parse_args(argv)
+    secrets_file = Path(args.secrets_file)
+    if not secrets_file.exists():
+        print(f"Secrets file not found: {secrets_file}", file=sys.stderr)
+        return 2
+    try:
+        report = build_report(secrets_file=secrets_file, base_url=args.base_url)
+        output = report_to_json(report) if args.json else report_to_text(report)
+        assert_no_secret_leak(output)
+    except RuntimeError as exc:
+        print(f"FAIL: {exc}", file=sys.stderr)
+        return 2
+    print(output)
+    return 0 if report.overall_status == "configured" else 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -136,6 +136,26 @@ scripts/scout-hosted-admin write-config-template \
 The template contains only placeholder values and safe defaults. It refuses to
 overwrite an existing file unless `--force` is passed.
 
+Before pushing anything to the VPS, build a grouped setup report. This command
+prints variable names and next commands only; it never prints Stripe keys, SMTP
+passwords, hosted API keys, or key hashes:
+
+```bash
+scripts/scout-hosted-admin setup-report \
+  --secrets-file secrets/scout-production.env
+```
+
+The report groups readiness into three operator capabilities:
+
+- `beta_email_delivery`: beta registration plus SMTP delivery of the API key.
+- `beta_stripe_setup`: `$0` Stripe setup-mode validation for invited beta
+  testers, including signed webhook delivery and SMTP key delivery.
+- `paid_checkout`: public paid credit packages, Customer Portal, signed
+  webhook processing, and API-key delivery.
+
+Use `--json` when this needs to be consumed by deployment logs or a release
+checklist.
+
 Hosted beta delivery requires authenticated SMTP configuration in production.
 `validate-config --require beta` fails unless host, port, from address,
 username, and password are all present. This keeps local preflight aligned with
@@ -362,32 +382,6 @@ The command updates `/data/hosted_accounts.sqlite` inside the hosted Scout
 container. Email and tenant targets disable the tenant plus all tenant keys.
 Key targets disable only the selected key. The helper requires `--yes`, prints
 only non-secret fields, and never prints raw API keys or stored key hashes.
-
-After configuration, verify readiness:
-
-```bash
-scripts/scout-hosted-admin readiness \
-  --require-beta-signup \
-  --require-paid-checkout
-```
-
-Then run Stripe test-mode smoke:
-
-```bash
-python3 scripts/stripe_test_mode_smoke.py \
-  --base-url https://scout.chowmes.com \
-  --email scout-paid-smoke@example.com \
-  --name "Scout Paid Smoke" \
-  --package-id standard_1000 \
-  --create-checkout
-
-python3 scripts/stripe_test_mode_smoke.py \
-  --base-url https://scout.chowmes.com \
-  --email scout-beta-test@example.com \
-  --name "Scout Beta Tester" \
-  --package-id beta_trial \
-  --create-checkout
-```
 
 ### Check Hosted SaaS Readiness
 
