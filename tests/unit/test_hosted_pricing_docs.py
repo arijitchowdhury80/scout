@@ -40,9 +40,10 @@ def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     assert "hosted_credit_ledger" in doc
     assert "list-purchases" in doc
     assert "hosted_payment_checkouts" in doc
-    assert "current public beta key request path does not require Stripe" in doc
+    assert "Public beta testers start access through the card-backed `$0` setup form" in doc
+    assert "no longer the advertised public self-service CTA" in normalized_doc
     assert "Stripe checkout forms are available from `/pricing`" in normalized_doc
-    assert "from `/beta` for optional `$0` card-backed beta setup" in normalized_doc
+    assert "from `/beta` for `$0` card-backed beta setup" in normalized_doc
     assert "forms are readiness-gated by `/v1/billing/stripe/status`" in normalized_doc
     assert "`credit_policy`" in doc
     assert "included_in_standard_1000" in doc

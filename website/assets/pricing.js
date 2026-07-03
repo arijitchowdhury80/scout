@@ -278,7 +278,7 @@
 
   function checkoutPausedMessage(packageId) {
     if (packageId === "beta_trial") {
-      return "Card-backed beta checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured. Use the email beta key path if it is ready.";
+      return "Card-backed beta checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured.";
     }
     return "Hosted checkout is paused until Stripe checkout, webhook provisioning, and API-key email delivery are configured. Existing keys still work.";
   }

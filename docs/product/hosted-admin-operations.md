@@ -7,12 +7,14 @@ Status: private beta operations
 
 Scout hosted beta has API-key based access, not a login system.
 
-- Public beta testers start access through the hosted beta key form on `/beta`,
-  which posts name and email to `POST /v1/hosted/beta-key`. Scout provisions the
-  hosted account and SMTP delivers the raw API key once when SMTP is configured.
-  Without SMTP configuration, Scout records a `pending_delivery` signup event,
-  returns `202 Accepted`, and creates no tenant or API key until an operator
-  processes the queue after delivery is configured.
+- Public beta testers start access through the card-backed `$0` setup form on
+  `/beta`, which posts name, email, and package `beta_trial` to
+  `POST /v1/billing/stripe/checkout-session`. Stripe setup verifies the
+  payment pipeline without charging the tester; the signed webhook provisions
+  the hosted account and SMTP delivers the raw API key once.
+- `POST /v1/hosted/beta-key` remains a backend/operator compatibility path for
+  direct beta-key registration and pending-delivery recovery, but it is no
+  longer the advertised public self-service CTA on the website.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
 - Self-service signup emails the raw API key when SMTP delivery is configured.
@@ -25,10 +27,10 @@ Scout hosted beta has API-key based access, not a login system.
   `POST /v1/hosted/beta-key/status` using only the registration email. The
   status lookup never returns raw API keys or key hashes.
 - Stripe checkout forms are available from `/pricing` for paid hosted credit
-  packages and from `/beta` for optional `$0` card-backed beta setup. Both
-  forms are readiness-gated by `/v1/billing/stripe/status` and stay disabled
-  until Stripe settings, signed webhook delivery, and SMTP key delivery are
-  configured. The current public beta key request path does not require Stripe.
+  packages and from `/beta` for `$0` card-backed beta setup. Both forms are
+  readiness-gated by `/v1/billing/stripe/status` and stay disabled until
+  Stripe settings, signed webhook delivery, and SMTP key delivery are
+  configured.
 - The key-delivery email subject is `Your Scout beta tester API key is ready`.
   It is signed by Arijit Chowdhury, Founder, Chowmes; explains the
   100-credit/30-day beta boundary; says hosted access is not unlimited
@@ -75,11 +77,11 @@ Scout hosted beta has API-key based access, not a login system.
   verification are still required before calling the hosted purchase path ready.
 - No formal public self-serve account portal or Stripe customer portal.
 
-Direct beta registration, Stripe checkout, webhook, and key-delivery scaffolding
-exist in code and tests. Production still needs live SMTP for beta signup, plus
-Stripe settings before the paid checkout path is operational end to end. Partial
-Stripe configuration is not enough: checkout creation intentionally remains
-blocked until webhook verification and key delivery are also ready.
+Stripe checkout, webhook, key delivery, and the compatibility direct-beta
+registration path exist in code and tests. Production still needs live SMTP and
+Stripe settings before beta setup or paid checkout is operational end to end.
+Partial Stripe configuration is not enough: checkout creation intentionally
+remains blocked until webhook verification and key delivery are also ready.
 
 ## Admin Scripts
 
@@ -91,12 +93,11 @@ cd /Users/arijitchowdhury/Dropbox/AI-Development/Scout
 
 ### Enable Or Disable Beta Signup
 
-Set `HOSTED_BETA_SIGNUP_ENABLED=true` to let the public beta form collect
-name/email requests. If SMTP delivery is not configured yet, Scout records each
-request as `pending_delivery` without creating an account or API key. Set it to
-`false` to stop new direct beta requests without disabling existing Bearer
-keys. The public beta flow should not be considered key-delivery ready until
-this flag and SMTP key delivery are both present.
+Set `HOSTED_BETA_SIGNUP_ENABLED=true` to allow the `$0` beta checkout package
+and direct-beta compatibility endpoint. Set it to `false` to stop new beta
+setup without disabling existing Bearer keys. The public beta flow should not
+be considered ready until this flag, Stripe Checkout, webhook signing, and SMTP
+key delivery are all present.
 
 Required delivery settings, stored in an ignored local file such as
 `secrets/scout-production.env` before pushing to the VPS:
@@ -674,7 +675,7 @@ Today, Scout can answer:
   `scripts/scout-hosted-admin list-signups`,
 - SMTP/key-delivery smoke testing from the Mac with
   `scripts/scout-hosted-admin send-test-email`,
-- every direct beta key request outcome in the `hosted_signup_events` table,
+- every compatibility direct-beta key request outcome in the `hosted_signup_events` table,
 - every successful hosted credit debit in the `hosted_credit_ledger` table,
 - Stripe checkout/package purchase records in `hosted_payment_checkouts`,
 - hosted run ownership through stored `tenant_id` and `key_id`,

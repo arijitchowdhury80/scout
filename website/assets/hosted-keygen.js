@@ -6,7 +6,7 @@
   const reissueForm = document.getElementById("hostedKeyReissueForm");
   const reissueStatusEl = document.getElementById("hostedKeyReissueStatus");
 
-  if (!form || !statusEl) {
+  if (!form && !statusForm && !reissueForm) {
     return;
   }
 
@@ -18,9 +18,11 @@
   const reissueEndpoint =
     reissueForm?.dataset.reissueEndpoint || "/v1/hosted/beta-key/reissue";
 
-  checkReadiness();
+  if (form && statusEl) {
+    checkReadiness();
+  }
 
-  form.addEventListener("submit", async (event) => {
+  form?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const submitButton = form.querySelector("button[type='submit']");
     const formData = new FormData(form);
@@ -141,6 +143,7 @@
   });
 
   async function checkReadiness() {
+    if (!form || !statusEl) return;
     const submitButton = form.querySelector("button[type='submit']");
     try {
       const response = await fetch(statusEndpoint, { headers: { accept: "application/json" } });

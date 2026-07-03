@@ -95,11 +95,12 @@ does not pass an exact `--output-dir` or JSON `output_dir`.
 
 ## Hosted Beta Configuration
 
-Local use does not require Stripe or SMTP. Hosted beta key registration starts
-through `POST /v1/hosted/beta-key` and requires SMTP delivery before it is
-live-ready. Public signup never returns raw API keys in the browser.
+Local use does not require Stripe or SMTP. Public hosted beta signup starts
+through Stripe Checkout setup mode with package `beta_trial` and requires
+signed webhook provisioning plus SMTP delivery before it is live-ready. Public
+signup never returns raw API keys in the browser.
 
-Direct beta key registration requires:
+Hosted beta setup requires:
 
 ```text
 HOSTED_BETA_SIGNUP_ENABLED=true
@@ -111,14 +112,18 @@ HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL=scout@example.com
 HOSTED_KEY_DELIVERY_SMTP_USERNAME=
 HOSTED_KEY_DELIVERY_SMTP_PASSWORD=
 HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
+
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_SUCCESS_URL=https://your-domain.example/pricing?checkout=success
+STRIPE_CANCEL_URL=https://your-domain.example/pricing?checkout=cancelled
+STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
 Paid checkout and card-backed beta setup use Stripe Checkout. `/pricing`
-contains the paid hosted-credit checkout form, and `/beta` contains the
-optional `$0` beta setup form beside direct email-key registration. These forms
-are readiness-gated by `/v1/billing/stripe/status`; they require Stripe
-Checkout settings, signed webhook delivery, and SMTP key delivery before they
-are live-ready:
+contains the paid hosted-credit checkout form, and `/beta` contains the `$0`
+beta setup form. These forms are readiness-gated by
+`/v1/billing/stripe/status`; they require Stripe Checkout settings, signed
+webhook delivery, and SMTP key delivery before they are live-ready:
 
 ```text
 STRIPE_SECRET_KEY=sk_test_...
@@ -128,10 +133,10 @@ STRIPE_CANCEL_URL=https://your-domain.example/pricing?checkout=cancelled
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
-The `$0` `beta_trial` package can also run through Stripe Checkout setup mode
-when `--package-id beta_trial` is used for test-mode smoke validation. That
-validates payment-method collection and webhook provisioning without charging
-the beta tester, but it is separate from the direct `/beta` email-key form.
+The `$0` `beta_trial` package runs through Stripe Checkout setup mode when
+`--package-id beta_trial` is used for test-mode smoke validation. That validates
+payment-method collection and webhook provisioning without charging the beta
+tester.
 
 When a paid checkout webhook uses an email that already has a hosted account,
 Scout treats the checkout as a credit top-up: it adds the purchased credits to
