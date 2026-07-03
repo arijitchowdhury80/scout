@@ -73,6 +73,9 @@ def test_smtp_delivery_service_sends_one_time_key_email() -> None:
     )
     assert "Hosted browser work is separately metered" in body
     assert "Use this key as a Bearer token" in body
+    assert "First hosted scrape:" in body
+    assert "https://scout.chowmes.com/v1/hosted/scrape" in body
+    assert '"url":"https://example.com"' in body
     assert "Account and balance:" in body
     assert "Usage ledger:" in body
     assert "Purchase history:" in body
@@ -87,6 +90,38 @@ def test_smtp_delivery_service_sends_one_time_key_email() -> None:
     assert "Reply to this email with your use case, target site, and any failing run ID." in body
     assert "Founder, Chowmes" in body
     assert "Arijit Chowdhury" in body
+
+
+def test_beta_key_email_uses_actual_credit_and_trial_values() -> None:
+    smtp_factory = FakeSmtpFactory()
+    service = SmtpHostedApiKeyDeliveryService(
+        config=SmtpHostedApiKeyDeliveryConfig(
+            host="smtp.example.com",
+            port=587,
+            from_email="scout@example.com",
+            username="scout-user",
+            password="smtp-secret",
+            use_tls=True,
+        ),
+        smtp_factory=smtp_factory,
+    )
+
+    result = service.deliver(
+        _delivery_request(
+            standard_credits=250,
+            browser_credits=3,
+            trial_days=14,
+        )
+    )
+    sent = smtp_factory.client.messages[0]
+    message = message_from_string(sent.message, policy=default)
+    assert isinstance(message, EmailMessage)
+    body = str(message.get_content())
+
+    assert result.delivered is True
+    assert "Your beta trial includes 250 standard credits for 14 days." in body
+    assert "Your beta trial also includes 3 hosted browser credits." in body
+    assert "100 standard credits for 30 days" not in body
 
 
 def test_smtp_delivery_service_sends_paid_credit_email_without_beta_trial_claims() -> None:

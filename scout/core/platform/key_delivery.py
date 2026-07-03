@@ -232,10 +232,14 @@ def _delivery_body(request: HostedApiKeyDeliveryRequest) -> str:
             "Welcome to the Scout private beta. I'm glad to have you testing Scout.",
             "",
             "Your hosted beta tester API key is ready.",
-            "Your beta trial includes 100 standard credits for 30 days.",
+            (
+                "Your beta trial includes "
+                f"{request.standard_credits:,} standard credits for {request.trial_days} days."
+            ),
+            _browser_credit_line(request),
             "1 scrape, 1 returned crawl page, or 1 product/intelligence record = 1 standard credit.",
             "This is not unlimited hosted crawling.",
-            "Hosted browser work is separately metered and is not included in this beta key.",
+            _browser_metering_line(request),
             "",
             "Store this key now. Scout stores only a hash and cannot show the raw key again.",
             "Do not paste this key into frontend code, screenshots, tickets, or public repos.",
@@ -251,6 +255,12 @@ def _delivery_body(request: HostedApiKeyDeliveryRequest) -> str:
             "Quick test:",
             "curl https://scout.chowmes.com/v1/hosted/me \\",
             f"  -H 'Authorization: Bearer {request.raw_api_key}'",
+            "",
+            "First hosted scrape:",
+            "curl -X POST https://scout.chowmes.com/v1/hosted/scrape \\",
+            f"  -H 'Authorization: Bearer {request.raw_api_key}' \\",
+            "  -H 'Content-Type: application/json' \\",
+            '  -d \'{"url":"https://example.com","formats":["markdown"]}\'',
             "",
             "Account and balance:",
             "https://scout.chowmes.com/v1/hosted/me",
@@ -311,6 +321,20 @@ def _paid_delivery_body(request: HostedApiKeyDeliveryRequest, greeting_name: str
             "Founder, Chowmes",
         ]
     )
+
+
+def _browser_credit_line(request: HostedApiKeyDeliveryRequest) -> str:
+    """Return beta browser-credit line for the email body."""
+    if request.browser_credits > 0:
+        return f"Your beta trial also includes {request.browser_credits:,} hosted browser credits."
+    return "Hosted browser credits are not included in this beta key."
+
+
+def _browser_metering_line(request: HostedApiKeyDeliveryRequest) -> str:
+    """Return browser metering copy for the beta email body."""
+    if request.browser_credits > 0:
+        return "Hosted browser work draws from the separate browser-credit balance."
+    return "Hosted browser work is separately metered and is not included in this beta key."
 
 
 def _credit_summary(request: HostedApiKeyDeliveryRequest) -> str:

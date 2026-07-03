@@ -44,10 +44,11 @@ Scout hosted beta has API-key based access, not a login system.
   `customer_creation=always`, and package price line items.
 - Beta-trial key delivery uses the subject `Your Scout beta tester API key is
   ready`. It is signed by Arijit Chowdhury, Founder, Chowmes; explains the
-  100-credit/30-day beta boundary; says hosted access is not unlimited
-  crawling; includes credit meaning, account/balance, usage ledger, purchase
-  history, docs, and pricing links; warns users not to paste keys into frontend
-  code/screenshots/tickets/public repos; and asks testers to reply with their
+  actual beta credit and trial-day values from the provisioned account; says
+  hosted access is not unlimited crawling; includes credit meaning, a first
+  hosted scrape cURL command, account/balance, usage ledger, purchase history,
+  docs, and pricing links; warns users not to paste keys into frontend code,
+  screenshots, tickets, or public repos; and asks testers to reply with their
   use case, target site, and failing run ID for support.
 - First-time paid package key delivery uses the subject `Your Scout hosted API
   key is ready` and includes the purchased package ID plus the actual standard
@@ -772,7 +773,7 @@ fully validated Stripe production flow.
 
 Pay-as-you-go pricing candidate:
 
-- Beta trial: 30 days, 100 standard credits, name/email registration, and SMTP API-key delivery when configured.
+- Beta trial: configured trial length and standard-credit grant, name/email registration, and SMTP API-key delivery when configured.
 - First paid package: $10 for 1,000 standard credits.
 - A standard credit means one scrape, one returned crawl page, or one product/intelligence record.
 - Browser credits remain separately metered and are not included in the first public package.
