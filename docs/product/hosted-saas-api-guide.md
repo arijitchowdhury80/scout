@@ -46,6 +46,7 @@ When enabled, Scout blocks local/admin routes even if a caller knows
 
 - `/scrape`
 - `/crawl`
+- `/screenshot`
 - `/products`
 - `/run/*`
 - `/app`
@@ -155,6 +156,15 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/crawl" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","max_pages":5}'
+```
+
+Capture a screenshot:
+
+```bash
+curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/screenshot" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.cnn.com/","viewport_width":1280,"viewport_height":800}'
 ```
 
 Extract product records:

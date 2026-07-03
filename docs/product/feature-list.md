@@ -96,12 +96,14 @@ deep research agents.
 
 ## Service Operations
 
-- CLI, local HTTP API, hosted beta API, Docker-from-source, and skill usage.
+- Hosted HTTP API and Claude/Codex skill usage for beta testers.
+- Local CLI, local HTTP API, Python package, and Docker-from-source for
+  internal/operator verification.
 - Run manifests, records, sources, blocked pages, artifacts, and reports.
 - SQLite run persistence.
 - Protected browser-capture backend routes for future user-browser workflows.
 - Configurable `SCOUT_WORKDIR` for local and hosted artifact storage.
-- Docker deployment files.
+- Docker deployment files for VPS/internal operations.
 - API key authentication.
 
 ## Product Export And Algolia Integration
@@ -115,11 +117,11 @@ deep research agents.
 
 ## Interfaces
 
-- Python package.
-- CLI.
-- FastAPI HTTP service.
-- Docker service.
+- Hosted FastAPI HTTP service.
 - Claude/Codex skill backend.
+- Operator Python package.
+- Operator CLI.
+- Internal Docker service.
 - Future MCP server target.
 
 ## Beta Status

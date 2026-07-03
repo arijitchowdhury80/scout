@@ -1,6 +1,6 @@
 ---
 name: scout
-description: Use Scout for provider-agnostic web intelligence: company research, PRISM prospect bundles, investor pages, careers/hiring, job extraction and scoring, product catalog records for Algolia, news signals, docs, and generic web research. Scout runs as a standalone CLI, local HTTP app, and skill-backed extraction engine. Use browser fallback only after normal providers are blocked, sparse, or JS-heavy.
+description: Use Scout for provider-agnostic web intelligence: company research, PRISM prospect bundles, investor pages, careers/hiring, job extraction and scoring, product catalog records for Algolia, news signals, docs, and generic web research. For beta testers, Scout is accessed through hosted HTTP and this skill. Use browser fallback only after normal providers are blocked, sparse, or JS-heavy.
 layer: 0-infrastructure
 type: server-backed
 server_port: 8421
@@ -12,18 +12,19 @@ version: 3.0
 
 # Scout
 
-Scout is a standalone web intelligence engine built on Crawl4AI with a
-provider ladder for host WebFetch/WebSearch, saved replay, API adapters, and
-browser fallback. This skill is the agent playbook. Scout itself must remain
-usable from terminal, HTTP, Docker, and Python.
+Scout is a web intelligence engine built on Crawl4AI with a provider ladder for
+hosted HTTP, host WebFetch/WebSearch, saved replay, API adapters, and browser
+fallback. This skill is the agent playbook. For beta testers, use the hosted
+HTTP API first; local CLI, local HTTP, Docker, and Python remain
+operator/developer verification surfaces unless explicitly configured.
 
 ## First Decision
 
 Use the lightest channel that can produce evidence:
 
-1. CLI for local standalone runs.
-2. HTTP when another process or agent needs a stable local service.
-3. Host WebFetch/WebSearch when the host has stronger page/search access.
+1. Hosted HTTP API when the user has a `SCOUT_HOSTED_API_KEY`.
+2. Host WebFetch/WebSearch when the host has stronger page/search access.
+3. Local HTTP or CLI only when the user explicitly asks for an operator/local run.
 4. Browser fallback only when pages are blocked, JS-shell, interactive, or
    visual verification is needed.
 5. Saved replay for deterministic tests and previously captured HTML/DOM/PDF.
@@ -64,7 +65,7 @@ one. Otherwise:
 1. For CLI runs, pass `--workdir` when the user names a workspace.
 2. If the terminal is interactive and no path is provided, Scout prompts for the
    working directory.
-3. For HTTP, Docker, scheduled, or skill-driven runs, set `SCOUT_WORKDIR` in
+3. For local HTTP, scheduled, or skill-driven operator runs, set `SCOUT_WORKDIR` in
    `.env.local` or pass JSON `output_dir`.
 
 Local keys and machine-specific defaults belong in `.env.local`:
@@ -124,6 +125,22 @@ scout products "top products" \
 
 ## High-Level HTTP
 
+Hosted beta API:
+
+```bash
+curl -s -X POST "${SCOUT_HOSTED_BASE_URL:-https://scout.chowmes.com}/v1/hosted/run/company" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${SCOUT_HOSTED_API_KEY}" \
+  -d '{
+    "query": "Adobe",
+    "url": "https://www.adobe.com/",
+    "mode": "auto",
+    "max_records": 5
+  }'
+```
+
+Local operator API:
+
 ```bash
 curl -s -X POST http://localhost:8421/run/company \
   -H "Content-Type: application/json" \
@@ -137,9 +154,10 @@ curl -s -X POST http://localhost:8421/run/company \
 
 ## Product Surface Boundary
 
-Scout is a CLI/HTTP/Docker/skill utility. The previous experimental local
-`/app` UI has been removed from the supported product surface. Prefer CLI,
-HTTP, Docker, hosted API, and artifact examples for beta launch guidance.
+Scout beta guidance is hosted HTTP plus this Claude/Codex skill. Local CLI,
+local HTTP, Python, and Docker remain internal/operator verification surfaces.
+The previous experimental local `/app` UI has been removed from the supported
+product surface.
 
 ## Use Cases
 
