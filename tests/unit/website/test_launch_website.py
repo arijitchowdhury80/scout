@@ -147,6 +147,7 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     copy_code = client.get("/assets/copy-code.js")
     playground = client.get("/assets/playground.js")
     pricing = client.get("/assets/pricing.js")
+    account = client.get("/assets/account.js")
     old_hosted_keygen = client.get("/assets/hosted-keygen.js")
 
     assert styles.status_code == 200
@@ -182,6 +183,11 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert pricing.status_code == 200
     assert "javascript" in pricing.headers["content-type"]
     assert "/v1/billing/packages" in pricing.text
+    assert account.status_code == 200
+    assert "javascript" in account.headers["content-type"]
+    assert "/v1/hosted/me" in account.text
+    assert "localStorage" not in account.text
+    assert "sessionStorage" not in account.text
     assert old_hosted_keygen.status_code == 403
 
 
@@ -555,6 +561,32 @@ def test_beta_checkout_collects_name_and_email_without_password() -> None:
     assert 'name="invite_password"' not in html
 
 
+def test_account_page_lets_hosted_users_inspect_usage_without_login() -> None:
+    html = (_WEBSITE_DIR / "account.html").read_text(encoding="utf-8")
+    account_js = (_WEBSITE_DIR / "assets" / "account.js").read_text(encoding="utf-8")
+    normalized_html = " ".join(html.split())
+
+    assert "Hosted Account" in html
+    assert "Check credits, usage, and purchases" in normalized_html
+    assert 'id="hostedAccountForm"' in html
+    assert 'id="hostedAccountKey"' in html
+    assert 'autocomplete="off"' in html
+    assert 'name="api_key"' in html
+    assert 'id="hostedAccountSummary"' in html
+    assert 'id="hostedUsageLedger"' in html
+    assert 'id="hostedPurchaseLedger"' in html
+    assert 'src="./assets/account.js"' in html
+    assert "/v1/hosted/me" in account_js
+    assert "/v1/hosted/usage" in account_js
+    assert "/v1/hosted/purchases" in account_js
+    assert "Authorization" in account_js
+    assert "Bearer" in account_js
+    assert "localStorage" not in account_js
+    assert "sessionStorage" not in account_js
+    assert "sk_live_" not in html
+    assert "sk_live_" not in account_js
+
+
 def test_command_docs_include_copy_code_behavior() -> None:
     for page_name in ("quickstart.html", "status.html", "beta.html"):
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
@@ -647,6 +679,7 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/examples": "Scout Docs",
         "/status": "Scout Launch Status",
         "/beta": "Scout Private Beta",
+        "/account": "Scout Hosted Account",
         "/legal": "Scout Legal And Third-Party Notices",
         "/terms": "Scout Beta Terms Placeholder",
         "/privacy": "Scout Beta Privacy Placeholder",
@@ -657,6 +690,7 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/examples.html": "Scout Docs",
         "/status.html": "Scout Launch Status",
         "/beta.html": "Scout Private Beta",
+        "/account.html": "Scout Hosted Account",
         "/legal.html": "Scout Legal And Third-Party Notices",
         "/terms.html": "Scout Beta Terms Placeholder",
         "/privacy.html": "Scout Beta Privacy Placeholder",

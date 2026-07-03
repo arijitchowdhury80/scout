@@ -454,6 +454,28 @@ Production deployment verification for this slice:
   restarted Scout to flush the in-process queue, verified public health `200`,
   and left the container idle at CPU 0.18%, memory 105.1MiB, PIDs 7.
 
+## Hosted Account Page Slice
+
+Implemented:
+
+- Added `/account` and `/account.html` as a public hosted account lookup page.
+- Added `/assets/account.js` to call `/v1/hosted/me`, `/v1/hosted/usage`, and
+  `/v1/hosted/purchases` with a pasted Bearer key.
+- The page does not use localStorage or sessionStorage for API keys.
+
+Verification:
+
+```bash
+python3 -m pytest tests/unit/website/test_launch_website.py::test_api_serves_launch_website_static_assets_without_auth tests/unit/website/test_launch_website.py::test_account_page_lets_hosted_users_inspect_usage_without_login -q
+python3 -m pyright scout/
+ruff check scout/ tests/ scripts/*.py scripts/scout-hosted-load-test
+ruff format --check scout/ tests/ scripts/*.py scripts/scout-hosted-load-test
+python3 -m pytest tests/unit/ -q
+```
+
+Result: focused account tests 2 passed, 2 warnings; pyright 0 errors; Ruff
+passed; format check passed; unit suite 707 passed, 8 warnings.
+
 ## Payment-Method-First Beta Access Slice
 
 Implemented:

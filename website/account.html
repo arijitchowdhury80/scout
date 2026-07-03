@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scout Hosted Account - Usage and credits</title>
+    <meta
+      name="description"
+      content="Check Scout hosted API credits, usage, and purchase history with your hosted API key."
+    />
+    <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
+    <link rel="stylesheet" href="./assets/flux-design-system/tokens.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="wi">
+    <div class="wi-grid-bg" aria-hidden="true"><div class="wi-grid-bg__inner"></div></div>
+    <div class="wi-noise" aria-hidden="true"></div>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Scout home">
+          <img class="brand-logo" src="./assets/scout-wordmark.svg" alt="Scout" width="172" height="64" />
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="/">Overview</a>
+          <a href="/#use-cases">Features</a>
+          <a href="/#demo">Demo</a>
+          <a href="/docs">Docs</a>
+          <a href="/#purchase">Pricing</a>
+        </nav>
+        <a class="wi-pill nav-cta" href="/beta">Join beta</a>
+      </header>
+
+      <main>
+        <section class="page-hero">
+          <p class="wi-label wi-label--accent">Hosted Account</p>
+          <h1>Check credits, usage, and purchases.</h1>
+          <p>
+            Paste your Scout hosted API key to inspect your account. The key is
+            used only for this browser request and is not saved in local storage
+            or session storage.
+          </p>
+        </section>
+
+        <section class="section beta" aria-labelledby="account-lookup-title">
+          <div>
+            <p class="wi-label wi-label--accent">Account lookup</p>
+            <h2 id="account-lookup-title">Use your hosted API key as your credential.</h2>
+            <p>
+              Hosted Scout is API-key based today. This page calls the same
+              account, usage, and purchase endpoints that your agents or HTTP
+              nodes can call.
+            </p>
+          </div>
+          <div class="beta-panel" aria-label="Hosted account lookup">
+            <form id="hostedAccountForm" class="beta-form">
+              <label for="hostedAccountKey">Hosted API key</label>
+              <input
+                id="hostedAccountKey"
+                name="api_key"
+                type="password"
+                autocomplete="off"
+                placeholder="scout_live_..."
+                required
+              />
+              <button class="wi-btn" type="submit">Check account</button>
+              <p id="hostedAccountStatus" class="beta-status" role="status" aria-live="polite">
+                Ready. Your key stays in this page memory for the lookup only.
+              </p>
+            </form>
+          </div>
+        </section>
+
+        <section class="section launch-status" aria-labelledby="account-summary-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Account summary</p>
+            <h2 id="account-summary-title">Balance and limits returned by Scout.</h2>
+          </div>
+          <div id="hostedAccountSummary" class="status-grid">
+            <article>
+              <span class="status-tag status-tag--limited">No key checked</span>
+              <h3>Paste a hosted API key.</h3>
+              <p>Your current credits, plan limits, and usage totals will appear here.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section launch-status" aria-labelledby="account-ledgers-title">
+          <div class="section-heading">
+            <p class="wi-label wi-label--accent">Ledgers</p>
+            <h2 id="account-ledgers-title">Recent usage and purchases.</h2>
+          </div>
+          <div class="two-col">
+            <article class="beta-panel">
+              <h3>Usage ledger</h3>
+              <div id="hostedUsageLedger" class="ledger-list">No usage loaded yet.</div>
+            </article>
+            <article class="beta-panel">
+              <h3>Purchase ledger</h3>
+              <div id="hostedPurchaseLedger" class="ledger-list">No purchases loaded yet.</div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="./assets/account.js"></script>
+  </body>
+</html>

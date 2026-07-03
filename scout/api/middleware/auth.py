@@ -21,6 +21,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         """Pass public routes through; reject other requests without a valid key."""
         always_public_paths = {
             "/",
+            "/account",
+            "/account.html",
+            "/assets/account.js",
             "/assets/playground.js",
             "/assets/pricing.js",
             "/beta",

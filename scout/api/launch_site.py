@@ -44,6 +44,7 @@ async def launch_site_design_system_asset(asset_name: str) -> FileResponse:
 async def launch_site_asset(asset_name: str) -> FileResponse:
     """Serve allowlisted launch-site media assets."""
     allowed_assets = {
+        "account.js",
         "copy-code.js",
         "playground.js",
         "pricing.js",
@@ -92,6 +93,13 @@ async def launch_site_guide() -> FileResponse:
 async def launch_site_pricing() -> FileResponse:
     """Serve the Scout pricing and hosted-limits page."""
     return _launch_site_page("pricing.html")
+
+
+@router.get("/account")
+@router.get("/account.html")
+async def launch_site_account() -> FileResponse:
+    """Serve the hosted account self-service usage page."""
+    return _launch_site_page("account.html")
 
 
 @router.get("/examples")
