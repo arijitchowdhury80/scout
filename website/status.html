@@ -83,11 +83,11 @@
             </article>
             <article>
               <h3>Hosted checkout: gated</h3>
-              <p>Direct hosted beta signup fails closed until SMTP key delivery is configured in production. Paid checkout separately requires Stripe Checkout and webhook verification.</p>
+              <p>Hosted beta signup can register testers and queue API-key delivery while SMTP is being configured. Paid checkout separately requires Stripe Checkout and webhook verification.</p>
             </article>
             <article>
               <h3>Current blockers: configuration</h3>
-              <p>The hosted service is online, but direct beta key delivery remains blocked until SMTP is installed. Paid checkout remains blocked until production Stripe and webhook secrets are installed.</p>
+              <p>The hosted service is online. Beta requests without SMTP enter the pending delivery queue; paid checkout remains blocked until production Stripe and webhook secrets are installed.</p>
             </article>
           </div>
         </section>
@@ -129,8 +129,8 @@
           </div>
           <div class="note-grid">
             <article>
-              <h3>Current blockers: 0</h3>
-              <p>The executable readiness checker has no remaining current beta release blockers.</p>
+              <h3>Current blockers: external configuration</h3>
+              <p>The packaged beta gates are closed, but hosted self-service still requires SMTP delivery and Stripe checkout/webhook configuration before it can be called production-ready.</p>
             </article>
             <article>
               <h3>Future public registry work</h3>

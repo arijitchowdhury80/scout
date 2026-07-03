@@ -743,7 +743,8 @@ def test_status_page_lists_all_current_unique_launch_blocker_keys() -> None:
     if blocker_ids:
         assert f"{len(blocker_ids)} unique public-launch blocker keys" in html
     else:
-        assert "Current blockers: 0" in html
+        assert "Current blockers: external configuration" in html
+        assert "SMTP delivery and Stripe checkout/webhook configuration" in html
     for blocker_id in blocker_ids:
         assert blocker_id in html
 
