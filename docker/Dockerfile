@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Python dependencies (no dev deps in prod)
-COPY pyproject.toml README.md THIRD_PARTY_NOTICES.md ./
+COPY pyproject.toml README.md LICENSE THIRD_PARTY_NOTICES.md ./
 COPY scout/ scout/
 COPY website/ website/
 COPY docs/product/ docs/product/

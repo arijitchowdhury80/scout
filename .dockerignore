@@ -22,6 +22,7 @@ docs/*
 !docs/security/**
 *.md
 !README.md
+!LICENSE
 !THIRD_PARTY_NOTICES.md
 !pyproject.toml
 docker/
