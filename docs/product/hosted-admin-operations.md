@@ -14,7 +14,8 @@ Scout hosted beta has API-key based access, not a login system.
   the hosted account and SMTP delivers the raw API key once.
 - `POST /v1/hosted/beta-key` remains a backend/operator compatibility path for
   direct beta-key registration and pending-delivery recovery, but it is no
-  longer the advertised public self-service CTA on the website.
+  longer the advertised public self-service CTA on the website and stays
+  disabled unless `HOSTED_DIRECT_BETA_KEY_ENABLED=true` is explicitly set.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
 - Self-service signup emails the raw API key when SMTP delivery is configured.
@@ -83,8 +84,10 @@ Scout hosted beta has API-key based access, not a login system.
 - No formal public self-serve account portal or Stripe customer portal.
 
 Stripe checkout, webhook, key delivery, and the compatibility direct-beta
-registration path exist in code and tests. Production still needs live SMTP and
-Stripe settings before beta setup or paid checkout is operational end to end.
+registration path exist in code and tests. The compatibility direct-beta path is
+off by default so public self-service must use the card-backed Stripe setup
+pipeline. Production still needs live SMTP and Stripe settings before beta setup
+or paid checkout is operational end to end.
 Partial Stripe configuration is not enough: checkout creation intentionally
 remains blocked until webhook verification and key delivery are also ready.
 
@@ -98,11 +101,12 @@ cd /Users/arijitchowdhury/Dropbox/AI-Development/Scout
 
 ### Enable Or Disable Beta Signup
 
-Set `HOSTED_BETA_SIGNUP_ENABLED=true` to allow the `$0` beta checkout package
-and direct-beta compatibility endpoint. Set it to `false` to stop new beta
-setup without disabling existing Bearer keys. The public beta flow should not
-be considered ready until this flag, Stripe Checkout, webhook signing, and SMTP
-key delivery are all present.
+Set `HOSTED_BETA_SIGNUP_ENABLED=true` to allow the `$0` beta checkout package.
+Keep `HOSTED_DIRECT_BETA_KEY_ENABLED=false` for production self-service so
+testers must complete Stripe setup before a webhook provisions and emails a key.
+Set beta signup to `false` to stop new beta setup without disabling existing
+Bearer keys. The public beta flow should not be considered ready until this
+flag, Stripe Checkout, webhook signing, and SMTP key delivery are all present.
 
 Required delivery settings, stored in an ignored local file such as
 `secrets/scout-production.env` before pushing to the VPS:
@@ -120,6 +124,7 @@ overwrite an existing file unless `--force` is passed.
 
 ```bash
 HOSTED_BETA_SIGNUP_ENABLED=true
+HOSTED_DIRECT_BETA_KEY_ENABLED=false
 HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com
 HOSTED_KEY_DELIVERY_SMTP_PORT=587
 HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"

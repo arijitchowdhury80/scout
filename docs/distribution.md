@@ -104,6 +104,7 @@ Hosted beta setup requires:
 
 ```text
 HOSTED_BETA_SIGNUP_ENABLED=true
+HOSTED_DIRECT_BETA_KEY_ENABLED=false
 HOSTED_BETA_SIGNUP_RATE_LIMIT_MAX_REQUESTS=3
 HOSTED_BETA_SIGNUP_RATE_LIMIT_WINDOW_SECONDS=3600
 HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com
@@ -118,6 +119,11 @@ STRIPE_SUCCESS_URL=https://your-domain.example/pricing?checkout=success
 STRIPE_CANCEL_URL=https://your-domain.example/pricing?checkout=cancelled
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
+
+`HOSTED_DIRECT_BETA_KEY_ENABLED=false` is the production self-service default.
+It keeps the legacy direct `/v1/hosted/beta-key` compatibility endpoint closed
+so beta testers use the card-backed Stripe setup and signed webhook provisioning
+flow.
 
 Paid checkout and card-backed beta setup use Stripe Checkout. `/pricing`
 contains the paid hosted-credit checkout form, and `/beta` contains the `$0`

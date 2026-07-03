@@ -45,6 +45,12 @@ def setup_function() -> None:
     )
 
 
+def _enable_direct_beta_key_registration(monkeypatch) -> None:
+    """Opt tests into the compatibility direct-beta-key path."""
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    monkeypatch.setattr(settings, "hosted_direct_beta_key_enabled", True, raising=False)
+
+
 def _account_service_with_key() -> tuple[HostedAccountService, str, str]:
     service = HostedAccountService(InMemoryHostedAccountStore())
     provisioned = service.provision_account(
@@ -109,6 +115,7 @@ def test_hosted_me_returns_plan_limits_and_balance_without_raw_key() -> None:
 def test_hosted_beta_key_generation_is_disabled_when_signup_disabled(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     monkeypatch.setattr(settings, "hosted_beta_signup_enabled", False, raising=False)
+    monkeypatch.setattr(settings, "hosted_direct_beta_key_enabled", True, raising=False)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     try:
         client = TestClient(app)
@@ -127,12 +134,42 @@ def test_hosted_beta_key_generation_is_disabled_when_signup_disabled(monkeypatch
     assert resp.json()["detail"] == "Hosted beta key generation is disabled."
 
 
-def test_hosted_beta_key_generation_requires_name_email_and_creates_usable_key(
+def test_hosted_beta_key_generation_is_compatibility_only_by_default(
     monkeypatch,
 ) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
     monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    monkeypatch.setattr(settings, "hosted_direct_beta_key_enabled", False, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/beta-key",
+            json={
+                "name": "Direct Tester",
+                "email": "direct-disabled@example.com",
+                "key_name": "Direct tester beta key",
+            },
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 503
+    assert resp.json()["detail"] == (
+        "Direct beta key registration is disabled. Use the Stripe-backed beta setup flow on /beta."
+    )
+    assert account_service.store.find_tenant_by_email("direct-disabled@example.com") is None
+    assert delivery.requests == []
+
+
+def test_hosted_beta_key_generation_requires_name_email_and_creates_usable_key(
+    monkeypatch,
+) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     try:
@@ -188,7 +225,7 @@ def test_hosted_beta_key_generation_requires_name_email_and_creates_usable_key(
 def test_hosted_beta_key_generation_requires_name_and_email(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     try:
@@ -214,7 +251,7 @@ def test_hosted_beta_key_generation_requires_name_and_email(monkeypatch) -> None
 def test_hosted_beta_key_generation_rejects_removed_invite_password_field(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     try:
@@ -239,7 +276,7 @@ def test_hosted_beta_key_generation_rate_limits_same_client(monkeypatch) -> None
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
     signup_limiter = HostedRateLimiter(HostedRateLimitConfig(max_requests=1, window_seconds=60))
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     app.dependency_overrides[get_hosted_beta_signup_rate_limiter] = lambda: signup_limiter
@@ -272,7 +309,7 @@ def test_hosted_beta_key_generation_queues_request_when_delivery_is_not_configur
     monkeypatch,
 ) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     try:
         client = TestClient(app)
@@ -308,7 +345,7 @@ def test_hosted_beta_key_generation_does_not_duplicate_pending_delivery_requests
     monkeypatch,
 ) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     try:
         client = TestClient(app)
@@ -339,7 +376,7 @@ def test_hosted_beta_key_generation_does_not_duplicate_pending_delivery_requests
 
 def test_hosted_beta_key_status_reports_pending_request_without_raw_key(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     try:
         client = TestClient(app)
@@ -370,7 +407,7 @@ def test_hosted_beta_key_status_reports_pending_request_without_raw_key(monkeypa
 def test_hosted_beta_key_status_reports_delivered_account_without_raw_key(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     try:
@@ -445,7 +482,7 @@ def test_hosted_beta_key_status_response_schema_does_not_expose_raw_key() -> Non
 def test_hosted_beta_key_reissue_emails_new_key_without_exposing_it(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     try:
@@ -499,7 +536,7 @@ def test_hosted_beta_key_reissue_emails_new_key_without_exposing_it(monkeypatch)
 def test_hosted_beta_key_reissue_unknown_email_is_non_enumerating(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     try:
@@ -529,7 +566,7 @@ def test_hosted_beta_key_reissue_unknown_email_is_non_enumerating(monkeypatch) -
 
 def test_hosted_beta_key_reissue_requires_delivery_configuration(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     try:
         client = TestClient(app)
@@ -576,7 +613,7 @@ def test_hosted_beta_key_generation_rolls_back_when_delivery_fails(monkeypatch) 
             reason="SMTP delivery failed: smtp down",
         )
     )
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     try:
@@ -602,7 +639,7 @@ def test_hosted_beta_key_generation_rolls_back_when_delivery_fails(monkeypatch) 
 def test_hosted_beta_key_generation_rejects_duplicate_email(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    _enable_direct_beta_key_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     try:

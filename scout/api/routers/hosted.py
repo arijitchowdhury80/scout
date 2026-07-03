@@ -374,6 +374,14 @@ async def hosted_beta_key(
     signup_rate_limiter: HostedRateLimiter = Depends(get_hosted_beta_signup_rate_limiter),
 ) -> HostedBetaKeyResponse | JSONResponse:
     """Provision a hosted beta API key after email capture."""
+    if not settings.hosted_direct_beta_key_enabled:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Direct beta key registration is disabled. Use the Stripe-backed beta "
+                "setup flow on /beta."
+            ),
+        )
     if not settings.hosted_beta_signup_enabled:
         raise HTTPException(
             status_code=503,
