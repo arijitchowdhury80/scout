@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import os
 import time
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
@@ -46,6 +47,16 @@ router = APIRouter(prefix="/v1/billing", tags=["billing"])
 STRIPE_SIGNATURE_TOLERANCE_SECONDS = 300
 
 
+def _hosted_key_response_fallback_enabled() -> bool:
+    """Return whether beta signup may show a raw API key once in the response."""
+    return os.getenv("HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
 class StripeWebhookResponse(BaseModel):
     """Non-secret billing webhook result."""
 
@@ -82,6 +93,7 @@ class StripeBillingStatusResponse(BaseModel):
     checkout_configured: bool
     webhook_configured: bool
     key_delivery_configured: bool
+    key_delivery_response_fallback_enabled: bool
     ready_for_beta_key_delivery: bool
     ready_for_paid_key_delivery: bool
 
@@ -120,12 +132,17 @@ async def stripe_status(
     checkout_configured = checkout_service.enabled
     webhook_configured = webhook_secret != ""
     key_delivery_configured = delivery_service.enabled
+    key_delivery_response_fallback_enabled = _hosted_key_response_fallback_enabled()
     return StripeBillingStatusResponse(
         beta_signup_enabled=beta_signup_enabled,
         checkout_configured=checkout_configured,
         webhook_configured=webhook_configured,
         key_delivery_configured=key_delivery_configured,
-        ready_for_beta_key_delivery=(beta_signup_enabled and key_delivery_configured),
+        key_delivery_response_fallback_enabled=key_delivery_response_fallback_enabled,
+        ready_for_beta_key_delivery=(
+            beta_signup_enabled
+            and (key_delivery_configured or key_delivery_response_fallback_enabled)
+        ),
         ready_for_paid_key_delivery=(
             checkout_configured and webhook_configured and key_delivery_configured
         ),
