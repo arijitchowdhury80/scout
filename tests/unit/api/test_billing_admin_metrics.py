@@ -60,9 +60,11 @@ def test_billing_admin_metrics_returns_non_secret_metering_summary(tmp_path: Pat
     assert data["totals"]["accounts"] == 2
     assert data["totals"]["active_accounts"] == 2
     assert data["totals"]["usage_events"] == 1
-    assert data["totals"]["signup_events"] == 3
+    assert data["totals"]["signup_events"] == 4
     assert data["totals"]["signup_delivered"] == 1
     assert data["totals"]["signup_failed"] == 1
+    assert data["totals"]["signup_reissued"] == 1
+    assert data["totals"]["signup_pending_delivery_events"] == 1
     assert data["totals"]["signup_pending_delivery"] == 1
     assert data["totals"]["standard_credits_used"] == 2
     assert data["totals"]["browser_credits_used"] == 0
@@ -145,6 +147,17 @@ def _seed_services(
             source="direct_beta_key",
             reason="SMTP delivery is not configured yet",
             delivery_status="pending_delivery",
+        )
+    )
+    account_service.record_signup_event(
+        HostedSignupEvent(
+            email="recover@example.com",
+            name="Recovery Tester",
+            status="reissued",
+            source="direct_beta_key_reissue",
+            tenant_id=first.tenant_id,
+            key_id=first.key_id,
+            delivery_status="delivered",
         )
     )
     return account_service, payment_service, first.raw_api_key

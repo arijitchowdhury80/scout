@@ -155,6 +155,10 @@ async def billing_admin_metrics(
         "signup_delivered": sum(1 for event in signup_events if event.status == "delivered"),
         "signup_failed": sum(1 for event in signup_events if event.status == "failed"),
         "signup_duplicate": sum(1 for event in signup_events if event.status == "duplicate"),
+        "signup_reissued": sum(1 for event in signup_events if event.status == "reissued"),
+        "signup_pending_delivery_events": sum(
+            1 for event in signup_events if event.status == "pending_delivery"
+        ),
         "signup_pending_delivery": len(account_service.pending_signup_requests(limit=10_000)),
         "standard_credits_remaining": sum(
             account.standard_credits_remaining for account in accounts
