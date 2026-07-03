@@ -60,6 +60,7 @@ class StripeWebhookResponse(BaseModel):
 class StripeCheckoutSessionRequestBody(BaseModel):
     """Request body for creating a hosted Scout beta checkout session."""
 
+    name: str = ""
     email: str = ""
     package_id: str = "beta_trial"
 
@@ -132,7 +133,7 @@ async def stripe_checkout_session(
 ) -> StripeCheckoutSessionResponse:
     """Create a Stripe Checkout Session for a hosted Scout credit package."""
     result = checkout_service.create_checkout_session(
-        StripeCheckoutRequest(email=body.email, package_id=body.package_id)
+        StripeCheckoutRequest(name=body.name, email=body.email, package_id=body.package_id)
     )
     if not result.success:
         raise HTTPException(status_code=503, detail=result.reason)
@@ -214,6 +215,7 @@ def _deliver_api_key(
     delivery = delivery_service.deliver(
         HostedApiKeyDeliveryRequest(
             email=checkout.email,
+            name=checkout.name,
             tenant_id=result.tenant_id,
             key_id=result.key_id,
             plan=checkout.plan,
@@ -246,6 +248,7 @@ def _checkout_request(event: dict[str, object]) -> HostedCheckoutProvisioningReq
         customer_id=str(session.get("customer", "")),
         payment_intent_id=_checkout_payment_reference(session),
         email=_checkout_email(session),
+        name=_checkout_name(session),
         package_id=_checkout_package_id(session),
         amount_total_cents=_checkout_amount_total(session),
         currency=_checkout_currency(session),
@@ -272,6 +275,17 @@ def _checkout_email(session: dict[str, object]) -> str:
     if isinstance(details, dict) and details.get("email"):
         return str(details["email"])
     return str(session.get("customer_email", ""))
+
+
+def _checkout_name(session: dict[str, object]) -> str:
+    """Return the best customer name from a Stripe checkout session."""
+    details = session.get("customer_details")
+    if isinstance(details, dict) and details.get("name"):
+        return str(details["name"])
+    metadata = session.get("metadata")
+    if isinstance(metadata, dict) and metadata.get("name"):
+        return str(metadata["name"])
+    return ""
 
 
 def _checkout_amount_total(session: dict[str, object]) -> int:

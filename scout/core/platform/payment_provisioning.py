@@ -37,6 +37,7 @@ class HostedCheckoutProvisioningRequest(BaseModel):
     customer_id: str = ""
     payment_intent_id: str = ""
     email: EmailStr
+    name: str = ""
     package_id: str = "beta_trial"
     amount_total_cents: int = Field(ge=0)
     currency: str = Field(min_length=3, max_length=3)
@@ -227,6 +228,7 @@ class HostedPaymentProvisioningService:
 
         provisioned = self.account_service.provision_account(
             email=str(request.email),
+            name=request.name,
             plan=request.plan,
             scopes=request.scopes,
             key_name=f"{request.provider.value} checkout {request.checkout_session_id}",

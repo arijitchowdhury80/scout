@@ -98,9 +98,9 @@ scout launch-readiness --require-public</code></pre>
             <p class="wi-label wi-label--accent">Hosted beta checkout</p>
             <h2>Request hosted API access.</h2>
             <p>
-              Scout will only redirect to Stripe if hosted beta payment is
-              configured. Otherwise, the page tells you to use the local beta
-              path and try again later.
+              Register your name and email. Scout will only redirect to Stripe
+              if hosted beta payment is configured. Otherwise, the page tells
+              you to use the local beta path and try again later.
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted beta checkout">
@@ -121,6 +121,16 @@ scout launch-readiness --require-public</code></pre>
               data-endpoint="/v1/billing/stripe/checkout-session"
               data-status-endpoint="/v1/billing/stripe/status"
             >
+              <label for="hostedBetaName">Name or app name</label>
+              <input
+                id="hostedBetaName"
+                name="name"
+                type="text"
+                autocomplete="name"
+                placeholder="Your name or app"
+                required
+              />
+
               <label for="hostedBetaEmail">Email for hosted API key delivery</label>
               <div class="beta-form-row">
                 <input
@@ -230,9 +240,20 @@ scout launch-readiness --require-public</code></pre>
       checkoutForm?.addEventListener("submit", async (event) => {
         event.preventDefault();
         if (!checkoutButton) return;
+        const name = document.getElementById("hostedBetaName")?.value.trim() || "";
         const email = document.getElementById("hostedBetaEmail")?.value.trim() || "";
         const packageId = document.getElementById("hostedBetaPackage")?.value || "beta_trial";
         const endpoint = checkoutForm.dataset.endpoint || "/v1/billing/stripe/checkout-session";
+        if (!name) {
+          checkoutStatus.textContent = "Enter your name or app name for API key registration.";
+          checkoutStatus.dataset.state = "error";
+          return;
+        }
+        if (!email) {
+          checkoutStatus.textContent = "Enter an email address for API key delivery.";
+          checkoutStatus.dataset.state = "error";
+          return;
+        }
         checkoutStatus.textContent = "Creating Stripe Checkout Session...";
         checkoutStatus.dataset.state = "loading";
         checkoutButton.disabled = true;
@@ -240,7 +261,7 @@ scout launch-readiness --require-public</code></pre>
           const response = await fetch(endpoint, {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ email, package_id: packageId }),
+            body: JSON.stringify({ name, email, package_id: packageId }),
           });
           const payload = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(payload.detail || "Hosted beta is not configured yet.");

@@ -79,8 +79,9 @@
             <p class="wi-label wi-label--accent">Buy hosted credits</p>
             <h2 id="pricing-checkout-title">Start a hosted Scout checkout.</h2>
             <p>
-              Choose a pay-as-you-go package and enter the email where Scout
-              should deliver your hosted API key after Stripe confirms payment.
+              Register your name and email, choose a pay-as-you-go package, and
+              Scout will deliver your hosted API key after Stripe confirms
+              payment.
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted credit checkout">
@@ -100,6 +101,16 @@
               class="beta-form"
               data-checkout-endpoint="/v1/billing/stripe/checkout-session"
             >
+              <label for="pricingCheckoutName">Name or app name</label>
+              <input
+                id="pricingCheckoutName"
+                name="name"
+                type="text"
+                autocomplete="name"
+                placeholder="Your name or app"
+                required
+              />
+
               <label for="pricingCheckoutEmail">Email for hosted API key delivery</label>
               <input
                 id="pricingCheckoutEmail"

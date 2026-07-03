@@ -31,7 +31,11 @@ def test_stripe_checkout_creates_beta_trial_setup_session_with_expected_payload(
     )
 
     result = service.create_checkout_session(
-        StripeCheckoutRequest(email="builder@example.com", package_id="beta_trial")
+        StripeCheckoutRequest(
+            email="builder@example.com",
+            name="Builder Person",
+            package_id="beta_trial",
+        )
     )
 
     assert result.success is True
@@ -45,6 +49,7 @@ def test_stripe_checkout_creates_beta_trial_setup_session_with_expected_payload(
                 "success_url": "https://scout.example/success",
                 "cancel_url": "https://scout.example/cancel",
                 "customer_email": "builder@example.com",
+                "metadata[name]": "Builder Person",
                 "metadata[package_id]": "beta_trial",
                 "metadata[plan]": "hosted_beta_pass",
                 "metadata[product]": "scout_hosted",
@@ -68,7 +73,11 @@ def test_stripe_checkout_creates_standard_credit_payment_session() -> None:
     )
 
     result = service.create_checkout_session(
-        StripeCheckoutRequest(email="builder@example.com", package_id="standard_1000")
+        StripeCheckoutRequest(
+            email="builder@example.com",
+            name="Builder Person",
+            package_id="standard_1000",
+        )
     )
 
     assert result.success is True
@@ -79,6 +88,7 @@ def test_stripe_checkout_creates_standard_credit_payment_session() -> None:
         "success_url": "https://scout.example/success",
         "cancel_url": "https://scout.example/cancel",
         "customer_email": "builder@example.com",
+        "metadata[name]": "Builder Person",
         "metadata[package_id]": "standard_1000",
         "metadata[plan]": "hosted_beta_pass",
         "metadata[product]": "scout_hosted",

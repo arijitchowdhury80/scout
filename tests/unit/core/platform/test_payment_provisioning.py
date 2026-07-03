@@ -51,6 +51,7 @@ def test_process_checkout_beta_trial_setup_provisions_trial_credits(tmp_path: Pa
     assert stored_event.amount_total_cents == 0
     assert stored_event.tenant_id == result.tenant_id
     assert stored_event.key_id == result.key_id
+    assert account_service.get_tenant(result.tenant_id).name == "Builder Person"
     assert result.raw_api_key not in db_path.read_text(encoding="utf-8", errors="ignore")
 
 
@@ -270,6 +271,7 @@ def _checkout(
         customer_id="cus_test_001",
         payment_intent_id="pi_test_001",
         email=email,
+        name="Builder Person",
         package_id=package_id,
         amount_total_cents=amount_total_cents,
         currency=currency,

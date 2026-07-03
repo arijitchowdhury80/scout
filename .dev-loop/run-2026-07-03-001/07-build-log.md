@@ -392,6 +392,44 @@ Production deployment verification for this slice:
 Boundary: this remains hosted async-acceptance capacity evidence, not proof of
 250 simultaneous completed crawler/browser executions on the 2-vCPU VPS.
 
+## Hosted Admin Wrapper And Checkout Name Slice
+
+Implemented:
+
+- Added `scripts/scout-generate-api-key` as the short operator wrapper for the
+  common hosted key-provisioning action.
+- Removed the generic `generate-secret` command from `scripts/scout-hosted-admin`
+  and removed admin-token/password generator copy from docs.
+- Pricing and beta checkout forms now collect `name` or app name.
+- `/v1/billing/stripe/checkout-session` carries `name` into Stripe metadata.
+- Stripe webhook provisioning carries customer name into the hosted tenant and
+  hosted API-key delivery email request.
+
+Verification:
+
+```bash
+python3 -m pytest tests/unit/scripts/test_vps_admin_scripts.py tests/unit/test_hosted_pricing_docs.py -q
+```
+
+Result: 9 passed.
+
+```bash
+python3 -m pytest tests/unit/api/test_billing_stripe_checkout.py tests/unit/api/test_billing_stripe_webhook.py tests/unit/core/platform/test_payment_provisioning.py tests/unit/core/platform/test_stripe_checkout.py tests/unit/website/test_launch_website.py -q
+```
+
+Result: 50 passed, 2 warnings.
+
+```bash
+python3 -m pyright scout/
+ruff check scout/ tests/ scripts/*.py scripts/scout-hosted-load-test
+ruff format --check scout/ tests/ scripts/*.py scripts/scout-hosted-load-test
+bash -n scripts/scout-hosted-admin scripts/scout-generate-api-key scripts/scout-vps-list-hosted-accounts scripts/scout-vps-provision-hosted-key scripts/scout-vps-list-hosted-purchases scripts/scout-hosted-load-test
+python3 -m pytest tests/unit/ -q
+```
+
+Result: pyright 0 errors; Ruff passed; format check passed; shell syntax
+passed; unit suite 705 passed, 8 warnings.
+
 ## Payment-Method-First Beta Access Slice
 
 Implemented:

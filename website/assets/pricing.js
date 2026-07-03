@@ -35,8 +35,14 @@
     event.preventDefault();
     const submitButton = checkoutForm.querySelector("button[type='submit']");
     const formData = new FormData(checkoutForm);
+    const name = String(formData.get("name") || "").trim();
     const email = String(formData.get("email") || "").trim();
     const packageId = String(formData.get("package_id") || "standard_1000");
+
+    if (!name) {
+      setCheckoutStatus("Enter your name or app name for API key registration.", "error");
+      return;
+    }
 
     if (!email) {
       setCheckoutStatus("Enter an email address for API key delivery.", "error");
@@ -50,7 +56,7 @@
       const response = await fetch(checkoutEndpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, package_id: packageId }),
+        body: JSON.stringify({ name, email, package_id: packageId }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {

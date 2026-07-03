@@ -14,6 +14,8 @@ Scout hosted beta has API-key based access, not a login system.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
 - Self-service signup emails the raw API key and never returns it in the HTTP response. Operator CLI provisioning still prints the raw key once. Scout stores only a hash.
+- Stripe checkout registration captures name plus email, writes the name onto
+  the hosted tenant, and includes it in one-time API-key delivery.
 - The key-delivery email is signed by Arijit, explains the 100-credit/30-day
   beta boundary, includes credit meaning, links to docs/pricing, and asks users
   to reply with their use case, target site, and failing run ID for support.
@@ -74,6 +76,18 @@ HOSTED_KEY_DELIVERY_SMTP_PASSWORD=...
 
 ### Provision A Hosted API Key Directly
 
+Shortest command:
+
+```bash
+scripts/scout-generate-api-key \
+  --email tester@example.com \
+  --name "Tester Name" \
+  --key-name "PRISM beta key" \
+  --plan hosted_beta_pass
+```
+
+Equivalent admin command:
+
 ```bash
 scripts/scout-hosted-admin generate-api-key \
   --email tester@example.com \
@@ -124,19 +138,10 @@ This shows email, package id, amount, currency, Stripe checkout/customer/payment
 references, tenant id, key id, and creation time. It does not print raw keys or
 stored key hashes.
 
-### Generate A Strong Admin Secret
-
-For admin tokens, SMTP app secrets, or temporary shared operator secrets,
-generate a strong local value and paste it into the target environment file
-manually:
-
-```bash
-scripts/scout-hosted-admin generate-secret --label HOSTED_ADMIN_TOKEN
-```
-
 Hosted self-service key generation intentionally does not use a shared password
-gate. The beta flow is name plus email capture, account registration, key
-generation, and one-time API-key email delivery.
+gate. The beta flow is name plus email capture, Stripe beta checkout or
+operator-approved provisioning, account registration, key generation, and
+one-time API-key email delivery.
 
 ## Login And Signup Status
 

@@ -130,6 +130,8 @@ def test_stripe_webhook_checkout_completed_provisions_without_leaking_raw_key(
     assert delivered_key.startswith("scout_live_")
     assert delivered_key_auth.allowed is True
     assert stored.email == "scout-beta-test@example.com"
+    assert account_store.tenants[stored.tenant_id].name == "Builder Person"
+    assert delivery_service.deliveries[0].name == "Builder Person"
     assert stored.package_id == "beta_trial"
     assert stored.amount_total_cents == 0
 
@@ -265,8 +267,14 @@ def _checkout_event_payload() -> bytes:
                     "amount_total": 0,
                     "currency": "usd",
                     "payment_status": "no_payment_required",
-                    "metadata": {"package_id": "beta_trial"},
-                    "customer_details": {"email": "scout-beta-test@example.com"},
+                    "metadata": {
+                        "package_id": "beta_trial",
+                        "name": "Builder Person",
+                    },
+                    "customer_details": {
+                        "email": "scout-beta-test@example.com",
+                        "name": "Builder Person",
+                    },
                 }
             },
         }

@@ -10,6 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 
 SCRIPT_NAMES = [
     "scout-hosted-admin",
+    "scout-generate-api-key",
     "scout-vps-provision-hosted-key",
     "scout-vps-list-hosted-accounts",
     "scout-vps-list-hosted-purchases",
@@ -32,12 +33,15 @@ def test_vps_admin_scripts_exist_and_are_shell_valid() -> None:
 def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
     expectations = {
         "scout-hosted-admin": [
-            "generate-secret",
             "generate-api-key",
             "provision-key",
             "list-accounts",
             "list-purchases",
-            "HOSTED_ADMIN_TOKEN",
+        ],
+        "scout-generate-api-key": [
+            "Generate and register a Scout hosted API key",
+            "--email",
+            "scout-hosted-admin generate-api-key",
         ],
         "scout-vps-provision-hosted-key": [
             "scout hosted-provision",
@@ -106,19 +110,20 @@ def test_list_purchases_script_never_prints_raw_keys_or_key_hashes() -> None:
     assert "raw_api_key" not in script_text
 
 
-def test_hosted_admin_generate_secret_outputs_shell_export() -> None:
+def test_hosted_admin_does_not_expose_password_or_secret_generation() -> None:
     script = REPO_ROOT / "scripts" / "scout-hosted-admin"
     result = subprocess.run(
-        [str(script), "generate-secret", "--label", "HOSTED_ADMIN_TOKEN", "--bytes", "18"],
+        [str(script), "--help"],
         check=True,
         capture_output=True,
         text=True,
     )
-    output = result.stdout
+    output = result.stdout + result.stderr
 
-    assert "HOSTED_ADMIN_TOKEN=" in output
-    assert "export HOSTED_ADMIN_TOKEN=" in output
-    assert "openssl rand -base64" not in output
+    assert "generate-secret" not in output
+    assert "generate-password" not in output
+    assert "HOSTED_ADMIN_TOKEN" not in output
+    assert not (REPO_ROOT / "scripts" / "scout-generate-password").exists()
 
 
 def test_hosted_admin_has_no_beta_invite_password_flow() -> None:

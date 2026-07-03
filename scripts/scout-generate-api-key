@@ -1,0 +1,30 @@
+#!/bin/sh
+set -eu
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+
+usage() {
+  cat <<EOF
+usage: scout-generate-api-key --email EMAIL [--name NAME] [--key-name NAME] [--plan PLAN]
+
+Generate and register a Scout hosted API key on the ChowMes VPS.
+
+This is a convenience wrapper for:
+  scripts/scout-hosted-admin generate-api-key
+
+The raw API key is printed once. Store it immediately in the consuming app's
+secret manager or .env.local file.
+
+Example:
+  scripts/scout-generate-api-key --email prism@chowmes.com --name PRISM --key-name "PRISM hosted key"
+EOF
+}
+
+case "${1:-}" in
+  -h|--help)
+    usage
+    exit 0
+    ;;
+esac
+
+exec "$SCRIPT_DIR/scout-hosted-admin" generate-api-key "$@"

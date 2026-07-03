@@ -53,6 +53,7 @@ class StripeCheckoutRequest(BaseModel):
     """Request to create a hosted beta Checkout Session."""
 
     email: str = ""
+    name: str = ""
     package_id: str = "beta_trial"
 
 
@@ -175,6 +176,8 @@ class StripeCheckoutService:
             }
         if request.email.strip():
             data["customer_email"] = request.email.strip()
+        if request.name.strip():
+            data["metadata[name]"] = request.name.strip()
         return self._post_checkout_session(data)
 
     def create_beta_checkout_session(

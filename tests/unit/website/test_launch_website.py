@@ -517,6 +517,7 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     assert 'id="pricingCheckoutReturnStatus"' in html
     assert 'data-success-query="checkout=success"' in html
     assert 'data-cancel-query="checkout=cancelled"' in html
+    assert 'name="name"' in html
     assert 'name="email"' in html
     assert 'name="package_id"' in html
     assert 'value="standard_1000"' in html
@@ -532,10 +533,26 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     assert "pricingCheckoutReturnStatus" in pricing_js
     assert "window.location.assign" in pricing_js
     assert "package_id" in pricing_js
+    assert "name" in pricing_js
     assert "amount_cents" in pricing_js
     assert "gross_margin_percent" in pricing_js
     assert "sk_live_" not in pricing_js
     assert "sk_test_" not in pricing_js
+
+
+def test_beta_checkout_collects_name_and_email_without_password() -> None:
+    html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
+    normalized_html = " ".join(html.split())
+
+    assert 'id="hostedBetaCheckout"' in html
+    assert 'name="name"' in html
+    assert 'name="email"' in html
+    assert 'name="package_id"' in html
+    assert "Register your name and email" in normalized_html
+    assert "charges $0" in normalized_html
+    assert "100 standard credits" in normalized_html
+    assert 'type="password"' not in html
+    assert 'name="invite_password"' not in html
 
 
 def test_command_docs_include_copy_code_behavior() -> None:

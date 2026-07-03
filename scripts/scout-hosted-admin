@@ -2,7 +2,6 @@
 set -eu
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-DEFAULT_SECRET_LABEL="HOSTED_ADMIN_TOKEN"
 
 usage() {
   cat <<EOF
@@ -11,72 +10,17 @@ usage: scout-hosted-admin COMMAND [OPTIONS]
 Admin helper for Scout hosted beta operations from the Mac.
 
 Commands:
-  generate-secret   Generate a strong shared secret/password for env files.
   generate-api-key  Generate and register a hosted API key on the VPS.
   provision-key     Generate a hosted API key on the VPS for a user or app.
   list-accounts     List hosted tenants, API-key metadata, and balances.
   list-purchases    List Stripe checkout/package purchase records.
 
 Examples:
-  scripts/scout-hosted-admin generate-secret --label HOSTED_ADMIN_TOKEN
   scripts/scout-hosted-admin generate-api-key --email prism@example.com --name PRISM --key-name "PRISM beta key"
   scripts/scout-hosted-admin provision-key --email prism@example.com --name PRISM --key-name "PRISM beta key"
   scripts/scout-hosted-admin list-accounts --format table
   scripts/scout-hosted-admin list-purchases --format table
-
-Default secret label: $DEFAULT_SECRET_LABEL
 EOF
-}
-
-generate_secret() {
-  label="$DEFAULT_SECRET_LABEL"
-  bytes="32"
-
-  while [ $# -gt 0 ]; do
-    case "$1" in
-      --label)
-        if [ $# -lt 2 ]; then
-          echo "Missing --label value." >&2
-          exit 2
-        fi
-        label="$2"
-        shift 2
-        ;;
-      --bytes)
-        if [ $# -lt 2 ]; then
-          echo "Missing --bytes value." >&2
-          exit 2
-        fi
-        bytes="$2"
-        shift 2
-        ;;
-      -h|--help)
-        cat <<EOF
-usage: scout-hosted-admin generate-secret [--label NAME] [--bytes N]
-
-Generate a strong secret/password and print a copyable shell export.
-Use this for admin tokens, SMTP app secrets, or other environment-only secrets.
-Do not commit the generated value.
-EOF
-        exit 0
-        ;;
-      *)
-        echo "Unknown generate-secret option: $1" >&2
-        exit 2
-        ;;
-    esac
-  done
-
-  secret="$(python3 - "$bytes" <<'PY'
-import secrets
-import sys
-
-byte_count = int(sys.argv[1])
-print(secrets.token_urlsafe(byte_count))
-PY
-)"
-  printf '%s=%s\n' "$label" "$secret"
-  printf 'export %s=%s\n' "$label" "$secret"
 }
 
 provision_key() {
@@ -100,10 +44,6 @@ case "$1" in
   -h|--help)
     usage
     exit 0
-    ;;
-  generate-secret)
-    shift
-    generate_secret "$@"
     ;;
   generate-api-key)
     shift
