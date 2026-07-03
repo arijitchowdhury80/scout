@@ -169,7 +169,7 @@ def _delivery_message(sender: str, request: HostedApiKeyDeliveryRequest) -> Emai
     message = EmailMessage()
     message["From"] = sender
     message["To"] = str(request.email)
-    message["Subject"] = "Your Scout hosted API key"
+    message["Subject"] = "Your Scout beta tester API key is ready"
     message.set_content(_delivery_body(request))
     return message
 
@@ -181,12 +181,16 @@ def _delivery_body(request: HostedApiKeyDeliveryRequest) -> str:
         [
             f"Hi {greeting_name},",
             "",
-            "Welcome to the Scout private beta. Your hosted API key is ready.",
+            "Welcome to the Scout private beta. I'm glad to have you testing Scout.",
+            "",
+            "Your hosted beta tester API key is ready.",
             "Your beta trial includes 100 standard credits for 30 days.",
             "1 scrape, 1 returned crawl page, or 1 product/intelligence record = 1 standard credit.",
+            "This is not unlimited hosted crawling.",
             "Hosted browser work is separately metered and is not included in this beta key.",
             "",
             "Store this key now. Scout stores only a hash and cannot show the raw key again.",
+            "Do not paste this key into frontend code, screenshots, tickets, or public repos.",
             "",
             f"API key: {request.raw_api_key}",
             f"Plan: {request.plan.value}",
@@ -194,11 +198,20 @@ def _delivery_body(request: HostedApiKeyDeliveryRequest) -> str:
             f"Key ID: {request.key_id}",
             f"Reference: {request.checkout_session_id}",
             "",
-            "Use it as a Bearer token when calling hosted Scout endpoints.",
+            "Use this key as a Bearer token when calling hosted Scout endpoints.",
             "",
             "Quick test:",
             "curl https://scout.chowmes.com/v1/hosted/me \\",
             f"  -H 'Authorization: Bearer {request.raw_api_key}'",
+            "",
+            "Account and balance:",
+            "https://scout.chowmes.com/v1/hosted/me",
+            "",
+            "Usage ledger:",
+            "https://scout.chowmes.com/v1/hosted/usage",
+            "",
+            "Purchase history:",
+            "https://scout.chowmes.com/v1/hosted/purchases",
             "",
             "Docs: https://scout.chowmes.com/docs",
             "Pricing and credit model: https://scout.chowmes.com/pricing",
@@ -207,5 +220,6 @@ def _delivery_body(request: HostedApiKeyDeliveryRequest) -> str:
             "",
             "Thanks,",
             "Arijit Chowdhury",
+            "Founder, Chowmes",
         ]
     )

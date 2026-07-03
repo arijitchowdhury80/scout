@@ -14,7 +14,10 @@ distribution paths.
 Beta testers request finite-credit hosted access from `/beta`. The public beta
 flow collects name and email, provisions a finite-credit account only when SMTP
 delivery is configured, and emails the API key once. Public browser/API signup
-never returns raw API keys.
+never returns raw API keys. The delivery email is signed by Arijit Chowdhury,
+Founder, Chowmes, and includes the beta credit limit, account/balance link,
+usage ledger link, purchase history link, docs, pricing, secret-handling
+warning, and support reply instructions.
 
 ```bash
 export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"

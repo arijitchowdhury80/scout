@@ -62,19 +62,30 @@ def test_smtp_delivery_service_sends_one_time_key_email() -> None:
     message = message_from_string(sent.message, policy=default)
     assert isinstance(message, EmailMessage)
     body = str(message.get_content())
-    assert message["Subject"] == "Your Scout hosted API key"
+    assert message["Subject"] == "Your Scout beta tester API key is ready"
     assert "Hi Builder Person," in body
+    assert "I'm glad to have you testing Scout." in body
     assert "Your beta trial includes 100 standard credits for 30 days." in body
+    assert "This is not unlimited hosted crawling." in body
     assert (
         "1 scrape, 1 returned crawl page, or 1 product/intelligence record = 1 standard credit."
         in body
     )
+    assert "Hosted browser work is separately metered" in body
+    assert "Use this key as a Bearer token" in body
+    assert "Account and balance:" in body
+    assert "Usage ledger:" in body
+    assert "Purchase history:" in body
     assert "https://scout.chowmes.com/docs" in body
     assert "https://scout.chowmes.com/pricing" in body
     assert "scout_live_test_key" in body
     assert "tenant_123" in body
     assert "key_123" in body
+    assert (
+        "Do not paste this key into frontend code, screenshots, tickets, or public repos." in body
+    )
     assert "Reply to this email with your use case, target site, and any failing run ID." in body
+    assert "Founder, Chowmes" in body
     assert "Arijit Chowdhury" in body
 
 

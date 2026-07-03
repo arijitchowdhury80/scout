@@ -22,9 +22,13 @@ Scout hosted beta has API-key based access, not a login system.
   forms are readiness-gated by `/v1/billing/stripe/status` and stay disabled
   until Stripe settings, signed webhook delivery, and SMTP key delivery are
   configured. The current public beta key request path does not require Stripe.
-- The key-delivery email is signed by Arijit, explains the 100-credit/30-day
-  beta boundary, includes credit meaning, links to docs/pricing, and asks users
-  to reply with their use case, target site, and failing run ID for support.
+- The key-delivery email subject is `Your Scout beta tester API key is ready`.
+  It is signed by Arijit Chowdhury, Founder, Chowmes; explains the
+  100-credit/30-day beta boundary; says hosted access is not unlimited
+  crawling; includes credit meaning, account/balance, usage ledger, purchase
+  history, docs, and pricing links; warns users not to paste keys into frontend
+  code/screenshots/tickets/public repos; and asks testers to reply with their
+  use case, target site, and failing run ID for support.
 - Hosted calls use `Authorization: Bearer scout_live_...`.
 - Users can inspect their current hosted account with `/v1/hosted/me`, which
   returns balances, limits, usage totals, purchase totals, and links to deeper
