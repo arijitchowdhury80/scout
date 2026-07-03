@@ -403,7 +403,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "docs/product/private-beta-tester-handoff.md",
             "Hosted beta API key",
             "Register for hosted API access.",
-            "Scout emails or shows the API key after provisioning the hosted beta",
+            "Scout emails the API key after provisioning the hosted beta",
             "100 standard credits",
             "key_name",
             "/v1/hosted/beta-key",
@@ -550,9 +550,7 @@ def test_beta_signup_collects_name_and_email_without_password() -> None:
     assert 'name="key_name"' in html
     assert 'data-endpoint="/v1/hosted/beta-key"' in html
     assert "Register your name and email" in normalized_html
-    assert "Scout emails or shows the API key" in normalized_html
-    assert "payload.raw_api_key" in html
-    assert "Copy this API key now" in html
+    assert "Scout emails the API key" in normalized_html
     assert "100 standard credits" in normalized_html
     assert "hostedBetaSignup" in html
     assert "/v1/hosted/beta-key" in html

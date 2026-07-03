@@ -174,7 +174,6 @@ class HostedBetaKeyResponse(BaseModel):
     browser_credits_remaining: int
     delivery_status: str
     warning: str
-    raw_api_key: str | None = None
 
 
 @router.get("/me", response_model=HostedAccountSummaryResponse)
@@ -291,11 +290,7 @@ def _hosted_account_links() -> dict[str, str]:
     }
 
 
-@router.post(
-    "/beta-key",
-    response_model=HostedBetaKeyResponse,
-    response_model_exclude_none=True,
-)
+@router.post("/beta-key", response_model=HostedBetaKeyResponse)
 async def hosted_beta_key(
     req: HostedBetaKeyRequest,
     account_service: HostedAccountService = Depends(get_hosted_account_service),
@@ -307,6 +302,12 @@ async def hosted_beta_key(
             status_code=503,
             detail="Hosted beta key generation is disabled.",
         )
+    if not delivery_service.enabled:
+        raise HTTPException(
+            status_code=503,
+            detail="Hosted API key email delivery is not configured.",
+        )
+
     try:
         provisioned = account_service.provision_account(
             email=str(req.email),
@@ -319,29 +320,20 @@ async def hosted_beta_key(
         if "already exists" in str(exc):
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         raise
-    delivery_status = "shown_once"
-    raw_api_key: str | None = provisioned.raw_api_key
-    warning = "Copy this key now. Scout stores only its hash and cannot show the raw key again."
-    if delivery_service.enabled:
-        delivery = delivery_service.deliver(
-            HostedApiKeyDeliveryRequest(
-                email=provisioned.tenant.email,
-                name=provisioned.tenant.name,
-                tenant_id=provisioned.tenant.tenant_id,
-                key_id=provisioned.api_key.key_id,
-                plan=provisioned.tenant.plan,
-                raw_api_key=provisioned.raw_api_key,
-                checkout_session_id="beta_signup",
-            )
+    delivery = delivery_service.deliver(
+        HostedApiKeyDeliveryRequest(
+            email=provisioned.tenant.email,
+            name=provisioned.tenant.name,
+            tenant_id=provisioned.tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            plan=provisioned.tenant.plan,
+            raw_api_key=provisioned.raw_api_key,
+            checkout_session_id="beta_signup",
         )
-        if not delivery.delivered:
-            account_service.delete_account(provisioned.tenant.tenant_id)
-            raise HTTPException(status_code=502, detail=delivery.reason)
-        delivery_status = delivery.delivery_status
-        raw_api_key = None
-        warning = (
-            "Scout emailed the API key. It stores only a hash and cannot show the raw key again."
-        )
+    )
+    if not delivery.delivered:
+        account_service.delete_account(provisioned.tenant.tenant_id)
+        raise HTTPException(status_code=502, detail=delivery.reason)
     return HostedBetaKeyResponse(
         success=True,
         tenant_id=provisioned.tenant.tenant_id,
@@ -352,9 +344,8 @@ async def hosted_beta_key(
         scopes=provisioned.api_key.scopes,
         standard_credits_remaining=provisioned.balance.standard_credits_remaining,
         browser_credits_remaining=provisioned.balance.browser_credits_remaining,
-        delivery_status=delivery_status,
-        warning=warning,
-        raw_api_key=raw_api_key,
+        delivery_status=delivery.delivery_status,
+        warning="Scout emailed the API key. It stores only a hash and cannot show the raw key again.",
     )
 
 
