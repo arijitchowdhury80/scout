@@ -68,6 +68,32 @@ def test_distribution_docs_make_email_beta_registration_the_live_path() -> None:
     assert "SMTP key delivery" in doc
 
 
+def test_current_launch_docs_use_self_service_beta_framing() -> None:
+    """Current operating docs should not drift back to invite/password beta copy."""
+    current_docs = [
+        "docs/product/private-beta-launch-plan.md",
+        "docs/product/launch-decision-dashboard-2026-06-29.md",
+        "docs/product/launch-gate-burndown-2026-06-29.md",
+        "docs/product/hosted-economics-and-usage-limits.md",
+    ]
+    banned = [
+        "invite-only",
+        "manual/invite-only",
+        "approved testers",
+        "approved-testers-only",
+        "approved private beta testers",
+        "invite-controlled",
+    ]
+
+    combined = "\n".join(_read(path) for path in current_docs).lower()
+
+    assert "self-service" in combined
+    assert "/v1/hosted/beta-key" in combined
+    assert "$10 for 1,000 standard credits" in combined
+    for phrase in banned:
+        assert phrase not in combined
+
+
 def test_stripe_redirect_examples_use_hosted_pricing_page_not_localhost() -> None:
     env_example = _read(".env.example")
     readiness = _read("docs/product/stripe-test-mode-readiness-2026-06-29.md")

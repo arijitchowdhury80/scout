@@ -13,10 +13,20 @@ placeholder pricing**, not the recommended public or private-beta offer.
 The active pricing workstream is
 `docs/product/unit-economics-and-pricing-model-2026-06-29.md`.
 
+Recommended launch candidate as of 2026-07-03:
+
+- `$10 for 1,000 standard credits`;
+- estimated loaded cost for 1,000 standard credits: `$2.59`;
+- estimated gross margin: `74.1%`;
+- break-even: `17 packs/month` under the current fixed-cost assumption;
+- beta trial: 30 days, 100 standard credits, name/email registration, and SMTP
+  API-key delivery when configured.
+
 Until unit economics are filled in and approved, Scout's pricing posture is:
 
 - local Scout remains free during beta;
-- hosted Scout remains invite-only and metered;
+- hosted Scout beta uses self-service name/email registration and remains
+  metered;
 - pay-as-you-go or prepaid credits are the preferred hypothesis;
 - subscriptions are deferred until usage telemetry shows predictable recurring
   value;

@@ -1,7 +1,7 @@
 # Scout Launch Gate Burndown
 
 Date: 2026-06-29
-Status: Current beta release ready; future public self-serve gates deferred
+Status: Current beta release ready; future broad public SaaS gates deferred
 
 ## Purpose
 
@@ -27,16 +27,19 @@ boundaries:
 
 - local install from the verified GitHub branch,
 - Docker built from source,
-- hosted API keys for approved testers,
+- hosted API keys through self-service name/email beta registration at
+  `/beta#beta-key`,
 - no PyPI publish,
 - no GHCR or Docker Hub publish,
 - no unlimited hosted crawling,
 - no certified legacy `/app` UI claim,
 - no security-clean claim while the dependency audit is failing.
 
-Current blockers: 0. Future public self-serve SaaS, PyPI, GHCR, Docker Hub,
-paid checkout, and security-clean claims must reopen the corresponding gates
-before those surfaces are enabled.
+Current blockers for the bounded beta surface: 0. Future broad public SaaS,
+PyPI, GHCR, Docker Hub, paid checkout, and security-clean claims must reopen
+the corresponding gates before those surfaces are enabled. The current hosted
+beta path uses self-service registration, email API-key delivery, finite
+credits, and no shared password.
 
 ## Gate Burndown
 
@@ -45,13 +48,13 @@ before those surfaces are enabled.
 | Launch website routes/render | Closed | None | Codex | Keep website tests in CI; do not call `/app` certified | `docs/product/website-route-render-verification-2026-06-29.md` |
 | Local install path | Closed | None | Codex | Keep branch-qualified quickstart until package registry gates close | `docs/product/local-install-verification-2026-06-28.md` |
 | Docker-from-source path | Closed | None | Codex | Keep source-build Docker docs; do not publish image yet | `docs/product/docker-install-verification-2026-06-28.md` |
-| Hosted API quickstart | Closed | None | Codex | Keep hosted beta limited to approved testers | `docs/product/hosted-api-quickstart-verification-2026-06-28.md` |
+| Hosted API quickstart | Closed | None | Codex | Keep hosted beta limited by finite credits, rate limits, and SMTP delivery readiness | `docs/product/hosted-api-quickstart-verification-2026-06-28.md` |
 | Product export beyond Algolia | Closed | None | Codex | Treat Algolia as one adapter, not the product's only output | `docs/product/product-export-generalization-verification-2026-06-29.md` |
 | License decision | Closed | None | Arijit | Apache-2.0 local/core approved by "ok do it"; hosted/service monetization remains separate | `LICENSE`; `pyproject.toml`; `docs/legal/scout-license-distribution-decision-brief-2026-06-29.md` |
 | Final license expression | Closed | None | Codex | Keep `pyproject.toml` license metadata in package tests | `pyproject.toml` |
 | `LICENSE` file | Closed | None | Codex | Keep root `LICENSE` included in wheel/sdist release smoke | `LICENSE` |
 | License release gate helper | Closed | None | Codex | Keep `scripts/license_release_gate_check.py --expected-license Apache-2.0 --dist-dir dist` in release verification | `scripts/license_release_gate_check.py` |
-| Public pricing and hosted usage limits | Closed | None | Arijit | Keep current beta metered/invite-only; reopen before public paid self-serve pricing | `docs/product/founder-decision-record-SCOUT-DEC-20260629-02.md` |
+| Public pricing and hosted usage limits | Closed | None | Arijit | Keep current beta metered and self-service; reopen before broader paid pricing | `docs/product/founder-decision-record-SCOUT-DEC-20260629-02.md` |
 | Registry publishing policy | Closed | None | Arijit | Artifact-only beta tags approved; no PyPI/GHCR/Docker Hub in current beta | `docs/product/founder-decision-record-SCOUT-DEC-20260629-03.md` |
 | GitHub release workflow on real `v*` tag | Closed | None | Codex | Keep `release.yml` artifact-only until registry publishing is approved | `https://github.com/arijitchowdhury80/scout/actions/runs/28415351878` |
 | Release artifact download smoke | Closed | None | Codex | Keep downloaded-artifact smoke in release verification | `scripts/release_artifact_smoke.py`; tag `v0.1.0-beta.1` |

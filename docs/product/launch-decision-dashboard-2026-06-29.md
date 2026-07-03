@@ -2,7 +2,7 @@
 
 Date: 2026-06-29
 
-Status: **Current beta release ready with limits; future public self-serve gates deferred.**
+Status: **Current beta release ready with limits; broad public SaaS gates deferred.**
 
 This dashboard is the current control panel for launching Scout as a product.
 It summarizes the release checklist, decision briefs, and verification evidence
@@ -26,16 +26,18 @@ scope:
 
 - local Python package from the verified branch-qualified GitHub install,
 - Docker built from source,
-- hosted beta API keys for approved testers only,
+- hosted beta API keys through self-service name/email registration at
+  `/beta#beta-key`,
 - no PyPI publish,
 - no GHCR or Docker Hub publish,
 - no unlimited hosted crawling,
 - no certified app UI claim,
 - no guaranteed hard-site bypass claim.
 
-Current blockers: 0. Future public self-serve SaaS, PyPI, GHCR, Docker Hub,
-paid checkout, and security-clean claims remain out of scope until their gates
-are reopened and verified.
+Current blockers for the bounded beta surface: 0. Broad public SaaS, PyPI,
+GHCR, Docker Hub, paid checkout, and security-clean claims remain out of scope
+until their gates are reopened and verified. The beta HTTP access path is
+self-service registration plus finite metered credits, not a shared password.
 
 ## Open Decisions
 
@@ -44,7 +46,7 @@ are reopened and verified.
 | Scout license | Approve Apache-2.0 for local/core package | Arijit | PyPI, public repo confidence, broad commercial launch |
 | Final license expression | Add final SPDX expression to `pyproject.toml` after approval | Codex after Arijit decision | Package publish |
 | `LICENSE` file | Add Apache-2.0 if approved | Codex after Arijit decision | Package publish |
-| Public pricing | Current beta metered/invite-only posture approved; self-serve pricing deferred | Arijit | Future paid self-serve hosted launch |
+| Public pricing | Current beta metered self-service posture approved; paid packages remain gated by Stripe/SMTP readiness | Arijit | Future paid hosted launch |
 | Registry publishing | Artifact-only beta tags approved; PyPI/GHCR/Docker Hub deferred | Arijit | Future registry publish |
 | Docker image publishing | GHCR/Docker Hub deferred; Docker-from-source remains current beta path | Arijit | Future public container image |
 | Crawl4AI/lxml risk | Private-beta exception approved; security-clean claims deferred | Arijit/security decision | Future public registry/self-serve launch |
@@ -55,7 +57,7 @@ are reopened and verified.
 |---|---|---|
 | GitHub release artifact workflow run against real `v*` tag | Closed on `v0.1.0-beta.1` | `https://github.com/arijitchowdhury80/scout/actions/runs/28415351878` |
 | Release artifact downloaded and smoke-tested locally | Closed | `scripts/release_artifact_smoke.py --dist-dir /tmp/scout-release-v0.1.0-beta.1 --serve --port 18424` passed |
-| Stripe checkout and webhook tested in Stripe test mode | Deferred out of current beta scope | Configure test keys and rerun before paid self-serve checkout |
+| Stripe checkout and webhook tested in Stripe test mode | Deferred out of current beta scope | Configure test keys and rerun before paid checkout |
 | Dependency audit clean and blocking in CI | Deferred under private-beta lxml exception | Reopen before public registry/self-serve launch |
 | Published Docker image smoke-tested | Not applicable until image publishing approved | Reopen before GHCR/Docker Hub publish |
 
