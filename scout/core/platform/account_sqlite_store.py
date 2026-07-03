@@ -6,7 +6,11 @@ import json
 import sqlite3
 from pathlib import Path
 
-from scout.core.platform.account_service import HostedTenantRecord, HostedUsageLedgerEntry
+from scout.core.platform.account_service import (
+    HostedAccountSnapshot,
+    HostedTenantRecord,
+    HostedUsageLedgerEntry,
+)
 from scout.core.platform.api_keys import ApiKeyRecord, ApiKeyStatus
 from scout.core.platform.hosted import HostedUsageBalance
 
@@ -192,6 +196,51 @@ class SQLiteHostedAccountStore:
             ).fetchall()
         return [_ledger_entry_from_row(row) for row in rows]
 
+    def list_all_usage(self, limit: int = 500) -> list[HostedUsageLedgerEntry]:
+        """Return recent usage ledger entries across hosted tenants."""
+        safe_limit = max(1, min(limit, 1000))
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT ledger_id, tenant_id, key_id, action, credit_type, credits,
+                       standard_balance_after, browser_balance_after, metadata_json, created_at
+                FROM hosted_credit_ledger
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (safe_limit,),
+            ).fetchall()
+        return [_ledger_entry_from_row(row) for row in rows]
+
+    def list_accounts(self, limit: int = 100) -> list[HostedAccountSnapshot]:
+        """Return non-secret hosted account snapshots."""
+        safe_limit = max(1, min(limit, 500))
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT
+                  t.tenant_id,
+                  t.email,
+                  t.name,
+                  t.plan,
+                  t.status AS account_status,
+                  t.created_at,
+                  k.key_id,
+                  k.name AS key_name,
+                  k.status AS key_status,
+                  k.last_used_at,
+                  b.standard_credits_remaining,
+                  b.browser_credits_remaining
+                FROM hosted_tenants t
+                LEFT JOIN hosted_api_keys k ON k.tenant_id = t.tenant_id
+                LEFT JOIN hosted_credit_balances b ON b.tenant_id = t.tenant_id
+                ORDER BY t.created_at DESC
+                LIMIT ?
+                """,
+                (safe_limit,),
+            ).fetchall()
+        return [_snapshot_from_row(row) for row in rows if row["key_id"] is not None]
+
     def update_key_status(self, key_id: str, status: ApiKeyStatus) -> None:
         """Update API-key lifecycle status."""
         with self._connect() as conn:
@@ -327,4 +376,22 @@ def _ledger_entry_from_row(row: sqlite3.Row) -> HostedUsageLedgerEntry:
         browser_balance_after=row["browser_balance_after"],
         metadata=json.loads(row["metadata_json"] or "{}"),
         created_at=row["created_at"],
+    )
+
+
+def _snapshot_from_row(row: sqlite3.Row) -> HostedAccountSnapshot:
+    """Build a non-secret account snapshot from a joined SQLite row."""
+    return HostedAccountSnapshot(
+        tenant_id=row["tenant_id"],
+        email=row["email"],
+        name=row["name"],
+        plan=row["plan"],
+        account_status=row["account_status"],
+        key_id=row["key_id"],
+        key_name=row["key_name"],
+        key_status=row["key_status"],
+        standard_credits_remaining=row["standard_credits_remaining"],
+        browser_credits_remaining=row["browser_credits_remaining"],
+        created_at=row["created_at"],
+        last_used_at=row["last_used_at"],
     )

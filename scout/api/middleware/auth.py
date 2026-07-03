@@ -74,6 +74,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/v1/billing/stripe/"):
             return await call_next(request)  # type: ignore[misc]
+        if request.url.path.startswith("/v1/billing/admin/"):
+            incoming_key = request.headers.get("X-API-Key")
+            if not incoming_key or incoming_key != self._api_key:
+                return JSONResponse({"detail": "Unauthorized"}, status_code=403)
+            return await call_next(request)  # type: ignore[misc]
         if self._public_hosted_only:
             return JSONResponse(
                 {"detail": "Local Scout API is disabled in hosted-only mode."},

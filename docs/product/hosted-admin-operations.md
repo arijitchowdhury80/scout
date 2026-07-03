@@ -192,6 +192,26 @@ This shows email, package id, amount, currency, Stripe checkout/customer/payment
 references, tenant id, key id, and creation time. It does not print raw keys or
 stored key hashes.
 
+### Hosted Billing Admin Metrics API
+
+Operators can also inspect non-secret hosted beta metrics through the live
+service. This is useful when Scout is running as a hosted SaaS service and the
+operator wants API-level visibility without SSHing into the SQLite database.
+
+```bash
+curl https://scout.chowmes.com/v1/billing/admin/metrics \
+  -H "X-API-Key: $SCOUT_SERVICE_API_KEY"
+```
+
+The endpoint is protected by the service API key and remains protected in
+`SCOUT_PUBLIC_HOSTED_ONLY=true` mode. It returns signup/account counts, active
+and disabled tenant counts, remaining credit totals, usage event totals,
+standard/browser credits spent, purchase count, revenue cents, and recent
+account, usage, and purchase records.
+
+It does not return raw hosted API keys, key hashes, Stripe secrets, SMTP
+secrets, or customer payment details.
+
 Hosted self-service key generation intentionally does not use a shared password
 gate. The beta flow is name plus email capture, account registration, key
 generation, and one-time API-key email delivery. Paid Stripe checkout remains
@@ -293,10 +313,12 @@ Today, Scout can answer:
 - usage totals in `/v1/hosted/me`,
 - per-tenant Stripe checkout/package purchase history through `/v1/hosted/purchases`,
 - purchase totals in `/v1/hosted/me`,
+- operator-level signup, credit, usage, purchase, and revenue summaries through
+  `/v1/billing/admin/metrics`,
 - every successful hosted credit debit in the `hosted_credit_ledger` table,
 - Stripe checkout/package purchase records in `hosted_payment_checkouts`,
 - hosted run ownership through stored `tenant_id` and `key_id`,
-- per-response `credits_charged` for hosted API calls.
+- per-response `credits_charged` for hosted API calls,
 - public package/credit/unit-economics metadata through `/v1/billing/packages`.
 
 Scout cannot yet answer, as a polished product feature:

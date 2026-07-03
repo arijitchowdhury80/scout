@@ -12,10 +12,16 @@ from pydantic import BaseModel
 
 from scout.api.config import settings
 from scout.api.deps import (
+    get_hosted_account_service,
     get_hosted_key_delivery_service,
     get_hosted_payment_provisioning_service,
     get_stripe_checkout_service,
     get_stripe_webhook_secret,
+)
+from scout.core.platform.account_service import (
+    HostedAccountService,
+    HostedAccountSnapshot,
+    HostedUsageLedgerEntry,
 )
 from scout.core.platform.hosted import HostedPlan
 from scout.core.platform.key_delivery import (
@@ -94,6 +100,16 @@ class HostedBillingPackagesResponse(BaseModel):
     unit_economics: dict[str, PackageUnitEconomics]
 
 
+class HostedBillingAdminMetricsResponse(BaseModel):
+    """Service-key protected hosted billing and usage monitoring summary."""
+
+    success: bool = True
+    totals: dict[str, int]
+    recent_accounts: list[HostedAccountSnapshot]
+    recent_usage: list[HostedUsageLedgerEntry]
+    recent_purchases: list[dict[str, object]]
+
+
 @router.get("/packages", response_model=HostedBillingPackagesResponse)
 async def billing_packages() -> HostedBillingPackagesResponse:
     """Return public hosted credit packages, credit meanings, and economics."""
@@ -106,6 +122,43 @@ async def billing_packages() -> HostedBillingPackagesResponse:
         packages=packages,
         credit_costs=credit_cost_table(),
         unit_economics=economics,
+    )
+
+
+@router.get("/admin/metrics", response_model=HostedBillingAdminMetricsResponse)
+async def billing_admin_metrics(
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    payment_service: HostedPaymentProvisioningService = Depends(
+        get_hosted_payment_provisioning_service
+    ),
+) -> HostedBillingAdminMetricsResponse:
+    """Return non-secret hosted signup, purchase, and usage telemetry for operators."""
+    accounts = account_service.list_accounts(limit=100)
+    usage = account_service.list_all_usage(limit=500)
+    purchases = payment_service.payment_store.list_checkouts(limit=100)
+    totals = {
+        "accounts": len(accounts),
+        "active_accounts": sum(1 for account in accounts if account.account_status == "active"),
+        "disabled_accounts": sum(1 for account in accounts if account.account_status == "disabled"),
+        "standard_credits_remaining": sum(
+            account.standard_credits_remaining for account in accounts
+        ),
+        "browser_credits_remaining": sum(account.browser_credits_remaining for account in accounts),
+        "usage_events": len(usage),
+        "standard_credits_used": sum(
+            entry.credits for entry in usage if entry.credit_type == "standard"
+        ),
+        "browser_credits_used": sum(
+            entry.credits for entry in usage if entry.credit_type == "browser"
+        ),
+        "purchases": len(purchases),
+        "revenue_cents": sum(purchase.amount_total_cents for purchase in purchases),
+    }
+    return HostedBillingAdminMetricsResponse(
+        totals=totals,
+        recent_accounts=accounts,
+        recent_usage=usage[:100],
+        recent_purchases=[purchase.model_dump(mode="json") for purchase in purchases],
     )
 
 

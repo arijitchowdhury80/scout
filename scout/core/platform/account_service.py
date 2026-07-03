@@ -68,6 +68,23 @@ class HostedUsageLedgerEntry(BaseModel):
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
+class HostedAccountSnapshot(BaseModel):
+    """Non-secret account, key, and balance snapshot for operator monitoring."""
+
+    tenant_id: str
+    email: EmailStr
+    name: str = ""
+    plan: str
+    account_status: str
+    key_id: str
+    key_name: str = ""
+    key_status: str
+    standard_credits_remaining: int
+    browser_credits_remaining: int
+    created_at: str
+    last_used_at: str = ""
+
+
 class HostedAccountDecision(BaseModel):
     """Hosted authorization or usage decision."""
 
@@ -103,6 +120,10 @@ class HostedAccountStore(Protocol):
     def record_usage(self, entry: HostedUsageLedgerEntry) -> None: ...
 
     def list_usage(self, tenant_id: str, limit: int = 100) -> list[HostedUsageLedgerEntry]: ...
+
+    def list_all_usage(self, limit: int = 500) -> list[HostedUsageLedgerEntry]: ...
+
+    def list_accounts(self, limit: int = 100) -> list[HostedAccountSnapshot]: ...
 
     def update_key_status(self, key_id: str, status: ApiKeyStatus) -> None: ...
 
@@ -171,6 +192,45 @@ class InMemoryHostedAccountStore:
         """Return recent usage entries for a tenant."""
         entries = [entry for entry in self.usage_entries if entry.tenant_id == tenant_id]
         return list(reversed(entries))[:limit]
+
+    def list_all_usage(self, limit: int = 500) -> list[HostedUsageLedgerEntry]:
+        """Return recent usage entries across tenants."""
+        safe_limit = max(1, min(limit, 1000))
+        return list(reversed(self.usage_entries))[:safe_limit]
+
+    def list_accounts(self, limit: int = 100) -> list[HostedAccountSnapshot]:
+        """Return non-secret account snapshots."""
+        safe_limit = max(1, min(limit, 500))
+        snapshots: list[HostedAccountSnapshot] = []
+        for tenant in sorted(
+            self.tenants.values(),
+            key=lambda item: item.created_at,
+            reverse=True,
+        ):
+            tenant_keys = [
+                key for key in self.api_keys.values() if key.tenant_id == tenant.tenant_id
+            ]
+            if not tenant_keys:
+                continue
+            key = sorted(tenant_keys, key=lambda item: item.created_at, reverse=True)[0]
+            balance = self.balances[tenant.tenant_id]
+            snapshots.append(
+                HostedAccountSnapshot(
+                    tenant_id=tenant.tenant_id,
+                    email=tenant.email,
+                    name=tenant.name,
+                    plan=tenant.plan.value,
+                    account_status=tenant.status.value,
+                    key_id=key.key_id,
+                    key_name=key.name,
+                    key_status=key.status.value,
+                    standard_credits_remaining=balance.standard_credits_remaining,
+                    browser_credits_remaining=balance.browser_credits_remaining,
+                    created_at=tenant.created_at,
+                    last_used_at=key.last_used_at,
+                )
+            )
+        return snapshots[:safe_limit]
 
     def update_key_status(self, key_id: str, status: ApiKeyStatus) -> None:
         """Update API-key lifecycle status."""
@@ -348,6 +408,14 @@ class HostedAccountService:
     def list_usage(self, tenant_id: str, limit: int = 100) -> list[HostedUsageLedgerEntry]:
         """Return recent usage entries for a hosted tenant."""
         return self.store.list_usage(tenant_id, limit)
+
+    def list_all_usage(self, limit: int = 500) -> list[HostedUsageLedgerEntry]:
+        """Return recent usage entries across hosted tenants."""
+        return self.store.list_all_usage(limit)
+
+    def list_accounts(self, limit: int = 100) -> list[HostedAccountSnapshot]:
+        """Return non-secret account snapshots for operator monitoring."""
+        return self.store.list_accounts(limit)
 
 
 def _debit_balance(balance: HostedUsageBalance, action: HostedAction) -> HostedUsageBalance:

@@ -55,6 +55,11 @@ def _make_app(api_key: str = "test-key", public_hosted_only: bool = False) -> Fa
         """Stripe webhook routes perform Stripe signature auth."""
         return {"billing": True}
 
+    @test_app.get("/v1/billing/admin/metrics")
+    async def billing_admin_metrics() -> dict:
+        """Billing admin routes require the service X-API-Key."""
+        return {"admin": True}
+
     return test_app
 
 
@@ -132,6 +137,19 @@ def test_stripe_webhook_bypasses_static_local_key_middleware() -> None:
     assert resp.json()["billing"] is True
 
 
+def test_billing_admin_metrics_requires_static_key() -> None:
+    """Billing admin monitoring must not be public."""
+    client = TestClient(_make_app(api_key="test-key"))
+
+    missing_resp = client.get("/v1/billing/admin/metrics")
+    ok_resp = client.get("/v1/billing/admin/metrics", headers={"X-API-Key": "test-key"})
+
+    assert missing_resp.status_code == 403
+    assert missing_resp.json()["detail"] == "Unauthorized"
+    assert ok_resp.status_code == 200
+    assert ok_resp.json()["admin"] is True
+
+
 def test_public_hosted_only_blocks_local_routes_even_with_static_key() -> None:
     """Public hosted deployments must not expose local/admin API routes."""
     client = TestClient(_make_app(api_key="test-key", public_hosted_only=True))
@@ -171,3 +189,16 @@ def test_public_hosted_only_keeps_hosted_and_billing_routes_available() -> None:
     assert playground_resp.json()["playground"] is True
     assert billing_resp.status_code == 200
     assert billing_resp.json()["billing"] is True
+
+
+def test_public_hosted_only_allows_billing_admin_with_static_key() -> None:
+    """Hosted production still needs a service-key protected operator metrics route."""
+    client = TestClient(_make_app(api_key="test-key", public_hosted_only=True))
+
+    missing_resp = client.get("/v1/billing/admin/metrics")
+    ok_resp = client.get("/v1/billing/admin/metrics", headers={"X-API-Key": "test-key"})
+
+    assert missing_resp.status_code == 403
+    assert missing_resp.json()["detail"] == "Unauthorized"
+    assert ok_resp.status_code == 200
+    assert ok_resp.json()["admin"] is True
