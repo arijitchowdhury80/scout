@@ -26,7 +26,7 @@ from scout.api.run_store import remember_run
 from scout.api.run_store import get_run, list_runs
 from scout.api.run_store import StoredRun
 from scout.core.crawler import ScoutCrawler
-from scout.core.platform.account_service import HostedAccountService
+from scout.core.platform.account_service import HostedAccountService, HostedSignupEvent
 from scout.core.platform.admission import AdmissionController, AdmissionRejected
 from scout.core.platform.hosted import (
     HostedAction,
@@ -327,6 +327,13 @@ async def hosted_beta_key(
             detail="Hosted beta key generation is disabled.",
         )
     if not delivery_service.enabled:
+        account_service.record_signup_event(
+            _signup_event(
+                req,
+                status="failed",
+                reason="Hosted API key delivery is not configured.",
+            )
+        )
         raise HTTPException(
             status_code=503,
             detail="Hosted API key delivery is not configured.",
@@ -341,6 +348,9 @@ async def hosted_beta_key(
         )
     except ValueError as exc:
         if "already exists" in str(exc):
+            account_service.record_signup_event(
+                _signup_event(req, status="duplicate", reason=str(exc))
+            )
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         raise
     delivery = delivery_service.deliver(
@@ -355,9 +365,28 @@ async def hosted_beta_key(
         )
     )
     if not delivery.delivered:
+        account_service.record_signup_event(
+            _signup_event(
+                req,
+                status="failed",
+                tenant_id=provisioned.tenant.tenant_id,
+                key_id=provisioned.api_key.key_id,
+                delivery_status=delivery.delivery_status,
+                reason=delivery.reason,
+            )
+        )
         account_service.delete_account(provisioned.tenant.tenant_id)
         raise HTTPException(status_code=502, detail=delivery.reason)
     delivery_status = delivery.delivery_status
+    account_service.record_signup_event(
+        _signup_event(
+            req,
+            status="delivered",
+            tenant_id=provisioned.tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            delivery_status=delivery_status,
+        )
+    )
     warning = "Scout emailed the API key. It stores only a hash and cannot show the raw key again."
     return HostedBetaKeyResponse(
         success=True,
@@ -371,6 +400,28 @@ async def hosted_beta_key(
         browser_credits_remaining=provisioned.balance.browser_credits_remaining,
         delivery_status=delivery_status,
         warning=warning,
+    )
+
+
+def _signup_event(
+    req: HostedBetaKeyRequest,
+    *,
+    status: str,
+    tenant_id: str = "",
+    key_id: str = "",
+    delivery_status: str = "",
+    reason: str = "",
+) -> HostedSignupEvent:
+    """Build a non-secret hosted signup telemetry event."""
+    return HostedSignupEvent(
+        email=req.email,
+        name=req.name,
+        status=status,
+        source="direct_beta_key",
+        tenant_id=tenant_id,
+        key_id=key_id,
+        delivery_status=delivery_status,
+        reason=reason,
     )
 
 

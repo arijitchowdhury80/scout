@@ -260,9 +260,10 @@ curl https://scout.chowmes.com/v1/billing/admin/metrics \
 
 The endpoint is protected by the service API key and remains protected in
 `SCOUT_PUBLIC_HOSTED_ONLY=true` mode. It returns signup/account counts, active
-and disabled tenant counts, remaining credit totals, usage event totals,
-standard/browser credits spent, purchase count, revenue cents, and recent
-account, usage, and purchase records.
+and disabled tenant counts, beta signup delivery/failed/duplicate counts,
+remaining credit totals, usage event totals, standard/browser credits spent,
+purchase count, revenue cents, and recent signup, account, usage, and purchase
+records.
 
 It does not return raw hosted API keys, key hashes, Stripe secrets, SMTP
 secrets, or customer payment details.
@@ -373,8 +374,9 @@ Today, Scout can answer:
 - purchase totals in `/v1/hosted/me`,
 - paid checkout top-ups for existing hosted tenants when Stripe webhook email
   matches an existing account,
-- operator-level signup, credit, usage, purchase, and revenue summaries through
-  `/v1/billing/admin/metrics`,
+- operator-level signup-attempt, delivery, duplicate, failure, credit, usage,
+  purchase, and revenue summaries through `/v1/billing/admin/metrics`,
+- every direct beta key request outcome in the `hosted_signup_events` table,
 - every successful hosted credit debit in the `hosted_credit_ledger` table,
 - Stripe checkout/package purchase records in `hosted_payment_checkouts`,
 - hosted run ownership through stored `tenant_id` and `key_id`,

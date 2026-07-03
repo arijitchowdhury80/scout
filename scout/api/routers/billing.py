@@ -21,6 +21,7 @@ from scout.api.deps import (
 from scout.core.platform.account_service import (
     HostedAccountService,
     HostedAccountSnapshot,
+    HostedSignupEvent,
     HostedUsageLedgerEntry,
 )
 from scout.core.platform.hosted import HostedPlan
@@ -107,6 +108,7 @@ class HostedBillingAdminMetricsResponse(BaseModel):
     success: bool = True
     totals: dict[str, int]
     recent_accounts: list[HostedAccountSnapshot]
+    recent_signup_events: list[HostedSignupEvent]
     recent_usage: list[HostedUsageLedgerEntry]
     recent_purchases: list[dict[str, object]]
 
@@ -135,12 +137,17 @@ async def billing_admin_metrics(
 ) -> HostedBillingAdminMetricsResponse:
     """Return non-secret hosted signup, purchase, and usage telemetry for operators."""
     accounts = account_service.list_accounts(limit=100)
+    signup_events = account_service.list_signup_events(limit=100)
     usage = account_service.list_all_usage(limit=500)
     purchases = payment_service.payment_store.list_checkouts(limit=100)
     totals = {
         "accounts": len(accounts),
         "active_accounts": sum(1 for account in accounts if account.account_status == "active"),
         "disabled_accounts": sum(1 for account in accounts if account.account_status == "disabled"),
+        "signup_events": len(signup_events),
+        "signup_delivered": sum(1 for event in signup_events if event.status == "delivered"),
+        "signup_failed": sum(1 for event in signup_events if event.status == "failed"),
+        "signup_duplicate": sum(1 for event in signup_events if event.status == "duplicate"),
         "standard_credits_remaining": sum(
             account.standard_credits_remaining for account in accounts
         ),
@@ -158,6 +165,7 @@ async def billing_admin_metrics(
     return HostedBillingAdminMetricsResponse(
         totals=totals,
         recent_accounts=accounts,
+        recent_signup_events=signup_events,
         recent_usage=usage[:100],
         recent_purchases=[purchase.model_dump(mode="json") for purchase in purchases],
     )

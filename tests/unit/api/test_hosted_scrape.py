@@ -162,6 +162,14 @@ def test_hosted_beta_key_generation_requires_email_only_and_creates_usable_key(
     )
     assert me_resp.status_code == 200
     assert me_resp.json()["tenant_id"] == data["tenant_id"]
+    signup_events = account_service.list_signup_events()
+    assert signup_events[0].email == "new-tester@example.com"
+    assert signup_events[0].name == "New Tester"
+    assert signup_events[0].status == "delivered"
+    assert signup_events[0].source == "direct_beta_key"
+    assert signup_events[0].tenant_id == data["tenant_id"]
+    assert signup_events[0].key_id == data["key_id"]
+    assert signup_events[0].delivery_status == "delivered"
     assert delivery.requests[0].email == "new-tester@example.com"
     assert delivery.requests[0].name == "New Tester"
     assert delivery.requests[0].raw_api_key not in resp.text
@@ -186,6 +194,11 @@ def test_hosted_beta_key_generation_requires_configured_delivery_service(
     assert resp.status_code == 503
     assert resp.json()["detail"] == "Hosted API key delivery is not configured."
     assert account_service.store.find_tenant_by_email("no-email@example.com") is None
+    signup_events = account_service.list_signup_events()
+    assert signup_events[0].email == "no-email@example.com"
+    assert signup_events[0].name == "Tester"
+    assert signup_events[0].status == "failed"
+    assert signup_events[0].reason == "Hosted API key delivery is not configured."
 
 
 def test_hosted_beta_key_response_schema_does_not_expose_raw_key() -> None:
@@ -222,6 +235,12 @@ def test_hosted_beta_key_generation_rolls_back_when_delivery_fails(monkeypatch) 
     assert resp.status_code == 502
     assert resp.json()["detail"] == "SMTP delivery failed: smtp down"
     assert account_service.store.find_tenant_by_email("retry@example.com") is None
+    signup_events = account_service.list_signup_events()
+    assert signup_events[0].email == "retry@example.com"
+    assert signup_events[0].name == "Retry Tester"
+    assert signup_events[0].status == "failed"
+    assert signup_events[0].reason == "SMTP delivery failed: smtp down"
+    assert signup_events[0].delivery_status == "failed"
 
 
 def test_hosted_beta_key_generation_rejects_duplicate_email(monkeypatch) -> None:
@@ -246,6 +265,10 @@ def test_hosted_beta_key_generation_rejects_duplicate_email(monkeypatch) -> None
     assert first.status_code == 200
     assert second.status_code == 409
     assert second.json()["detail"] == "A hosted beta key already exists for this email."
+    signup_events = account_service.list_signup_events()
+    assert signup_events[0].email == "dupe@example.com"
+    assert signup_events[0].status == "duplicate"
+    assert signup_events[1].status == "delivered"
 
 
 def test_hosted_scrape_rejects_unsafe_url_without_calling_crawler() -> None:

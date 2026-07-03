@@ -13,7 +13,7 @@ from scout.api.deps import (
     get_hosted_payment_provisioning_service,
 )
 from scout.api.main import app
-from scout.core.platform.account_service import HostedAccountService
+from scout.core.platform.account_service import HostedAccountService, HostedSignupEvent
 from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
 from scout.core.platform.hosted import HostedAction, HostedPlan
 from scout.core.platform.payment_provisioning import (
@@ -60,6 +60,9 @@ def test_billing_admin_metrics_returns_non_secret_metering_summary(tmp_path: Pat
     assert data["totals"]["accounts"] == 2
     assert data["totals"]["active_accounts"] == 2
     assert data["totals"]["usage_events"] == 1
+    assert data["totals"]["signup_events"] == 2
+    assert data["totals"]["signup_delivered"] == 1
+    assert data["totals"]["signup_failed"] == 1
     assert data["totals"]["standard_credits_used"] == 2
     assert data["totals"]["browser_credits_used"] == 0
     assert data["totals"]["purchases"] == 2
@@ -69,6 +72,10 @@ def test_billing_admin_metrics_returns_non_secret_metering_summary(tmp_path: Pat
         "second@example.com",
     }
     assert data["recent_usage"][0]["action"] == "scrape"
+    assert data["recent_signup_events"][0]["status"] == "failed"
+    assert data["recent_signup_events"][0]["email"] == "failed@example.com"
+    assert data["recent_signup_events"][0]["reason"] == "SMTP delivery failed"
+    assert data["recent_signup_events"][1]["status"] == "delivered"
     assert data["recent_purchases"][0]["checkout_session_id"] in {"cs_first", "cs_second"}
     assert raw_key not in response.text
     assert "key_hash" not in response.text
@@ -106,6 +113,27 @@ def _seed_services(
         key_id=first.key_id,
         action=HostedAction.SCRAPE,
         credits=2,
+    )
+    account_service.record_signup_event(
+        HostedSignupEvent(
+            email="delivered@example.com",
+            name="Delivered Tester",
+            status="delivered",
+            source="direct_beta_key",
+            tenant_id=first.tenant_id,
+            key_id=first.key_id,
+            delivery_status="delivered",
+        )
+    )
+    account_service.record_signup_event(
+        HostedSignupEvent(
+            email="failed@example.com",
+            name="Failed Tester",
+            status="failed",
+            source="direct_beta_key",
+            reason="SMTP delivery failed",
+            delivery_status="failed",
+        )
     )
     return account_service, payment_service, first.raw_api_key
 

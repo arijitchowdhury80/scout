@@ -8,6 +8,7 @@ from pathlib import Path
 
 from scout.core.platform.account_service import (
     HostedAccountSnapshot,
+    HostedSignupEvent,
     HostedTenantRecord,
     HostedUsageLedgerEntry,
 )
@@ -212,6 +213,46 @@ class SQLiteHostedAccountStore:
             ).fetchall()
         return [_ledger_entry_from_row(row) for row in rows]
 
+    def record_signup_event(self, event: HostedSignupEvent) -> None:
+        """Persist a non-secret hosted beta signup event."""
+        with self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO hosted_signup_events
+                (event_id, email, name, status, source, tenant_id, key_id,
+                 delivery_status, reason, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event.event_id,
+                    str(event.email),
+                    event.name,
+                    event.status,
+                    event.source,
+                    event.tenant_id,
+                    event.key_id,
+                    event.delivery_status,
+                    event.reason,
+                    event.created_at,
+                ),
+            )
+
+    def list_signup_events(self, limit: int = 100) -> list[HostedSignupEvent]:
+        """Return recent hosted beta signup events."""
+        safe_limit = max(1, min(limit, 1000))
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT event_id, email, name, status, source, tenant_id, key_id,
+                       delivery_status, reason, created_at
+                FROM hosted_signup_events
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (safe_limit,),
+            ).fetchall()
+        return [_signup_event_from_row(row) for row in rows]
+
     def list_accounts(self, limit: int = 100) -> list[HostedAccountSnapshot]:
         """Return non-secret hosted account snapshots."""
         safe_limit = max(1, min(limit, 500))
@@ -302,6 +343,19 @@ class SQLiteHostedAccountStore:
                   FOREIGN KEY (tenant_id) REFERENCES hosted_tenants(tenant_id),
                   FOREIGN KEY (key_id) REFERENCES hosted_api_keys(key_id)
                 );
+
+                CREATE TABLE IF NOT EXISTS hosted_signup_events (
+                  event_id TEXT PRIMARY KEY,
+                  email TEXT NOT NULL,
+                  name TEXT NOT NULL DEFAULT '',
+                  status TEXT NOT NULL,
+                  source TEXT NOT NULL,
+                  tenant_id TEXT NOT NULL DEFAULT '',
+                  key_id TEXT NOT NULL DEFAULT '',
+                  delivery_status TEXT NOT NULL DEFAULT '',
+                  reason TEXT NOT NULL DEFAULT '',
+                  created_at TEXT NOT NULL
+                );
                 """
             )
             self._ensure_column(
@@ -375,6 +429,22 @@ def _ledger_entry_from_row(row: sqlite3.Row) -> HostedUsageLedgerEntry:
         standard_balance_after=row["standard_balance_after"],
         browser_balance_after=row["browser_balance_after"],
         metadata=json.loads(row["metadata_json"] or "{}"),
+        created_at=row["created_at"],
+    )
+
+
+def _signup_event_from_row(row: sqlite3.Row) -> HostedSignupEvent:
+    """Build a hosted signup event from a SQLite row."""
+    return HostedSignupEvent(
+        event_id=row["event_id"],
+        email=row["email"],
+        name=row["name"],
+        status=row["status"],
+        source=row["source"],
+        tenant_id=row["tenant_id"],
+        key_id=row["key_id"],
+        delivery_status=row["delivery_status"],
+        reason=row["reason"],
         created_at=row["created_at"],
     )
 

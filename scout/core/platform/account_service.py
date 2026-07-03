@@ -68,6 +68,21 @@ class HostedUsageLedgerEntry(BaseModel):
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
+class HostedSignupEvent(BaseModel):
+    """Auditable non-secret record of a hosted beta signup attempt."""
+
+    event_id: str = Field(default_factory=lambda: f"signup_{uuid4().hex}")
+    email: EmailStr
+    name: str = ""
+    status: str
+    source: str
+    tenant_id: str = ""
+    key_id: str = ""
+    delivery_status: str = ""
+    reason: str = ""
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+
+
 class HostedAccountSnapshot(BaseModel):
     """Non-secret account, key, and balance snapshot for operator monitoring."""
 
@@ -123,6 +138,10 @@ class HostedAccountStore(Protocol):
 
     def list_all_usage(self, limit: int = 500) -> list[HostedUsageLedgerEntry]: ...
 
+    def record_signup_event(self, event: HostedSignupEvent) -> None: ...
+
+    def list_signup_events(self, limit: int = 100) -> list[HostedSignupEvent]: ...
+
     def list_accounts(self, limit: int = 100) -> list[HostedAccountSnapshot]: ...
 
     def update_key_status(self, key_id: str, status: ApiKeyStatus) -> None: ...
@@ -136,6 +155,7 @@ class InMemoryHostedAccountStore:
         self.api_keys: dict[str, ApiKeyRecord] = {}
         self.balances: dict[str, HostedUsageBalance] = {}
         self.usage_entries: list[HostedUsageLedgerEntry] = []
+        self.signup_events: list[HostedSignupEvent] = []
 
     def save_account(
         self,
@@ -197,6 +217,15 @@ class InMemoryHostedAccountStore:
         """Return recent usage entries across tenants."""
         safe_limit = max(1, min(limit, 1000))
         return list(reversed(self.usage_entries))[:safe_limit]
+
+    def record_signup_event(self, event: HostedSignupEvent) -> None:
+        """Store a non-secret hosted signup event."""
+        self.signup_events.append(event)
+
+    def list_signup_events(self, limit: int = 100) -> list[HostedSignupEvent]:
+        """Return recent hosted signup events."""
+        safe_limit = max(1, min(limit, 1000))
+        return list(reversed(self.signup_events))[:safe_limit]
 
     def list_accounts(self, limit: int = 100) -> list[HostedAccountSnapshot]:
         """Return non-secret account snapshots."""
@@ -439,6 +468,14 @@ class HostedAccountService:
     def list_all_usage(self, limit: int = 500) -> list[HostedUsageLedgerEntry]:
         """Return recent usage entries across hosted tenants."""
         return self.store.list_all_usage(limit)
+
+    def record_signup_event(self, event: HostedSignupEvent) -> None:
+        """Record a non-secret hosted signup attempt for monitoring."""
+        self.store.record_signup_event(event)
+
+    def list_signup_events(self, limit: int = 100) -> list[HostedSignupEvent]:
+        """Return recent hosted signup attempts for operator monitoring."""
+        return self.store.list_signup_events(limit)
 
     def list_accounts(self, limit: int = 100) -> list[HostedAccountSnapshot]:
         """Return non-secret account snapshots for operator monitoring."""
