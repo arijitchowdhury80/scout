@@ -27,9 +27,10 @@ def test_hosted_load_test_dry_run_covers_250_user_hosted_surface() -> None:
         "GET /v1/hosted/me",
         "POST /v1/hosted/scrape",
         "POST /v1/hosted/crawl",
+        "POST /v1/hosted/map",
         "POST /v1/hosted/screenshot",
-        "POST /v1/hosted/products",
     ]
+    assert "POST /v1/hosted/products" in payload["endpoints"]
     assert "POST /v1/hosted/run/company" in payload["endpoints"]
     assert "POST /v1/hosted/run/prism" in payload["endpoints"]
     assert "POST /v1/hosted/run/website-quality" in payload["endpoints"]

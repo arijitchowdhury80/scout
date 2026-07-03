@@ -453,6 +453,29 @@ def test_hosted_curl_command_prints_copyable_screenshot_request() -> None:
     )
 
 
+def test_hosted_curl_command_prints_copyable_map_request() -> None:
+    runner = CliRunner()
+
+    result = runner.invoke(
+        app,
+        [
+            "hosted-curl",
+            "--base-url",
+            "https://scout.example.com/",
+            "--endpoint",
+            "map",
+            "--url",
+            "https://www.wikimedia.org/",
+            "--max-pages",
+            "3",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert 'curl -X POST "https://scout.example.com/v1/hosted/map"' in result.output
+    assert '-d \'{"url":"https://www.wikimedia.org/","max_pages":3}\'' in result.output
+
+
 def test_run_jobs_placeholder_is_explicit() -> None:
     runner = CliRunner()
     with runner.isolated_filesystem():

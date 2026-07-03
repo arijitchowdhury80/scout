@@ -49,6 +49,8 @@ from scout.core.platform.workspace import resolve_run_output_dir
 from scout.core.types import (
     CrawlRequest,
     CrawlResponse,
+    MapRequest,
+    MapResponse,
     ProductCrawlRequest,
     ProductCrawlResponse,
     ScrapeRequest,
@@ -93,6 +95,14 @@ class HostedCrawlResponse(BaseModel):
     success: bool
     hosted: HostedUsageSummary
     crawl: CrawlResponse
+
+
+class HostedMapResponse(BaseModel):
+    """Hosted map response with hosted usage metadata."""
+
+    success: bool
+    hosted: HostedUsageSummary
+    map: MapResponse
 
 
 class HostedProductsResponse(BaseModel):
@@ -469,6 +479,67 @@ async def hosted_crawl(
         )
 
 
+@router.post("/map", response_model=HostedMapResponse)
+async def hosted_map(
+    req: MapRequest,
+    authorization: str = Header(default=""),
+    crawler: ScoutCrawler = Depends(get_crawler),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+    admission: AdmissionController = Depends(get_hosted_admission_controller),
+    job_queue: HostedJobQueue = Depends(get_hosted_job_queue),
+) -> HostedMapResponse | JSONResponse:
+    """Run hosted URL discovery after Bearer auth, URL safety, rate, and credits."""
+    raw_key = _bearer_token(authorization)
+    auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
+    if not auth.allowed:
+        raise HTTPException(status_code=403, detail=auth.reason)
+    _enforce_hosted_url_safety(req.url)
+    tenant = account_service.get_tenant(auth.tenant_id)
+    if tenant is None:
+        raise HTTPException(status_code=403, detail="Hosted account is not active.")
+    limits = plan_limits(tenant.plan)
+    _enforce_map_page_limit(req.max_pages, limits)
+    _enforce_standard_credit_preflight(account_service, auth.tenant_id, req.max_pages)
+    _enforce_rate_limit(rate_limiter, auth.key_id)
+    if settings.hosted_async_first:
+        return _queue_hosted_job(
+            job_queue,
+            kind="map",
+            tenant_id=auth.tenant_id,
+            key_id=auth.key_id,
+            retry_after_seconds=settings.capacity_retry_after_seconds,
+            work=lambda: _execute_hosted_map(
+                req,
+                auth.tenant_id,
+                auth.key_id,
+                crawler,
+                account_service,
+            ),
+        )
+
+    try:
+        async with admission.admit():
+            return await _execute_hosted_map(
+                req, auth.tenant_id, auth.key_id, crawler, account_service
+            )
+    except AdmissionRejected as exc:
+        return _queue_hosted_job(
+            job_queue,
+            kind="map",
+            tenant_id=auth.tenant_id,
+            key_id=auth.key_id,
+            retry_after_seconds=exc.retry_after_seconds,
+            work=lambda: _execute_hosted_map(
+                req,
+                auth.tenant_id,
+                auth.key_id,
+                crawler,
+                account_service,
+            ),
+        )
+
+
 @router.post("/products", response_model=HostedProductsResponse)
 async def hosted_products(
     req: ProductCrawlRequest,
@@ -828,6 +899,35 @@ async def _execute_hosted_crawl(
     )
 
 
+async def _execute_hosted_map(
+    req: MapRequest,
+    tenant_id: str,
+    key_id: str,
+    crawler: ScoutCrawler,
+    account_service: HostedAccountService,
+) -> HostedMapResponse:
+    """Run hosted URL discovery and debit returned URL credits."""
+    map_response = await crawler.map_urls(req)
+    pages_charged = _hosted_map_pages_charged(map_response, req.max_pages)
+    _debit_standard_credits(
+        account_service,
+        tenant_id=tenant_id,
+        key_id=key_id,
+        action=HostedAction.CRAWL_PAGE,
+        credits=pages_charged,
+    )
+    return HostedMapResponse(
+        success=map_response.success,
+        hosted=HostedUsageSummary(
+            tenant_id=tenant_id,
+            key_id=key_id,
+            credits_charged=pages_charged,
+            credit_type=HostedAction.CRAWL_PAGE.credit_type,
+        ),
+        map=map_response,
+    )
+
+
 async def _execute_hosted_products(
     req: ProductCrawlRequest,
     tenant_id: str,
@@ -1095,6 +1195,17 @@ def _enforce_crawl_page_limit(max_pages: int, limits: HostedPlanLimits) -> None:
         )
 
 
+def _enforce_map_page_limit(max_pages: int, limits: HostedPlanLimits) -> None:
+    """Reject hosted maps that exceed plan URL limits."""
+    if max_pages < 1:
+        raise HTTPException(status_code=403, detail="Hosted maps require at least 1 URL.")
+    if max_pages > limits.max_pages_per_run:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Plan allows at most {limits.max_pages_per_run} URLs per map.",
+        )
+
+
 def _enforce_standard_credit_preflight(
     account_service: HostedAccountService,
     tenant_id: str,
@@ -1113,6 +1224,12 @@ def _enforce_standard_credit_preflight(
 def _hosted_crawl_pages_charged(response: CrawlResponse, requested_max_pages: int) -> int:
     """Return page-credit charge for a crawl response, capped by requested max_pages."""
     observed_pages = max(response.total_pages, len(response.pages))
+    return min(observed_pages, requested_max_pages)
+
+
+def _hosted_map_pages_charged(response: MapResponse, requested_max_pages: int) -> int:
+    """Return URL-credit charge for a map response, capped by requested max_pages."""
+    observed_pages = max(response.total, len(response.urls))
     return min(observed_pages, requested_max_pages)
 
 

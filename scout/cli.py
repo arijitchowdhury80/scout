@@ -733,7 +733,7 @@ def hosted_curl(
     endpoint: str = typer.Option(
         "me",
         "--endpoint",
-        help="Hosted endpoint example: me, scrape, crawl, screenshot, products, run",
+        help="Hosted endpoint example: me, scrape, crawl, map, screenshot, products, run",
     ),
     url: str = typer.Option("https://example.com", "--url", help="Target URL for work examples"),
     use_case: str = typer.Option("company", "--use-case", help="Use case for --endpoint run"),
@@ -758,6 +758,7 @@ def hosted_curl(
             {"url": url, "formats": ["markdown"], "timeout_ms": 30000},
         ),
         "crawl": ("/v1/hosted/crawl", {"url": url, "max_pages": max_pages}),
+        "map": ("/v1/hosted/map", {"url": url, "max_pages": max_pages}),
         "screenshot": (
             "/v1/hosted/screenshot",
             {"url": url, "viewport_width": 1280, "viewport_height": 800},
@@ -773,7 +774,7 @@ def hosted_curl(
     }
     if endpoint_name not in payloads:
         typer.echo(
-            "Unsupported endpoint. Use one of: me, scrape, crawl, screenshot, products, run.",
+            "Unsupported endpoint. Use one of: me, scrape, crawl, map, screenshot, products, run.",
             err=True,
         )
         raise typer.Exit(2)

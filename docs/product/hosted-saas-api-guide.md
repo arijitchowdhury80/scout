@@ -119,6 +119,13 @@ scout hosted-curl \
 ```bash
 scout hosted-curl \
   --base-url https://your-scout-domain.example \
+  --endpoint map \
+  --url https://www.wikimedia.org/
+```
+
+```bash
+scout hosted-curl \
+  --base-url https://your-scout-domain.example \
   --endpoint screenshot \
   --url https://www.cnn.com/
 ```
@@ -163,6 +170,15 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/crawl" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","max_pages":5}'
+```
+
+Map public URLs:
+
+```bash
+curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/map" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.wikimedia.org/","max_pages":5}'
 ```
 
 Capture a screenshot:
