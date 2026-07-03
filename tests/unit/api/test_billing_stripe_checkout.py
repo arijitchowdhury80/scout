@@ -342,12 +342,12 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
 
     assert response.status_code == 200
     data = response.json()
-    assert data["public_self_service_path"] == "stripe_checkout"
+    assert data["public_self_service_path"] == "email_beta_registration"
     assert data["public_beta_checkout_endpoint"] == "/v1/billing/stripe/checkout-session"
     assert data["legacy_direct_beta_key_endpoint"] == "/v1/hosted/beta-key"
     assert data["direct_beta_key_enabled"] is False
     assert data["customer_next_actions"] == [
-        "Use /beta to start the card-backed beta setup checkout when readiness is true.",
+        "Use /beta to register for a finite-credit beta tester API key by email.",
         "Use /pricing to buy paid credit packages when paid checkout readiness is true.",
     ]
     assert data["missing_environment_keys"] == [

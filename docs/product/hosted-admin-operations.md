@@ -7,15 +7,14 @@ Status: private beta operations
 
 Scout hosted beta has API-key based access, not a login system.
 
-- Public beta testers start access through the card-backed `$0` setup form on
-  `/beta`, which posts name, email, and package `beta_trial` to
-  `POST /v1/billing/stripe/checkout-session`. Stripe setup verifies the
-  payment pipeline without charging the tester; the signed webhook provisions
-  the hosted account and SMTP delivers the raw API key once.
-- `POST /v1/hosted/beta-key` remains a backend/operator compatibility path for
-  direct beta-key registration and pending-delivery recovery, but it is no
-  longer the advertised public self-service CTA on the website and stays
-  disabled unless `HOSTED_DIRECT_BETA_KEY_ENABLED=true` is explicitly set.
+- Public beta testers start access on `/beta`, which posts name and email to
+  `POST /v1/hosted/beta-key`. Scout records the tester, provisions a
+  finite-credit hosted beta account, and SMTP delivers the raw API key once.
+  Public signup never shows the raw key in the browser.
+- Paid hosted credit packages start from `/pricing`, which posts to
+  `POST /v1/billing/stripe/checkout-session`. Stripe remains the paid
+  purchase path and the future card-backed beta path if that policy is
+  re-approved.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
 - Self-service signup emails the raw API key when SMTP delivery is configured.
@@ -28,11 +27,10 @@ Scout hosted beta has API-key based access, not a login system.
   `POST /v1/hosted/beta-key/status` using only the registration email. The
   status lookup never returns raw API keys or key hashes.
 - Stripe checkout forms are available from `/pricing` for paid hosted credit
-  packages and from `/beta` for `$0` card-backed beta setup. Both forms are
-  readiness-gated by `/v1/billing/stripe/status` and stay disabled until
-  Stripe settings, signed webhook delivery, and SMTP key delivery are
-  configured.
-- The `$0` beta trial uses Stripe Checkout `mode=setup` with card collection,
+  packages. They are readiness-gated by `/v1/billing/stripe/status` and stay
+  disabled until Stripe settings, signed webhook delivery, and SMTP key
+  delivery are configured.
+- The paid hosted purchase path uses Stripe Checkout with card collection,
   `customer_email`, and metadata. It intentionally does not send
   `customer_creation=always`, which is reserved for payment-mode customer
   creation. Paid credit packages use Checkout `mode=payment`,
@@ -56,15 +54,12 @@ Scout hosted beta has API-key based access, not a login system.
 - The public pricing page can start Stripe Checkout for hosted credit packages
   through `/v1/billing/stripe/checkout-session` when Stripe price IDs,
   checkout settings, webhook signing, and SMTP key delivery are configured.
-- The checkout API itself fails closed before creating Stripe sessions if the
-  webhook secret or SMTP key delivery is missing. `$0` `beta_trial` setup also
-  requires hosted beta signup to be enabled.
-- When a `$0` `beta_trial` Checkout Session is created, Scout records a
+- The checkout API itself fails closed before creating paid Stripe sessions if
+  the webhook secret or SMTP key delivery is missing.
+- If a future `$0` `beta_trial` Checkout Session is created, Scout records a
   non-secret `hosted_signup_events` row with status `checkout_started`, source
   `stripe_checkout`, delivery status `checkout_session_created`, and the
-  Stripe Checkout Session id as the reference. This gives operators visibility
-  into beta testers who reached Stripe even if they abandon setup or the signed
-  webhook never arrives.
+  Stripe Checkout Session id as the reference.
 - A successful paid Stripe webhook creates a hosted tenant for a first-time
   buyer, or adds the purchased credits to the existing tenant when the checkout
   email already has a hosted account. Existing-account top-ups do not email a
@@ -89,11 +84,9 @@ Scout hosted beta has API-key based access, not a login system.
   verification are still required before calling the hosted purchase path ready.
 - No formal public self-serve account portal or Stripe customer portal.
 
-Stripe checkout, webhook, key delivery, and the compatibility direct-beta
-registration path exist in code and tests. The compatibility direct-beta path is
-off by default so public self-service must use the card-backed Stripe setup
-pipeline. Production still needs live SMTP and Stripe settings before beta setup
-or paid checkout is operational end to end.
+Stripe checkout, webhook, key delivery, and beta email registration exist in
+code and tests. Production still needs live SMTP before beta key delivery is
+operational end to end. Paid checkout additionally needs live Stripe settings.
 Partial Stripe configuration is not enough: checkout creation intentionally
 remains blocked until webhook verification and key delivery are also ready.
 
@@ -107,12 +100,10 @@ cd /Users/arijitchowdhury/Dropbox/AI-Development/Scout
 
 ### Enable Or Disable Beta Signup
 
-Set `HOSTED_BETA_SIGNUP_ENABLED=true` to allow the `$0` beta checkout package.
-Keep `HOSTED_DIRECT_BETA_KEY_ENABLED=false` for production self-service so
-testers must complete Stripe setup before a webhook provisions and emails a key.
+Set `HOSTED_BETA_SIGNUP_ENABLED=true` to allow public beta email registration.
 Set beta signup to `false` to stop new beta setup without disabling existing
 Bearer keys. The public beta flow should not be considered ready until this
-flag, Stripe Checkout, webhook signing, and SMTP key delivery are all present.
+flag and SMTP key delivery are present.
 
 Required delivery settings, stored in an ignored local file such as
 `secrets/scout-production.env` before pushing to the VPS:
@@ -130,7 +121,6 @@ overwrite an existing file unless `--force` is passed.
 
 ```bash
 HOSTED_BETA_SIGNUP_ENABLED=true
-HOSTED_DIRECT_BETA_KEY_ENABLED=false
 HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com
 HOSTED_KEY_DELIVERY_SMTP_PORT=587
 HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"
@@ -364,10 +354,11 @@ scripts/scout-hosted-admin readiness \
 ```
 
 The checker calls only non-secret endpoints: `/health`,
-`/v1/billing/packages`, and `/v1/billing/stripe/status`. It fails if card-backed
-beta setup is not ready, paid checkout is not ready, SMTP delivery is missing,
-Stripe Checkout is missing, webhook verification is missing, required packages
-are absent, or a response contains secret-looking material.
+`/v1/billing/packages`, and `/v1/billing/stripe/status`. It fails if beta
+email registration is not ready, paid checkout is not ready, SMTP delivery is
+missing, required packages are absent, or a response contains secret-looking
+material. Paid-readiness mode also reports Stripe Checkout and webhook
+configuration gaps.
 
 Machine-readable output for deployment logs:
 
@@ -379,14 +370,12 @@ The underlying `GET /v1/billing/stripe/status` response is also operator
 actionable. In addition to backward-compatible booleans such as
 `ready_for_beta_checkout` and `ready_for_paid_key_delivery`, it returns:
 
-- `public_self_service_path`: currently `stripe_checkout`; public beta and paid
-  customers should start at Stripe Checkout rather than the legacy direct key
-  endpoint.
+- `public_self_service_path`: currently `email_beta_registration`; beta
+  testers should start at `/beta` and receive the key by email.
 - `public_beta_checkout_endpoint` and `public_paid_checkout_endpoint`: the
   endpoint the website uses to create setup/payment Checkout Sessions.
-- `direct_beta_key_enabled`: whether the compatibility
-  `/v1/hosted/beta-key` route is explicitly open. Production self-service keeps
-  this `false`.
+- `direct_beta_key_enabled`: deprecated compatibility flag retained for older
+  diagnostics. `/v1/hosted/beta-key` now follows `HOSTED_BETA_SIGNUP_ENABLED`.
 - `missing_environment_keys`: exact non-secret environment variable names still
   needed for checkout, webhook verification, paid price IDs, or SMTP delivery.
 - `missing_configuration`: machine-readable missing capability names such as
@@ -705,7 +694,7 @@ Today, Scout can answer:
   `scripts/scout-hosted-admin list-signups`,
 - SMTP/key-delivery smoke testing from the Mac with
   `scripts/scout-hosted-admin send-test-email`,
-- every compatibility direct-beta key request outcome in the `hosted_signup_events` table,
+- every beta key request outcome in the `hosted_signup_events` table,
 - every successful hosted credit debit in the `hosted_credit_ledger` table,
 - Stripe checkout/package purchase records in `hosted_payment_checkouts`,
 - hosted run ownership through stored `tenant_id` and `key_id`,
@@ -730,15 +719,16 @@ fully validated Stripe production flow.
 
 Pay-as-you-go pricing candidate:
 
-- Beta trial: 30 days, 100 standard credits, $0 charge, payment method required through Stripe setup-mode once hosted billing is configured.
+- Beta trial: 30 days, 100 standard credits, $0 charge, name/email registration, and API-key email delivery.
 - First paid package: $10 for 1,000 standard credits.
 - A standard credit means one scrape, one returned crawl page, or one product/intelligence record.
 - Browser credits remain separately metered and are not included in the first public package.
 - Current default economics estimate $2.59 loaded cost, $7.41 gross profit, 74.1% gross margin, and break-even at 17 packs/month for the $10 package.
 - The pricing page exposes readiness-gated `$10`, `$25`, and `$100` hosted
   credit checkout options. The beta page exposes a separate readiness-gated
-  `$0` card-backed beta setup form. Successful checkout provisioning depends on
-  configured Stripe price IDs, signed webhook delivery, and SMTP key delivery.
+  beta key registration form. Successful beta delivery depends on SMTP key
+  delivery; successful paid checkout additionally depends on configured Stripe
+  price IDs and signed webhook delivery.
 
 A production billing model should still add:
 

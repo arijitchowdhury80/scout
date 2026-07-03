@@ -144,10 +144,10 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               <p class="wi-label wi-label--accent">Private beta access</p>
               <h3 id="hosted-key-title">Register for your beta tester API key.</h3>
               <p>
-                Beta testers enter name and email on the beta page, complete
-                card-backed `$0` Stripe setup, and receive the API key by email
-                after signed webhook provisioning succeeds. Public signup never
-                shows raw keys in the browser.
+                Beta testers enter name and email on the beta page. Scout
+                records the tester, provisions a finite-credit beta account,
+                and emails the API key. Public signup never shows raw keys in
+                the browser.
               </p>
             </div>
             <a class="wi-btn" href="/beta#beta-key">Get beta tester API key</a>
@@ -174,7 +174,7 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
             </article>
             <article>
               <h3>Keys</h3>
-              <p>Card-backed beta setup starts at `/v1/billing/stripe/checkout-session` with package `beta_trial`. Never paste hosted API keys into frontend code, public repos, screenshots, tickets, or shared logs.</p>
+              <p>Beta registration starts at `/v1/hosted/beta-key` with your name and email. Scout emails the API key; never paste hosted API keys into frontend code, public repos, screenshots, tickets, or shared logs.</p>
             </article>
           </div>
         </section>
@@ -190,8 +190,8 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               <span role="cell">Check hosted beta plan, credits, limits, and retention.</span>
             </div>
             <div role="row">
-              <strong role="cell">POST /v1/billing/stripe/checkout-session</strong>
-              <span role="cell">Start `$0` beta setup or paid hosted credit checkout.</span>
+              <strong role="cell">POST /v1/hosted/beta-key</strong>
+              <span role="cell">Register for a finite-credit beta tester API key by email.</span>
             </div>
             <div role="row">
               <strong role="cell">POST /v1/hosted/scrape</strong>

@@ -134,7 +134,7 @@ def test_hosted_beta_key_generation_is_disabled_when_signup_disabled(monkeypatch
     assert resp.json()["detail"] == "Hosted beta key generation is disabled."
 
 
-def test_hosted_beta_key_generation_is_compatibility_only_by_default(
+def test_hosted_beta_key_generation_is_self_service_even_when_direct_flag_is_false(
     monkeypatch,
 ) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
@@ -156,12 +156,41 @@ def test_hosted_beta_key_generation_is_compatibility_only_by_default(
     finally:
         app.dependency_overrides.clear()
 
-    assert resp.status_code == 503
-    assert resp.json()["detail"] == (
-        "Direct beta key registration is disabled. Use the Stripe-backed beta setup flow on /beta."
-    )
-    assert account_service.store.find_tenant_by_email("direct-disabled@example.com") is None
-    assert delivery.requests == []
+    assert resp.status_code == 200
+    assert resp.json()["email"] == "direct-disabled@example.com"
+    assert account_service.store.find_tenant_by_email("direct-disabled@example.com") is not None
+    assert delivery.requests[0].email == "direct-disabled@example.com"
+
+
+def test_hosted_beta_key_generation_uses_email_registration_without_direct_flag(
+    monkeypatch,
+) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    monkeypatch.setattr(settings, "hosted_direct_beta_key_enabled", False, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/beta-key",
+            json={
+                "name": "Self Service Tester",
+                "email": "self-service@example.com",
+                "key_name": "Self-service beta key",
+            },
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["email"] == "self-service@example.com"
+    assert data["delivery_status"] == "delivered"
+    assert account_service.store.find_tenant_by_email("self-service@example.com") is not None
+    assert delivery.requests[0].email == "self-service@example.com"
+    assert delivery.requests[0].raw_api_key not in resp.text
 
 
 def test_hosted_beta_key_generation_requires_name_email_and_creates_usable_key(

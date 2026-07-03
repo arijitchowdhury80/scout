@@ -17,14 +17,10 @@ TEMPLATE = """# Scout hosted production secrets template.
 # This file intentionally contains no real SMTP password, Stripe key, webhook
 # secret, API key, or generated Scout hosted key.
 
-# Stripe-backed beta setup. Set true only when SMTP, Stripe, and webhook delivery are real.
+# Hosted beta email registration. Set true only when SMTP delivery is real.
 HOSTED_BETA_SIGNUP_ENABLED=true
 HOSTED_BETA_SIGNUP_RATE_LIMIT_MAX_REQUESTS=3
 HOSTED_BETA_SIGNUP_RATE_LIMIT_WINDOW_SECONDS=3600
-
-# Legacy direct beta-key registration endpoint. Keep false for production self-service;
-# Stripe setup/webhook should create and email beta keys.
-HOSTED_DIRECT_BETA_KEY_ENABLED=false
 
 # SMTP delivery for one-time hosted API keys.
 HOSTED_KEY_DELIVERY_SMTP_HOST=
@@ -34,8 +30,7 @@ HOSTED_KEY_DELIVERY_SMTP_USERNAME=
 HOSTED_KEY_DELIVERY_SMTP_PASSWORD=
 HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
 
-# Stripe Checkout for paid credit packages and beta card setup.
-# Beta card-backed trials use Stripe setup mode, so no beta price id is needed.
+# Stripe Checkout for paid credit packages.
 STRIPE_SECRET_KEY=
 STRIPE_STANDARD_1000_PRICE_ID=
 STRIPE_STANDARD_3000_PRICE_ID=
@@ -54,7 +49,6 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
 epilog="""Template includes:
   HOSTED_BETA_SIGNUP_ENABLED=true
-  HOSTED_DIRECT_BETA_KEY_ENABLED=false
   HOSTED_KEY_DELIVERY_SMTP_HOST=
   HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"
   STRIPE_SECRET_KEY=

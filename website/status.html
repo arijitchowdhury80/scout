@@ -83,12 +83,12 @@
               <p>The real `v0.1.0-beta.1` release workflow passed and the downloaded artifacts were smoke-tested locally.</p>
             </article>
             <article>
-              <h3>Hosted checkout: gated</h3>
-              <p>Hosted beta signup uses $0 Stripe setup and API-key email delivery. Both remain blocked until Stripe Checkout, webhook signing, and SMTP delivery are configured.</p>
+              <h3>Hosted beta keys: gated by email delivery</h3>
+              <p>Hosted beta signup records name and email, provisions a finite-credit beta account, and emails the API key. Paid checkout remains gated until Stripe Checkout and webhook signing are configured.</p>
             </article>
             <article>
               <h3>Current blockers: configuration</h3>
-              <p>The hosted service is online. Production self-service remains blocked until SMTP, Stripe Checkout, and webhook secrets are installed and smoke-tested.</p>
+              <p>The hosted service is online. Beta key delivery needs SMTP configuration; paid self-service needs Stripe Checkout, webhook secrets, and a live smoke test.</p>
             </article>
           </div>
         </section>

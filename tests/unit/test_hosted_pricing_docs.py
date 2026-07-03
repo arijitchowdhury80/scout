@@ -23,7 +23,7 @@ def test_unit_economics_doc_records_pay_as_you_go_candidate() -> None:
         "Estimated cost for 1,000 standard credits: $2.59",
         "Estimated gross margin: 74.1%",
         "Break-even: 17 packs/month",
-        "Beta trial: 30 days, 100 standard credits, $0 charge, payment method required through Stripe setup-mode once hosted billing is configured",
+        "Beta trial: 30 days, 100 standard credits, $0 charge, name/email registration, and API-key email delivery",
     ]
 
     for marker in expected:
@@ -40,11 +40,11 @@ def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     assert "hosted_credit_ledger" in doc
     assert "list-purchases" in doc
     assert "hosted_payment_checkouts" in doc
-    assert "Public beta testers start access through the card-backed `$0` setup form" in doc
-    assert "no longer the advertised public self-service CTA" in normalized_doc
+    assert "Public beta testers start access on `/beta`" in doc
+    assert "Public signup never shows the raw key in the browser" in normalized_doc
     assert "Stripe checkout forms are available from `/pricing`" in normalized_doc
-    assert "from `/beta` for `$0` card-backed beta setup" in normalized_doc
-    assert "forms are readiness-gated by `/v1/billing/stripe/status`" in normalized_doc
+    assert "beta key registration form" in normalized_doc
+    assert "successful paid checkout additionally depends on configured Stripe" in normalized_doc
     assert "`credit_policy`" in doc
     assert "included_in_standard_1000" in doc
     assert "$10 for 1,000 standard credits" in doc

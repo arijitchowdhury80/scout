@@ -95,27 +95,25 @@ scout launch-readiness --require-public</code></pre>
 
         <section class="section beta" id="beta-key">
           <div>
-            <p class="wi-label wi-label--accent">Hosted beta checkout</p>
-            <h2>Start card-backed beta setup.</h2>
+            <p class="wi-label wi-label--accent">Hosted beta registration</p>
+            <h2>Email me my beta tester API key.</h2>
             <p>
-              Register with your name and email, complete the $0 Stripe setup,
-              and Scout emails the API key after Stripe setup succeeds. Public
-              signup never shows raw keys in the browser.
+              Register with your name and email. Scout records the tester,
+              creates a finite-credit hosted beta account, and emails the API
+              key to that inbox. Public signup never shows raw keys in the browser.
             </p>
           </div>
-          <div class="beta-panel" aria-label="Card-backed beta checkout">
-            <p id="pricingCheckoutReturnStatus" class="beta-status" role="status" hidden></p>
+          <div class="beta-panel" aria-label="Hosted beta API key registration">
             <form
-              id="pricingCheckoutForm"
+              id="hostedKeyForm"
               class="beta-form"
-              data-endpoint="/v1/billing/stripe/checkout-session"
+              data-endpoint="/v1/hosted/beta-key"
               data-status-endpoint="/v1/billing/stripe/status"
-              data-ready-flag="ready_for_beta_checkout"
+              data-ready-flag="ready_for_beta_key_delivery"
             >
-              <input name="package_id" type="hidden" value="beta_trial" />
-              <label for="pricingCheckoutName">Name or app name</label>
+              <label for="hostedKeyName">Name or app name</label>
               <input
-                id="pricingCheckoutName"
+                id="hostedKeyName"
                 name="name"
                 type="text"
                 autocomplete="name"
@@ -123,9 +121,9 @@ scout launch-readiness --require-public</code></pre>
                 required
               />
 
-              <label for="pricingCheckoutEmail">Email for API key delivery</label>
+              <label for="hostedKeyEmail">Email for API key delivery</label>
               <input
-                id="pricingCheckoutEmail"
+                id="hostedKeyEmail"
                 name="email"
                 type="email"
                 autocomplete="email"
@@ -133,14 +131,24 @@ scout launch-readiness --require-public</code></pre>
                 required
               />
 
-              <button class="wi-btn" type="submit">Continue To $0 Checkout</button>
-              <p id="pricingCheckoutStatus" class="beta-status" role="status" aria-live="polite">
-                Card-backed beta checkout stays disabled until Stripe, webhook,
-                and API-key email delivery are configured.
+              <label for="hostedKeyNameInput">Key label</label>
+              <input
+                id="hostedKeyNameInput"
+                name="key_name"
+                type="text"
+                autocomplete="off"
+                placeholder="Hosted beta key"
+              />
+
+              <button class="wi-btn" type="submit">Email My Beta Key</button>
+              <p id="hostedKeyStatus" class="beta-status" role="status" aria-live="polite">
+                Hosted beta registration is open when signup and API-key email
+                delivery are configured. If delivery is temporarily unavailable,
+                Scout records the request for queued delivery.
               </p>
               <p class="beta-note">
                 The beta trial includes 100 standard credits for 30 days.
-                Scout does not show raw API keys in the browser after checkout.
+                Scout does not show raw API keys in the browser.
               </p>
             </form>
             <form
@@ -232,6 +240,5 @@ scout launch-readiness --require-public</code></pre>
     </div>
     <script src="./assets/copy-code.js" defer></script>
     <script src="./assets/hosted-keygen.js" defer></script>
-    <script src="./assets/pricing.js" defer></script>
   </body>
 </html>

@@ -104,7 +104,6 @@ Hosted beta setup requires:
 
 ```text
 HOSTED_BETA_SIGNUP_ENABLED=true
-HOSTED_DIRECT_BETA_KEY_ENABLED=false
 HOSTED_BETA_SIGNUP_RATE_LIMIT_MAX_REQUESTS=3
 HOSTED_BETA_SIGNUP_RATE_LIMIT_WINDOW_SECONDS=3600
 HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com
@@ -114,22 +113,16 @@ HOSTED_KEY_DELIVERY_SMTP_USERNAME=
 HOSTED_KEY_DELIVERY_SMTP_PASSWORD=
 HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
 
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_SUCCESS_URL=https://your-domain.example/pricing?checkout=success
-STRIPE_CANCEL_URL=https://your-domain.example/pricing?checkout=cancelled
-STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
-`HOSTED_DIRECT_BETA_KEY_ENABLED=false` is the production self-service default.
-It keeps the legacy direct `/v1/hosted/beta-key` compatibility endpoint closed
-so beta testers use the card-backed Stripe setup and signed webhook provisioning
-flow.
+`/beta` posts to `/v1/hosted/beta-key`. Public signup never returns raw API
+keys in the browser; Scout emails the one-time key and stores only a hash. If
+SMTP is temporarily unavailable, the request is recorded for queued delivery.
 
-Paid checkout and card-backed beta setup use Stripe Checkout. `/pricing`
-contains the paid hosted-credit checkout form, and `/beta` contains the `$0`
-beta setup form. These forms are readiness-gated by
-`/v1/billing/stripe/status`; they require Stripe Checkout settings, signed
-webhook delivery, and SMTP key delivery before they are live-ready:
+Paid checkout uses Stripe Checkout. `/pricing` contains the paid hosted-credit
+checkout form, readiness-gated by `/v1/billing/stripe/status`; it requires
+Stripe Checkout settings, signed webhook delivery, and SMTP key delivery before
+it is live-ready:
 
 ```text
 STRIPE_SECRET_KEY=sk_test_...
@@ -236,9 +229,8 @@ curl http://localhost:8421/v1/billing/stripe/status
 It returns booleans for checkout, webhook, key delivery, and end-to-end paid key
 delivery readiness plus the public self-service path and exact non-secret
 environment variable names that still need configuration. Production
-self-service should report `public_self_service_path: "stripe_checkout"` and
-`direct_beta_key_enabled: false`. It never returns Stripe, SMTP, or Scout API
-secret values.
+self-service should report `public_self_service_path: "email_beta_registration"`
+for beta access. It never returns Stripe, SMTP, or Scout API secret values.
 
 For a real Stripe test-mode smoke, start Scout with the Stripe and SMTP
 settings above, then run:
@@ -257,15 +249,12 @@ Session, and prints the Checkout URL. Complete the test payment in Stripe Checko
 deliver the webhook to `/v1/billing/stripe/webhook`, then confirm the delivered
 hosted key works against `/v1/hosted/me`.
 
-To verify the card-backed `$0` beta setup path instead:
+To verify the beta email-registration path instead:
 
 ```bash
-python3 scripts/stripe_test_mode_smoke.py \
-  --base-url http://127.0.0.1:8421 \
-  --email scout-beta-test@example.com \
-  --name "Scout Beta Tester" \
-  --package-id beta_trial \
-  --create-checkout
+curl -X POST http://127.0.0.1:8421/v1/hosted/beta-key \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Scout Beta Tester","email":"scout-beta-test@example.com"}'
 ```
 
 After a hosted beta user receives a `scout_live_...` API key, they can inspect
