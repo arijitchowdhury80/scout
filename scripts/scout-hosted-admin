@@ -18,6 +18,7 @@ Commands:
   list-signups      List beta API-key signup requests and delivery outcomes.
   send-test-email   Send a hosted API-key delivery smoke-test email.
   disable-access    Disable hosted access by email, tenant id, or key id.
+  readiness         Check hosted health, packages, signup, checkout, and blockers.
   configure-production-env
                     Install allowlisted SMTP/Stripe settings on the VPS.
 
@@ -31,6 +32,7 @@ Examples:
   scripts/scout-hosted-admin list-signups --format table --limit 100
   scripts/scout-hosted-admin send-test-email --email arijit@example.com --name Arijit
   scripts/scout-hosted-admin disable-access --email tester@example.com --reason "abuse report" --yes
+  scripts/scout-hosted-admin readiness --require-beta-signup --require-paid-checkout
   scripts/scout-hosted-admin configure-production-env --secrets-file secrets/scout-production.env --restart
 EOF
 }
@@ -61,6 +63,10 @@ send_test_email() {
 
 disable_access() {
   exec "$SCRIPT_DIR/scout-vps-disable-hosted-access" "$@"
+}
+
+readiness() {
+  exec python3 "$SCRIPT_DIR/hosted_readiness_check.py" "$@"
 }
 
 configure_production_env() {
@@ -108,6 +114,10 @@ case "$1" in
   disable-access)
     shift
     disable_access "$@"
+    ;;
+  readiness)
+    shift
+    readiness "$@"
     ;;
   configure-production-env)
     shift

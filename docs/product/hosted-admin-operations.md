@@ -168,8 +168,7 @@ only non-secret fields, and never prints raw API keys or stored key hashes.
 After configuration, verify readiness:
 
 ```bash
-python3 scripts/hosted_readiness_check.py \
-  --base-url https://scout.chowmes.com \
+scripts/scout-hosted-admin readiness \
   --require-beta-signup \
   --require-paid-checkout
 ```
@@ -193,8 +192,7 @@ python3 scripts/stripe_test_mode_smoke.py \
 Use the hosted readiness checker from the Mac before inviting testers:
 
 ```bash
-python3 scripts/hosted_readiness_check.py \
-  --base-url https://scout.chowmes.com \
+scripts/scout-hosted-admin readiness \
   --require-beta-signup \
   --require-paid-checkout
 ```
@@ -204,6 +202,12 @@ The checker calls only non-secret endpoints: `/health`,
 is disabled, SMTP delivery is missing, Stripe Checkout is missing, webhook
 verification is missing, required packages are absent, or a response contains
 secret-looking material.
+
+Machine-readable output for deployment logs:
+
+```bash
+scripts/scout-hosted-admin readiness --json
+```
 
 ### Provision A Hosted API Key Directly
 

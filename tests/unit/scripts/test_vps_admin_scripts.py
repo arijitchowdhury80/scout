@@ -46,6 +46,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "list-signups",
             "send-test-email",
             "disable-access",
+            "readiness",
             "configure-production-env",
         ],
         "scout-vps-configure-hosted-env": [
@@ -251,6 +252,24 @@ def test_hosted_admin_has_no_beta_invite_password_flow() -> None:
     assert "HOSTED_BETA_INVITE_PASSWORD" not in combined
     assert "beta invite password" not in combined.lower()
     assert "invite-password" not in combined.lower()
+
+
+def test_hosted_admin_readiness_command_wraps_readiness_checker() -> None:
+    script = REPO_ROOT / "scripts" / "scout-hosted-admin"
+    result = subprocess.run(
+        [str(script), "readiness", "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+    script_text = script.read_text(encoding="utf-8")
+
+    assert "--base-url" in output
+    assert "--require-beta-signup" in output
+    assert "--require-paid-checkout" in output
+    assert "--json" in output
+    assert "hosted_readiness_check.py" in script_text
 
 
 def test_configure_hosted_env_uses_allowlist_and_never_echoes_secret_values() -> None:
