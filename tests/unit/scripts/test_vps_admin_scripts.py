@@ -458,6 +458,19 @@ def test_configure_hosted_env_allowlists_beta_signup_rate_limit_settings() -> No
     assert "HOSTED_BETA_SIGNUP_RATE_LIMIT_WINDOW_SECONDS" in script_text
 
 
+def test_configure_hosted_env_restart_rebuilds_container_before_health_check() -> None:
+    """Hosted env restarts must not reuse a stale Scout image after code deploys."""
+    script_text = (REPO_ROOT / "scripts" / "scout-vps-configure-hosted-env").read_text(
+        encoding="utf-8"
+    )
+
+    assert (
+        "docker compose -f docker/docker-compose.yml up -d --build --force-recreate scout"
+        in script_text
+    )
+    assert "docker inspect --format='{{.State.Health.Status}}' scout" in script_text
+
+
 def test_write_hosted_config_template_refuses_overwrite_without_force(tmp_path: Path) -> None:
     output = tmp_path / "scout-production.env"
     output.write_text("EXISTING=1\n", encoding="utf-8")

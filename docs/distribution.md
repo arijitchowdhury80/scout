@@ -185,7 +185,9 @@ scripts/scout-hosted-admin configure-production-env \
 ```
 
 The helper writes `/opt/prism/scout/.env`, preserves unrelated deployment
-settings, prints variable names only, and does not print secret values.
+settings, prints variable names only, and does not print secret values. When
+`--restart` is passed, it rebuilds and recreates the `scout` container before
+checking health so production does not keep serving a stale Docker image.
 
 Hosted API requests also have a private-beta per-key throttle:
 

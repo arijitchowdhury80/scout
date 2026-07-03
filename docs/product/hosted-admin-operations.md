@@ -188,11 +188,12 @@ scripts/scout-hosted-admin configure-production-env \
 ```
 
 The helper updates `/opt/prism/scout/.env`, preserves unrelated existing env
-lines, prints variable names only, never prints secret values, and recreates the
-`scout` container when `--restart` is passed. It validates the local secrets
-file before upload and refuses partial production config by default. Use
-`--require beta` only when intentionally enabling email beta keys before paid
-checkout.
+lines, prints variable names only, never prints secret values, and rebuilds plus
+recreates the `scout` container when `--restart` is passed. The rebuild is
+intentional: recreating without `--build` can leave an old Docker image running
+after a GitHub deploy. It validates the local secrets file before upload and
+refuses partial production config by default. Use `--require beta` only when
+intentionally enabling email beta keys before paid checkout.
 
 After SMTP values are installed, send a smoke-test email before inviting real
 testers:

@@ -199,7 +199,7 @@ print(f'Wrote {len(updated_keys)} allowlisted keys to {remote_env_path}.')
 PY"
 
 if [ "$restart" = "true" ]; then
-  "$helper" --env "$env_file" "cd /opt/prism/scout && sudo docker compose -f docker/docker-compose.yml up -d --force-recreate scout && sudo docker inspect --format='{{.State.Health.Status}}' scout"
+  "$helper" --env "$env_file" "cd /opt/prism/scout && sudo docker compose -f docker/docker-compose.yml up -d --build --force-recreate scout && sudo docker inspect --format='{{.State.Health.Status}}' scout"
 else
   echo "Environment updated. Recreate Scout to apply it:"
   echo "  scripts/scout-vps-configure-hosted-env --secrets-file $secrets_file --restart"
