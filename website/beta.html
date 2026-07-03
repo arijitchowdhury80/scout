@@ -133,7 +133,7 @@ scout launch-readiness --require-public</code></pre>
                 <button class="wi-btn" type="submit">Register for Beta Tester API Key</button>
               </div>
               <p id="hostedBetaStatus" class="beta-status" role="status" aria-live="polite">
-                Scout emails the API key after provisioning the hosted beta
+                Scout emails or shows the API key after provisioning the hosted beta
                 account. The beta trial includes 100 standard credits.
               </p>
               <p class="beta-note">
@@ -236,7 +236,11 @@ scout launch-readiness --require-public</code></pre>
           });
           const payload = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(payload.detail || "Hosted beta registration is not available yet.");
-          signupStatus.textContent = `API key email queued for ${payload.email}. Check your inbox, then open /account to inspect credits.`;
+          if (payload.raw_api_key) {
+            signupStatus.textContent = `Copy this API key now: ${payload.raw_api_key} Open /account to inspect credits. Scout cannot show this key again.`;
+          } else {
+            signupStatus.textContent = `API key email queued for ${payload.email}. Check your inbox, then open /account to inspect credits.`;
+          }
           signupStatus.dataset.state = "success";
         } catch (error) {
           signupStatus.textContent =
