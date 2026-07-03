@@ -111,14 +111,22 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 Install those values on the VPS with the allowlisted production env helper:
 
 ```bash
+scripts/scout-hosted-admin validate-config \
+  --secrets-file secrets/scout-production.env \
+  --require all
+
 scripts/scout-hosted-admin configure-production-env \
   --secrets-file secrets/scout-production.env \
+  --require all \
   --restart
 ```
 
 The helper updates `/opt/prism/scout/.env`, preserves unrelated existing env
 lines, prints variable names only, never prints secret values, and recreates the
-`scout` container when `--restart` is passed.
+`scout` container when `--restart` is passed. It validates the local secrets
+file before upload and refuses partial production config by default. Use
+`--require beta` only when intentionally enabling email beta keys before paid
+checkout.
 
 After SMTP values are installed, send a smoke-test email before inviting real
 testers:

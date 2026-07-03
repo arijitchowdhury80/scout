@@ -10,6 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 
 SCRIPT_NAMES = [
     "scout-hosted-admin",
+    "scout-validate-hosted-config",
     "scout-generate-api-key",
     "scout-vps-provision-hosted-key",
     "scout-vps-list-hosted-accounts",
@@ -47,7 +48,18 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "send-test-email",
             "disable-access",
             "readiness",
+            "validate-config",
             "configure-production-env",
+        ],
+        "scout-validate-hosted-config": [
+            "Validate Scout hosted SMTP and Stripe config",
+            "--secrets-file",
+            "--require",
+            "beta",
+            "paid",
+            "all",
+            "HOSTED_KEY_DELIVERY_SMTP_HOST",
+            "STRIPE_WEBHOOK_SECRET",
         ],
         "scout-vps-configure-hosted-env": [
             "Configure Scout hosted SMTP and Stripe environment",
@@ -272,6 +284,107 @@ def test_hosted_admin_readiness_command_wraps_readiness_checker() -> None:
     assert "hosted_readiness_check.py" in script_text
 
 
+def test_hosted_admin_validate_config_command_wraps_validator() -> None:
+    script = REPO_ROOT / "scripts" / "scout-hosted-admin"
+    result = subprocess.run(
+        [str(script), "validate-config", "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+    script_text = script.read_text(encoding="utf-8")
+
+    assert "--secrets-file" in output
+    assert "--require" in output
+    assert "scout-validate-hosted-config" in script_text
+
+
+def test_validate_hosted_config_reports_missing_required_keys_without_secret_values(
+    tmp_path: Path,
+) -> None:
+    secrets_file = tmp_path / "scout-production.env"
+    secrets_file.write_text(
+        "\n".join(
+            [
+                "HOSTED_BETA_SIGNUP_ENABLED=true",
+                "HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com",
+                "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL=scout@chowmes.com",
+                "STRIPE_SECRET_KEY=sk_test_should_not_print",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            str(REPO_ROOT / "scripts" / "scout-validate-hosted-config"),
+            "--secrets-file",
+            str(secrets_file),
+            "--require",
+            "paid",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+
+    assert result.returncode == 2
+    assert "Missing required hosted config keys" in output
+    assert "STRIPE_WEBHOOK_SECRET" in output
+    assert "STRIPE_STANDARD_1000_PRICE_ID" in output
+    assert "STRIPE_STANDARD_3000_PRICE_ID" in output
+    assert "STRIPE_STANDARD_15000_PRICE_ID" in output
+    assert "sk_test_should_not_print" not in output
+
+
+def test_validate_hosted_config_accepts_complete_beta_and_paid_config(tmp_path: Path) -> None:
+    secrets_file = tmp_path / "scout-production.env"
+    secrets_file.write_text(
+        "\n".join(
+            [
+                "HOSTED_BETA_SIGNUP_ENABLED=true",
+                "HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com",
+                "HOSTED_KEY_DELIVERY_SMTP_PORT=587",
+                "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL=scout@chowmes.com",
+                "HOSTED_KEY_DELIVERY_SMTP_USERNAME=scout@chowmes.com",
+                "HOSTED_KEY_DELIVERY_SMTP_PASSWORD=smtp-secret-value",
+                "HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true",
+                "STRIPE_SECRET_KEY=sk_test_should_not_print",
+                "STRIPE_STANDARD_1000_PRICE_ID=price_1000",
+                "STRIPE_STANDARD_3000_PRICE_ID=price_3000",
+                "STRIPE_STANDARD_15000_PRICE_ID=price_15000",
+                "STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success",
+                "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled",
+                "STRIPE_WEBHOOK_SECRET=whsec_should_not_print",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            str(REPO_ROOT / "scripts" / "scout-validate-hosted-config"),
+            "--secrets-file",
+            str(secrets_file),
+            "--require",
+            "all",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+
+    assert "Hosted config validation passed for: all" in output
+    assert "HOSTED_KEY_DELIVERY_SMTP_HOST" in output
+    assert "STRIPE_WEBHOOK_SECRET" in output
+    assert "smtp-secret-value" not in output
+    assert "sk_test_should_not_print" not in output
+    assert "whsec_should_not_print" not in output
+
+
 def test_configure_hosted_env_uses_allowlist_and_never_echoes_secret_values() -> None:
     script_text = (REPO_ROOT / "scripts" / "scout-vps-configure-hosted-env").read_text(
         encoding="utf-8"
@@ -285,6 +398,8 @@ def test_configure_hosted_env_uses_allowlist_and_never_echoes_secret_values() ->
     assert "STRIPE_STANDARD_1000_PRICE_ID" in script_text
     assert "STRIPE_STANDARD_3000_PRICE_ID" in script_text
     assert "STRIPE_STANDARD_15000_PRICE_ID" in script_text
+    assert "scout-validate-hosted-config" in script_text
+    assert "--require" in script_text
     assert "SCOUT_API_KEY" not in script_text
     assert "preserved_lines" in script_text
     assert "updated_keys" in script_text

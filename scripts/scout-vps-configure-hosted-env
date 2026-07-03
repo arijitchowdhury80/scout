@@ -4,12 +4,13 @@ set -eu
 HELPER_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/scripts/chowmes-ssh-helper"
 ENV_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/.env.local"
 REMOTE_ENV_FILE="/opt/prism/scout/.env"
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 
 ALLOWED_KEYS="HOSTED_BETA_SIGNUP_ENABLED HOSTED_KEY_DELIVERY_SMTP_HOST HOSTED_KEY_DELIVERY_SMTP_PORT HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL HOSTED_KEY_DELIVERY_SMTP_USERNAME HOSTED_KEY_DELIVERY_SMTP_PASSWORD HOSTED_KEY_DELIVERY_SMTP_USE_TLS STRIPE_SECRET_KEY STRIPE_BETA_PRICE_ID STRIPE_STANDARD_1000_PRICE_ID STRIPE_STANDARD_3000_PRICE_ID STRIPE_STANDARD_15000_PRICE_ID STRIPE_BROWSER_100_PRICE_ID STRIPE_SUCCESS_URL STRIPE_CANCEL_URL STRIPE_WEBHOOK_SECRET"
 
 usage() {
   cat <<EOF
-usage: scout-vps-configure-hosted-env --secrets-file PATH [--restart] [--env PATH] [--helper PATH]
+usage: scout-vps-configure-hosted-env --secrets-file PATH [--require beta|paid|all] [--restart] [--env PATH] [--helper PATH]
 
 Configure Scout hosted SMTP and Stripe environment on the ChowMes VPS.
 
@@ -37,6 +38,7 @@ Allowlisted variables include:
 
 Examples:
   scripts/scout-vps-configure-hosted-env --secrets-file secrets/scout-production.env
+  scripts/scout-vps-configure-hosted-env --secrets-file secrets/scout-production.env --require beta
   scripts/scout-vps-configure-hosted-env --secrets-file secrets/scout-production.env --restart
 
 The script reports variable names only. It never prints secret values.
@@ -47,6 +49,7 @@ secrets_file=""
 env_file="$ENV_DEFAULT"
 helper="$HELPER_DEFAULT"
 restart="false"
+require="all"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -78,6 +81,14 @@ while [ $# -gt 0 ]; do
       helper="$2"
       shift 2
       ;;
+    --require)
+      if [ $# -lt 2 ]; then
+        echo "--require requires beta, paid, or all" >&2
+        exit 2
+      fi
+      require="$2"
+      shift 2
+      ;;
     --restart)
       restart="true"
       shift
@@ -105,6 +116,8 @@ if [ ! -x "$helper" ]; then
   echo "SSH helper is not executable: $helper" >&2
   exit 1
 fi
+
+"$SCRIPT_DIR/scout-validate-hosted-config" --secrets-file "$secrets_file" --require "$require"
 
 encoded="$(base64 < "$secrets_file" | tr -d '\n')"
 
