@@ -48,6 +48,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "/v1/hosted/crawl",
             "/v1/hosted/products",
             "/v1/hosted/run/company",
+            "/v1/hosted/run/prism",
             "--dry-run",
         ],
     }

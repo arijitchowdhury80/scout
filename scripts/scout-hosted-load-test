@@ -32,19 +32,19 @@ PLAN = [
     PlannedRequest(
         "POST",
         "/v1/hosted/scrape",
-        {"url": "https://example.com", "formats": ["markdown"], "timeout_ms": 30000},
+        {"url": "https://www.wikimedia.org/", "formats": ["markdown"], "timeout_ms": 30000},
     ),
     PlannedRequest(
         "POST",
         "/v1/hosted/crawl",
-        {"url": "https://example.com", "max_pages": 1, "timeout_ms": 30000},
+        {"url": "https://www.wikimedia.org/", "max_pages": 1, "timeout_ms": 30000},
     ),
     PlannedRequest(
         "POST",
         "/v1/hosted/products",
         {
-            "query": "books",
-            "start_url": "https://books.toscrape.com/",
+            "query": "polo shirts",
+            "start_url": "https://www.lacoste.com/us/",
             "max_products": 1,
             "timeout_ms": 30000,
             "browser_fallback": False,
@@ -53,9 +53,198 @@ PLAN = [
     PlannedRequest(
         "POST",
         "/v1/hosted/run/company",
-        {"query": "Example Domain", "mode": "saved", "max_records": 1},
+        {
+            "query": "Microsoft",
+            "url": "https://www.microsoft.com/",
+            "mode": "auto",
+            "max_records": 1,
+        },
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/hosted/run/prism",
+        {
+            "query": "Microsoft",
+            "url": "https://www.microsoft.com/",
+            "targets": ["https://www.microsoft.com/"],
+            "mode": "auto",
+            "max_records": 3,
+        },
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/hosted/run/investor",
+        {
+            "query": "Microsoft investor relations",
+            "url": "https://www.microsoft.com/en-us/investor",
+            "mode": "auto",
+            "max_records": 1,
+        },
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/hosted/run/careers",
+        {
+            "query": "Microsoft careers",
+            "url": "https://careers.microsoft.com/",
+            "mode": "auto",
+            "max_records": 1,
+        },
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/hosted/run/jobs",
+        {
+            "query": "software engineer microsoft",
+            "job_urls": ["https://jobs.careers.microsoft.com/"],
+            "mode": "auto",
+            "max_records": 1,
+        },
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/hosted/run/news",
+        {
+            "query": "Microsoft news",
+            "url": "https://news.microsoft.com/",
+            "mode": "auto",
+            "max_records": 1,
+        },
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/hosted/run/research",
+        {
+            "query": "Microsoft AI research",
+            "url": "https://www.microsoft.com/en-us/research/",
+            "mode": "auto",
+            "max_records": 1,
+        },
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/hosted/run/docs",
+        {
+            "query": "Microsoft Learn documentation",
+            "url": "https://learn.microsoft.com/",
+            "mode": "auto",
+            "max_records": 1,
+        },
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/hosted/run/social",
+        {
+            "query": "Microsoft social profiles",
+            "url": "https://www.microsoft.com/",
+            "mode": "auto",
+            "max_records": 1,
+        },
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/hosted/run/locations",
+        {
+            "query": "Microsoft locations",
+            "url": "https://www.microsoft.com/",
+            "mode": "auto",
+            "max_records": 1,
+        },
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/hosted/run/website-quality",
+        {
+            "query": "Microsoft website quality",
+            "url": "https://www.microsoft.com/",
+            "mode": "auto",
+            "max_records": 1,
+        },
     ),
     PlannedRequest("GET", "/v1/hosted/runs"),
+]
+
+PLAYGROUND_PLAN = [
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "scrape", "url": "https://www.wikimedia.org/", "max_items": 1},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "crawl", "url": "https://www.wikimedia.org/", "max_items": 1},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "map", "url": "https://www.wikimedia.org/", "max_items": 1},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "screenshot", "url": "https://www.cnn.com/", "max_items": 1},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "products", "url": "https://www.lacoste.com/us/", "max_items": 1},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "company", "url": "https://www.microsoft.com/", "query": "Microsoft"},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "prism", "url": "https://www.microsoft.com/", "query": "Microsoft"},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "investor", "url": "https://www.microsoft.com/en-us/investor"},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "careers", "url": "https://careers.microsoft.com/"},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "jobs", "url": "https://jobs.careers.microsoft.com/"},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "news", "url": "https://news.microsoft.com/"},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "research", "url": "https://www.microsoft.com/en-us/research/"},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "docs", "url": "https://learn.microsoft.com/"},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "social", "url": "https://www.microsoft.com/"},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "locations", "url": "https://www.microsoft.com/"},
+    ),
+    PlannedRequest(
+        "POST",
+        "/v1/playground/run",
+        {"workflow": "website-quality", "url": "https://www.microsoft.com/"},
+    ),
 ]
 
 
@@ -66,7 +255,13 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Endpoint plan: /v1/hosted/me, /v1/hosted/scrape, "
             "/v1/hosted/crawl, /v1/hosted/products, /v1/hosted/run/company, "
-            "/v1/hosted/runs."
+            "/v1/hosted/run/prism, /v1/hosted/run/investor, "
+            "/v1/hosted/run/careers, /v1/hosted/run/jobs, "
+            "/v1/hosted/run/news, /v1/hosted/run/research, "
+            "/v1/hosted/run/docs, /v1/hosted/run/social, "
+            "/v1/hosted/run/locations, /v1/hosted/run/website-quality, "
+            "/v1/hosted/runs. Add --include-playground for all public "
+            "/v1/playground/run workflows."
         ),
     )
     parser.add_argument("--base-url", required=True, help="Hosted Scout base URL.")
@@ -92,6 +287,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Maximum allowed non-2xx/exception rate.",
     )
     parser.add_argument("--dry-run", action="store_true", help="Print the plan without traffic.")
+    parser.add_argument(
+        "--include-playground",
+        action="store_true",
+        help="Also exercise anonymous playground workflows with realistic targets.",
+    )
     return parser
 
 
@@ -100,15 +300,31 @@ def dry_run_payload(args: argparse.Namespace) -> dict[str, Any]:
         "base_url": args.base_url.rstrip("/"),
         "users": args.users,
         "concurrency": args.concurrency,
-        "requests_per_user": len(PLAN),
-        "total_planned_requests": args.users * len(PLAN),
+        "requests_per_user": len(request_plan(args)),
+        "total_planned_requests": args.users * len(request_plan(args)),
         "endpoints": [item.label for item in PLAN],
+        "playground_endpoints": [item.body["workflow"] for item in PLAYGROUND_PLAN]
+        if args.include_playground
+        else [],
+        "targets": {
+            "scrape_crawl_map": "https://www.wikimedia.org/",
+            "screenshot": "https://www.cnn.com/",
+            "products": "https://www.lacoste.com/us/",
+            "intelligence": "https://www.microsoft.com/",
+        },
         "llm_expected": "disabled",
         "notes": [
             "Use a dedicated beta key pool for live production tests.",
             "This script proves capacity only for the target, hardware, config, and keys tested.",
         ],
     }
+
+
+def request_plan(args: argparse.Namespace) -> list[PlannedRequest]:
+    plan = list(PLAN)
+    if args.include_playground:
+        plan.extend(PLAYGROUND_PLAN)
+    return plan
 
 
 def load_keys(args: argparse.Namespace) -> list[str]:
@@ -184,7 +400,7 @@ async def run_load(args: argparse.Namespace, keys: list[str]) -> dict[str, Any]:
             )
 
     for user_index in range(args.users):
-        for planned in PLAN:
+        for planned in request_plan(args):
             tasks.append(asyncio.create_task(one(user_index, planned)))
 
     started = time.monotonic()
