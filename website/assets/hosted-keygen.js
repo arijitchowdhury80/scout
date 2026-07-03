@@ -14,7 +14,7 @@
   const checkoutEndpoint =
     form?.dataset.checkoutEndpoint || "/v1/billing/stripe/checkout-session";
   const statusEndpoint = form?.dataset.statusEndpoint || "/v1/billing/stripe/status";
-  const readyFlag = form?.dataset.readyFlag || "ready_for_beta_checkout";
+  const readyFlag = form?.dataset.readyFlag || "ready_for_beta_key_delivery";
   const statusCheckEndpoint =
     statusForm?.dataset.statusCheckEndpoint || "/v1/hosted/beta-key/status";
   const reissueEndpoint =
@@ -43,25 +43,19 @@
       return;
     }
 
-    setStatus("Checking beta checkout readiness...", "running");
+    setStatus("Checking beta key delivery readiness...", "running");
     if (submitButton) submitButton.disabled = true;
 
     try {
       const readiness = await fetchCheckoutReadiness();
-      if (readiness && readiness[readyFlag] === true) {
-        await submitCheckout({ name, email, packageId });
-        return;
-      }
-
       if (readiness && readiness.beta_signup_enabled !== true) {
         throw new Error("Hosted beta registration is not open yet. Existing keys still work.");
       }
 
-      setStatus(
-        "Card-backed beta checkout is not ready; using fallback to email queue...",
-        "running",
-      );
-      await submitEmailFallback({ name, email, keyName });
+      if (readiness && readiness[readyFlag] !== true) {
+        setStatus("Recording beta request for later API-key email delivery...", "running");
+      }
+      await submitEmailRegistration({ name, email, keyName });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Hosted beta key registration is not ready yet.";
@@ -149,7 +143,7 @@
       if (status[readyFlag] === true) {
         if (submitButton) submitButton.disabled = false;
         setStatus(
-          "Card-backed beta checkout is ready. Continue to Stripe to complete $0 beta setup.",
+          "Beta API-key email delivery is ready. Register to receive your key by email.",
           "success",
         );
         return;
@@ -157,7 +151,7 @@
       if (status.beta_signup_enabled === true) {
         if (submitButton) submitButton.disabled = false;
         setStatus(
-          "Card-backed beta checkout is not ready. Scout will fallback to email queue registration while checkout is paused.",
+          "Beta registration is open. Scout will record your request and email the API key when delivery is configured.",
           "success",
         );
         return;
@@ -184,6 +178,10 @@
     }
   }
 
+  async function submitEmailRegistration({ name, email, keyName }) {
+    return submitEmailFallback({ name, email, keyName });
+  }
+
   async function submitCheckout({ name, email, packageId }) {
     setStatus("Creating $0 Stripe Checkout Session...", "running");
     const response = await fetch(checkoutEndpoint, {
@@ -193,7 +191,7 @@
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
-      throw new Error(payload.detail || "Card-backed beta checkout is not ready yet.");
+      throw new Error(payload.detail || "Beta checkout verification is not ready yet.");
     }
     if (!payload.checkout_url) {
       throw new Error("Stripe did not return a checkout URL.");

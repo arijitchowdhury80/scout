@@ -214,7 +214,7 @@ def test_beta_page_is_email_registration_first_with_checkout_hook_without_passwo
     assert 'id="hostedKeyForm"' in html
     assert 'data-endpoint="/v1/hosted/beta-key"' in html
     assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' in html
-    assert 'data-ready-flag="ready_for_beta_checkout"' in html
+    assert 'data-ready-flag="ready_for_beta_key_delivery"' in html
     assert 'id="pricingCheckoutForm"' not in html
     assert "Register for Beta API Key" in html
     assert "Start $0 Beta Checkout" not in html
@@ -224,6 +224,10 @@ def test_beta_page_is_email_registration_first_with_checkout_hook_without_passwo
     assert "window.location.assign" in hosted_keygen
     assert "checkout_url" in hosted_keygen
     assert "submitEmailFallback" in hosted_keygen
+    assert "submitEmailRegistration" in hosted_keygen
+    assert "Checking beta key delivery readiness" in hosted_keygen
+    assert "Card-backed beta checkout is ready" not in hosted_keygen
+    assert "fallback to email queue" not in hosted_keygen
     assert "form?.dataset.endpoint" in hosted_keygen
     assert "form.dataset.endpoint" not in hosted_keygen
     assert 'type="password"' not in html
@@ -607,15 +611,17 @@ def test_beta_signup_uses_email_registration_with_checkout_hook_without_password
     assert "100 standard credits" in normalized_html
     assert "/v1/billing/stripe/status" in html
     assert 'id="pricingCheckoutForm"' not in html
-    assert 'data-ready-flag="ready_for_beta_checkout"' in html
+    assert 'data-ready-flag="ready_for_beta_key_delivery"' in html
     assert "/v1/billing/stripe/checkout-session" in html
     assert 'src="./assets/pricing.js"' not in html
     assert "payload.raw_api_key" not in html
     assert "payload.raw_api_key" not in hosted_keygen_js
     assert "submitEmailFallback" in hosted_keygen_js
-    assert "Card-backed beta checkout is ready" in hosted_keygen_js
-    assert "Card-backed beta checkout is not ready" in hosted_keygen_js
-    assert "fallback to email queue" in hosted_keygen_js
+    assert "submitEmailRegistration" in hosted_keygen_js
+    assert "Checking beta key delivery readiness" in hosted_keygen_js
+    assert "Card-backed beta checkout is ready" not in hosted_keygen_js
+    assert "Card-backed beta checkout is not ready" not in hosted_keygen_js
+    assert "fallback to email queue" not in hosted_keygen_js
     assert "Use the email beta key path" not in pricing_js
     assert 'id="hostedKeyStatusForm"' in html
     assert 'data-status-check-endpoint="/v1/hosted/beta-key/status"' in html

@@ -112,7 +112,7 @@ scout launch-readiness --require-public</code></pre>
               data-endpoint="/v1/hosted/beta-key"
               data-checkout-endpoint="/v1/billing/stripe/checkout-session"
               data-status-endpoint="/v1/billing/stripe/status"
-              data-ready-flag="ready_for_beta_checkout"
+              data-ready-flag="ready_for_beta_key_delivery"
             >
               <label for="hostedKeyName">Name or app name</label>
               <input
@@ -145,9 +145,9 @@ scout launch-readiness --require-public</code></pre>
 
               <button class="wi-btn" type="submit">Register for Beta API Key</button>
               <p id="hostedKeyStatus" class="beta-status" role="status" aria-live="polite">
-                Hosted beta registration uses email delivery first. If the
-                card-backed beta setup gate is enabled, Scout may route you
-                through a $0 Stripe verification step before key delivery.
+                Hosted beta registration uses email delivery first. Scout will
+                record your request and email the API key when key delivery is
+                configured.
               </p>
               <p class="beta-note">
                 The beta trial includes 100 standard credits for 30 days.
