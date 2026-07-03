@@ -18,8 +18,10 @@ Scout hosted beta has API-key based access, not a login system.
   payment-method verification and paid credit packages once Stripe settings are
   configured. The `$0` beta trial uses Stripe Checkout `mode=setup` with card
   payment-method collection, so beta testers can verify the billing pipeline
-  without paying during the trial. A signed checkout webhook writes the customer
-  name/email onto the hosted tenant and includes it in one-time API-key delivery.
+  without paying during the trial. Scout asks Stripe Checkout to create a
+  Customer for both setup-mode beta checkouts and paid credit-pack checkouts.
+  A signed checkout webhook writes the customer name/email and Stripe reference
+  IDs onto the hosted tenant and includes them in one-time API-key delivery.
 - The key-delivery email is signed by Arijit, explains the 100-credit/30-day
   beta boundary, includes credit meaning, links to docs/pricing, and asks users
   to reply with their use case, target site, and failing run ID for support.

@@ -32,6 +32,7 @@ def test_unit_economics_doc_records_pay_as_you_go_candidate() -> None:
 
 def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     doc = _read("docs/product/hosted-admin-operations.md")
+    normalized_doc = " ".join(doc.split())
 
     assert "/v1/hosted/usage" in doc
     assert "/v1/hosted/purchases" in doc
@@ -40,6 +41,10 @@ def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     assert "list-purchases" in doc
     assert "hosted_payment_checkouts" in doc
     assert "Stripe Checkout `mode=setup` with card" in doc
+    assert (
+        "create a Customer for both setup-mode beta checkouts and paid credit-pack checkouts"
+        in normalized_doc
+    )
     assert "$10 for 1,000 standard credits" in doc
     assert "Pay-as-you-go pricing candidate" in doc
 
