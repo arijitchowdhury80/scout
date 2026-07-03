@@ -20,7 +20,9 @@ browser/API signup never returns raw API keys and never issues a key directly.
 The delivery email is signed by Arijit Chowdhury, Founder, Chowmes, and
 includes the beta credit limit, account/balance link, usage ledger link,
 purchase history link, docs, pricing, secret-handling warning, and support
-reply instructions.
+reply instructions. First-time paid package key delivery uses paid package copy
+instead of beta-trial copy and includes the purchased package ID plus actual
+standard/browser credit counts.
 
 ```bash
 export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"

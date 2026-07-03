@@ -21,6 +21,10 @@ class HostedApiKeyDeliveryRequest(BaseModel):
     tenant_id: str
     key_id: str
     plan: HostedPlan
+    package_id: str = "beta_trial"
+    standard_credits: int = Field(default=100, ge=0)
+    browser_credits: int = Field(default=0, ge=0)
+    trial_days: int = Field(default=30, ge=0)
     raw_api_key: str
     checkout_session_id: str
     smoke_test: bool = False
@@ -179,9 +183,16 @@ def _delivery_message(sender: str, request: HostedApiKeyDeliveryRequest) -> Emai
         message["Subject"] = "Scout hosted key delivery smoke test"
         message.set_content(_smoke_test_body(request))
     else:
-        message["Subject"] = "Your Scout beta tester API key is ready"
+        message["Subject"] = _delivery_subject(request)
         message.set_content(_delivery_body(request))
     return message
+
+
+def _delivery_subject(request: HostedApiKeyDeliveryRequest) -> str:
+    """Return the correct non-secret email subject for this delivery."""
+    if request.package_id == "beta_trial":
+        return "Your Scout beta tester API key is ready"
+    return "Your Scout hosted API key is ready"
 
 
 def _smoke_test_body(request: HostedApiKeyDeliveryRequest) -> str:
@@ -212,6 +223,8 @@ def _smoke_test_body(request: HostedApiKeyDeliveryRequest) -> str:
 def _delivery_body(request: HostedApiKeyDeliveryRequest) -> str:
     """Build the plaintext body for one-time API-key delivery."""
     greeting_name = request.name.strip() or "there"
+    if request.package_id != "beta_trial":
+        return _paid_delivery_body(request, greeting_name)
     return "\n".join(
         [
             f"Hi {greeting_name},",
@@ -257,4 +270,52 @@ def _delivery_body(request: HostedApiKeyDeliveryRequest) -> str:
             "Arijit Chowdhury",
             "Founder, Chowmes",
         ]
+    )
+
+
+def _paid_delivery_body(request: HostedApiKeyDeliveryRequest, greeting_name: str) -> str:
+    """Build the plaintext body for paid hosted API-key delivery."""
+    return "\n".join(
+        [
+            f"Hi {greeting_name},",
+            "",
+            "Your hosted Scout API key is ready.",
+            "",
+            f"Package: {request.package_id}",
+            f"Credits: {_credit_summary(request)}",
+            "Store this key now. Scout stores only a hash and cannot show the raw key again.",
+            "Do not paste this key into frontend code, screenshots, tickets, or public repos.",
+            "",
+            f"API key: {request.raw_api_key}",
+            f"Plan: {request.plan.value}",
+            f"Tenant ID: {request.tenant_id}",
+            f"Key ID: {request.key_id}",
+            f"Reference: {request.checkout_session_id}",
+            "",
+            "Use this key as a Bearer token when calling hosted Scout endpoints.",
+            "",
+            "Quick test:",
+            "curl https://scout.chowmes.com/v1/hosted/me \\",
+            f"  -H 'Authorization: Bearer {request.raw_api_key}'",
+            "",
+            "Account and balance:",
+            "https://scout.chowmes.com/account",
+            "",
+            "Docs: https://scout.chowmes.com/docs",
+            "Pricing and credit model: https://scout.chowmes.com/pricing",
+            "",
+            "Reply to this email with your use case, target site, and any failing run ID.",
+            "",
+            "Thanks,",
+            "Arijit Chowdhury",
+            "Founder, Chowmes",
+        ]
+    )
+
+
+def _credit_summary(request: HostedApiKeyDeliveryRequest) -> str:
+    """Return a customer-readable credit summary."""
+    return (
+        f"{request.standard_credits:,} standard credits, "
+        f"{request.browser_credits:,} browser credits"
     )

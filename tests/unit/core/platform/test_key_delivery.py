@@ -89,6 +89,46 @@ def test_smtp_delivery_service_sends_one_time_key_email() -> None:
     assert "Arijit Chowdhury" in body
 
 
+def test_smtp_delivery_service_sends_paid_credit_email_without_beta_trial_claims() -> None:
+    smtp_factory = FakeSmtpFactory()
+    service = SmtpHostedApiKeyDeliveryService(
+        config=SmtpHostedApiKeyDeliveryConfig(
+            host="smtp.example.com",
+            port=587,
+            from_email="scout@example.com",
+            username="scout-user",
+            password="smtp-secret",
+            use_tls=True,
+        ),
+        smtp_factory=smtp_factory,
+    )
+
+    result = service.deliver(
+        _delivery_request(
+            package_id="standard_1000",
+            standard_credits=1000,
+            trial_days=0,
+            checkout_session_id="cs_paid_1000",
+        )
+    )
+    sent = smtp_factory.client.messages[0]
+    message = message_from_string(sent.message, policy=default)
+    assert isinstance(message, EmailMessage)
+    body = str(message.get_content())
+
+    assert result.delivered is True
+    assert message["Subject"] == "Your Scout hosted API key is ready"
+    assert "Your hosted Scout API key is ready." in body
+    assert "Package: standard_1000" in body
+    assert "Credits: 1,000 standard credits, 0 browser credits" in body
+    assert "Your beta trial includes" not in body
+    assert "Welcome to the Scout private beta" not in body
+    assert "30 days" not in body
+    assert "API key: scout_live_test_key" in body
+    assert "Arijit Chowdhury" in body
+    assert "Founder, Chowmes" in body
+
+
 def test_smtp_delivery_service_sends_smoke_test_email_without_real_key_claims() -> None:
     smtp_factory = FakeSmtpFactory()
     service = SmtpHostedApiKeyDeliveryService(
@@ -161,7 +201,15 @@ def test_smtp_delivery_config_requires_host_and_from_email() -> None:
     assert missing_password.enabled is False
 
 
-def _delivery_request(*, smoke_test: bool = False) -> HostedApiKeyDeliveryRequest:
+def _delivery_request(
+    *,
+    smoke_test: bool = False,
+    package_id: str = "beta_trial",
+    standard_credits: int = 100,
+    browser_credits: int = 0,
+    trial_days: int = 30,
+    checkout_session_id: str | None = None,
+) -> HostedApiKeyDeliveryRequest:
     """Build a hosted API-key delivery request."""
     return HostedApiKeyDeliveryRequest(
         email="builder@example.com",
@@ -169,8 +217,13 @@ def _delivery_request(*, smoke_test: bool = False) -> HostedApiKeyDeliveryReques
         tenant_id="tenant_123",
         key_id="key_123",
         plan=HostedPlan.HOSTED_BETA_PASS,
+        package_id=package_id,
+        standard_credits=standard_credits,
+        browser_credits=browser_credits,
+        trial_days=trial_days,
         raw_api_key="scout_live_test_key",
-        checkout_session_id="smtp_smoke_test" if smoke_test else "cs_test_123",
+        checkout_session_id=checkout_session_id
+        or ("smtp_smoke_test" if smoke_test else "cs_test_123"),
         smoke_test=smoke_test,
     )
 

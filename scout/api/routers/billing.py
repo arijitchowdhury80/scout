@@ -45,6 +45,7 @@ from scout.core.platform.pricing import (
     credit_cost_table,
     credit_packages,
     credit_policy_table,
+    get_credit_package,
     package_unit_economics,
 )
 from scout.core.platform.stripe_checkout import (
@@ -731,6 +732,7 @@ def _deliver_api_key(
         return "not_delivered"
     if result.raw_api_key == "":
         return "not_required"
+    package = get_credit_package(checkout.package_id)
     delivery = delivery_service.deliver(
         HostedApiKeyDeliveryRequest(
             email=checkout.email,
@@ -738,6 +740,10 @@ def _deliver_api_key(
             tenant_id=result.tenant_id,
             key_id=result.key_id,
             plan=checkout.plan,
+            package_id=package.package_id,
+            standard_credits=package.standard_credits,
+            browser_credits=package.browser_credits,
+            trial_days=package.trial_days,
             raw_api_key=result.raw_api_key,
             checkout_session_id=checkout.checkout_session_id,
         )

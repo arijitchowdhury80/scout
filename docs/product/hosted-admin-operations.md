@@ -37,13 +37,18 @@ Scout hosted beta has API-key based access, not a login system.
   `customer_creation=always`, which is reserved for payment-mode customer
   creation. Paid credit packages use Checkout `mode=payment`,
   `customer_creation=always`, and package price line items.
-- The key-delivery email subject is `Your Scout beta tester API key is ready`.
-  It is signed by Arijit Chowdhury, Founder, Chowmes; explains the
+- Beta-trial key delivery uses the subject `Your Scout beta tester API key is
+  ready`. It is signed by Arijit Chowdhury, Founder, Chowmes; explains the
   100-credit/30-day beta boundary; says hosted access is not unlimited
   crawling; includes credit meaning, account/balance, usage ledger, purchase
   history, docs, and pricing links; warns users not to paste keys into frontend
   code/screenshots/tickets/public repos; and asks testers to reply with their
   use case, target site, and failing run ID for support.
+- First-time paid package key delivery uses the subject `Your Scout hosted API
+  key is ready` and includes the purchased package ID plus the actual standard
+  and browser credit counts from the package model. Existing-account paid
+  top-ups do not email a second raw key; they update the existing tenant
+  balance and record the purchase.
 - Hosted calls use `Authorization: Bearer scout_live_...`.
 - Users can inspect their current hosted account with `/v1/hosted/me`, which
   returns balances, limits, usage totals, purchase totals, and links to deeper

@@ -137,6 +137,42 @@ def test_stripe_webhook_checkout_completed_provisions_without_leaking_raw_key(
     assert stored.amount_total_cents == 0
 
 
+def test_stripe_webhook_paid_package_delivery_includes_package_credit_metadata(
+    tmp_path: Path,
+) -> None:
+    account_store = InMemoryHostedAccountStore()
+    payment_store = SQLiteHostedPaymentStore(tmp_path / "hosted.sqlite")
+    delivery_service = RecordingKeyDeliveryService()
+    service = HostedPaymentProvisioningService(
+        HostedAccountService(account_store),
+        payment_store,
+    )
+    payload = _standard_1000_checkout_event_payload()
+    client = _client(service, delivery_service)
+
+    response = client.post(
+        "/v1/billing/stripe/webhook",
+        content=payload,
+        headers={
+            "content-type": "application/json",
+            "Stripe-Signature": _signature_header(payload),
+        },
+    )
+    stored = _stored_checkout(payment_store)
+    delivered = delivery_service.deliveries[0]
+
+    assert response.status_code == 200
+    assert response.json()["delivery_status"] == "delivered"
+    assert stored is not None
+    assert stored.package_id == "standard_1000"
+    assert stored.amount_total_cents == 1000
+    assert delivered.package_id == "standard_1000"
+    assert delivered.standard_credits == 1000
+    assert delivered.browser_credits == 0
+    assert delivered.trial_days == 0
+    assert "scout_live_" not in response.text
+
+
 def test_stripe_webhook_blocks_provisioning_when_key_delivery_is_disabled(
     tmp_path: Path,
 ) -> None:
