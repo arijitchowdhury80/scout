@@ -106,7 +106,9 @@ def run_smoke(
     missing_flags = [flag for flag in required_flags if status.get(flag) is not True]
     if missing_flags:
         raise StripeSmokeError(
-            "Stripe paid-key delivery is not ready. Missing true flags: " + ", ".join(missing_flags)
+            _readiness_failure_label(package_id)
+            + " is not ready. Missing true flags: "
+            + ", ".join(missing_flags)
         )
     if not create_checkout:
         return StripeSmokeResult(ready=True, checkout_created=False)
@@ -143,6 +145,13 @@ def _required_readiness_flags(package_id: str) -> list[str]:
     else:
         flags.append("ready_for_paid_key_delivery")
     return flags
+
+
+def _readiness_failure_label(package_id: str) -> str:
+    """Return a package-specific readiness label for operator output."""
+    if package_id == "beta_trial":
+        return "Stripe beta checkout"
+    return "Stripe paid-key delivery"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -183,7 +192,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 2
 
-    print("PASS: Scout Stripe paid-key delivery readiness is configured.")
+    print(f"PASS: Scout {_readiness_failure_label(args.package_id)} readiness is configured.")
     if result.checkout_created:
         print(f"Checkout session: {result.checkout_session_id}")
         print(f"Checkout URL: {result.checkout_url}")

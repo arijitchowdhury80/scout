@@ -106,6 +106,33 @@ def test_stripe_smoke_fails_when_paid_key_delivery_is_not_ready(
         )
 
 
+def test_stripe_smoke_fails_with_beta_specific_message_when_beta_checkout_is_not_ready(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fake_urlopen(request: object, timeout: float) -> FakeResponse:
+        del request, timeout
+        return FakeResponse(
+            {
+                "checkout_configured": True,
+                "webhook_configured": True,
+                "key_delivery_configured": False,
+                "ready_for_beta_checkout": False,
+                "ready_for_paid_key_delivery": True,
+            }
+        )
+
+    monkeypatch.setattr(stripe_test_mode_smoke, "urlopen", fake_urlopen)
+
+    with pytest.raises(stripe_test_mode_smoke.StripeSmokeError, match="beta checkout"):
+        stripe_test_mode_smoke.run_smoke(
+            base_url="http://scout.test",
+            email="beta@example.com",
+            name="Beta Tester",
+            create_checkout=False,
+            package_id="beta_trial",
+        )
+
+
 def test_stripe_smoke_can_create_checkout_without_printing_secrets(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
