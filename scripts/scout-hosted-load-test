@@ -7,6 +7,7 @@ import argparse
 import asyncio
 import json
 import statistics
+import ssl
 import sys
 import time
 import urllib.error
@@ -15,6 +16,11 @@ from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
+
+try:
+    import certifi
+except ImportError:  # pragma: no cover - certifi is optional outside dev envs.
+    certifi = None
 
 
 @dataclass(frozen=True)
@@ -164,6 +170,14 @@ PLAN = [
     ),
     PlannedRequest("GET", "/v1/hosted/runs"),
 ]
+
+
+def tls_context() -> ssl.SSLContext:
+    """Return a TLS context that works with Python.org macOS builds."""
+    if certifi is not None:
+        return ssl.create_default_context(cafile=certifi.where())
+    return ssl.create_default_context()
+
 
 PLAYGROUND_PLAN = [
     PlannedRequest(
@@ -366,7 +380,7 @@ def perform_request(
         headers["Content-Type"] = "application/json"
     req = urllib.request.Request(url, data=data, headers=headers, method=planned.method)
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as response:
+        with urllib.request.urlopen(req, timeout=timeout, context=tls_context()) as response:
             response.read(2048)
             status: int | str = response.status
             error = ""
@@ -429,9 +443,7 @@ async def run_load(args: argparse.Namespace, keys: list[str]) -> dict[str, Any]:
         "concurrency": args.concurrency,
         "total_requests": len(results),
         "duration_seconds": round(duration_seconds, 2),
-        "requests_per_second": round(len(results) / duration_seconds, 2)
-        if duration_seconds
-        else 0,
+        "requests_per_second": round(len(results) / duration_seconds, 2) if duration_seconds else 0,
         "p95_latency_ms": int(p95),
         "error_rate": round(error_rate, 4),
         "thresholds": {"p95_ms": args.p95_ms, "max_error_rate": args.max_error_rate},

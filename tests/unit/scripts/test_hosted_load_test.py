@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import runpy
 import subprocess
 from pathlib import Path
 
@@ -86,3 +87,40 @@ def test_hosted_load_test_requires_key_or_key_file_for_live_run() -> None:
 
     assert result.returncode == 2
     assert "--api-key or --api-key-file is required" in result.stderr
+
+
+def test_hosted_load_test_uses_tls_context_for_https_requests(monkeypatch) -> None:
+    module = runpy.run_path(str(SCRIPT))
+    planned = module["PlannedRequest"]("GET", "/v1/hosted/me")
+    captured = {}
+
+    class FakeResponse:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, _size):
+            return b"{}"
+
+    def fake_urlopen(_req, timeout, context=None):
+        captured["timeout"] = timeout
+        captured["context"] = context
+        return FakeResponse()
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+
+    result = module["perform_request"](
+        base_url="https://scout.example",
+        key="test-key",
+        planned=planned,
+        timeout=11,
+        user_index=1,
+    )
+
+    assert result["ok"] is True
+    assert captured["timeout"] == 11
+    assert captured["context"] is not None
