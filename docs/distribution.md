@@ -147,6 +147,19 @@ HOSTED_KEY_DELIVERY_SMTP_PASSWORD=
 HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
 ```
 
+For the ChowMes VPS deployment, place SMTP and Stripe values in an ignored local
+file such as `secrets/scout-production.env`, then install only allowlisted
+hosted billing/key-delivery variables with:
+
+```bash
+scripts/scout-hosted-admin configure-production-env \
+  --secrets-file secrets/scout-production.env \
+  --restart
+```
+
+The helper writes `/opt/prism/scout/.env`, preserves unrelated deployment
+settings, prints variable names only, and does not print secret values.
+
 Hosted API requests also have a private-beta per-key throttle:
 
 ```text

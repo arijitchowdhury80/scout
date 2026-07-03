@@ -1,0 +1,189 @@
+#!/bin/sh
+set -eu
+
+HELPER_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/scripts/chowmes-ssh-helper"
+ENV_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/.env.local"
+REMOTE_ENV_FILE="/opt/prism/scout/.env"
+
+ALLOWED_KEYS="HOSTED_BETA_SIGNUP_ENABLED HOSTED_KEY_DELIVERY_SMTP_HOST HOSTED_KEY_DELIVERY_SMTP_PORT HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL HOSTED_KEY_DELIVERY_SMTP_USERNAME HOSTED_KEY_DELIVERY_SMTP_PASSWORD HOSTED_KEY_DELIVERY_SMTP_USE_TLS STRIPE_SECRET_KEY STRIPE_BETA_PRICE_ID STRIPE_STANDARD_1000_PRICE_ID STRIPE_STANDARD_3000_PRICE_ID STRIPE_STANDARD_15000_PRICE_ID STRIPE_BROWSER_100_PRICE_ID STRIPE_SUCCESS_URL STRIPE_CANCEL_URL STRIPE_WEBHOOK_SECRET"
+
+usage() {
+  cat <<EOF
+usage: scout-vps-configure-hosted-env --secrets-file PATH [--restart] [--env PATH] [--helper PATH]
+
+Configure Scout hosted SMTP and Stripe environment on the ChowMes VPS.
+
+This script copies only allowlisted hosted billing/key-delivery variables from
+the local secrets file into:
+
+  $REMOTE_ENV_FILE
+
+Allowlisted variables include:
+  HOSTED_KEY_DELIVERY_SMTP_HOST
+  HOSTED_KEY_DELIVERY_SMTP_PORT
+  HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL
+  HOSTED_KEY_DELIVERY_SMTP_USERNAME
+  HOSTED_KEY_DELIVERY_SMTP_PASSWORD
+  HOSTED_KEY_DELIVERY_SMTP_USE_TLS
+  STRIPE_SECRET_KEY
+  STRIPE_BETA_PRICE_ID
+  STRIPE_STANDARD_1000_PRICE_ID
+  STRIPE_STANDARD_3000_PRICE_ID
+  STRIPE_STANDARD_15000_PRICE_ID
+  STRIPE_BROWSER_100_PRICE_ID
+  STRIPE_SUCCESS_URL
+  STRIPE_CANCEL_URL
+  STRIPE_WEBHOOK_SECRET
+
+Examples:
+  scripts/scout-vps-configure-hosted-env --secrets-file secrets/scout-production.env
+  scripts/scout-vps-configure-hosted-env --secrets-file secrets/scout-production.env --restart
+
+The script reports variable names only. It never prints secret values.
+EOF
+}
+
+secrets_file=""
+env_file="$ENV_DEFAULT"
+helper="$HELPER_DEFAULT"
+restart="false"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --secrets-file)
+      if [ $# -lt 2 ]; then
+        echo "--secrets-file requires a path" >&2
+        exit 2
+      fi
+      secrets_file="$2"
+      shift 2
+      ;;
+    --env)
+      if [ $# -lt 2 ]; then
+        echo "--env requires a path" >&2
+        exit 2
+      fi
+      env_file="$2"
+      shift 2
+      ;;
+    --helper)
+      if [ $# -lt 2 ]; then
+        echo "--helper requires a path" >&2
+        exit 2
+      fi
+      helper="$2"
+      shift 2
+      ;;
+    --restart)
+      restart="true"
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+if [ -z "$secrets_file" ]; then
+  echo "--secrets-file is required" >&2
+  usage >&2
+  exit 2
+fi
+
+if [ ! -f "$secrets_file" ]; then
+  echo "Secrets file not found: $secrets_file" >&2
+  exit 1
+fi
+
+if [ ! -x "$helper" ]; then
+  echo "SSH helper is not executable: $helper" >&2
+  exit 1
+fi
+
+encoded="$(base64 < "$secrets_file" | tr -d '\n')"
+
+"$helper" --env "$env_file" "python3 - '$encoded' '$REMOTE_ENV_FILE' '$ALLOWED_KEYS' <<'PY'
+import base64
+import os
+import shlex
+import sys
+from pathlib import Path
+
+encoded_payload, remote_env_path, allowed_keys_text = sys.argv[1:4]
+allowed_keys = set(allowed_keys_text.split())
+incoming_text = base64.b64decode(encoded_payload.encode('ascii')).decode('utf-8')
+
+
+def parse_env(text: str) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        key = key.strip()
+        if key not in allowed_keys:
+            continue
+        value = value.strip()
+        if (
+            len(value) >= 2
+            and ((value[0] == value[-1] == '\"') or (value[0] == value[-1] == \"'\"))
+        ):
+            value = value[1:-1]
+        values[key] = value
+    return values
+
+
+incoming = parse_env(incoming_text)
+if not incoming:
+    raise SystemExit('No allowlisted Scout hosted SMTP or Stripe variables found.')
+
+remote_path = Path(remote_env_path)
+existing_text = remote_path.read_text(encoding='utf-8') if remote_path.exists() else ''
+preserved_lines: list[str] = []
+updated_keys: set[str] = set()
+
+for raw_line in existing_text.splitlines():
+    stripped = raw_line.strip()
+    if not stripped or stripped.startswith('#') or '=' not in stripped:
+        preserved_lines.append(raw_line)
+        continue
+    key = stripped.split('=', 1)[0].strip()
+    if key in incoming:
+        preserved_lines.append(f'{key}={shlex.quote(incoming[key])}')
+        updated_keys.add(key)
+    else:
+        preserved_lines.append(raw_line)
+
+for key in allowed_keys_text.split():
+    if key in incoming and key not in updated_keys:
+        preserved_lines.append(f'{key}={shlex.quote(incoming[key])}')
+        updated_keys.add(key)
+
+remote_path.parent.mkdir(parents=True, exist_ok=True)
+remote_path.write_text(
+    '\\n'.join(preserved_lines).rstrip() + '\\n',
+    encoding='utf-8',
+)
+os.chmod(remote_path, 0o600)
+
+print('Updated Scout hosted environment keys:')
+for key in allowed_keys_text.split():
+    if key not in updated_keys:
+        continue
+    print(f'  - {key}')
+print(f'Wrote {len(updated_keys)} allowlisted keys to {remote_env_path}.')
+PY"
+
+if [ "$restart" = "true" ]; then
+  "$helper" --env "$env_file" "cd /opt/prism/scout && sudo docker compose -f docker/docker-compose.yml up -d --force-recreate scout && sudo docker inspect --format='{{.State.Health.Status}}' scout"
+else
+  echo "Environment updated. Recreate Scout to apply it:"
+  echo "  scripts/scout-vps-configure-hosted-env --secrets-file $secrets_file --restart"
+fi

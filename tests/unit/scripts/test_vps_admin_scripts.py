@@ -15,6 +15,7 @@ SCRIPT_NAMES = [
     "scout-vps-list-hosted-accounts",
     "scout-vps-list-hosted-usage",
     "scout-vps-list-hosted-purchases",
+    "scout-vps-configure-hosted-env",
     "scout-hosted-load-test",
 ]
 
@@ -39,6 +40,15 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "list-accounts",
             "list-usage",
             "list-purchases",
+            "configure-production-env",
+        ],
+        "scout-vps-configure-hosted-env": [
+            "Configure Scout hosted SMTP and Stripe environment",
+            "--secrets-file",
+            "--restart",
+            "HOSTED_KEY_DELIVERY_SMTP_HOST",
+            "STRIPE_SECRET_KEY",
+            "/opt/prism/scout/.env",
         ],
         "scout-generate-api-key": [
             "Generate and register a Scout hosted API key",
@@ -168,3 +178,23 @@ def test_hosted_admin_has_no_beta_invite_password_flow() -> None:
     assert "HOSTED_BETA_INVITE_PASSWORD" not in combined
     assert "beta invite password" not in combined.lower()
     assert "invite-password" not in combined.lower()
+
+
+def test_configure_hosted_env_uses_allowlist_and_never_echoes_secret_values() -> None:
+    script_text = (REPO_ROOT / "scripts" / "scout-vps-configure-hosted-env").read_text(
+        encoding="utf-8"
+    )
+
+    assert "ALLOWED_KEYS" in script_text
+    assert "HOSTED_KEY_DELIVERY_SMTP_HOST" in script_text
+    assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" in script_text
+    assert "STRIPE_SECRET_KEY" in script_text
+    assert "STRIPE_WEBHOOK_SECRET" in script_text
+    assert "STRIPE_STANDARD_1000_PRICE_ID" in script_text
+    assert "STRIPE_STANDARD_3000_PRICE_ID" in script_text
+    assert "STRIPE_STANDARD_15000_PRICE_ID" in script_text
+    assert "SCOUT_API_KEY" not in script_text
+    assert "preserved_lines" in script_text
+    assert "updated_keys" in script_text
+    assert 'cat "$secrets_file"' not in script_text
+    assert 'echo "$encoded' not in script_text

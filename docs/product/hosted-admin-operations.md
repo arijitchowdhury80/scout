@@ -77,14 +77,61 @@ Set it to `false` to stop new direct beta keys without disabling existing
 Bearer keys. The public beta form should not be considered live until this flag
 and SMTP key delivery are both present.
 
-Required delivery settings:
+Required delivery settings, stored in an ignored local file such as
+`secrets/scout-production.env` before pushing to the VPS:
 
 ```bash
+HOSTED_BETA_SIGNUP_ENABLED=true
 HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com
 HOSTED_KEY_DELIVERY_SMTP_PORT=587
 HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"
 HOSTED_KEY_DELIVERY_SMTP_USERNAME=...
 HOSTED_KEY_DELIVERY_SMTP_PASSWORD=...
+HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
+
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_BETA_PRICE_ID=price_...
+STRIPE_STANDARD_1000_PRICE_ID=price_...
+STRIPE_STANDARD_3000_PRICE_ID=price_...
+STRIPE_STANDARD_15000_PRICE_ID=price_...
+STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success
+STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+Install those values on the VPS with the allowlisted production env helper:
+
+```bash
+scripts/scout-hosted-admin configure-production-env \
+  --secrets-file secrets/scout-production.env \
+  --restart
+```
+
+The helper updates `/opt/prism/scout/.env`, preserves unrelated existing env
+lines, prints variable names only, never prints secret values, and recreates the
+`scout` container when `--restart` is passed.
+
+After configuration, verify readiness:
+
+```bash
+python3 scripts/hosted_readiness_check.py \
+  --base-url https://scout.chowmes.com \
+  --require-beta-signup \
+  --require-paid-checkout
+```
+
+Then run Stripe test-mode smoke:
+
+```bash
+python3 scripts/stripe_test_mode_smoke.py \
+  --base-url https://scout.chowmes.com \
+  --package-id standard_1000 \
+  --create-checkout
+
+python3 scripts/stripe_test_mode_smoke.py \
+  --base-url https://scout.chowmes.com \
+  --package-id beta_trial \
+  --create-checkout
 ```
 
 ### Check Hosted SaaS Readiness
