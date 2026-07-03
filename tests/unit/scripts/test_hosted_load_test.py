@@ -124,3 +124,35 @@ def test_hosted_load_test_uses_tls_context_for_https_requests(monkeypatch) -> No
     assert result["ok"] is True
     assert captured["timeout"] == 11
     assert captured["context"] is not None
+
+
+def test_hosted_load_test_can_classify_expected_playground_throttles() -> None:
+    module = runpy.run_path(str(SCRIPT))
+
+    playground_throttle = {
+        "endpoint": "POST /v1/playground/run",
+        "status": 429,
+        "ok": False,
+        "latency_ms": 100,
+        "error": "HTTP Error 429: Too Many Requests",
+    }
+    hosted_throttle = {
+        "endpoint": "POST /v1/hosted/scrape",
+        "status": 429,
+        "ok": False,
+        "latency_ms": 100,
+        "error": "HTTP Error 429: Too Many Requests",
+    }
+
+    assert module["is_acceptable_result"](
+        playground_throttle,
+        allow_playground_throttle=True,
+    )
+    assert not module["is_acceptable_result"](
+        hosted_throttle,
+        allow_playground_throttle=True,
+    )
+    assert not module["is_acceptable_result"](
+        playground_throttle,
+        allow_playground_throttle=False,
+    )

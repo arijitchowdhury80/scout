@@ -307,6 +307,14 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Also exercise anonymous playground workflows with realistic targets.",
     )
+    parser.add_argument(
+        "--allow-playground-throttle",
+        action="store_true",
+        help=(
+            "Treat HTTP 429 from anonymous /v1/playground/run as expected capacity "
+            "protection instead of an outage. Hosted API 429s still fail."
+        ),
+    )
     return parser
 
 
@@ -331,6 +339,7 @@ def dry_run_payload(args: argparse.Namespace) -> dict[str, Any]:
         "notes": [
             "Use a dedicated beta key pool for live production tests.",
             "This script proves capacity only for the target, hardware, config, and keys tested.",
+            "Use --allow-playground-throttle only when validating anonymous demo overload protection.",
         ],
     }
 
@@ -402,6 +411,15 @@ def perform_request(
     }
 
 
+def is_acceptable_result(item: dict[str, Any], *, allow_playground_throttle: bool) -> bool:
+    """Return whether a result should count against the load-test error gate."""
+    if item["ok"]:
+        return True
+    if not allow_playground_throttle:
+        return False
+    return item["endpoint"] == "POST /v1/playground/run" and item["status"] == 429
+
+
 async def run_load(args: argparse.Namespace, keys: list[str]) -> dict[str, Any]:
     base_url = args.base_url.rstrip("/")
     semaphore = asyncio.Semaphore(args.concurrency)
@@ -427,7 +445,23 @@ async def run_load(args: argparse.Namespace, keys: list[str]) -> dict[str, Any]:
     results = await asyncio.gather(*tasks)
     duration_seconds = time.monotonic() - started
     latencies = [item["latency_ms"] for item in results]
-    failures = [item for item in results if not item["ok"]]
+    protected_throttles = [
+        item
+        for item in results
+        if (
+            args.allow_playground_throttle
+            and item["endpoint"] == "POST /v1/playground/run"
+            and item["status"] == 429
+        )
+    ]
+    failures = [
+        item
+        for item in results
+        if not is_acceptable_result(
+            item,
+            allow_playground_throttle=args.allow_playground_throttle,
+        )
+    ]
     p95 = statistics.quantiles(latencies, n=100)[94] if len(latencies) >= 100 else max(latencies)
     error_rate = len(failures) / len(results) if results else 1.0
     by_endpoint: dict[str, dict[str, int]] = {}
@@ -442,6 +476,8 @@ async def run_load(args: argparse.Namespace, keys: list[str]) -> dict[str, Any]:
         "users": args.users,
         "concurrency": args.concurrency,
         "total_requests": len(results),
+        "accepted_requests": len(results) - len(failures),
+        "protected_throttles": len(protected_throttles),
         "duration_seconds": round(duration_seconds, 2),
         "requests_per_second": round(len(results) / duration_seconds, 2) if duration_seconds else 0,
         "p95_latency_ms": int(p95),
