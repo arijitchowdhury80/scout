@@ -91,10 +91,12 @@ cd /Users/arijitchowdhury/Dropbox/AI-Development/Scout
 
 ### Enable Or Disable Beta Signup
 
-Set `HOSTED_BETA_SIGNUP_ENABLED=true` only when SMTP delivery is configured.
-Set it to `false` to stop new direct beta keys without disabling existing
-Bearer keys. The public beta form should not be considered live until this flag
-and SMTP key delivery are both present.
+Set `HOSTED_BETA_SIGNUP_ENABLED=true` to let the public beta form collect
+name/email requests. If SMTP delivery is not configured yet, Scout records each
+request as `pending_delivery` without creating an account or API key. Set it to
+`false` to stop new direct beta requests without disabling existing Bearer
+keys. The public beta flow should not be considered key-delivery ready until
+this flag and SMTP key delivery are both present.
 
 Required delivery settings, stored in an ignored local file such as
 `secrets/scout-production.env` before pushing to the VPS:
