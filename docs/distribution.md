@@ -233,6 +233,7 @@ settings above, then run:
 python3 scripts/stripe_test_mode_smoke.py \
   --base-url http://127.0.0.1:8421 \
   --email scout-beta-test@example.com \
+  --name "Scout Beta Tester" \
   --package-id standard_1000 \
   --create-checkout
 ```
@@ -248,6 +249,7 @@ To verify the card-backed `$0` beta setup path instead:
 python3 scripts/stripe_test_mode_smoke.py \
   --base-url http://127.0.0.1:8421 \
   --email scout-beta-test@example.com \
+  --name "Scout Beta Tester" \
   --package-id beta_trial \
   --create-checkout
 ```

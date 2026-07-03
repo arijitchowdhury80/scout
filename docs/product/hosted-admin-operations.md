@@ -297,11 +297,15 @@ Then run Stripe test-mode smoke:
 ```bash
 python3 scripts/stripe_test_mode_smoke.py \
   --base-url https://scout.chowmes.com \
+  --email scout-paid-smoke@example.com \
+  --name "Scout Paid Smoke" \
   --package-id standard_1000 \
   --create-checkout
 
 python3 scripts/stripe_test_mode_smoke.py \
   --base-url https://scout.chowmes.com \
+  --email scout-beta-test@example.com \
+  --name "Scout Beta Tester" \
   --package-id beta_trial \
   --create-checkout
 ```

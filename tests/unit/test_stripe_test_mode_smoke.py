@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from email.message import Message
 from io import BytesIO
 from typing import Any
 
@@ -28,6 +29,25 @@ def test_stripe_smoke_detects_secret_leaks() -> None:
         stripe_test_mode_smoke.assert_no_secret_leak('{"secret":"sk_test_leak"}')
 
 
+def test_stripe_smoke_uses_certifi_tls_context_for_https(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    contexts: list[object] = []
+
+    def fake_urlopen(request: object, timeout: float, context: object) -> FakeResponse:
+        del request, timeout
+        contexts.append(context)
+        return FakeResponse({"ok": True})
+
+    monkeypatch.setattr(stripe_test_mode_smoke, "urlopen", fake_urlopen)
+
+    response = stripe_test_mode_smoke.request_json("GET", "https://scout.test/status")
+
+    assert response == {"ok": True}
+    assert contexts
+    assert contexts[0] is not None
+
+
 def test_stripe_smoke_status_only_passes_when_all_readiness_flags_are_true(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -50,6 +70,7 @@ def test_stripe_smoke_status_only_passes_when_all_readiness_flags_are_true(
     result = stripe_test_mode_smoke.run_smoke(
         base_url="http://scout.test",
         email="beta@example.com",
+        name="Beta Tester",
         create_checkout=False,
         package_id="standard_1000",
     )
@@ -79,6 +100,7 @@ def test_stripe_smoke_fails_when_paid_key_delivery_is_not_ready(
         stripe_test_mode_smoke.run_smoke(
             base_url="http://scout.test",
             email="beta@example.com",
+            name="Beta Tester",
             create_checkout=False,
             package_id="standard_1000",
         )
@@ -113,6 +135,7 @@ def test_stripe_smoke_can_create_checkout_without_printing_secrets(
     result = stripe_test_mode_smoke.run_smoke(
         base_url="http://scout.test",
         email="beta@example.com",
+        name="Beta Tester",
         create_checkout=True,
         package_id="standard_1000",
     )
@@ -122,7 +145,9 @@ def test_stripe_smoke_can_create_checkout_without_printing_secrets(
     assert result.checkout_session_id == "cs_test_123"
     assert result.checkout_url == "https://checkout.stripe.com/c/pay/cs_test_123"
     assert payloads[0] is None
-    assert payloads[1] == b'{"email": "beta@example.com", "package_id": "standard_1000"}'
+    assert payloads[1] == (
+        b'{"email": "beta@example.com", "name": "Beta Tester", "package_id": "standard_1000"}'
+    )
 
 
 def test_stripe_smoke_uses_beta_checkout_readiness_for_beta_trial(
@@ -155,6 +180,7 @@ def test_stripe_smoke_uses_beta_checkout_readiness_for_beta_trial(
     result = stripe_test_mode_smoke.run_smoke(
         base_url="http://scout.test",
         email="beta@example.com",
+        name="Beta Tester",
         create_checkout=True,
         package_id="beta_trial",
     )
@@ -162,7 +188,9 @@ def test_stripe_smoke_uses_beta_checkout_readiness_for_beta_trial(
     assert result.ready is True
     assert result.checkout_created is True
     assert result.checkout_session_id == "cs_test_setup_123"
-    assert payloads[1] == b'{"email": "beta@example.com", "package_id": "beta_trial"}'
+    assert payloads[1] == (
+        b'{"email": "beta@example.com", "name": "Beta Tester", "package_id": "beta_trial"}'
+    )
 
 
 def test_stripe_smoke_main_reports_checkout_next_steps(
@@ -196,7 +224,7 @@ def test_stripe_smoke_http_error_body_is_checked_for_secret_leaks(
         url="http://scout.test/v1/billing/stripe/status",
         code=503,
         msg="Service Unavailable",
-        hdrs={},
+        hdrs=Message(),
         fp=BytesIO(b'{"detail":"Stripe Checkout is not configured."}'),
     )
 

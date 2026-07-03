@@ -10,12 +10,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import ssl
 import sys
 from dataclasses import dataclass
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
+
+import certifi
 
 
 SECRET_MARKERS = ("sk_test_", "sk_live_", "whsec_", "scout_live_")
@@ -56,8 +59,13 @@ def request_json(
     if payload is not None:
         headers["Content-Type"] = "application/json"
     request = Request(url, data=data, headers=headers, method=method)
+    context = _ssl_context(url)
     try:
-        with urlopen(request, timeout=timeout) as response:
+        if context is None:
+            response_handle = urlopen(request, timeout=timeout)
+        else:
+            response_handle = urlopen(request, timeout=timeout, context=context)
+        with response_handle as response:
             raw = response.read().decode("utf-8")
     except HTTPError as exc:
         raw = exc.read().decode("utf-8", errors="replace")
@@ -72,9 +80,17 @@ def request_json(
     return parsed
 
 
+def _ssl_context(url: str) -> ssl.SSLContext | None:
+    """Return a certifi-backed TLS context for HTTPS URLs."""
+    if not url.casefold().startswith("https://"):
+        return None
+    return ssl.create_default_context(cafile=certifi.where())
+
+
 def run_smoke(
     base_url: str,
     email: str,
+    name: str,
     create_checkout: bool,
     package_id: str,
     timeout: float = 20.0,
@@ -98,7 +114,7 @@ def run_smoke(
     checkout = request_json(
         "POST",
         urljoin(normalized_base, "v1/billing/stripe/checkout-session"),
-        payload={"email": email, "package_id": package_id},
+        payload={"email": email, "name": name, "package_id": package_id},
         timeout=timeout,
     )
     if checkout.get("success") is not True:
@@ -136,6 +152,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--base-url", default="http://127.0.0.1:8421")
     parser.add_argument("--email", default="scout-beta-test@example.com")
+    parser.add_argument("--name", default="Scout Beta Tester")
     parser.add_argument(
         "--package-id",
         default="standard_1000",
@@ -157,6 +174,7 @@ def main(argv: list[str] | None = None) -> int:
         result = run_smoke(
             base_url=args.base_url,
             email=args.email,
+            name=args.name,
             create_checkout=args.create_checkout,
             package_id=args.package_id,
             timeout=args.timeout,
