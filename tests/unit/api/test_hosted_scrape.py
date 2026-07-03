@@ -10,6 +10,7 @@ from scout.api.deps import (
     get_crawler,
     get_hosted_admission_controller,
     get_hosted_account_service,
+    get_hosted_beta_signup_rate_limiter,
     get_hosted_job_queue,
     get_hosted_key_delivery_service,
     get_hosted_rate_limiter,
@@ -35,6 +36,13 @@ _TS = "2026-06-28T12:00:00Z"
 
 def _meta(url: str = "https://example.com") -> ScoutMetadata:
     return ScoutMetadata(url=url, crawled_at=_TS)
+
+
+def setup_function() -> None:
+    """Reset module-shared app state that can leak between TestClient calls."""
+    app.state.hosted_beta_signup_rate_limiter = HostedRateLimiter(
+        HostedRateLimitConfig(enabled=False)
+    )
 
 
 def _account_service_with_key() -> tuple[HostedAccountService, str, str]:
@@ -225,6 +233,39 @@ def test_hosted_beta_key_generation_rejects_removed_invite_password_field(monkey
     assert response.status_code == 422
     assert account_service.store.find_tenant_by_email("passwordless@example.com") is None
     assert delivery.requests == []
+
+
+def test_hosted_beta_key_generation_rate_limits_same_client(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    signup_limiter = HostedRateLimiter(HostedRateLimitConfig(max_requests=1, window_seconds=60))
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    app.dependency_overrides[get_hosted_beta_signup_rate_limiter] = lambda: signup_limiter
+    try:
+        client = TestClient(app)
+        first = client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "First Tester", "email": "first-rate@example.com"},
+            headers={"X-Forwarded-For": "203.0.113.10"},
+        )
+        second = client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "Second Tester", "email": "second-rate@example.com"},
+            headers={"X-Forwarded-For": "203.0.113.10"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert first.status_code == 200
+    assert second.status_code == 429
+    assert second.headers["retry-after"] == "60"
+    assert second.json()["detail"] == "Hosted beta signup rate limit exceeded."
+    assert account_service.store.find_tenant_by_email("first-rate@example.com") is not None
+    assert account_service.store.find_tenant_by_email("second-rate@example.com") is None
+    assert len(delivery.requests) == 1
+    assert delivery.requests[0].email == "first-rate@example.com"
 
 
 def test_hosted_beta_key_generation_requires_configured_delivery_service(

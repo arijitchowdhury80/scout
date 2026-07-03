@@ -756,3 +756,56 @@ python3 -m pytest tests/unit/api/test_billing_stripe_checkout.py -q
 ```
 
 Result: 2 passed, 2 passed, and 11 passed respectively.
+
+## 2026-07-03 — public beta signup rate limiting
+
+Implemented:
+
+- Added configurable public beta signup throttling for
+  `POST /v1/hosted/beta-key`.
+- Defaults: `HOSTED_BETA_SIGNUP_RATE_LIMIT_MAX_REQUESTS=3` and
+  `HOSTED_BETA_SIGNUP_RATE_LIMIT_WINDOW_SECONDS=3600`.
+- The limiter runs before account creation or API-key email delivery, and
+  returns `429` with `Retry-After` when the client exceeds the window.
+- The limiter keys on `X-Forwarded-For` first hop when present, otherwise the
+  request client host, so the hosted Caddy path can distinguish public clients.
+- Added the new settings to `.env.example`, hosted config template,
+  `configure-production-env` allowlist, distribution docs, and hosted
+  operations docs.
+
+Verification RED:
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_generation_rate_limits_same_client -q
+```
+
+Result: failed at import because the signup rate-limiter dependency did not
+exist.
+
+Verification/debugging:
+
+```bash
+python3 -m pytest tests/unit/ -q
+```
+
+Initial result after implementation: one failure. Root cause was shared
+`app.state.hosted_beta_signup_rate_limiter` leaking request history between
+tests that did not override it. The test module now resets the default limiter
+to disabled before each test; the explicit rate-limit test still overrides it
+with a real enabled limiter.
+
+Verification GREEN:
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_scrape.py -q
+python3 -m pytest tests/unit/scripts/test_vps_admin_scripts.py::test_write_hosted_config_template_creates_non_secret_template tests/unit/scripts/test_vps_admin_scripts.py::test_configure_hosted_env_allowlists_beta_signup_rate_limit_settings -q
+python3 -m pytest tests/unit/test_hosted_pricing_docs.py tests/unit/test_launch_governance_docs.py -q
+python3 -m pytest tests/unit/ -q
+python3 -m pyright scout/
+ruff check scout/ tests/ scripts/
+ruff format --check scout/ tests/ scripts/
+```
+
+Result: hosted scrape `18 passed`; script env tests `2 passed`; docs tests
+`32 passed`; full unit suite `763 passed, 8 warnings`; pyright `0 errors`;
+Ruff and format checks passed.

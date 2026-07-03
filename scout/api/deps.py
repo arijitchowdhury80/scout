@@ -97,6 +97,16 @@ def get_hosted_rate_limiter(request: Request) -> HostedRateLimiter:
     return limiter
 
 
+def get_hosted_beta_signup_rate_limiter(request: Request) -> HostedRateLimiter:
+    """Return the public beta signup rate limiter stored on app.state."""
+    limiter: HostedRateLimiter = getattr(
+        request.app.state,
+        "hosted_beta_signup_rate_limiter",
+        HostedRateLimiter(HostedRateLimitConfig(enabled=False)),
+    )
+    return limiter
+
+
 def get_hosted_admission_controller(request: Request) -> AdmissionController:
     """Return admission control for expensive hosted API execution."""
     controller: AdmissionController = getattr(

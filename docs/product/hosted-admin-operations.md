@@ -447,12 +447,19 @@ VPS or create surprise crawl/browser/LLM cost. The key runtime controls are:
 ```text
 HOSTED_RATE_LIMIT_MAX_REQUESTS=60
 HOSTED_RATE_LIMIT_WINDOW_SECONDS=60
+HOSTED_BETA_SIGNUP_RATE_LIMIT_MAX_REQUESTS=3
+HOSTED_BETA_SIGNUP_RATE_LIMIT_WINDOW_SECONDS=3600
 HOSTED_MAX_ACTIVE_REQUESTS=8
 HOSTED_JOB_QUEUE_MAX_SIZE=250
 HOSTED_JOB_QUEUE_WORKERS=2
 HOSTED_ASYNC_FIRST=false
 CAPACITY_RETRY_AFTER_SECONDS=5
 ```
+
+`HOSTED_BETA_SIGNUP_RATE_LIMIT_*` is keyed by the apparent client address
+(`X-Forwarded-For` first hop when present, otherwise the request client host).
+It limits public `/v1/hosted/beta-key` registration attempts before account
+creation or email delivery.
 
 Per-key rate-limit overflow returns `429` and spends no credits. Worker
 saturation returns `202 Accepted` for expensive hosted acquisition endpoints

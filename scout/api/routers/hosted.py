@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -16,6 +16,7 @@ from scout.api.deps import (
     get_crawler_optional,
     get_hosted_admission_controller,
     get_hosted_account_service,
+    get_hosted_beta_signup_rate_limiter,
     get_hosted_job_queue,
     get_hosted_key_delivery_service,
     get_hosted_payment_provisioning_service,
@@ -328,8 +329,10 @@ def _hosted_account_links() -> dict[str, str]:
 )
 async def hosted_beta_key(
     req: HostedBetaKeyRequest,
+    request: Request,
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     delivery_service: HostedApiKeyDeliveryService = Depends(get_hosted_key_delivery_service),
+    signup_rate_limiter: HostedRateLimiter = Depends(get_hosted_beta_signup_rate_limiter),
 ) -> HostedBetaKeyResponse:
     """Provision a hosted beta API key after email capture."""
     if not settings.hosted_beta_signup_enabled:
@@ -337,6 +340,7 @@ async def hosted_beta_key(
             status_code=503,
             detail="Hosted beta key generation is disabled.",
         )
+    _enforce_beta_signup_rate_limit(signup_rate_limiter, request)
     if not delivery_service.enabled:
         account_service.record_signup_event(
             _signup_event(
@@ -434,6 +438,33 @@ def _signup_event(
         delivery_status=delivery_status,
         reason=reason,
     )
+
+
+def _enforce_beta_signup_rate_limit(
+    signup_rate_limiter: HostedRateLimiter,
+    request: Request,
+) -> None:
+    """Rate-limit public beta signup attempts by apparent client address."""
+    decision = signup_rate_limiter.admit(_beta_signup_client_key(request))
+    if decision.allowed:
+        return
+    raise HTTPException(
+        status_code=429,
+        detail="Hosted beta signup rate limit exceeded.",
+        headers={"Retry-After": str(decision.retry_after_seconds)},
+    )
+
+
+def _beta_signup_client_key(request: Request) -> str:
+    """Resolve the client key used for public beta signup throttling."""
+    forwarded_for = request.headers.get("x-forwarded-for", "")
+    if forwarded_for:
+        first_hop = forwarded_for.split(",", maxsplit=1)[0].strip()
+        if first_hop:
+            return first_hop
+    if request.client and request.client.host:
+        return request.client.host
+    return "unknown-client"
 
 
 @router.post("/scrape", response_model=HostedScrapeResponse)

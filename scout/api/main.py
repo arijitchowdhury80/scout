@@ -79,6 +79,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             window_seconds=settings.hosted_rate_limit_window_seconds,
         )
     )
+    app.state.hosted_beta_signup_rate_limiter = HostedRateLimiter(
+        HostedRateLimitConfig(
+            max_requests=settings.hosted_beta_signup_rate_limit_max_requests,
+            window_seconds=settings.hosted_beta_signup_rate_limit_window_seconds,
+        )
+    )
     app.state.hosted_admission_controller = AdmissionController(
         max_active=settings.hosted_max_active_requests,
         retry_after_seconds=settings.capacity_retry_after_seconds,

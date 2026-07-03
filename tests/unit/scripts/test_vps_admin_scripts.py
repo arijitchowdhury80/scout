@@ -341,6 +341,8 @@ def test_write_hosted_config_template_creates_non_secret_template(tmp_path: Path
     text = output.read_text(encoding="utf-8")
     assert "Wrote hosted config template" in result.stdout
     assert "HOSTED_BETA_SIGNUP_ENABLED=true" in text
+    assert "HOSTED_BETA_SIGNUP_RATE_LIMIT_MAX_REQUESTS=3" in text
+    assert "HOSTED_BETA_SIGNUP_RATE_LIMIT_WINDOW_SECONDS=3600" in text
     assert "HOSTED_KEY_DELIVERY_SMTP_HOST=" in text
     assert 'HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"' in text
     assert "STRIPE_SECRET_KEY=" in text
@@ -349,6 +351,15 @@ def test_write_hosted_config_template_creates_non_secret_template(tmp_path: Path
     assert "sk_live_" not in text
     assert "whsec_" not in text
     assert "smtp-secret" not in text
+
+
+def test_configure_hosted_env_allowlists_beta_signup_rate_limit_settings() -> None:
+    script_text = (REPO_ROOT / "scripts" / "scout-vps-configure-hosted-env").read_text(
+        encoding="utf-8"
+    )
+
+    assert "HOSTED_BETA_SIGNUP_RATE_LIMIT_MAX_REQUESTS" in script_text
+    assert "HOSTED_BETA_SIGNUP_RATE_LIMIT_WINDOW_SECONDS" in script_text
 
 
 def test_write_hosted_config_template_refuses_overwrite_without_force(tmp_path: Path) -> None:

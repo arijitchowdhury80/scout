@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     hosted_key_delivery_smtp_use_tls: bool = True
     hosted_rate_limit_max_requests: int = 60
     hosted_rate_limit_window_seconds: int = 60
+    hosted_beta_signup_rate_limit_max_requests: int = 3
+    hosted_beta_signup_rate_limit_window_seconds: int = 3600
     hosted_max_active_requests: int = 8
     hosted_job_queue_max_size: int = 250
     hosted_job_queue_workers: int = 2
