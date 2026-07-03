@@ -109,7 +109,7 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
         "hosted API key email delivery not configured",
         "Stripe Checkout not configured",
         "Stripe webhook secret not configured",
-        "beta API-key email registration not ready",
+        "card-backed beta checkout not ready",
         "paid checkout/key delivery not ready",
     ]
     assert result.missing_environment_keys == [
@@ -119,7 +119,7 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
     ]
 
 
-def test_hosted_readiness_allows_beta_when_email_key_delivery_is_ready_even_if_stripe_is_not(
+def test_hosted_readiness_blocks_beta_when_email_key_delivery_is_ready_but_checkout_is_not(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     responses = {
@@ -150,10 +150,11 @@ def test_hosted_readiness_allows_beta_when_email_key_delivery_is_ready_even_if_s
 
     result = hosted_readiness_check.run_readiness("https://scout.chowmes.com/")
 
-    assert result.ready_for_beta_signup is True
+    assert result.ready_for_beta_signup is False
     assert result.blockers == [
         "Stripe Checkout not configured",
         "Stripe webhook secret not configured",
+        "card-backed beta checkout not ready",
         "paid checkout/key delivery not ready",
     ]
 
