@@ -50,7 +50,8 @@ Distribution:
 - branch-qualified GitHub install,
 - Docker build from source,
 - GitHub Release artifacts only after a real `v*` tag smoke,
-- hosted beta keys for approved testers.
+- hosted beta keys through self-service name/email registration with finite
+  credits and rate limits.
 
 No public registries.
 

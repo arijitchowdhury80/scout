@@ -657,6 +657,7 @@ def test_public_website_describes_self_service_beta_not_invite_only() -> None:
     ]
     banned_phrases = [
         "invite-only",
+        "invited beta testers",
         "approved testers",
         "approved private beta testers",
         "waiting for manual operator provisioning",

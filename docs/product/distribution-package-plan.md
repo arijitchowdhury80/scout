@@ -170,7 +170,7 @@ Hosted Scout is the primary tester-facing beta distribution path.
 
 Hosted beta constraints:
 
-- approved testers only,
+- self-service beta registration with finite credits and rate limits,
 - generated API keys,
 - finite credits,
 - separate metering for browser/rendered work,

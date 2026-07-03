@@ -70,7 +70,8 @@ The legacy app UI is not a launch surface until it is rebuilt and certified.
       `docs/product/unit-economics-and-pricing-model-2026-06-29.md`.
       Decision record:
       `docs/product/founder-decision-record-SCOUT-DEC-20260629-02.md`.
-      Result: local remains free, hosted beta remains invite-only and metered,
+      Result: local remains free, hosted beta uses self-service name/email
+      registration and remains metered,
       `$22`/`$9` are rejected as arbitrary placeholders,
       browser/rendered/LLM work is separately metered, and no unlimited hosted
       crawling should be sold. Final public self-serve paid pricing remains a

@@ -13,8 +13,9 @@ Short answer:
 
 - **Local Scout:** credible for private beta because the user owns compute,
   browser, storage, and artifacts.
-- **Hosted Scout:** credible only for controlled private beta with finite
-  credits, approved testers, and current limits.
+- **Hosted Scout:** credible only for controlled private beta with
+  self-service registration, finite credits, rate limits, SMTP key delivery,
+  and current limits.
 - **Public hosted Scout:** blocked until production storage, distributed
   throttling, async workers, Stripe smoke, final legal, and dependency security
   gates close.
@@ -60,7 +61,7 @@ Hosted Scout private beta
 | Cross-tenant run access | Hosted run retrieval checks persisted `tenant_id`; other tenants receive `404` | Object-storage IAM and signed URL review before public hosted launch |
 | Artifact path traversal | Hosted artifact reads are restricted to known files inside the run output dir | Move from local paths to tenant-scoped object keys |
 | SSRF | Hosted scrape/crawl/products/run routes enforce URL safety before crawler work | Deployment egress policy and redirect/retry revalidation proof |
-| Abuse and ToS violations | Hosted access is approved-testers-only and finite-credit | Public acceptable-use, suspension, and domain policy |
+| Abuse and ToS violations | Hosted access is self-service but finite-credit, rate-limited, and attributable to name/email plus API-key records | Public acceptable-use, suspension, and domain policy |
 | Dependency CVE | Audit is visible; Crawl4AI/lxml blocker documented | Public launch blocked until clean audit or approved exception |
 | Stripe/webhook security | Deterministic signature/provisioning tests exist | Real Stripe test-mode checkout and webhook smoke still open |
 | Secrets in repo | Targeted and entropy-aware secret scans recorded | Maintain blocking secret scan on final release commits |

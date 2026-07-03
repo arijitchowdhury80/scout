@@ -74,6 +74,11 @@ def test_current_launch_docs_use_self_service_beta_framing() -> None:
         "docs/product/private-beta-launch-plan.md",
         "docs/product/launch-decision-dashboard-2026-06-29.md",
         "docs/product/launch-gate-burndown-2026-06-29.md",
+        "docs/product/launch-evidence-index-2026-06-29.md",
+        "docs/product/release-checklist.md",
+        "docs/product/scalability-security-audit-2026-06-29.md",
+        "docs/product/registry-publishing-policy-2026-06-29.md",
+        "docs/product/distribution-package-plan.md",
         "docs/product/hosted-economics-and-usage-limits.md",
     ]
     banned = [
