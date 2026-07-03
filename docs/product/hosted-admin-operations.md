@@ -13,7 +13,7 @@ Scout hosted beta has API-key based access, not a login system.
   when SMTP delivery is configured.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
-- Self-service signup emails the raw API key and never returns it in the HTTP response. Operator CLI provisioning still prints the raw key once. Scout stores only a hash.
+- Self-service signup emails the raw API key and never returns it in the HTTP response or OpenAPI response schema. If SMTP delivery is not configured, `/v1/hosted/beta-key` fails closed with `503` before creating an account. Operator CLI provisioning still prints the raw key once. Scout stores only a hash.
 - Stripe checkout registration is available from `/pricing` for `$0` beta trial
   payment-method verification and paid credit packages once Stripe settings are
   configured. The `$0` beta trial uses Stripe Checkout `mode=setup` with card
@@ -183,6 +183,8 @@ keys, not user sessions:
 
 - self-service signup captures name and email, provisions one tenant, emails
   one raw API key, and stores only the key hash;
+- self-service signup does not expose `raw_api_key` in the HTTP response or
+  public OpenAPI schema;
 - admin provisioning captures name and email through the operator command and
   prints the raw API key once;
 - API callers identify themselves only by `Authorization: Bearer scout_live_...`;
