@@ -517,9 +517,12 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     assert 'name="name"' in html
     assert 'name="email"' in html
     assert 'name="package_id"' in html
+    assert 'value="beta_trial"' in html
     assert 'value="standard_1000"' in html
     assert 'value="standard_3000"' in html
     assert 'value="standard_15000"' in html
+    assert "$0 beta trial" in normalized_html
+    assert "Stripe setup-mode checkout" in normalized_html
     assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' in html
     assert 'id="pricingCheckoutStatus"' in html
     assert 'src="./assets/pricing.js"' in html

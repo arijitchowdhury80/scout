@@ -79,9 +79,9 @@
             <p class="wi-label wi-label--accent">Buy hosted credits</p>
             <h2 id="pricing-checkout-title">Start a hosted Scout checkout.</h2>
             <p>
-              Register your name and email, choose a pay-as-you-go package, and
-              Scout will deliver your hosted API key after Stripe confirms
-              payment.
+              Register your name and email, choose the $0 beta trial or a
+              pay-as-you-go package, and Scout will deliver your hosted API key
+              after Stripe confirms payment or setup.
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted credit checkout">
@@ -123,6 +123,7 @@
 
               <label for="pricingCheckoutPackage">Credit package</label>
               <select id="pricingCheckoutPackage" name="package_id" required>
+                <option value="beta_trial">$0 beta trial - 100 standard credits for 30 days</option>
                 <option value="standard_1000">$10 - 1,000 standard credits</option>
                 <option value="standard_3000">$25 - 3,000 standard credits</option>
                 <option value="standard_15000">$100 - 15,000 standard credits</option>
@@ -130,8 +131,9 @@
 
               <button class="wi-btn" type="submit">Continue to Stripe</button>
               <p id="pricingCheckoutStatus" class="beta-status" role="status" aria-live="polite">
-                Stripe Checkout creates the hosted account, records the purchase,
-                and emails the API key after the signed webhook provisions access.
+                Stripe setup-mode checkout verifies the beta trial payment
+                method at $0. Paid packages use payment checkout. In both cases,
+                Scout emails the API key after the signed webhook provisions access.
               </p>
             </form>
           </div>
