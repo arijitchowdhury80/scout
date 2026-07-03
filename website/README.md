@@ -54,9 +54,10 @@ Public website paths served by `scout serve`:
 
 Hosted beta registration:
 
-- The beta section posts to `/v1/hosted/beta-key`. Scout records the tester,
-  provisions a finite-credit hosted beta account, and emails the API key when
-  SMTP delivery is configured.
+- The beta section posts to `/v1/billing/stripe/checkout-session` when
+  card-backed setup is ready. If setup is not ready, it posts to
+  `/v1/hosted/beta-key` to record a pending request only; that fallback does
+  not provision a tenant or email a key directly.
 - The Scout API now serves this website at `/`, so the registration form and
   hosted API are same-origin when launched through `scout serve`.
 - The page never contains SMTP, Stripe, or Scout secret keys; it only collects

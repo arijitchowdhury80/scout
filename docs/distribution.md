@@ -12,12 +12,15 @@ distribution paths.
 ## Hosted HTTP Beta
 
 Beta testers request finite-credit hosted access from `/beta`. The public beta
-flow collects name and email, provisions a finite-credit account only when SMTP
-delivery is configured, and emails the API key once. Public browser/API signup
-never returns raw API keys. The delivery email is signed by Arijit Chowdhury,
-Founder, Chowmes, and includes the beta credit limit, account/balance link,
-usage ledger link, purchase history link, docs, pricing, secret-handling
-warning, and support reply instructions.
+flow collects name and email. When hosted billing is ready, the form starts a
+card-backed $0 `beta_trial` Stripe setup; the signed webhook provisions the
+finite-credit account and SMTP emails the API key once. When hosted billing is
+not ready, `/v1/hosted/beta-key` records a request queue only. Public
+browser/API signup never returns raw API keys and never issues a key directly.
+The delivery email is signed by Arijit Chowdhury, Founder, Chowmes, and
+includes the beta credit limit, account/balance link, usage ledger link,
+purchase history link, docs, pricing, secret-handling warning, and support
+reply instructions.
 
 ```bash
 export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"

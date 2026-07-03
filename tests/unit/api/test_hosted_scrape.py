@@ -132,7 +132,9 @@ def test_hosted_beta_key_generation_is_disabled_when_signup_disabled(monkeypatch
     assert resp.json()["detail"] == "Hosted beta key generation is disabled."
 
 
-def test_hosted_beta_key_generation_uses_email_registration(monkeypatch) -> None:
+def test_hosted_beta_key_generation_records_request_without_card_setup_bypass(
+    monkeypatch,
+) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
     monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
@@ -151,10 +153,15 @@ def test_hosted_beta_key_generation_uses_email_registration(monkeypatch) -> None
     finally:
         app.dependency_overrides.clear()
 
-    assert resp.status_code == 200
+    assert resp.status_code == 202
     assert resp.json()["email"] == "email-registration@example.com"
-    assert account_service.store.find_tenant_by_email("email-registration@example.com") is not None
-    assert delivery.requests[0].email == "email-registration@example.com"
+    assert resp.json()["delivery_status"] == "pending_delivery"
+    assert account_service.store.find_tenant_by_email("email-registration@example.com") is None
+    assert delivery.requests == []
+    signup_events = account_service.list_signup_events()
+    assert signup_events[0].email == "email-registration@example.com"
+    assert signup_events[0].status == "pending_delivery"
+    assert signup_events[0].reason == "Awaiting card-backed beta setup or operator delivery."
 
 
 def test_hosted_beta_key_generation_email_registration_never_exposes_raw_key(
@@ -178,16 +185,16 @@ def test_hosted_beta_key_generation_email_registration_never_exposes_raw_key(
     finally:
         app.dependency_overrides.clear()
 
-    assert resp.status_code == 200
+    assert resp.status_code == 202
     data = resp.json()
     assert data["email"] == "self-service@example.com"
-    assert data["delivery_status"] == "delivered"
-    assert account_service.store.find_tenant_by_email("self-service@example.com") is not None
-    assert delivery.requests[0].email == "self-service@example.com"
-    assert delivery.requests[0].raw_api_key not in resp.text
+    assert data["delivery_status"] == "pending_delivery"
+    assert account_service.store.find_tenant_by_email("self-service@example.com") is None
+    assert delivery.requests == []
+    assert "scout_live_" not in resp.text
 
 
-def test_hosted_beta_key_generation_requires_name_email_and_creates_usable_key(
+def test_hosted_beta_key_generation_requires_name_email_and_records_pending_request(
     monkeypatch,
 ) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
@@ -206,43 +213,29 @@ def test_hosted_beta_key_generation_requires_name_email_and_creates_usable_key(
             },
         )
         data = resp.json()
-        me_resp = client.get(
-            "/v1/hosted/me",
-            headers={"Authorization": f"Bearer {delivery.requests[0].raw_api_key}"},
-        )
     finally:
         app.dependency_overrides.clear()
 
-    assert resp.status_code == 200
+    assert resp.status_code == 202
     assert data["success"] is True
     assert data["email"] == "new-tester@example.com"
     assert data["name"] == "New Tester"
     assert data["plan"] == "hosted_beta_pass"
-    assert data["scopes"] == ["runs:create"]
-    assert data["delivery_status"] == "delivered"
+    assert data["scopes"] == []
+    assert data["delivery_status"] == "pending_delivery"
     assert "raw_api_key" not in data
-    assert (
-        data["standard_credits_remaining"]
-        == plan_limits(HostedPlan.HOSTED_BETA_PASS).standard_credits
-    )
-    assert (
-        data["browser_credits_remaining"]
-        == plan_limits(HostedPlan.HOSTED_BETA_PASS).browser_credits
-    )
-    assert me_resp.status_code == 200
-    assert me_resp.json()["tenant_id"] == data["tenant_id"]
+    assert data["standard_credits_remaining"] == 0
+    assert data["browser_credits_remaining"] == 0
+    assert account_service.store.find_tenant_by_email("new-tester@example.com") is None
     signup_events = account_service.list_signup_events()
     assert signup_events[0].email == "new-tester@example.com"
     assert signup_events[0].name == "New Tester"
-    assert signup_events[0].status == "delivered"
+    assert signup_events[0].status == "pending_delivery"
     assert signup_events[0].source == "email_beta_registration"
-    assert signup_events[0].tenant_id == data["tenant_id"]
-    assert signup_events[0].key_id == data["key_id"]
-    assert signup_events[0].delivery_status == "delivered"
-    assert delivery.requests[0].email == "new-tester@example.com"
-    assert delivery.requests[0].name == "New Tester"
-    assert delivery.requests[0].raw_api_key not in resp.text
-    assert delivery.requests[0].raw_api_key not in me_resp.text
+    assert signup_events[0].tenant_id == ""
+    assert signup_events[0].key_id == ""
+    assert signup_events[0].delivery_status == "pending_delivery"
+    assert delivery.requests == []
 
 
 def test_hosted_beta_key_generation_requires_name_and_email(monkeypatch) -> None:
@@ -318,14 +311,13 @@ def test_hosted_beta_key_generation_rate_limits_same_client(monkeypatch) -> None
     finally:
         app.dependency_overrides.clear()
 
-    assert first.status_code == 200
+    assert first.status_code == 202
     assert second.status_code == 429
     assert second.headers["retry-after"] == "60"
     assert second.json()["detail"] == "Hosted beta signup rate limit exceeded."
-    assert account_service.store.find_tenant_by_email("first-rate@example.com") is not None
+    assert account_service.store.find_tenant_by_email("first-rate@example.com") is None
     assert account_service.store.find_tenant_by_email("second-rate@example.com") is None
-    assert len(delivery.requests) == 1
-    assert delivery.requests[0].email == "first-rate@example.com"
+    assert delivery.requests == []
 
 
 def test_hosted_beta_key_generation_queues_request_when_delivery_is_not_configured(
@@ -361,7 +353,7 @@ def test_hosted_beta_key_generation_queues_request_when_delivery_is_not_configur
     assert signup_events[0].email == "no-email@example.com"
     assert signup_events[0].name == "Tester"
     assert signup_events[0].status == "pending_delivery"
-    assert signup_events[0].reason == "Hosted API key delivery is not configured."
+    assert signup_events[0].reason == "Awaiting card-backed beta setup or operator delivery."
 
 
 def test_hosted_beta_key_generation_does_not_duplicate_pending_delivery_requests(
@@ -388,7 +380,7 @@ def test_hosted_beta_key_generation_does_not_duplicate_pending_delivery_requests
     assert second.json()["delivery_status"] == "pending_delivery"
     assert second.json()["warning"] == (
         "Your beta registration is already recorded. Scout will email your API key "
-        "when hosted key delivery is configured."
+        "after card-backed beta setup or operator delivery."
     )
     assert account_service.store.find_tenant_by_email("pending@example.com") is None
     signup_events = account_service.list_signup_events()
@@ -430,15 +422,18 @@ def test_hosted_beta_key_status_reports_pending_request_without_raw_key(monkeypa
 def test_hosted_beta_key_status_reports_delivered_account_without_raw_key(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
+    account_service.provision_account(
+        email="delivered-status@example.com",
+        name="Delivered Status",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+        key_name="Delivered status key",
+    )
     _enable_beta_email_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     try:
         client = TestClient(app)
-        client.post(
-            "/v1/hosted/beta-key",
-            json={"name": "Delivered Status", "email": "delivered-status@example.com"},
-        )
         response = client.post(
             "/v1/hosted/beta-key/status",
             json={"email": "delivered-status@example.com"},
@@ -450,12 +445,13 @@ def test_hosted_beta_key_status_reports_delivered_account_without_raw_key(monkey
     data = response.json()
     assert data["success"] is True
     assert data["email"] == "delivered-status@example.com"
-    assert data["status"] == "delivered"
-    assert data["delivery_status"] == "delivered"
+    assert data["status"] == "account_exists"
+    assert data["delivery_status"] == ""
     assert data["has_account"] is True
     assert data["tenant_id"].startswith("tenant_")
     assert data["key_id"].startswith("key_")
-    assert delivery.requests[0].raw_api_key not in response.text
+    assert "raw_api_key" not in data
+    assert "scout_live_" not in response.text
 
 
 def test_hosted_beta_key_status_unknown_email_is_non_enumerating() -> None:
@@ -505,21 +501,24 @@ def test_hosted_beta_key_status_response_schema_does_not_expose_raw_key() -> Non
 def test_hosted_beta_key_reissue_emails_new_key_without_exposing_it(monkeypatch) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
+    existing = account_service.provision_account(
+        email="recover@example.com",
+        name="Recoverable Tester",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+        key_name="Recoverable tester key",
+    )
     _enable_beta_email_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
     try:
         client = TestClient(app)
-        signup = client.post(
-            "/v1/hosted/beta-key",
-            json={"name": "Recoverable Tester", "email": "recover@example.com"},
-        )
-        original_key = delivery.requests[0].raw_api_key
+        original_key = existing.raw_api_key
         reissue = client.post(
             "/v1/hosted/beta-key/reissue",
             json={"email": "recover@example.com"},
         )
-        new_key = delivery.requests[1].raw_api_key
+        new_key = delivery.requests[0].raw_api_key
         old_me = client.get(
             "/v1/hosted/me",
             headers={"Authorization": f"Bearer {original_key}"},
@@ -531,7 +530,6 @@ def test_hosted_beta_key_reissue_emails_new_key_without_exposing_it(monkeypatch)
     finally:
         app.dependency_overrides.clear()
 
-    assert signup.status_code == 200
     assert reissue.status_code == 200
     data = reissue.json()
     assert data["success"] is True
@@ -547,8 +545,8 @@ def test_hosted_beta_key_reissue_emails_new_key_without_exposing_it(monkeypatch)
     assert old_me.status_code == 403
     assert old_me.json()["detail"] == "API key is not active."
     assert new_me.status_code == 200
-    assert delivery.requests[1].checkout_session_id == "beta_key_reissue"
-    assert delivery.requests[1].email == "recover@example.com"
+    assert delivery.requests[0].checkout_session_id == "beta_key_reissue"
+    assert delivery.requests[0].email == "recover@example.com"
     signup_events = account_service.list_signup_events()
     assert signup_events[0].status == "reissued"
     assert signup_events[0].source == "email_beta_key_reissue"
@@ -627,7 +625,9 @@ def test_hosted_beta_key_request_schema_requires_name_email_and_no_invite_passwo
     assert "invite_password" not in schema["properties"]
 
 
-def test_hosted_beta_key_generation_rolls_back_when_delivery_fails(monkeypatch) -> None:
+def test_hosted_beta_key_generation_records_request_even_when_delivery_would_fail(
+    monkeypatch,
+) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService(
         HostedApiKeyDeliveryResult(
@@ -648,20 +648,30 @@ def test_hosted_beta_key_generation_rolls_back_when_delivery_fails(monkeypatch) 
     finally:
         app.dependency_overrides.clear()
 
-    assert resp.status_code == 502
-    assert resp.json()["detail"] == "SMTP delivery failed: smtp down"
+    assert resp.status_code == 202
+    assert resp.json()["delivery_status"] == "pending_delivery"
     assert account_service.store.find_tenant_by_email("retry@example.com") is None
+    assert delivery.requests == []
     signup_events = account_service.list_signup_events()
     assert signup_events[0].email == "retry@example.com"
     assert signup_events[0].name == "Retry Tester"
-    assert signup_events[0].status == "failed"
-    assert signup_events[0].reason == "SMTP delivery failed: smtp down"
-    assert signup_events[0].delivery_status == "failed"
+    assert signup_events[0].status == "pending_delivery"
+    assert signup_events[0].reason == "Awaiting card-backed beta setup or operator delivery."
+    assert signup_events[0].delivery_status == "pending_delivery"
 
 
-def test_hosted_beta_key_generation_rejects_duplicate_email(monkeypatch) -> None:
+def test_hosted_beta_key_generation_does_not_duplicate_pending_or_existing_email(
+    monkeypatch,
+) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
     delivery = FakeDeliveryService()
+    account_service.provision_account(
+        email="existing@example.com",
+        name="Existing User",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+        key_name="Existing beta key",
+    )
     _enable_beta_email_registration(monkeypatch)
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
@@ -675,16 +685,24 @@ def test_hosted_beta_key_generation_rejects_duplicate_email(monkeypatch) -> None
             "/v1/hosted/beta-key",
             json={"name": "Second User", "email": "dupe@example.com", "key_name": "Second"},
         )
+        existing = client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "Existing User", "email": "existing@example.com"},
+        )
     finally:
         app.dependency_overrides.clear()
 
-    assert first.status_code == 200
-    assert second.status_code == 409
-    assert second.json()["detail"] == "A hosted beta key already exists for this email."
+    assert first.status_code == 202
+    assert second.status_code == 202
+    assert second.json()["delivery_status"] == "pending_delivery"
+    assert existing.status_code == 202
+    assert existing.json()["delivery_status"] == "pending_delivery"
     signup_events = account_service.list_signup_events()
-    assert signup_events[0].email == "dupe@example.com"
-    assert signup_events[0].status == "duplicate"
-    assert signup_events[1].status == "delivered"
+    assert [event.status for event in signup_events if str(event.email) == "dupe@example.com"] == [
+        "pending_delivery"
+    ]
+    assert account_service.store.find_tenant_by_email("existing@example.com") is not None
+    assert delivery.requests == []
 
 
 def test_hosted_scrape_rejects_unsafe_url_without_calling_crawler() -> None:

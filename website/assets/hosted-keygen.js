@@ -156,7 +156,7 @@
       if (status.beta_signup_enabled === true) {
         if (submitButton) submitButton.disabled = false;
         setStatus(
-          "Card-backed beta setup is not ready. Scout will record your request and email the API key when delivery is configured.",
+          "Card-backed beta setup is not ready. Scout will record your request for card-backed setup or operator delivery.",
           "success",
         );
         return;
@@ -217,7 +217,7 @@
     }
     if (payload.delivery_status === "pending_delivery") {
       setStatus(
-        `Scout recorded your beta request for ${email}. The API key will be emailed when hosted key delivery is configured.`,
+        `Scout recorded your beta request for ${email}. The API key will be emailed after card-backed beta setup or operator delivery.`,
         "success",
       );
     } else {

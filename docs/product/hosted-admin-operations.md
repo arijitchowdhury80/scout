@@ -8,17 +8,19 @@ Status: private beta operations
 Scout hosted beta has API-key based access, not a login system.
 
 - Public beta testers start access on `/beta`, which posts name and email to
-  `POST /v1/hosted/beta-key`. Scout records the tester, provisions a
-  finite-credit hosted beta account, and SMTP delivers the raw API key once.
-  Public signup never shows the raw key in the browser.
+  `POST /v1/hosted/beta-key` only while card-backed setup is not ready. That
+  public route records a pending tester request; it does not provision a
+  tenant, email a key, or bypass card-backed setup. Public signup never shows
+  the raw key in the browser.
 - Paid hosted credit packages start from `/pricing`, which posts to
   `POST /v1/billing/stripe/checkout-session`. Stripe remains the paid
   purchase path and the card-backed $0 beta setup path when hosted billing is
   configured.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
-- Self-service signup emails the raw API key when SMTP delivery is configured.
-  Public browser/API signup never returns `raw_api_key`; operator CLI
+- Self-service card-backed setup emails the raw API key only after the signed
+  Stripe webhook provisions the account and SMTP delivery succeeds. Public
+  browser/API request capture never returns `raw_api_key`; operator CLI
   provisioning is the only flow that prints the raw key once. Scout stores only
   a hash.
 - Queued beta signups can be inspected with `list-signups` and processed after
@@ -591,9 +593,11 @@ It does not return raw hosted API keys, key hashes, SMTP secrets, Stripe
 secrets, or customer payment details.
 
 Hosted self-service key generation intentionally does not use a shared password
-gate. The beta flow is name plus email capture, account registration, key
-generation, and one-time API-key email delivery. Paid Stripe checkout remains
-the separate credit-package path.
+gate. The beta flow is name plus email capture, card-backed `$0` setup when
+ready, signed webhook account registration, key generation, and one-time
+API-key email delivery. When checkout is not ready, the public route records a
+request queue for later card-backed setup or protected operator delivery. Paid
+Stripe checkout remains the separate credit-package path.
 
 ## Login And Signup Status
 
