@@ -634,7 +634,8 @@ def test_homepage_has_hosted_playground_controls_under_demo_flow() -> None:
     assert "Acquire" in html
     assert "Intelligence" in html
     assert "Commerce" in html
-    assert "Evidence And Exports" in html
+    assert "Structured Records" in html
+    assert "Evidence And Exports" not in html
     assert 'id="playgroundForm"' in html
     assert 'name="workflow"' in html
     for capability in (
