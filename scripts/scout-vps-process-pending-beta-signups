@@ -24,9 +24,9 @@ Options:
 
 Delivery:
   Uses SmtpHostedApiKeyDeliveryService and requires HOSTED_KEY_DELIVERY_SMTP_HOST
-  plus HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL in the running container. If auth is
-  required, HOSTED_KEY_DELIVERY_SMTP_USERNAME and HOSTED_KEY_DELIVERY_SMTP_PASSWORD
-  must also be configured.
+  plus HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL in the running container. Production
+  hosted delivery also requires HOSTED_KEY_DELIVERY_SMTP_USERNAME and
+  HOSTED_KEY_DELIVERY_SMTP_PASSWORD.
 
 Secret safety:
   This command does not print SMTP passwords, one-time API keys, or key hashes.

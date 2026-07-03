@@ -89,6 +89,8 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "paid",
             "all",
             "HOSTED_KEY_DELIVERY_SMTP_HOST",
+            "HOSTED_KEY_DELIVERY_SMTP_USERNAME",
+            "HOSTED_KEY_DELIVERY_SMTP_PASSWORD",
             "STRIPE_WEBHOOK_SECRET",
         ],
         "scout-vps-configure-hosted-env": [
@@ -146,12 +148,16 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "--yes",
             "pending_delivery",
             "SmtpHostedApiKeyDeliveryService",
+            "HOSTED_KEY_DELIVERY_SMTP_USERNAME",
+            "HOSTED_KEY_DELIVERY_SMTP_PASSWORD",
             "/data/hosted_accounts.sqlite",
         ],
         "scout-vps-send-hosted-test-email": [
             "Send a Scout hosted API-key delivery smoke-test email",
             "--email",
             "HOSTED_KEY_DELIVERY_SMTP_HOST",
+            "HOSTED_KEY_DELIVERY_SMTP_USERNAME",
+            "HOSTED_KEY_DELIVERY_SMTP_PASSWORD",
             "No hosted account is created",
             "smoke_test=True",
         ],
@@ -493,6 +499,40 @@ def test_validate_hosted_config_reports_missing_required_keys_without_secret_val
     assert "STRIPE_STANDARD_3000_PRICE_ID" in output
     assert "STRIPE_STANDARD_15000_PRICE_ID" in output
     assert "sk_test_should_not_print" not in output
+
+
+def test_validate_hosted_config_requires_smtp_credentials_for_beta(tmp_path: Path) -> None:
+    secrets_file = tmp_path / "scout-production.env"
+    secrets_file.write_text(
+        "\n".join(
+            [
+                "HOSTED_BETA_SIGNUP_ENABLED=true",
+                "HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com",
+                "HOSTED_KEY_DELIVERY_SMTP_PORT=587",
+                "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL=scout@chowmes.com",
+                "HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            str(REPO_ROOT / "scripts" / "scout-validate-hosted-config"),
+            "--secrets-file",
+            str(secrets_file),
+            "--require",
+            "beta",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+
+    assert result.returncode == 2
+    assert "HOSTED_KEY_DELIVERY_SMTP_USERNAME" in output
+    assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" in output
 
 
 def test_validate_hosted_config_accepts_complete_beta_and_paid_config(tmp_path: Path) -> None:

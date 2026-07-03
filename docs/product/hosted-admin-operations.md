@@ -119,6 +119,11 @@ scripts/scout-hosted-admin write-config-template \
 The template contains only placeholder values and safe defaults. It refuses to
 overwrite an existing file unless `--force` is passed.
 
+Hosted beta delivery requires authenticated SMTP configuration in production.
+`validate-config --require beta` fails unless host, port, from address,
+username, and password are all present. This keeps local preflight aligned with
+the hosted SaaS readiness gate.
+
 ```bash
 HOSTED_BETA_SIGNUP_ENABLED=true
 HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com
