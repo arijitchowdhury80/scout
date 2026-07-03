@@ -9,14 +9,18 @@ Scout hosted beta has API-key based access, not a login system.
 
 - Public beta testers start access through the hosted beta key form on `/beta`,
   which posts name and email to `POST /v1/hosted/beta-key`. Scout provisions the
-  hosted account and SMTP delivers the raw API key once. Without SMTP
-  configuration, self-service signup fails closed before creating an account.
+  hosted account and SMTP delivers the raw API key once when SMTP is configured.
+  Without SMTP configuration, Scout records a `pending_delivery` signup event,
+  returns `202 Accepted`, and creates no tenant or API key until an operator
+  processes the queue after delivery is configured.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
 - Self-service signup emails the raw API key when SMTP delivery is configured.
   Public browser/API signup never returns `raw_api_key`; operator CLI
   provisioning is the only flow that prints the raw key once. Scout stores only
   a hash.
+- Queued beta signups can be inspected with `list-signups` and processed after
+  SMTP configuration with `process-pending-signups`.
 - Stripe checkout forms are available from `/pricing` for paid hosted credit
   packages and from `/beta` for optional `$0` card-backed beta setup. Both
   forms are readiness-gated by `/v1/billing/stripe/status` and stay disabled
@@ -152,6 +156,28 @@ The smoke email uses the same hosted key-delivery SMTP path, but it does not
 create a hosted account, grant credits, issue a real API key, or print SMTP
 secrets. The email body clearly says it is a smoke test and cannot be mistaken
 for a real hosted Scout key.
+
+### Process Queued Beta Signups
+
+When beta signup is enabled before SMTP is configured, Scout records
+`pending_delivery` signup events without creating accounts or API keys. After
+SMTP is configured and the smoke email succeeds, inspect the queue first:
+
+```bash
+scripts/scout-hosted-admin process-pending-signups --dry-run
+```
+
+Then process queued requests:
+
+```bash
+scripts/scout-hosted-admin process-pending-signups --yes
+```
+
+The processor provisions one hosted beta account per newest pending email,
+sends the raw API key by SMTP, records a `delivered` signup event on success,
+and deletes the account plus records `failed` if delivery fails. It refuses to
+mutate anything unless `--yes` or `--dry-run` is provided, and it never prints
+raw API keys, key hashes, or SMTP passwords.
 
 ### Disable Hosted Access
 

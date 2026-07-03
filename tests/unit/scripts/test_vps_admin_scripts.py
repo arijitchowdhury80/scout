@@ -18,6 +18,7 @@ SCRIPT_NAMES = [
     "scout-vps-list-hosted-usage",
     "scout-vps-list-hosted-purchases",
     "scout-vps-list-hosted-signups",
+    "scout-vps-process-pending-beta-signups",
     "scout-vps-send-hosted-test-email",
     "scout-vps-disable-hosted-access",
     "scout-vps-configure-hosted-env",
@@ -47,6 +48,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "list-purchases",
             "list-signups",
             "send-test-email",
+            "process-pending-signups",
             "disable-access",
             "readiness",
             "validate-config",
@@ -119,6 +121,14 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "direct_beta_key",
             "--status",
             "--email",
+            "/data/hosted_accounts.sqlite",
+        ],
+        "scout-vps-process-pending-beta-signups": [
+            "Process queued Scout beta signup requests",
+            "--dry-run",
+            "--yes",
+            "pending_delivery",
+            "SmtpHostedApiKeyDeliveryService",
             "/data/hosted_accounts.sqlite",
         ],
         "scout-vps-send-hosted-test-email": [
@@ -221,6 +231,25 @@ def test_send_test_email_script_uses_smoke_mode_and_never_prints_secret_values()
     assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" in script_text
     assert "raw_api_key=''" in script_text
     assert "key_hash" not in script_text
+    assert "scout_live_" not in script_text
+    assert 'echo "$encoded' not in script_text
+
+
+def test_process_pending_beta_signups_script_is_confirmed_and_never_prints_secret_values() -> None:
+    script_text = (REPO_ROOT / "scripts" / "scout-vps-process-pending-beta-signups").read_text(
+        encoding="utf-8"
+    )
+
+    assert "docker exec -i scout" in script_text
+    assert "pending_delivery" in script_text
+    assert "pending_signup_requests" in script_text
+    assert "SmtpHostedApiKeyDeliveryService" in script_text
+    assert "--dry-run" in script_text
+    assert "--yes" in script_text
+    assert "Refusing to process queued beta signups without --yes or --dry-run." in script_text
+    assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" in script_text
+    assert "key_hash" not in script_text
+    assert "raw_api_key" not in script_text
     assert "scout_live_" not in script_text
     assert 'echo "$encoded' not in script_text
 

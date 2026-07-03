@@ -852,3 +852,44 @@ hosted/website suites `48 passed`; pyright `0 errors`; Ruff passed.
 Still pending: Real self-service key delivery still requires SMTP production
 configuration. This slice makes the public beta form useful and measurable
 before SMTP is live; it does not deliver API keys by itself.
+
+## 2026-07-03 — pending beta signup delivery processor
+
+Implemented:
+
+- Added `HostedAccountService.pending_signup_requests()` to return the newest
+  `pending_delivery` signup event per email, excluding emails whose newest
+  event is delivered/failed/duplicate and excluding emails that already have a
+  hosted tenant.
+- Added `signup_pending_delivery` to `/v1/billing/admin/metrics`, so operators
+  can see queued beta requests separately from delivered/failed/duplicate
+  events.
+- Added `scripts/scout-vps-process-pending-beta-signups` and surfaced it as
+  `scripts/scout-hosted-admin process-pending-signups`.
+- The processor supports `--dry-run`, requires `--yes` for real mutation,
+  refuses to provision if SMTP delivery is not configured, provisions one beta
+  account per pending email, sends the one-time key through
+  `SmtpHostedApiKeyDeliveryService`, records `delivered` on success, and deletes
+  the account plus records `failed` if delivery fails.
+- The script does not print raw API keys, stored key hashes, or SMTP passwords.
+
+Verification RED:
+
+```bash
+python3 -m pytest tests/unit/core/platform/test_account_service.py::test_pending_signup_requests_returns_newest_pending_request_per_email tests/unit/core/platform/test_account_service.py::test_pending_signup_requests_excludes_delivered_failed_duplicate_and_existing_tenants tests/unit/api/test_billing_admin_metrics.py::test_billing_admin_metrics_returns_non_secret_metering_summary tests/unit/scripts/test_vps_admin_scripts.py::test_vps_admin_scripts_exist_and_are_shell_valid tests/unit/scripts/test_vps_admin_scripts.py::test_vps_admin_scripts_expose_expected_help_and_defaults tests/unit/scripts/test_vps_admin_scripts.py::test_process_pending_beta_signups_script_is_confirmed_and_never_prints_secret_values -q
+```
+
+Result: `6 failed` for the expected missing method, missing metric, missing
+script, and missing admin command.
+
+Verification GREEN:
+
+```bash
+python3 -m pytest tests/unit/core/platform/test_account_service.py::test_pending_signup_requests_returns_newest_pending_request_per_email tests/unit/core/platform/test_account_service.py::test_pending_signup_requests_excludes_delivered_failed_duplicate_and_existing_tenants tests/unit/api/test_billing_admin_metrics.py::test_billing_admin_metrics_returns_non_secret_metering_summary tests/unit/scripts/test_vps_admin_scripts.py::test_vps_admin_scripts_exist_and_are_shell_valid tests/unit/scripts/test_vps_admin_scripts.py::test_vps_admin_scripts_expose_expected_help_and_defaults tests/unit/scripts/test_vps_admin_scripts.py::test_process_pending_beta_signups_script_is_confirmed_and_never_prints_secret_values -q
+```
+
+Result: `6 passed, 2 warnings`.
+
+Still pending: SMTP credentials are still not configured on production, so the
+processor can be dry-run now but real queued key delivery still depends on
+external email configuration.

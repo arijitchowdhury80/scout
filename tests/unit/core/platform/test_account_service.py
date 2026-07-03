@@ -7,6 +7,7 @@ import pytest
 from scout.core.platform.account_service import (
     HostedAccountService,
     HostedAccountStatus,
+    HostedSignupEvent,
     InMemoryHostedAccountStore,
 )
 from scout.core.platform.api_keys import ApiKeyStatus, verify_api_key
@@ -196,3 +197,107 @@ def test_delete_account_removes_tenant_key_and_balance() -> None:
     assert (
         service.authenticate_key(result.raw_api_key, required_scope="runs:create").allowed is False
     )
+
+
+def test_pending_signup_requests_returns_newest_pending_request_per_email() -> None:
+    service = HostedAccountService(InMemoryHostedAccountStore())
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="tester@example.com",
+            name="Old Name",
+            status="pending_delivery",
+            source="direct_beta_key",
+            delivery_status="pending_delivery",
+            created_at="2026-07-03T10:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="TESTER@example.com",
+            name="New Name",
+            status="pending_delivery",
+            source="direct_beta_key",
+            delivery_status="pending_delivery",
+            created_at="2026-07-03T11:00:00+00:00",
+        )
+    )
+
+    pending = service.pending_signup_requests()
+
+    assert len(pending) == 1
+    assert pending[0].email == "TESTER@example.com"
+    assert pending[0].name == "New Name"
+
+
+def test_pending_signup_requests_excludes_delivered_failed_duplicate_and_existing_tenants() -> None:
+    service = HostedAccountService(InMemoryHostedAccountStore())
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="queued@example.com",
+            name="Queued Tester",
+            status="pending_delivery",
+            source="direct_beta_key",
+            delivery_status="pending_delivery",
+            created_at="2026-07-03T10:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="done@example.com",
+            name="Done Tester",
+            status="pending_delivery",
+            source="direct_beta_key",
+            delivery_status="pending_delivery",
+            created_at="2026-07-03T10:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="done@example.com",
+            name="Done Tester",
+            status="delivered",
+            source="pending_beta_delivery",
+            delivery_status="delivered",
+            created_at="2026-07-03T11:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="failed@example.com",
+            name="Failed Tester",
+            status="failed",
+            source="pending_beta_delivery",
+            delivery_status="failed",
+            created_at="2026-07-03T11:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="duplicate@example.com",
+            name="Duplicate Tester",
+            status="duplicate",
+            source="direct_beta_key",
+            delivery_status="duplicate",
+            created_at="2026-07-03T11:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="existing@example.com",
+            name="Existing Tester",
+            status="pending_delivery",
+            source="direct_beta_key",
+            delivery_status="pending_delivery",
+            created_at="2026-07-03T10:00:00+00:00",
+        )
+    )
+    service.provision_account(
+        email="existing@example.com",
+        name="Existing Tester",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+    )
+
+    pending = service.pending_signup_requests()
+
+    assert [str(event.email) for event in pending] == ["queued@example.com"]

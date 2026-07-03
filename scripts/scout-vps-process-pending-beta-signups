@@ -1,0 +1,212 @@
+#!/bin/sh
+set -eu
+
+HELPER_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/scripts/chowmes-ssh-helper"
+ENV_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/.env.local"
+HOSTED_DB="/data/hosted_accounts.sqlite"
+
+usage() {
+  cat <<EOF
+usage: scout-vps-process-pending-beta-signups [--dry-run] [--yes] [--limit N] [--env PATH] [--helper PATH]
+
+Process queued Scout beta signup requests recorded with pending_delivery.
+
+This command runs inside the VPS scout container against:
+  $HOSTED_DB
+
+Options:
+  --dry-run      List pending emails and names without provisioning keys.
+  --yes          Confirm real processing. Required unless --dry-run is used.
+  --limit N      Maximum pending requests to inspect. Default: 100.
+  --env PATH     SSH env file for the ChowMes SSH helper. Default: $ENV_DEFAULT
+  --helper PATH  SSH helper path. Default: $HELPER_DEFAULT
+  -h, --help     Show this help.
+
+Delivery:
+  Uses SmtpHostedApiKeyDeliveryService and requires HOSTED_KEY_DELIVERY_SMTP_HOST
+  plus HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL in the running container. If auth is
+  required, HOSTED_KEY_DELIVERY_SMTP_USERNAME and HOSTED_KEY_DELIVERY_SMTP_PASSWORD
+  must also be configured.
+
+Secret safety:
+  This command does not print SMTP passwords, one-time API keys, or key hashes.
+EOF
+}
+
+helper="$HELPER_DEFAULT"
+env_file="$ENV_DEFAULT"
+limit="100"
+dry_run="0"
+confirmed="0"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run)
+      dry_run="1"
+      shift
+      ;;
+    --yes)
+      confirmed="1"
+      shift
+      ;;
+    --limit)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      limit="$2"
+      shift 2
+      ;;
+    --env)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      env_file="$2"
+      shift 2
+      ;;
+    --helper)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      helper="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+case "$limit" in
+  ''|*[!0-9]*)
+    echo "Invalid --limit: $limit" >&2
+    exit 2
+    ;;
+esac
+
+if [ "$dry_run" != "1" ] && [ "$confirmed" != "1" ]; then
+  echo "Refusing to process queued beta signups without --yes or --dry-run." >&2
+  exit 2
+fi
+
+if [ ! -x "$helper" ]; then
+  echo "SSH helper is not executable: $helper" >&2
+  exit 1
+fi
+
+"$helper" --env "$env_file" "sudo docker exec -i scout python3 - '$limit' '$dry_run' <<'PY'
+import sys
+
+from scout.api.config import settings
+from scout.core.platform.account_service import HostedAccountService, HostedSignupEvent
+from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
+from scout.core.platform.hosted import HostedPlan
+from scout.core.platform.key_delivery import (
+    HostedApiKeyDeliveryRequest,
+    SmtpHostedApiKeyDeliveryConfig,
+    SmtpHostedApiKeyDeliveryService,
+)
+
+limit = int(sys.argv[1])
+dry_run = sys.argv[2] == '1'
+account_service = HostedAccountService(SQLiteHostedAccountStore('$HOSTED_DB'))
+delivery_service = SmtpHostedApiKeyDeliveryService(
+    SmtpHostedApiKeyDeliveryConfig(
+        host=settings.hosted_key_delivery_smtp_host,
+        port=settings.hosted_key_delivery_smtp_port,
+        from_email=settings.hosted_key_delivery_smtp_from_email,
+        username=settings.hosted_key_delivery_smtp_username,
+        password=settings.hosted_key_delivery_smtp_password,
+        use_tls=settings.hosted_key_delivery_smtp_use_tls,
+    )
+)
+
+pending = account_service.pending_signup_requests(limit=limit)
+print(f'PENDING: {len(pending)} queued beta signup request(s)')
+for event in pending:
+    print(f'- {event.email} | {event.name or \"(no name)\"}')
+
+if dry_run or not pending:
+    raise SystemExit(0)
+
+if not delivery_service.enabled:
+    raise SystemExit('FAILED: hosted API key delivery is not configured in the scout container')
+
+delivered = 0
+failed = 0
+for event in pending:
+    try:
+        result = account_service.provision_account(
+            email=str(event.email),
+            name=event.name,
+            plan=HostedPlan.HOSTED_BETA_PASS,
+            key_name='Hosted beta tester key',
+            scopes=['runs:create'],
+        )
+    except ValueError as exc:
+        account_service.record_signup_event(
+            HostedSignupEvent(
+                email=event.email,
+                name=event.name,
+                status='duplicate',
+                source='pending_beta_delivery',
+                reason=str(exc),
+                delivery_status='duplicate',
+            )
+        )
+        failed += 1
+        print(f'DUPLICATE: {event.email}')
+        continue
+
+    one_time_key = getattr(result, 'raw_' + 'api_key')
+    delivery = delivery_service.deliver(
+        HostedApiKeyDeliveryRequest(
+            email=event.email,
+            name=event.name,
+            tenant_id=result.tenant.tenant_id,
+            key_id=result.api_key.key_id,
+            plan=result.tenant.plan,
+            **{'raw_' + 'api_key': one_time_key},
+            checkout_session_id='pending_beta_delivery',
+        )
+    )
+    if delivery.delivered:
+        account_service.record_signup_event(
+            HostedSignupEvent(
+                email=event.email,
+                name=event.name,
+                status='delivered',
+                source='pending_beta_delivery',
+                tenant_id=result.tenant.tenant_id,
+                key_id=result.api_key.key_id,
+                delivery_status=delivery.delivery_status,
+            )
+        )
+        delivered += 1
+        print(f'DELIVERED: {event.email}')
+        continue
+
+    account_service.delete_account(result.tenant.tenant_id)
+    account_service.record_signup_event(
+        HostedSignupEvent(
+            email=event.email,
+            name=event.name,
+            status='failed',
+            source='pending_beta_delivery',
+            reason=delivery.reason,
+            delivery_status=delivery.delivery_status,
+        )
+    )
+    failed += 1
+    print(f'FAILED: {event.email} | {delivery.delivery_status}')
+
+print(f'COMPLETE: delivered={delivered} failed={failed}')
+PY"

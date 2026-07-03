@@ -60,9 +60,10 @@ def test_billing_admin_metrics_returns_non_secret_metering_summary(tmp_path: Pat
     assert data["totals"]["accounts"] == 2
     assert data["totals"]["active_accounts"] == 2
     assert data["totals"]["usage_events"] == 1
-    assert data["totals"]["signup_events"] == 2
+    assert data["totals"]["signup_events"] == 3
     assert data["totals"]["signup_delivered"] == 1
     assert data["totals"]["signup_failed"] == 1
+    assert data["totals"]["signup_pending_delivery"] == 1
     assert data["totals"]["standard_credits_used"] == 2
     assert data["totals"]["browser_credits_used"] == 0
     assert data["totals"]["purchases"] == 2
@@ -72,10 +73,11 @@ def test_billing_admin_metrics_returns_non_secret_metering_summary(tmp_path: Pat
         "second@example.com",
     }
     assert data["recent_usage"][0]["action"] == "scrape"
-    assert data["recent_signup_events"][0]["status"] == "failed"
-    assert data["recent_signup_events"][0]["email"] == "failed@example.com"
-    assert data["recent_signup_events"][0]["reason"] == "SMTP delivery failed"
-    assert data["recent_signup_events"][1]["status"] == "delivered"
+    recent_by_email = {event["email"]: event for event in data["recent_signup_events"]}
+    assert recent_by_email["failed@example.com"]["status"] == "failed"
+    assert recent_by_email["failed@example.com"]["reason"] == "SMTP delivery failed"
+    assert recent_by_email["delivered@example.com"]["status"] == "delivered"
+    assert recent_by_email["pending@example.com"]["status"] == "pending_delivery"
     assert data["recent_purchases"][0]["checkout_session_id"] in {"cs_first", "cs_second"}
     assert raw_key not in response.text
     assert "key_hash" not in response.text
@@ -133,6 +135,16 @@ def _seed_services(
             source="direct_beta_key",
             reason="SMTP delivery failed",
             delivery_status="failed",
+        )
+    )
+    account_service.record_signup_event(
+        HostedSignupEvent(
+            email="pending@example.com",
+            name="Pending Tester",
+            status="pending_delivery",
+            source="direct_beta_key",
+            reason="SMTP delivery is not configured yet",
+            delivery_status="pending_delivery",
         )
     )
     return account_service, payment_service, first.raw_api_key

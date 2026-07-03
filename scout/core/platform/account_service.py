@@ -495,6 +495,25 @@ class HostedAccountService:
         """Return recent hosted signup attempts for operator monitoring."""
         return self.store.list_signup_events(limit)
 
+    def pending_signup_requests(self, limit: int = 100) -> list[HostedSignupEvent]:
+        """Return newest pending beta signup requests that still need key delivery."""
+        latest_by_email: dict[str, HostedSignupEvent] = {}
+        for event in self.store.list_signup_events(limit=10_000):
+            normalized = str(event.email).strip().lower()
+            if normalized not in latest_by_email:
+                latest_by_email[normalized] = event
+
+        pending: list[HostedSignupEvent] = []
+        for normalized, event in latest_by_email.items():
+            if event.status != "pending_delivery":
+                continue
+            if self.store.find_tenant_by_email(normalized) is not None:
+                continue
+            pending.append(event)
+            if len(pending) >= limit:
+                break
+        return pending
+
     def list_accounts(self, limit: int = 100) -> list[HostedAccountSnapshot]:
         """Return non-secret account snapshots for operator monitoring."""
         return self.store.list_accounts(limit)
