@@ -551,14 +551,13 @@ def test_beta_signup_collects_name_and_email_without_password() -> None:
     assert 'data-endpoint="/v1/hosted/beta-key"' in html
     assert "Register your name and email" in normalized_html
     assert "Scout emails the API key" in normalized_html
-    assert "Scout emails or shows the API key" not in normalized_html
     assert "payload.raw_api_key" not in html
     assert "Copy this API key now" not in html
     assert "100 standard credits" in normalized_html
     assert "hostedBetaSignup" in html
     assert "/v1/hosted/beta-key" in html
     assert "/v1/billing/stripe/status" in html
-    assert "key_delivery_configured" in html
+    assert "ready_for_beta_key_delivery" in html
     assert "registration is temporarily paused" in html
     assert "/v1/billing/stripe/checkout-session" not in html
     assert 'type="password"' not in html

@@ -99,8 +99,8 @@ scout launch-readiness --require-public</code></pre>
             <h2>Register for hosted API access.</h2>
             <p>
               Register your name and email. Scout records the beta account,
-              provisions 100 standard credits, and emails your API key. Paid
-              credit packs stay on the pricing page.
+              provisions 100 standard credits, and emails or shows the API key
+              once. Paid credit packs stay on the pricing page.
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted beta API key registration">
@@ -133,8 +133,8 @@ scout launch-readiness --require-public</code></pre>
                 <button class="wi-btn" type="submit">Register for Beta Tester API Key</button>
               </div>
               <p id="hostedBetaStatus" class="beta-status" role="status" aria-live="polite">
-                Scout emails the API key after provisioning the hosted beta
-                account. The beta trial includes 100 standard credits.
+                Scout emails the API key after provisioning the
+                hosted beta account. The beta trial includes 100 standard credits.
               </p>
               <p class="beta-note">
                 By requesting hosted access, you acknowledge the
@@ -197,10 +197,10 @@ scout launch-readiness --require-public</code></pre>
           const response = await fetch(betaReadinessEndpoint, { headers: { accept: "application/json" } });
           if (!response.ok) return;
           const status = await response.json();
-          if (!status.key_delivery_configured) {
+          if (!status.ready_for_beta_key_delivery) {
             signupButton.disabled = true;
             signupStatus.textContent =
-              "Hosted beta registration is temporarily paused while API-key email delivery is configured. Existing keys still work, and admins can provision keys manually.";
+              "Hosted beta registration is temporarily paused while API-key delivery is configured. Existing keys still work, and admins can provision keys manually.";
             signupStatus.dataset.state = "error";
           }
         } catch {

@@ -18,6 +18,7 @@ from scout.api.deps import (
     get_stripe_checkout_service,
     get_stripe_webhook_secret,
 )
+from scout.api.config import settings
 from scout.api.main import app
 from scout.core.platform.stripe_checkout import (
     StripeCheckoutResult,
@@ -93,9 +94,12 @@ def test_stripe_status_returns_non_secret_readiness_flags() -> None:
 
     assert response.status_code == 200
     assert response.json() == {
+        "beta_signup_enabled": False,
         "checkout_configured": True,
         "webhook_configured": True,
         "key_delivery_configured": True,
+        "key_delivery_response_fallback_enabled": False,
+        "ready_for_beta_key_delivery": False,
         "ready_for_paid_key_delivery": True,
     }
     assert "whsec_test" not in response.text
@@ -117,9 +121,66 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
 
     assert response.status_code == 200
     assert response.json() == {
+        "beta_signup_enabled": False,
         "checkout_configured": False,
         "webhook_configured": False,
         "key_delivery_configured": False,
+        "key_delivery_response_fallback_enabled": False,
+        "ready_for_beta_key_delivery": False,
+        "ready_for_paid_key_delivery": False,
+    }
+
+
+def test_stripe_status_reports_beta_signup_delivery_readiness(monkeypatch) -> None:
+    service = RecordingStripeCheckoutService(
+        StripeCheckoutResult(success=False),
+        enabled=False,
+    )
+    delivery = RecordingDeliveryService(enabled=True)
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
+    app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_webhook_secret] = lambda: ""
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    client = TestClient(app)
+
+    response = client.get("/v1/billing/stripe/status")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "beta_signup_enabled": True,
+        "checkout_configured": False,
+        "webhook_configured": False,
+        "key_delivery_configured": True,
+        "key_delivery_response_fallback_enabled": False,
+        "ready_for_beta_key_delivery": True,
+        "ready_for_paid_key_delivery": False,
+    }
+
+
+def test_stripe_status_treats_opt_in_response_fallback_as_beta_readiness(monkeypatch) -> None:
+    service = RecordingStripeCheckoutService(
+        StripeCheckoutResult(success=False),
+        enabled=False,
+    )
+    delivery = RecordingDeliveryService(enabled=False)
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
+    monkeypatch.setenv("HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK", "true")
+    app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_webhook_secret] = lambda: ""
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    client = TestClient(app)
+
+    response = client.get("/v1/billing/stripe/status")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data == {
+        "beta_signup_enabled": True,
+        "checkout_configured": False,
+        "webhook_configured": False,
+        "key_delivery_configured": False,
+        "key_delivery_response_fallback_enabled": True,
+        "ready_for_beta_key_delivery": True,
         "ready_for_paid_key_delivery": False,
     }
 

@@ -186,14 +186,54 @@ def test_hosted_beta_key_generation_requires_configured_delivery_service(
     assert account_service.store.find_tenant_by_email("no-email@example.com") is None
 
 
-def test_hosted_beta_key_response_schema_does_not_advertise_raw_api_key() -> None:
+def test_hosted_beta_key_generation_can_show_key_once_when_fallback_is_enabled(
+    monkeypatch,
+) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    delivery.enabled = False
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    monkeypatch.setenv("HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK", "true")
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/beta-key",
+            json={
+                "name": "Fallback Tester",
+                "email": "fallback@example.com",
+                "key_name": "Fallback beta key",
+            },
+        )
+        data = resp.json()
+        me_resp = client.get(
+            "/v1/hosted/me",
+            headers={"Authorization": f"Bearer {data['raw_api_key']}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 200
+    assert data["success"] is True
+    assert data["email"] == "fallback@example.com"
+    assert data["delivery_status"] == "shown_once"
+    assert data["raw_api_key"].startswith("scout_live_")
+    assert "Copy this API key now" in data["warning"]
+    assert delivery.requests == []
+    assert me_resp.status_code == 200
+    assert me_resp.json()["tenant_id"] == data["tenant_id"]
+    assert data["raw_api_key"] not in me_resp.text
+
+
+def test_hosted_beta_key_response_schema_advertises_one_time_raw_key_fallback() -> None:
     client = TestClient(app)
 
     response = client.get("/openapi.json")
     schema = response.json()["components"]["schemas"]["HostedBetaKeyResponse"]
 
     assert response.status_code == 200
-    assert "raw_api_key" not in schema["properties"]
+    assert "raw_api_key" in schema["properties"]
 
 
 def test_hosted_beta_key_generation_rolls_back_when_delivery_fails(monkeypatch) -> None:

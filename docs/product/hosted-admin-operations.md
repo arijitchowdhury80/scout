@@ -10,10 +10,17 @@ Scout hosted beta has API-key based access, not a login system.
 - Public beta testers start access through the hosted beta registration form on
   `/beta`, which posts name and email to `POST /v1/hosted/beta-key`. The route
   records the tester, provisions beta credits, and emails the raw API key once
-  when SMTP delivery is configured.
+  when SMTP delivery is configured. Without SMTP, self-service signup fails
+  closed unless an operator explicitly enables the one-time HTTPS response
+  fallback with `HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK=true`.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
-- Self-service signup emails the raw API key and never returns it in the HTTP response or OpenAPI response schema. If SMTP delivery is not configured, `/v1/hosted/beta-key` fails closed with `503` before creating an account. Operator CLI provisioning still prints the raw key once. Scout stores only a hash.
+- Self-service signup emails the raw API key when SMTP delivery is configured.
+  If SMTP is unavailable, `/v1/hosted/beta-key` fails closed with `503` unless
+  `HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK=true` is explicitly set. In
+  fallback mode the route returns `raw_api_key` once in the HTTPS response and
+  the beta page tells the tester to copy it immediately. Operator CLI
+  provisioning also prints the raw key once. Scout stores only a hash.
 - Stripe checkout registration is available from `/pricing` for `$0` beta trial
   payment-method verification and paid credit packages once Stripe settings are
   configured. The `$0` beta trial uses Stripe Checkout `mode=setup` with card
@@ -51,8 +58,9 @@ Scout hosted beta has API-key based access, not a login system.
 - No formal public self-serve account portal or Stripe customer portal.
 
 Direct beta registration, Stripe checkout, webhook, and key-delivery scaffolding
-exist in code and tests. Production still needs live SMTP and Stripe settings
-before those paths are operational end to end.
+exist in code and tests. Production still needs either live SMTP or the explicit
+one-time response fallback for beta signup, plus Stripe settings before the paid
+checkout path is operational end to end.
 
 ## Admin Scripts
 
@@ -62,12 +70,13 @@ Run these from the Scout repo on the Mac:
 cd /Users/arijitchowdhury/Dropbox/AI-Development/Scout
 ```
 
-### Enable Or Disable Email-Based Beta Signup
+### Enable Or Disable Beta Signup
 
-Set `HOSTED_BETA_SIGNUP_ENABLED=true` only when SMTP delivery is configured.
-Set it to `false` to stop new direct beta keys without disabling existing Bearer
-keys. The public beta form should not be considered live until both this flag
-and the SMTP delivery settings are present.
+Set `HOSTED_BETA_SIGNUP_ENABLED=true` only when either SMTP delivery is
+configured or the explicit one-time response fallback is enabled. Set it to
+`false` to stop new direct beta keys without disabling existing Bearer keys.
+The public beta form should not be considered live until this flag and one
+delivery path are present.
 
 Required delivery settings:
 
@@ -78,6 +87,33 @@ HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"
 HOSTED_KEY_DELIVERY_SMTP_USERNAME=...
 HOSTED_KEY_DELIVERY_SMTP_PASSWORD=...
 ```
+
+Temporary no-SMTP launch fallback:
+
+```bash
+HOSTED_BETA_SIGNUP_ENABLED=true
+HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK=true
+```
+
+Disable `HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK` once SMTP delivery is
+ready so new testers receive keys by email instead of seeing them on screen.
+
+### Check Hosted SaaS Readiness
+
+Use the hosted readiness checker from the Mac before inviting testers:
+
+```bash
+python3 scripts/hosted_readiness_check.py \
+  --base-url https://scout.chowmes.com \
+  --require-beta-signup \
+  --require-paid-checkout
+```
+
+The checker calls only non-secret endpoints: `/health`,
+`/v1/billing/packages`, and `/v1/billing/stripe/status`. It fails if beta signup
+is disabled, both SMTP delivery and the response fallback are missing, Stripe
+Checkout is missing, webhook verification is missing, required packages are
+absent, or a response contains secret-looking material.
 
 ### Provision A Hosted API Key Directly
 
