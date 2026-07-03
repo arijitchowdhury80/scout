@@ -134,6 +134,37 @@ create a hosted account, grant credits, issue a real API key, or print SMTP
 secrets. The email body clearly says it is a smoke test and cannot be mistaken
 for a real hosted Scout key.
 
+### Disable Hosted Access
+
+If a hosted API key is leaked, a tester abuses the beta, or a consuming app
+must be cut off, disable access from the Mac without deleting audit records:
+
+```bash
+scripts/scout-hosted-admin disable-access \
+  --email tester@example.com \
+  --reason "leaked key" \
+  --yes
+```
+
+You can also target a specific tenant or key:
+
+```bash
+scripts/scout-hosted-admin disable-access \
+  --tenant-id tenant_... \
+  --reason "customer requested shutdown" \
+  --yes
+
+scripts/scout-hosted-admin disable-access \
+  --key-id key_... \
+  --reason "rotated compromised key" \
+  --yes
+```
+
+The command updates `/data/hosted_accounts.sqlite` inside the hosted Scout
+container. Email and tenant targets disable the tenant plus all tenant keys.
+Key targets disable only the selected key. The helper requires `--yes`, prints
+only non-secret fields, and never prints raw API keys or stored key hashes.
+
 After configuration, verify readiness:
 
 ```bash

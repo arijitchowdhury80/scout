@@ -80,6 +80,43 @@ def test_authenticate_key_rejects_revoked_key() -> None:
     assert decision.reason == "API key is not active."
 
 
+def test_disable_api_key_rejects_future_authentication() -> None:
+    service = HostedAccountService(InMemoryHostedAccountStore())
+    result = service.provision_account(
+        email="builder@example.com",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+    )
+
+    service.disable_api_key(result.api_key.key_id)
+    decision = service.authenticate_key(result.raw_api_key, required_scope="runs:create")
+
+    assert decision.allowed is False
+    assert decision.reason == "API key is not active."
+    assert decision.tenant_id == result.tenant.tenant_id
+    assert decision.key_id == result.api_key.key_id
+
+
+def test_disable_account_disables_tenant_and_key_authentication() -> None:
+    store = InMemoryHostedAccountStore()
+    service = HostedAccountService(store)
+    result = service.provision_account(
+        email="builder@example.com",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+    )
+
+    service.disable_account(result.tenant.tenant_id)
+    decision = service.authenticate_key(result.raw_api_key, required_scope="runs:create")
+    tenant = service.get_tenant(result.tenant.tenant_id)
+
+    assert decision.allowed is False
+    assert decision.reason == "API key is not active."
+    assert tenant is not None
+    assert tenant.status is HostedAccountStatus.DISABLED
+    assert store.api_keys[result.api_key.key_id].status is ApiKeyStatus.DISABLED
+
+
 def test_consume_action_debits_standard_and_denies_browser_when_beta_has_no_browser_credits() -> (
     None
 ):

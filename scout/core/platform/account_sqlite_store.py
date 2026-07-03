@@ -7,6 +7,7 @@ import sqlite3
 from pathlib import Path
 
 from scout.core.platform.account_service import (
+    HostedAccountStatus,
     HostedAccountSnapshot,
     HostedSignupEvent,
     HostedTenantRecord,
@@ -288,6 +289,14 @@ class SQLiteHostedAccountStore:
             conn.execute(
                 "UPDATE hosted_api_keys SET status = ? WHERE key_id = ?",
                 (status.value, key_id),
+            )
+
+    def update_tenant_status(self, tenant_id: str, status: HostedAccountStatus) -> None:
+        """Update hosted tenant lifecycle status."""
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE hosted_tenants SET status = ? WHERE tenant_id = ?",
+                (status.value, tenant_id),
             )
 
     def _connect(self) -> sqlite3.Connection:

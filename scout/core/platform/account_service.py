@@ -146,6 +146,8 @@ class HostedAccountStore(Protocol):
 
     def update_key_status(self, key_id: str, status: ApiKeyStatus) -> None: ...
 
+    def update_tenant_status(self, tenant_id: str, status: HostedAccountStatus) -> None: ...
+
 
 class InMemoryHostedAccountStore:
     """In-memory hosted account store for tests and local development."""
@@ -265,6 +267,11 @@ class InMemoryHostedAccountStore:
         """Update API-key lifecycle status."""
         record = self.api_keys[key_id]
         self.api_keys[key_id] = record.model_copy(update={"status": status})
+
+    def update_tenant_status(self, tenant_id: str, status: HostedAccountStatus) -> None:
+        """Update hosted tenant lifecycle status."""
+        tenant = self.tenants[tenant_id]
+        self.tenants[tenant_id] = tenant.model_copy(update={"status": status})
 
 
 class HostedAccountService:
@@ -406,6 +413,17 @@ class HostedAccountService:
     def delete_account(self, tenant_id: str) -> None:
         """Remove a hosted account after failed one-time key delivery."""
         self.store.delete_account(tenant_id)
+
+    def disable_account(self, tenant_id: str) -> None:
+        """Disable a hosted account and all known keys for that tenant."""
+        self.store.update_tenant_status(tenant_id, HostedAccountStatus.DISABLED)
+        for account in self.store.list_accounts(limit=10_000):
+            if account.tenant_id == tenant_id:
+                self.store.update_key_status(account.key_id, ApiKeyStatus.DISABLED)
+
+    def disable_api_key(self, key_id: str) -> None:
+        """Disable one hosted API key without deleting non-secret audit metadata."""
+        self.store.update_key_status(key_id, ApiKeyStatus.DISABLED)
 
     def find_tenant_by_email(self, email: str) -> HostedTenantRecord | None:
         """Return tenant metadata for a normalized email if it exists."""

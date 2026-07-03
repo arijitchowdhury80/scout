@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from scout.core.platform.account_service import HostedAccountService
+from scout.core.platform.account_service import HostedAccountService, HostedAccountStatus
 from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
 from scout.core.platform.api_keys import ApiKeyStatus
 from scout.core.platform.hosted import HostedAction, HostedPlan, plan_limits
@@ -114,6 +114,49 @@ def test_sqlite_store_persists_revoked_key_status(tmp_path: Path) -> None:
 
     assert decision.allowed is False
     assert decision.reason == "API key is not active."
+
+
+def test_sqlite_store_persists_disabled_key_status(tmp_path: Path) -> None:
+    db_path = tmp_path / "hosted.sqlite"
+    service = HostedAccountService(SQLiteHostedAccountStore(db_path))
+    provisioned = service.provision_account(
+        email="disabled-key@example.com",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+    )
+
+    service.disable_api_key(provisioned.api_key.key_id)
+    fresh_service = HostedAccountService(SQLiteHostedAccountStore(db_path))
+    decision = fresh_service.authenticate_key(
+        provisioned.raw_api_key,
+        required_scope="runs:create",
+    )
+
+    assert decision.allowed is False
+    assert decision.reason == "API key is not active."
+
+
+def test_sqlite_store_persists_disabled_account_status(tmp_path: Path) -> None:
+    db_path = tmp_path / "hosted.sqlite"
+    service = HostedAccountService(SQLiteHostedAccountStore(db_path))
+    provisioned = service.provision_account(
+        email="disabled-account@example.com",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+    )
+
+    service.disable_account(provisioned.tenant.tenant_id)
+    fresh_service = HostedAccountService(SQLiteHostedAccountStore(db_path))
+    decision = fresh_service.authenticate_key(
+        provisioned.raw_api_key,
+        required_scope="runs:create",
+    )
+    tenant = fresh_service.get_tenant(provisioned.tenant.tenant_id)
+
+    assert decision.allowed is False
+    assert decision.reason == "API key is not active."
+    assert tenant is not None
+    assert tenant.status is HostedAccountStatus.DISABLED
 
 
 def test_sqlite_store_deletes_account_key_and_balance(tmp_path: Path) -> None:

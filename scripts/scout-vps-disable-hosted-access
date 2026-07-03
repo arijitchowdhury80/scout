@@ -1,0 +1,224 @@
+#!/bin/sh
+set -eu
+
+HELPER_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/scripts/chowmes-ssh-helper"
+ENV_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/.env.local"
+HOSTED_DB="/data/hosted_accounts.sqlite"
+
+usage() {
+  cat <<EOF
+usage: scout-vps-disable-hosted-access (--email EMAIL | --tenant-id TENANT_ID | --key-id KEY_ID) --yes [OPTIONS]
+
+Disable Scout hosted access on the VPS without deleting audit records from:
+  $HOSTED_DB
+
+Tables updated:
+  hosted_tenants
+  hosted_api_keys
+
+Options:
+  --email EMAIL          Disable the tenant for this email and all tenant keys.
+  --tenant-id TENANT_ID  Disable this tenant and all tenant keys.
+  --key-id KEY_ID        Disable one API key only.
+  --reason TEXT          Operator note printed in the non-secret result.
+  --format FORMAT        table or json. Default: table
+  --yes                  Required guard for mutation.
+  --env PATH             SSH env file for the ChowMes SSH helper. Default: $ENV_DEFAULT
+  --helper PATH          SSH helper path. Default: $HELPER_DEFAULT
+  -h, --help             Show this help.
+
+Secret safety:
+  This script never prints raw API keys or stored API-key hashes.
+EOF
+}
+
+helper="$HELPER_DEFAULT"
+env_file="$ENV_DEFAULT"
+email=""
+tenant_id=""
+key_id=""
+reason=""
+format="table"
+confirmed="false"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --email)
+      if [ $# -lt 2 ]; then usage >&2; exit 2; fi
+      email="$2"
+      shift 2
+      ;;
+    --tenant-id)
+      if [ $# -lt 2 ]; then usage >&2; exit 2; fi
+      tenant_id="$2"
+      shift 2
+      ;;
+    --key-id)
+      if [ $# -lt 2 ]; then usage >&2; exit 2; fi
+      key_id="$2"
+      shift 2
+      ;;
+    --reason)
+      if [ $# -lt 2 ]; then usage >&2; exit 2; fi
+      reason="$2"
+      shift 2
+      ;;
+    --format)
+      if [ $# -lt 2 ]; then usage >&2; exit 2; fi
+      format="$2"
+      shift 2
+      ;;
+    --yes)
+      confirmed="true"
+      shift
+      ;;
+    --env)
+      if [ $# -lt 2 ]; then usage >&2; exit 2; fi
+      env_file="$2"
+      shift 2
+      ;;
+    --helper)
+      if [ $# -lt 2 ]; then usage >&2; exit 2; fi
+      helper="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+case "$format" in
+  table|json) ;;
+  *)
+    echo "Unsupported --format: $format" >&2
+    exit 2
+    ;;
+esac
+
+target_count=0
+[ -n "$email" ] && target_count=$((target_count + 1))
+[ -n "$tenant_id" ] && target_count=$((target_count + 1))
+[ -n "$key_id" ] && target_count=$((target_count + 1))
+
+if [ "$target_count" -ne 1 ]; then
+  echo "Pass exactly one of --email, --tenant-id, or --key-id." >&2
+  usage >&2
+  exit 2
+fi
+
+if [ "$confirmed" != "true" ]; then
+  echo "Refusing to mutate hosted access without --yes." >&2
+  exit 2
+fi
+
+if [ ! -x "$helper" ]; then
+  echo "SSH helper is not executable: $helper" >&2
+  exit 1
+fi
+
+encoded_email="$(printf '%s' "$email" | base64 | tr -d '\n')"
+encoded_tenant_id="$(printf '%s' "$tenant_id" | base64 | tr -d '\n')"
+encoded_key_id="$(printf '%s' "$key_id" | base64 | tr -d '\n')"
+encoded_reason="$(printf '%s' "$reason" | base64 | tr -d '\n')"
+
+"$helper" --env "$env_file" "sudo docker exec -i scout python3 - '$encoded_email' '$encoded_tenant_id' '$encoded_key_id' '$encoded_reason' '$format' <<'PY'
+import base64
+import json
+import sqlite3
+import sys
+
+email = base64.b64decode(sys.argv[1]).decode('utf-8').strip()
+tenant_id = base64.b64decode(sys.argv[2]).decode('utf-8').strip()
+key_id = base64.b64decode(sys.argv[3]).decode('utf-8').strip()
+reason = base64.b64decode(sys.argv[4]).decode('utf-8').strip()
+output_format = sys.argv[5]
+
+conn = sqlite3.connect('$HOSTED_DB')
+conn.row_factory = sqlite3.Row
+
+resolved_tenant_id = tenant_id
+resolved_email = email
+if email:
+    row = conn.execute(
+        'SELECT tenant_id, email FROM hosted_tenants WHERE lower(email) = lower(?)',
+        (email,),
+    ).fetchone()
+    if row is not None:
+        resolved_tenant_id = row['tenant_id']
+        resolved_email = row['email']
+if tenant_id:
+    row = conn.execute(
+        'SELECT tenant_id, email FROM hosted_tenants WHERE tenant_id = ?',
+        (tenant_id,),
+    ).fetchone()
+    if row is not None:
+        resolved_email = row['email']
+
+disabled_tenants = 0
+disabled_keys = 0
+target = {}
+with conn:
+    if key_id:
+        row = conn.execute(
+            '''
+            SELECT k.key_id, k.tenant_id, t.email
+            FROM hosted_api_keys k
+            LEFT JOIN hosted_tenants t ON t.tenant_id = k.tenant_id
+            WHERE k.key_id = ?
+            ''',
+            (key_id,),
+        ).fetchone()
+        if row is not None:
+            resolved_tenant_id = row['tenant_id']
+            resolved_email = row['email'] or ''
+            cursor = conn.execute(
+                '''UPDATE hosted_api_keys SET status = 'disabled' WHERE key_id = ?''',
+                (key_id,),
+            )
+            disabled_keys = cursor.rowcount
+        target = {'type': 'key_id', 'value': key_id}
+    else:
+        if resolved_tenant_id:
+            cursor = conn.execute(
+                '''UPDATE hosted_tenants SET status = 'disabled' WHERE tenant_id = ?''',
+                (resolved_tenant_id,),
+            )
+            disabled_tenants = cursor.rowcount
+            cursor = conn.execute(
+                '''UPDATE hosted_api_keys SET status = 'disabled' WHERE tenant_id = ?''',
+                (resolved_tenant_id,),
+            )
+            disabled_keys = cursor.rowcount
+        target = {'type': 'email' if email else 'tenant_id', 'value': email or tenant_id}
+
+result = {
+    'target': target,
+    'tenant_id': resolved_tenant_id,
+    'email': resolved_email,
+    'disabled_tenants': disabled_tenants,
+    'disabled_keys': disabled_keys,
+    'reason': reason,
+}
+if output_format == 'json':
+    print(json.dumps(result, indent=2, sort_keys=True))
+else:
+    for key in [
+        'target',
+        'email',
+        'tenant_id',
+        'disabled_tenants',
+        'disabled_keys',
+        'reason',
+    ]:
+        value = result[key]
+        if isinstance(value, dict):
+            value = '{}={}'.format(value.get('type'), value.get('value'))
+        print(f'{key}\\t{value}')
+PY"

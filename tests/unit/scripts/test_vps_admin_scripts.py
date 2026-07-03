@@ -17,6 +17,7 @@ SCRIPT_NAMES = [
     "scout-vps-list-hosted-purchases",
     "scout-vps-list-hosted-signups",
     "scout-vps-send-hosted-test-email",
+    "scout-vps-disable-hosted-access",
     "scout-vps-configure-hosted-env",
     "scout-hosted-load-test",
 ]
@@ -44,6 +45,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "list-purchases",
             "list-signups",
             "send-test-email",
+            "disable-access",
             "configure-production-env",
         ],
         "scout-vps-configure-hosted-env": [
@@ -101,6 +103,17 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "HOSTED_KEY_DELIVERY_SMTP_HOST",
             "No hosted account is created",
             "smoke_test=True",
+        ],
+        "scout-vps-disable-hosted-access": [
+            "Disable Scout hosted access on the VPS",
+            "hosted_tenants",
+            "hosted_api_keys",
+            "--email",
+            "--tenant-id",
+            "--key-id",
+            "--reason",
+            "--yes",
+            "/data/hosted_accounts.sqlite",
         ],
         "scout-hosted-load-test": [
             "--users",
@@ -185,6 +198,23 @@ def test_send_test_email_script_uses_smoke_mode_and_never_prints_secret_values()
     assert "raw_api_key=''" in script_text
     assert "key_hash" not in script_text
     assert "scout_live_" not in script_text
+    assert 'echo "$encoded' not in script_text
+
+
+def test_disable_access_script_is_confirmed_and_never_prints_secret_values() -> None:
+    script_text = (REPO_ROOT / "scripts" / "scout-vps-disable-hosted-access").read_text(
+        encoding="utf-8"
+    )
+
+    assert "docker exec -i scout" in script_text
+    assert "hosted_tenants" in script_text
+    assert "hosted_api_keys" in script_text
+    assert "UPDATE hosted_tenants SET status = 'disabled'" in script_text
+    assert "UPDATE hosted_api_keys SET status = 'disabled'" in script_text
+    assert "--yes" in script_text
+    assert "Refusing to mutate hosted access without --yes." in script_text
+    assert "key_hash" not in script_text
+    assert "raw_api_key" not in script_text
     assert 'echo "$encoded' not in script_text
 
 
