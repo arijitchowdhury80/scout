@@ -14,7 +14,7 @@
   const checkoutEndpoint =
     form?.dataset.checkoutEndpoint || "/v1/billing/stripe/checkout-session";
   const statusEndpoint = form?.dataset.statusEndpoint || "/v1/billing/stripe/status";
-  const readyFlag = form?.dataset.readyFlag || "ready_for_beta_key_delivery";
+  const readyFlag = form?.dataset.readyFlag || "ready_for_beta_checkout";
   const statusCheckEndpoint =
     statusForm?.dataset.statusCheckEndpoint || "/v1/hosted/beta-key/status";
   const reissueEndpoint =
@@ -43,13 +43,18 @@
       return;
     }
 
-    setStatus("Checking beta key delivery readiness...", "running");
+    setStatus("Checking beta registration readiness...", "running");
     if (submitButton) submitButton.disabled = true;
 
     try {
       const readiness = await fetchCheckoutReadiness();
       if (readiness && readiness.beta_signup_enabled !== true) {
         throw new Error("Hosted beta registration is not open yet. Existing keys still work.");
+      }
+
+      if (readiness && readiness[readyFlag] === true) {
+        await submitCheckout({ name, email, packageId });
+        return;
       }
 
       if (readiness && readiness[readyFlag] !== true) {
@@ -143,7 +148,7 @@
       if (status[readyFlag] === true) {
         if (submitButton) submitButton.disabled = false;
         setStatus(
-          "Beta API-key email delivery is ready. Register to receive your key by email.",
+          "Card-backed beta setup is ready. Register to complete $0 Stripe setup and receive your API key by email.",
           "success",
         );
         return;
@@ -151,7 +156,7 @@
       if (status.beta_signup_enabled === true) {
         if (submitButton) submitButton.disabled = false;
         setStatus(
-          "Beta registration is open. Scout will record your request and email the API key when delivery is configured.",
+          "Card-backed beta setup is not ready. Scout will record your request and email the API key when delivery is configured.",
           "success",
         );
         return;
@@ -183,7 +188,7 @@
   }
 
   async function submitCheckout({ name, email, packageId }) {
-    setStatus("Creating $0 Stripe Checkout Session...", "running");
+    setStatus("Creating $0 Stripe setup session...", "running");
     const response = await fetch(checkoutEndpoint, {
       method: "POST",
       headers: { "content-type": "application/json", accept: "application/json" },
@@ -196,7 +201,7 @@
     if (!payload.checkout_url) {
       throw new Error("Stripe did not return a checkout URL.");
     }
-    setStatus("Redirecting to Stripe Checkout for $0 beta setup...", "running");
+    setStatus("Redirecting to Stripe for $0 beta setup...", "running");
     window.location.assign(payload.checkout_url);
   }
 

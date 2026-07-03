@@ -95,14 +95,16 @@ does not pass an exact `--output-dir` or JSON `output_dir`.
 
 ## Hosted Beta Configuration
 
-Local use does not require Stripe or SMTP. Public hosted beta signup is
-email-first: `/beta` posts name/email registration to `/v1/hosted/beta-key`,
-and the beta path is live-ready when `ready_for_beta_key_delivery` is true.
-That requires `HOSTED_BETA_SIGNUP_ENABLED=true` plus SMTP key delivery. The
-`beta_trial` Stripe Checkout setup hook remains available for future
-card-backed verification, but Stripe checkout is not required for email-first
-beta key delivery readiness. Public signup never returns raw API keys in the
-browser.
+Local use does not require Stripe or SMTP. Public hosted beta starts at `/beta`.
+When the hosted stack is fully ready, testers register name/email, complete the
+`$0` `beta_trial` Stripe setup flow, and receive the hosted API key by email
+after the signed webhook provisions the account. The beta path is fully
+live-ready when `ready_for_beta_checkout` is true. That requires
+`HOSTED_BETA_SIGNUP_ENABLED=true`, Stripe Checkout, a signed webhook, and SMTP
+key delivery. If checkout is not configured, `/beta` can still record a
+name/email request through `/v1/hosted/beta-key`, but that is only a request
+queue, not a completed beta onboarding pipeline. Public signup never returns
+raw API keys in the browser.
 
 Hosted beta setup requires:
 

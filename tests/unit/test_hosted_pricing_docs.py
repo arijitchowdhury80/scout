@@ -51,18 +51,15 @@ def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     assert "Pay-as-you-go pricing candidate" in doc
 
 
-def test_distribution_docs_make_email_first_beta_registration_the_live_path() -> None:
+def test_distribution_docs_make_card_backed_beta_setup_the_live_path() -> None:
     doc = _read("docs/distribution.md")
     normalized_doc = " ".join(doc.split())
 
-    assert "Public hosted beta signup is email-first" in normalized_doc
+    assert "Public hosted beta starts at `/beta`" in normalized_doc
     assert "`/v1/hosted/beta-key`" in doc
-    assert "`ready_for_beta_key_delivery`" in doc
-    assert "through Stripe Checkout setup mode with package `beta_trial`" not in normalized_doc
-    assert (
-        "requires signed webhook provisioning plus SMTP delivery before it is live-ready"
-        not in normalized_doc
-    )
+    assert "`ready_for_beta_checkout`" in doc
+    assert "name/email request through `/v1/hosted/beta-key`" in normalized_doc
+    assert "only a request queue, not a completed beta onboarding pipeline" in normalized_doc
 
 
 def test_stripe_redirect_examples_use_hosted_pricing_page_not_localhost() -> None:

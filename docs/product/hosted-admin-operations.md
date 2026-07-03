@@ -386,8 +386,9 @@ actionable. In addition to booleans such as `ready_for_beta_key_delivery`,
 
 - `public_self_service_path`: currently
   `email_beta_registration_with_checkout_hook`; beta testers should start at
-  `/beta` with name/email registration. Scout may route through $0 Stripe setup
-  once checkout is fully configured.
+  `/beta`. When `ready_for_beta_checkout` is true, the beta form starts the
+  `$0` Stripe setup flow. When checkout is not ready, the same form records a
+  name/email request for later API-key delivery.
 - `public_beta_key_endpoint`: the API endpoint used by `/beta` to register a
   beta tester and deliver the API key by email.
 - `public_beta_checkout_endpoint` and `public_paid_checkout_endpoint`: the

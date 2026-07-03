@@ -378,7 +378,7 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
     assert data["public_beta_checkout_endpoint"] == "/v1/billing/stripe/checkout-session"
     assert data["public_customer_portal_endpoint"] == ("/v1/billing/stripe/customer-portal-session")
     assert data["customer_next_actions"] == [
-        "Use /beta for email-first beta registration; Scout may route through $0 Stripe setup once checkout is fully configured.",
+        "Use /beta for card-backed $0 beta setup when ready; until then, Scout can record name/email requests for later API-key delivery.",
         "Use /pricing to buy paid credit packages when paid checkout readiness is true.",
     ]
     assert data["missing_environment_keys"] == [

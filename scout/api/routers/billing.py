@@ -314,8 +314,8 @@ async def stripe_status(
         operator_next_actions=diagnostics["operator_next_actions"],
         customer_next_actions=[
             (
-                "Use /beta for email-first beta registration; Scout may route through "
-                "$0 Stripe setup once checkout is fully configured."
+                "Use /beta for card-backed $0 beta setup when ready; until then, "
+                "Scout can record name/email requests for later API-key delivery."
             ),
             "Use /pricing to buy paid credit packages when paid checkout readiness is true.",
         ],
