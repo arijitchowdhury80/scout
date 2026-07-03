@@ -53,6 +53,8 @@ from scout.core.types import (
     ProductCrawlResponse,
     ScrapeRequest,
     ScrapeResponse,
+    ScreenshotRequest,
+    ScreenshotResponse,
 )
 
 router = APIRouter(prefix="/v1/hosted", tags=["hosted"])
@@ -99,6 +101,14 @@ class HostedProductsResponse(BaseModel):
     success: bool
     hosted: HostedUsageSummary
     products: ProductCrawlResponse
+
+
+class HostedScreenshotResponse(BaseModel):
+    """Hosted screenshot response with hosted usage metadata."""
+
+    success: bool
+    hosted: HostedUsageSummary
+    screenshot: ScreenshotResponse
 
 
 class HostedRunResponse(BaseModel):
@@ -525,6 +535,52 @@ async def hosted_products(
         )
 
 
+@router.post("/screenshot", response_model=HostedScreenshotResponse)
+async def hosted_screenshot(
+    req: ScreenshotRequest,
+    authorization: str = Header(default=""),
+    crawler: ScoutCrawler = Depends(get_crawler),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+    admission: AdmissionController = Depends(get_hosted_admission_controller),
+    job_queue: HostedJobQueue = Depends(get_hosted_job_queue),
+) -> HostedScreenshotResponse | JSONResponse:
+    """Run hosted screenshot capture after auth, URL safety, rate, and credit checks."""
+    raw_key = _bearer_token(authorization)
+    auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
+    if not auth.allowed:
+        raise HTTPException(status_code=403, detail=auth.reason)
+    _enforce_hosted_url_safety(req.url)
+    _enforce_standard_credit_preflight(
+        account_service,
+        auth.tenant_id,
+        HostedAction.SCREENSHOT.credit_cost,
+    )
+    _enforce_rate_limit(rate_limiter, auth.key_id)
+    if settings.hosted_async_first:
+        return _queue_hosted_job(
+            job_queue,
+            kind="screenshot",
+            tenant_id=auth.tenant_id,
+            key_id=auth.key_id,
+            retry_after_seconds=settings.capacity_retry_after_seconds,
+            work=lambda: _execute_hosted_screenshot(req, raw_key, crawler, account_service),
+        )
+
+    try:
+        async with admission.admit():
+            return await _execute_hosted_screenshot(req, raw_key, crawler, account_service)
+    except AdmissionRejected as exc:
+        return _queue_hosted_job(
+            job_queue,
+            kind="screenshot",
+            tenant_id=auth.tenant_id,
+            key_id=auth.key_id,
+            retry_after_seconds=exc.retry_after_seconds,
+            work=lambda: _execute_hosted_screenshot(req, raw_key, crawler, account_service),
+        )
+
+
 @router.post("/run/{use_case}", response_model=HostedRunResponse)
 async def hosted_run(
     use_case: str,
@@ -798,6 +854,33 @@ async def _execute_hosted_products(
             credit_type=HostedAction.CRAWL_PAGE.credit_type,
         ),
         products=products_response,
+    )
+
+
+async def _execute_hosted_screenshot(
+    req: ScreenshotRequest,
+    raw_key: str,
+    crawler: ScoutCrawler,
+    account_service: HostedAccountService,
+) -> HostedScreenshotResponse:
+    """Run hosted screenshot capture and debit screenshot credits when execution starts."""
+    usage = account_service.consume_action(
+        raw_key,
+        HostedAction.SCREENSHOT,
+        required_scope="runs:create",
+    )
+    if not usage.allowed:
+        raise HTTPException(status_code=403, detail=usage.reason)
+    screenshot_response = await crawler.screenshot(req)
+    return HostedScreenshotResponse(
+        success=screenshot_response.success,
+        hosted=HostedUsageSummary(
+            tenant_id=usage.tenant_id,
+            key_id=usage.key_id,
+            credits_charged=usage.usage.cost if usage.usage else 0,
+            credit_type=usage.usage.credit_type if usage.usage else "",
+        ),
+        screenshot=screenshot_response,
     )
 
 

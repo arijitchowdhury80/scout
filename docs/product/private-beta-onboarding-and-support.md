@@ -19,10 +19,8 @@ Security reports must not be filed as public GitHub issues. Follow
 
 Private beta support covers:
 
-- local install and packaging issues,
-- Docker service startup issues,
 - hosted beta API key and credit issues,
-- CLI, HTTP API, Docker, and skill usage questions,
+- hosted HTTP API and Claude/Codex skill usage questions,
 - product extraction and artifact contract bugs,
 - documentation gaps and confusing setup steps.
 
@@ -44,7 +42,7 @@ Best-effort private beta targets:
 |---|---|
 | Critical security report | acknowledge within 72 hours |
 | Hosted key/payment access issue | acknowledge within 2 business days |
-| Local install or Docker blocker | acknowledge within 3 business days |
+| Hosted HTTP or skill blocker | acknowledge within 3 business days |
 | Product/workflow bug | triage during beta review cycles |
 | Feature request | review for roadmap fit, no SLA |
 
@@ -54,37 +52,18 @@ These are beta targets, not contractual support terms.
 
 ### 1. Choose A Path
 
-Start locally unless the tester explicitly needs hosted convenience.
+Tester-facing beta distribution is limited to hosted HTTP and the Claude/Codex skill.
+Docker is internal deployment infrastructure, not a beta tester onboarding path.
+Source-install and command-line usage remain operator/developer verification surfaces.
 
-- Local package: best for first tests, private workflows, artifact inspection,
-  and user-controlled storage.
-- Docker: best for service-style local testing with a clean boundary.
-- Hosted beta: best for users who need an API key and managed workers; usage is
+- Hosted HTTP API: best for testers who need an API key and managed service; usage is
   finite and metered.
-- Skill: best when an agent should call Scout through CLI/HTTP and preserve
+- Claude/Codex skill: best when an agent should call Scout through hosted HTTP and preserve
   source evidence.
 
-### 2. Install Or Start Scout
+### 2. Get A Hosted API Key
 
-Use the verified private-beta branch install path:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
-playwright install chromium
-export SCOUT_WORKDIR="$PWD/scout-runs"
-scout serve
-```
-
-For Docker:
-
-```bash
-docker compose -f docker/docker-compose.yml up --build
-curl http://127.0.0.1:8421/health
-```
-
-For hosted beta:
+Hosted beta testers generate or receive a metered API key:
 
 ```bash
 export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
@@ -95,15 +74,6 @@ curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
 
 ### 3. Run One Small Smoke
 
-Local HTTP:
-
-```bash
-curl -s -X POST http://127.0.0.1:8421/scrape \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: ${SCOUT_API_KEY:-dev-key}" \
-  -d '{"url":"https://example.com","formats":["markdown"],"timeout_ms":30000}'
-```
-
 Hosted HTTP:
 
 ```bash
@@ -111,12 +81,6 @@ curl -s -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","formats":["markdown"],"timeout_ms":30000}'
-```
-
-CLI:
-
-```bash
-scout run company --query Adobe --mode auto --workdir ./scout-runs
 ```
 
 ### 4. Inspect Evidence
@@ -144,8 +108,8 @@ Use GitHub private beta issue templates:
 
 Include:
 
-- Scout version, commit, Docker tag, or hosted environment,
-- local package / Docker / hosted API / skill surface,
+- hosted environment or skill package commit,
+- hosted HTTP API, Claude/Codex skill, or documentation surface,
 - command or endpoint used,
 - target type or public URL when safe,
 - run ID or artifact path,
@@ -169,4 +133,3 @@ A private beta tester is considered onboarded when they can:
 - find artifacts in the selected workdir or hosted response,
 - understand that hosted credits are finite,
 - file feedback through the right channel without sharing secrets.
-

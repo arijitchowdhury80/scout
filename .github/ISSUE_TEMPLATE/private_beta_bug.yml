@@ -15,10 +15,8 @@ body:
       label: Surface
       description: Where did this happen?
       options:
-        - Local package, Docker, hosted API, or skill
-        - Local package / CLI
-        - Docker service
-        - Hosted API
+        - Hosted HTTP API, Claude/Codex skill, or documentation
+        - Hosted HTTP API
         - Claude/Codex skill
         - Documentation
     validations:
@@ -27,8 +25,8 @@ body:
     id: version
     attributes:
       label: Scout version
-      description: Version, commit hash, Docker tag, or hosted environment.
-      placeholder: "0.1.0, 8ca05f1, docker tag, or hosted beta"
+      description: Hosted environment, public base URL, or skill package commit.
+      placeholder: "hosted beta, scout.chowmes.com, or commit hash"
     validations:
       required: true
   - type: textarea
@@ -63,7 +61,6 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: OS, Python version, browser/runtime, Docker version, and install method.
+      description: Browser, agent host, hosted base URL, and any non-secret runtime context.
     validations:
       required: false
-

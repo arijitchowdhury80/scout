@@ -12,8 +12,10 @@ and report useful feedback without exposing secrets.
 
 - Private beta: `ready_with_limits`
 - Public launch: `ready`
-- Local Scout is the primary beta path.
-- Hosted Scout is a finite-credit convenience API for approved testers only.
+- Hosted Scout is the primary beta path for testers.
+- Claude/Codex skill usage is the second supported tester path.
+- Local package and Docker instructions are no longer tester onboarding paths.
+- Current source branch for operator verification: `codex/scout-platform-foundation`.
 - No unlimited hosted crawling.
 - No guaranteed hard-site bypass.
 
@@ -26,40 +28,10 @@ scout launch-decision-check --check-existing --check-drafts
 
 ## Which Path Should You Choose?
 
-### Local-first path
+### Hosted HTTP path
 
-Choose this if you want the simplest, safest beta experience. Scout runs on
-your machine and writes artifacts into your selected workdir.
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
-playwright install chromium
-export SCOUT_WORKDIR="$PWD/scout-runs"
-scout serve
-```
-
-Then open:
-
-```text
-http://127.0.0.1:8421/
-http://127.0.0.1:8421/docs
-```
-
-### Docker path
-
-Choose this if you want Scout as a local service boundary.
-
-```bash
-docker compose -f docker/docker-compose.yml up --build
-curl http://127.0.0.1:8421/health
-```
-
-### Hosted convenience path
-
-Choose this only after you receive a hosted beta API key. Hosted beta is capped
-and metered while unit economics are validated. Final credits, price,
+Choose this for normal beta testing. Hosted beta is capped and metered while
+unit economics are validated. Final credits, price,
 retention, and overage rules are not approved yet. Do not treat hosted beta as
 unlimited crawling or lifetime API access.
 
@@ -71,25 +43,7 @@ curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
 ```
 
-Operators can create the hosted key with:
-
-```bash
-scout hosted-provision \
-  --email tester@example.com \
-  --db /data/hosted_accounts.sqlite \
-  --key-name "Private beta key"
-```
-
-Developers can generate copyable cURL calls with:
-
-```bash
-scout hosted-curl \
-  --base-url "$SCOUT_HOSTED_BASE_URL" \
-  --endpoint scrape \
-  --url https://example.com
-```
-
-For public hosted deployments, Scout should run with
+For hosted deployments, Scout should run with
 `SCOUT_PUBLIC_HOSTED_ONLY=true` so consumers use `/v1/hosted/*` Bearer auth
 instead of local `X-API-Key` routes. See
 `docs/product/hosted-saas-api-guide.md`.
@@ -97,23 +51,24 @@ instead of local `X-API-Key` routes. See
 ### Skill/agent path
 
 Choose this if you want Claude, Codex, or another agent to call Scout through
-the CLI or HTTP API. The agent should preserve source evidence and reference
+the hosted HTTP API. The agent should preserve source evidence and reference
 the artifact paths it created.
 
 ## 30-Minute First Run
 
-### 1. Confirm Scout is alive
+### 1. Confirm hosted access
 
 ```bash
-curl http://127.0.0.1:8421/health
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
 ```
 
 ### 2. Run one small scrape
 
 ```bash
-curl -s -X POST http://127.0.0.1:8421/scrape \
+curl -s -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: ${SCOUT_API_KEY:-dev-key}" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
   -d '{"url":"https://example.com","formats":["markdown"],"timeout_ms":30000}'
 ```
 
@@ -139,8 +94,8 @@ Look for:
 
 Please include:
 
-- Scout version, commit, Docker tag, or hosted environment.
-- Surface used: local package, Docker, hosted API, or skill.
+- Hosted environment or skill package commit.
+- Surface used: hosted HTTP API, Claude/Codex skill, or documentation.
 - Command or endpoint used.
 - Public target URL or target type, if safe to share.
 - Run ID or non-sensitive artifact path.

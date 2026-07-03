@@ -41,12 +41,16 @@ def test_private_beta_issue_templates_exist_and_route_feedback() -> None:
     bug_text = bug_report.read_text(encoding="utf-8")
     assert bug_template["name"] == "Private beta bug"
     assert "Scout version" in bug_text
-    assert "Local package, Docker, hosted API, or skill" in bug_text
+    assert "Hosted HTTP API, Claude/Codex skill, or documentation" in bug_text
+    assert "Docker service" not in bug_text
+    assert "Local package / CLI" not in bug_text
     assert "Logs, run ID, or artifact path" in bug_text
 
     feature_text = feature_request.read_text(encoding="utf-8")
     assert feature_template["name"] == "Private beta feature request"
-    assert "Product, company intel, hosted API, local CLI, or distribution" in feature_text
+    assert "Product, company intel, hosted API, skill usage, or documentation" in feature_text
+    assert "Docker distribution" not in feature_text
+    assert "Local CLI/package" not in feature_text
     assert "What workflow are you trying to complete?" in feature_text
 
 
@@ -63,11 +67,16 @@ def test_private_beta_support_and_onboarding_playbook_closes_beta_ops_gates() ->
     assert "Best-effort private beta targets" in playbook
     assert "Hosted key/payment access issue" in playbook
     assert "Choose A Path" in playbook
-    assert "Local package" in playbook
-    assert "Docker" in playbook
-    assert "Hosted beta" in playbook
-    assert "Skill" in playbook
-    assert "pip install" in playbook
+    assert "Hosted HTTP API" in playbook
+    assert "Claude/Codex skill" in playbook
+    assert (
+        "Tester-facing beta distribution is limited to hosted HTTP and the Claude/Codex skill"
+        in playbook
+    )
+    assert "Docker is internal deployment infrastructure" in playbook
+    assert "Local package" not in playbook
+    assert "Docker: best for service-style local testing" not in playbook
+    assert "pip install" not in playbook
     assert "/v1/hosted/me" in playbook
     assert "/v1/hosted/scrape" in playbook
     assert "source_pages.json" in playbook
@@ -92,9 +101,11 @@ def test_private_beta_tester_handoff_packet_is_sendable_and_boundary_safe() -> N
     assert "Private Beta Tester Handoff" in handoff
     assert "Send this packet to approved private beta testers" in handoff
     assert "30-minute first run" in handoff
-    assert "Local-first path" in handoff
-    assert "Hosted convenience path" in handoff
+    assert "Hosted HTTP path" in handoff
     assert "Skill/agent path" in handoff
+    assert "Local package and Docker instructions are no longer tester onboarding paths" in handoff
+    assert "Local-first path" not in handoff
+    assert "### Docker path" not in handoff
     assert "codex/scout-platform-foundation" in handoff
     assert "scout launch-readiness" in handoff
     assert "Private beta: `ready_with_limits`" in handoff
@@ -158,9 +169,7 @@ def test_private_beta_launch_plan_reflects_current_evidence_and_boundaries() -> 
     assert 'The beta promise is not "scrape anything."' in launch_plan
 
     verified_surfaces = [
-        "Local branch-qualified install",
-        "Docker built from source",
-        "Hosted API for approved testers",
+        "Hosted HTTP API for beta testers",
         "Claude/Codex skill docs",
         "Launch website",
     ]
@@ -168,8 +177,6 @@ def test_private_beta_launch_plan_reflects_current_evidence_and_boundaries() -> 
         assert surface in launch_plan
 
     current_evidence = [
-        "docs/product/local-install-verification-2026-06-28.md",
-        "docs/product/docker-install-verification-2026-06-28.md",
         "docs/product/hosted-api-quickstart-verification-2026-06-28.md",
         "docs/product/skill-usage-verification-2026-06-29.md",
         "docs/product/website-route-render-verification-2026-06-29.md",
@@ -227,7 +234,7 @@ def test_release_checklist_blocks_public_launch_until_decisions_are_closed() -> 
         "License decision recorded",
         "GitHub release artifact workflow",
         "Clean wheel install smoke",
-        "Docker runtime smoke",
+        "Hosted HTTP production smoke",
         "Hosted economics and usage limits",
         "Security policy",
         "Private beta feedback templates",
@@ -416,22 +423,20 @@ def test_distribution_package_plan_reflects_verified_beta_paths_and_blocks_regis
     assert "scout launch-readiness" in distribution
     assert "GitHub CI runs the repository wrapper for this checker" in distribution
     assert "scout launch-readiness --require-public" in distribution
-    assert "The beta strategy is local-first." in distribution
+    assert "Tester-facing beta distribution is hosted HTTP plus Claude/Codex skill." in distribution
+    assert (
+        "Local package, CLI, Python package, and Docker remain internal verification/operator surfaces"
+        in distribution
+    )
 
     beta_surfaces = [
-        "Local Python package from GitHub branch",
-        "CLI",
-        "HTTP service",
-        "Docker from source",
-        "Hosted API",
-        "Skill docs",
+        "Hosted HTTP API",
+        "Claude/Codex skill",
     ]
     for surface in beta_surfaces:
         assert surface in distribution
 
     evidence_files = [
-        "docs/product/local-install-verification-2026-06-28.md",
-        "docs/product/docker-install-verification-2026-06-28.md",
         "docs/product/hosted-api-quickstart-verification-2026-06-28.md",
         "docs/product/skill-usage-verification-2026-06-29.md",
         "docs/product/website-route-render-verification-2026-06-29.md",
@@ -439,22 +444,17 @@ def test_distribution_package_plan_reflects_verified_beta_paths_and_blocks_regis
     for evidence_file in evidence_files:
         assert evidence_file in distribution
 
-    assert (
-        'pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"'
-        in distribution
-    )
-    assert "playwright install chromium" in distribution
-    assert "SCOUT_API_KEY=dev-key SCOUT_WORKDIR=/tmp/scout-runs scout serve" in distribution
-    assert "docker compose -f docker/docker-compose.yml up --build -d" in distribution
-    assert "python3 scripts/release_artifact_smoke.py --dist-dir" in distribution
-    assert "python3 scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG" in distribution
+    assert "https://scout.chowmes.com/v1/hosted" in distribution
+    assert "Authorization: Bearer" in distribution
+    assert "scout/skill/scout.md" in distribution
+    assert "Docker must not appear in tester onboarding copy" in distribution
 
     package_facts = [
         "`pyproject.toml` defines package name `scout-web`",
         "installed CLI command remains `scout`",
         "Python requirement is `>=3.11`",
         "Hatch wheel packaging includes `THIRD_PARTY_NOTICES.md`",
-        "Docker runtime uses `DB_PATH=/data/scout.db`",
+        "Docker runtime remains VPS/internal infrastructure, not a tester distribution.",
     ]
     for fact in package_facts:
         assert fact in distribution

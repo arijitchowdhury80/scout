@@ -48,6 +48,16 @@ PLAN = [
     ),
     PlannedRequest(
         "POST",
+        "/v1/hosted/screenshot",
+        {
+            "url": "https://www.cnn.com/",
+            "full_page": True,
+            "viewport_width": 1280,
+            "viewport_height": 800,
+        },
+    ),
+    PlannedRequest(
+        "POST",
         "/v1/hosted/products",
         {
             "query": "polo shirts",
@@ -269,7 +279,8 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog=(
             "Endpoint plan: /v1/hosted/me, /v1/hosted/scrape, "
-            "/v1/hosted/crawl, /v1/hosted/products, /v1/hosted/run/company, "
+            "/v1/hosted/crawl, /v1/hosted/screenshot, "
+            "/v1/hosted/products, /v1/hosted/run/company, "
             "/v1/hosted/run/prism, /v1/hosted/run/investor, "
             "/v1/hosted/run/careers, /v1/hosted/run/jobs, "
             "/v1/hosted/run/news, /v1/hosted/run/research, "

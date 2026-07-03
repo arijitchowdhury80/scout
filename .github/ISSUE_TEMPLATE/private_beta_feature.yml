@@ -15,12 +15,10 @@ body:
       label: Product area
       description: Which part of Scout does this affect?
       options:
-        - Product, company intel, hosted API, local CLI, or distribution
+        - Product, company intel, hosted API, skill usage, or documentation
         - Product extraction
         - Company intelligence
         - Hosted API
-        - Local CLI/package
-        - Docker distribution
         - Skill/agent usage
         - Documentation
         - Other
@@ -54,4 +52,3 @@ body:
       description: Optional public URLs, target types, or sample outputs. Avoid private data.
     validations:
       required: false
-

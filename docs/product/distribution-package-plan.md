@@ -24,73 +24,48 @@ private-beta distribution evidence intact on every pull request.
 
 ## Distribution Goals
 
-Scout should be usable in four ways:
+Tester-facing beta distribution is hosted HTTP plus Claude/Codex skill.
 
-1. local Python package,
-2. CLI,
-3. HTTP/Docker service,
-4. agent/tool backend through the Claude/Codex skill, and later an MCP server.
+1. Hosted HTTP API at the approved hosted base URL.
+2. Agent/tool backend through the Claude/Codex skill.
 
-The beta strategy is local-first. Hosted Scout is optional, finite-credit, and
-approved-testers-only.
+Local package, CLI, Python package, and Docker remain internal verification/operator surfaces.
+They are not beta tester distribution paths for this launch. Docker must not appear in tester onboarding copy; it remains VPS deployment infrastructure.
 
 ## Current Private-Beta Distribution Surfaces
 
 | Surface | Status | Install Or Access Path | Evidence | Boundary |
 |---|---|---|---|---|
-| Local Python package from GitHub branch | Verified | `pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"` | `docs/product/local-install-verification-2026-06-28.md` | Branch-qualified beta path only; no PyPI claim. |
-| CLI | Verified through package smoke | installed command: `scout` | `docs/product/local-install-verification-2026-06-28.md`; `docs/product/skill-usage-verification-2026-06-29.md` | CLI supports beta workflows; not every live target is certified. |
-| HTTP service | Verified through `scout serve` | `scout serve --host 127.0.0.1 --port 8421` | `docs/product/local-install-verification-2026-06-28.md`; `docs/product/website-route-render-verification-2026-06-29.md` | Legacy `/app` UI is not certified. |
-| Docker from source | Verified | `docker compose -f docker/docker-compose.yml up --build -d` | `docs/product/docker-install-verification-2026-06-28.md` | No published GHCR/Docker Hub image yet. |
-| Hosted API | Verified quickstart | provisioned beta API key, `/v1/hosted/*` | `docs/product/hosted-api-quickstart-verification-2026-06-28.md` | Approved testers only; finite credits; no public self-serve. |
-| Skill docs | Verified | bundled `scout/skill/scout.md` | `docs/product/skill-usage-verification-2026-06-29.md` | Skill documentation is verified; broad prompt behavior remains beta. |
+| Hosted HTTP API | Verified quickstart | `https://scout.chowmes.com/v1/hosted/*` with `Authorization: Bearer scout_live_...` | `docs/product/hosted-api-quickstart-verification-2026-06-28.md` | Finite credits, metered usage, no unlimited hosted crawling. |
+| Claude/Codex skill | Verified docs | bundled `scout/skill/scout.md` | `docs/product/skill-usage-verification-2026-06-29.md` | Skill documentation is verified; broad prompt behavior remains beta. |
+| Launch website | Verified routes | `https://scout.chowmes.com` | `docs/product/website-route-render-verification-2026-06-29.md` | Website is a beta education surface; legacy `/app` UI is not certified. |
 
-## Local Install Command
+## Hosted HTTP Tester Path
 
-Current private-beta command:
+Current beta base URL:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-platform-foundation"
-playwright install chromium
-SCOUT_API_KEY=dev-key SCOUT_WORKDIR=/tmp/scout-runs scout serve
+export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
+export SCOUT_HOSTED_API_KEY="paste-your-generated-key"
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
 ```
 
-Smoke:
+Small smoke:
 
 ```bash
-curl http://127.0.0.1:8421/health
-curl -X POST http://127.0.0.1:8421/scrape \
-  -H "X-API-Key: dev-key" \
+curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com","persist":true,"output_dir":"/tmp/scout-runs/example"}'
+  -d '{"url":"https://example.com","formats":["markdown"],"timeout_ms":30000}'
 ```
 
-Future package-registry command after approval:
+## Claude/Codex Skill Tester Path
 
-```bash
-pip install scout-web
-```
-
-Do not publish or document `pip install scout-web` as available until the
-license, registry, release, and dependency gates close.
-
-## Docker Install Command
-
-Current private-beta Docker path:
-
-```bash
-docker compose -f docker/docker-compose.yml up --build -d
-curl http://localhost:8421/health
-```
-
-The Docker path is source-build only for beta. Published image smoke is prepared
-but blocked until image publishing is approved:
-
-```bash
-python3 scripts/docker_image_smoke.py ghcr.io/OWNER/IMAGE:TAG
-```
+The skill wrapper is bundled at `scout/skill/scout.md`. Tester-facing
+instructions should tell agents to call the hosted HTTP API and preserve source
+evidence. Local CLI commands in the skill verification docs are package smoke
+evidence, not a tester distribution promise.
 
 ## Package Readiness
 
@@ -104,11 +79,9 @@ Current package state:
   distribution package name is `scout-web`.
 - Hatch wheel packaging includes the launch website assets required by `/`.
 - Hatch wheel packaging includes `THIRD_PARTY_NOTICES.md`.
-- Docker packaging copies `README.md`, `THIRD_PARTY_NOTICES.md`, `scout/`, and
-  `website/` before `pip install .`.
-- Docker runtime uses `DB_PATH=/data/scout.db`, matching Scout settings.
+- Docker runtime remains VPS/internal infrastructure, not a tester distribution.
 
-Verified package gates:
+Verified internal package/operator gates:
 
 - package metadata added for `scout-web`,
 - clean wheel install smoke,
@@ -117,7 +90,7 @@ Verified package gates:
 - launch website served from a clean wheel install,
 - GitHub CI package build and installed CLI smoke gate,
 - tag-driven GitHub release artifact workflow,
-- release workflow smoke for built wheel and Docker image.
+- release workflow smoke for built wheel and internal Docker image.
 
 Open package gates:
 
@@ -133,8 +106,8 @@ Current release automation is intentionally artifact-first:
 - the workflow builds wheel and sdist artifacts,
 - installs the built wheel into a clean virtual environment,
 - smokes `import scout` and `scout --help`,
-- builds the Docker image,
-- runs a container smoke for `/health`, `/`, and `/styles.css`,
+- builds the internal Docker image used for deployment smoke,
+- runs an internal container smoke for `/health`, `/`, and `/styles.css`,
 - uploads `dist/*` as workflow artifacts,
 - creates a GitHub Release and attaches `dist/*`.
 
@@ -193,7 +166,7 @@ Do not distribute broadly until:
 
 ## Hosted Scout
 
-Hosted Scout is a convenience path, not the primary beta distribution path.
+Hosted Scout is the primary tester-facing beta distribution path.
 
 Hosted beta constraints:
 

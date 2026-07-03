@@ -27,12 +27,14 @@ def test_hosted_load_test_dry_run_covers_250_user_hosted_surface() -> None:
         "GET /v1/hosted/me",
         "POST /v1/hosted/scrape",
         "POST /v1/hosted/crawl",
+        "POST /v1/hosted/screenshot",
         "POST /v1/hosted/products",
-        "POST /v1/hosted/run/company",
     ]
+    assert "POST /v1/hosted/run/company" in payload["endpoints"]
     assert "POST /v1/hosted/run/prism" in payload["endpoints"]
     assert "POST /v1/hosted/run/website-quality" in payload["endpoints"]
     assert payload["targets"]["scrape_crawl_map"] == "https://www.wikimedia.org/"
+    assert payload["targets"]["screenshot"] == "https://www.cnn.com/"
     assert payload["targets"]["products"] == "https://www.lacoste.com/us/"
     assert payload["targets"]["intelligence"] == "https://www.microsoft.com/"
     assert payload["llm_expected"] == "disabled"

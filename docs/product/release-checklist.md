@@ -43,12 +43,13 @@ Current public launch action packet:
 
 ## Release Scope
 
-Current intended release surfaces:
+Current intended tester-facing release surfaces:
 
-- local Python package: `scout-web`, installed command `scout`,
-- Docker HTTP service,
-- hosted API for limited private beta users,
+- hosted HTTP API for limited private beta users,
 - Claude/Codex skill documentation.
+
+Local package, command-line, and container paths remain internal
+operator/developer verification surfaces for this beta.
 
 The legacy app UI is not a launch surface until it is rebuilt and certified.
 
@@ -104,6 +105,7 @@ No public registry publish should happen until these decisions are closed.
 
 - [x] Package metadata added for `scout-web`.
 - [x] Clean wheel install smoke.
+- [x] Hosted HTTP production smoke.
 - [x] Installed `import scout` smoke.
 - [x] Installed `scout --help` smoke.
 - [x] GitHub release artifact workflow added.
@@ -132,7 +134,7 @@ No public registry publish should happen until these decisions are closed.
 ## Docker Gates
 
 - [x] Docker image builds.
-- [x] Docker runtime smoke for `/health`.
+- [x] Hosted HTTP production smoke for `/health`.
 - [x] Docker runtime smoke for `/`.
 - [x] Docker runtime smoke for `/styles.css`.
 - [x] Docker image publishing policy approved.
@@ -228,7 +230,7 @@ No public registry publish should happen until these decisions are closed.
 - [x] Beta tester onboarding instructions verified.
       Evidence: `docs/product/private-beta-onboarding-and-support.md`;
       `docs/product/private-beta-tester-handoff.md`.
-      Result: onboarding now covers local package, Docker, hosted API, and
+      Result: onboarding now covers hosted HTTP API and
       skill usage paths; a sendable 30-minute first-run packet; artifact
       inspection; and feedback expectations without secrets.
 - [x] Hosted API key generation flow verified.
