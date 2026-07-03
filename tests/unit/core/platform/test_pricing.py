@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from scout.core.platform.hosted import HostedPlan
 from scout.core.platform.pricing import (
     DEFAULT_UNIT_ECONOMICS,
     credit_cost_table,
@@ -14,6 +15,7 @@ def test_pay_as_you_go_1000_credit_pack_defines_customer_value() -> None:
     package = get_credit_package("standard_1000")
 
     assert package.amount_cents == 1000
+    assert package.hosted_plan is HostedPlan.HOSTED_STARTER
     assert package.currency == "usd"
     assert package.standard_credits == 1000
     assert package.browser_credits == 0
@@ -26,12 +28,19 @@ def test_pay_as_you_go_1000_credit_pack_defines_customer_value() -> None:
 def test_beta_trial_package_is_free_limited_and_timeboxed() -> None:
     package = get_credit_package("beta_trial")
 
+    assert package.hosted_plan is HostedPlan.HOSTED_BETA_PASS
     assert package.amount_cents == 0
     assert package.standard_credits == 100
     assert package.browser_credits == 0
     assert package.trial_days == 30
     assert package.requires_payment_method is True
     assert package.is_public_purchase is False
+
+
+def test_high_volume_package_maps_to_pro_plan_limits() -> None:
+    package = get_credit_package("standard_15000")
+
+    assert package.hosted_plan is HostedPlan.HOSTED_PRO
 
 
 def test_credit_cost_table_explains_what_one_credit_means() -> None:

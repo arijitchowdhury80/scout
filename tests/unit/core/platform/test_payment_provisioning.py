@@ -67,9 +67,37 @@ def test_process_checkout_standard_1000_payment_provisions_1000_credits(
 
     result = service.process_checkout(_standard_1000_checkout())
     balance = account_service.get_balance(result.tenant_id)
+    tenant = account_service.get_tenant(result.tenant_id)
 
     assert result.success is True
+    assert result.plan is HostedPlan.HOSTED_STARTER
+    assert tenant is not None
+    assert tenant.plan is HostedPlan.HOSTED_STARTER
     assert balance.standard_credits_remaining == 1000
+    assert balance.browser_credits_remaining == 0
+
+
+def test_process_checkout_standard_15000_payment_provisions_pro_plan(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "hosted.sqlite"
+    account_service = HostedAccountService(SQLiteHostedAccountStore(db_path))
+    service = HostedPaymentProvisioningService(
+        account_service,
+        SQLiteHostedPaymentStore(db_path),
+    )
+
+    result = service.process_checkout(
+        _standard_15000_checkout(checkout_session_id="cs_test_pro_001")
+    )
+    balance = account_service.get_balance(result.tenant_id)
+    tenant = account_service.get_tenant(result.tenant_id)
+
+    assert result.success is True
+    assert result.plan is HostedPlan.HOSTED_PRO
+    assert tenant is not None
+    assert tenant.plan is HostedPlan.HOSTED_PRO
+    assert balance.standard_credits_remaining == 15000
     assert balance.browser_credits_remaining == 0
 
 
@@ -95,6 +123,7 @@ def test_process_checkout_standard_1000_tops_up_existing_beta_account_without_ne
 
     result = service.process_checkout(_standard_1000_checkout())
     balance = account_service.get_balance(beta.tenant.tenant_id)
+    tenant = account_service.get_tenant(beta.tenant.tenant_id)
     stored_event = payment_store.get_checkout(
         provider=HostedPaymentProvider.STRIPE,
         checkout_session_id="cs_test_beta_001",
@@ -104,6 +133,9 @@ def test_process_checkout_standard_1000_tops_up_existing_beta_account_without_ne
     assert result.already_processed is False
     assert result.tenant_id == beta.tenant.tenant_id
     assert result.key_id == beta.api_key.key_id
+    assert result.plan is HostedPlan.HOSTED_STARTER
+    assert tenant is not None
+    assert tenant.plan is HostedPlan.HOSTED_STARTER
     assert result.raw_api_key == ""
     assert balance.standard_credits_remaining == 1075
     assert balance.browser_credits_remaining == 0
@@ -258,7 +290,7 @@ def test_sqlite_payment_store_persists_checkout_event_for_fresh_store(
     assert stored_event.tenant_id == result.tenant_id
     assert stored_event.amount_total_cents == 1000
     assert stored_event.currency == "usd"
-    assert stored_event.plan is HostedPlan.HOSTED_BETA_PASS
+    assert stored_event.plan is HostedPlan.HOSTED_STARTER
     assert stored_event.package_id == "standard_1000"
 
 
@@ -329,6 +361,25 @@ def _standard_1000_checkout(
     """Build a valid paid standard credit package request for tests."""
     return _checkout(
         package_id="standard_1000",
+        checkout_session_id=checkout_session_id,
+        email=email,
+        amount_total_cents=amount_total_cents,
+        currency=currency,
+        status=status,
+    )
+
+
+def _standard_15000_checkout(
+    *,
+    checkout_session_id: str = "cs_test_beta_001",
+    email: str = "builder@example.com",
+    amount_total_cents: int = 10000,
+    currency: str = "usd",
+    status: HostedCheckoutPaymentStatus = HostedCheckoutPaymentStatus.PAID,
+) -> HostedCheckoutProvisioningRequest:
+    """Build a valid paid pro-volume standard credit package request for tests."""
+    return _checkout(
+        package_id="standard_15000",
         checkout_session_id=checkout_session_id,
         email=email,
         amount_total_cents=amount_total_cents,

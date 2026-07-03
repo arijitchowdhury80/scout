@@ -148,6 +148,8 @@ class HostedAccountStore(Protocol):
 
     def update_tenant_status(self, tenant_id: str, status: HostedAccountStatus) -> None: ...
 
+    def update_tenant_plan(self, tenant_id: str, plan: HostedPlan) -> None: ...
+
 
 class InMemoryHostedAccountStore:
     """In-memory hosted account store for tests and local development."""
@@ -272,6 +274,11 @@ class InMemoryHostedAccountStore:
         """Update hosted tenant lifecycle status."""
         tenant = self.tenants[tenant_id]
         self.tenants[tenant_id] = tenant.model_copy(update={"status": status})
+
+    def update_tenant_plan(self, tenant_id: str, plan: HostedPlan) -> None:
+        """Update hosted tenant commercial plan."""
+        tenant = self.tenants[tenant_id]
+        self.tenants[tenant_id] = tenant.model_copy(update={"plan": plan})
 
 
 class HostedAccountService:
@@ -425,6 +432,16 @@ class HostedAccountService:
         """Disable one hosted API key without deleting non-secret audit metadata."""
         self.store.update_key_status(key_id, ApiKeyStatus.DISABLED)
 
+    def upgrade_tenant_plan(self, tenant_id: str, plan: HostedPlan) -> HostedPlan:
+        """Upgrade a tenant plan when the requested plan is higher."""
+        tenant = self.store.get_tenant(tenant_id)
+        if tenant is None:
+            raise KeyError(f"Unknown tenant: {tenant_id}")
+        target = _higher_plan(tenant.plan, plan)
+        if target is not tenant.plan:
+            self.store.update_tenant_plan(tenant_id, target)
+        return target
+
     def find_tenant_by_email(self, email: str) -> HostedTenantRecord | None:
         """Return tenant metadata for a normalized email if it exists."""
         return self.store.find_tenant_by_email(email)
@@ -560,6 +577,19 @@ def _debit_balance(balance: HostedUsageBalance, action: HostedAction) -> HostedU
             "standard_credits_remaining": balance.standard_credits_remaining - action.credit_cost
         }
     )
+
+
+def _higher_plan(current: HostedPlan, candidate: HostedPlan) -> HostedPlan:
+    """Return the higher hosted plan without downgrading existing tenants."""
+    rank = {
+        HostedPlan.LOCAL_FREE: 0,
+        HostedPlan.HOSTED_BETA_PASS: 1,
+        HostedPlan.HOSTED_STARTER: 2,
+        HostedPlan.HOSTED_PRO: 3,
+    }
+    if rank[candidate] > rank[current]:
+        return candidate
+    return current
 
 
 def _usage_entry(

@@ -69,9 +69,13 @@ Scout hosted beta has API-key based access, not a login system.
   Stripe Checkout Session id as the reference.
 - A successful paid Stripe webhook creates a hosted tenant for a first-time
   buyer, or adds the purchased credits to the existing tenant when the checkout
-  email already has a hosted account. Existing-account top-ups do not email a
-  second raw API key; they record the purchase against the tenant/key and update
-  the credit balance.
+  email already has a hosted account. Paid packages also attach the canonical
+  hosted plan for that package: `standard_1000` and `standard_3000` use
+  `hosted_starter`, while `standard_15000` uses `hosted_pro`. Existing-account
+  top-ups upgrade the tenant plan when the purchased package has higher limits,
+  but they never downgrade an existing tenant. Existing-account top-ups do not
+  email a second raw API key; they record the purchase against the tenant/key
+  and update the credit balance.
 - A `$0` `beta_trial` checkout for an email that already has a hosted account
   is recorded for auditability but does not add another 100 free beta credits.
   Only paid packages add credits to an existing tenant balance.
@@ -653,6 +657,15 @@ Current plan balances:
 | `hosted_beta_pass` | 100 | 0 | 7 days | 25 |
 | `hosted_starter` | 5,000 | 250 | 14 days | 250 |
 | `hosted_pro` | 25,000 | 1,500 | 30 days | 1,000 |
+
+Current paid package mapping:
+
+| Package | Price | Credits | Hosted Plan |
+|---|---:|---:|---|
+| `beta_trial` | $0 setup | 100 standard / 0 browser | `hosted_beta_pass` |
+| `standard_1000` | $10 | 1,000 standard / 0 browser | `hosted_starter` |
+| `standard_3000` | $25 | 3,000 standard / 0 browser | `hosted_starter` |
+| `standard_15000` | $100 | 15,000 standard / 0 browser | `hosted_pro` |
 
 These are engineering limits, not final public pricing.
 

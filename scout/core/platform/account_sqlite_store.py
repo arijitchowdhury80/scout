@@ -14,7 +14,7 @@ from scout.core.platform.account_service import (
     HostedUsageLedgerEntry,
 )
 from scout.core.platform.api_keys import ApiKeyRecord, ApiKeyStatus
-from scout.core.platform.hosted import HostedUsageBalance
+from scout.core.platform.hosted import HostedPlan, HostedUsageBalance
 
 
 class SQLiteHostedAccountStore:
@@ -297,6 +297,14 @@ class SQLiteHostedAccountStore:
             conn.execute(
                 "UPDATE hosted_tenants SET status = ? WHERE tenant_id = ?",
                 (status.value, tenant_id),
+            )
+
+    def update_tenant_plan(self, tenant_id: str, plan: HostedPlan) -> None:
+        """Update hosted tenant commercial plan."""
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE hosted_tenants SET plan = ? WHERE tenant_id = ?",
+                (plan.value, tenant_id),
             )
 
     def _connect(self) -> sqlite3.Connection:

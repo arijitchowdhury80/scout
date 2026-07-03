@@ -6,7 +6,7 @@ from math import ceil
 
 from pydantic import BaseModel, Field
 
-from scout.core.platform.hosted import HostedAction
+from scout.core.platform.hosted import HostedAction, HostedPlan
 
 
 class HostedCreditPackage(BaseModel):
@@ -14,6 +14,7 @@ class HostedCreditPackage(BaseModel):
 
     package_id: str
     name: str
+    hosted_plan: HostedPlan
     amount_cents: int = Field(ge=0)
     currency: str = "usd"
     standard_credits: int = Field(ge=0)
@@ -68,6 +69,7 @@ _PACKAGES = {
     "beta_trial": HostedCreditPackage(
         package_id="beta_trial",
         name="Hosted Beta Trial",
+        hosted_plan=HostedPlan.HOSTED_BETA_PASS,
         amount_cents=0,
         standard_credits=100,
         browser_credits=0,
@@ -82,6 +84,7 @@ _PACKAGES = {
     "standard_1000": HostedCreditPackage(
         package_id="standard_1000",
         name="Standard Credits 1000",
+        hosted_plan=HostedPlan.HOSTED_STARTER,
         amount_cents=1000,
         standard_credits=1000,
         browser_credits=0,
@@ -96,6 +99,7 @@ _PACKAGES = {
     "standard_3000": HostedCreditPackage(
         package_id="standard_3000",
         name="Standard Credits 3000",
+        hosted_plan=HostedPlan.HOSTED_STARTER,
         amount_cents=2500,
         standard_credits=3000,
         browser_credits=0,
@@ -107,6 +111,7 @@ _PACKAGES = {
     "standard_15000": HostedCreditPackage(
         package_id="standard_15000",
         name="Standard Credits 15000",
+        hosted_plan=HostedPlan.HOSTED_PRO,
         amount_cents=10000,
         standard_credits=15000,
         browser_credits=0,
@@ -118,6 +123,7 @@ _PACKAGES = {
     "browser_100": HostedCreditPackage(
         package_id="browser_100",
         name="Browser Credits 100",
+        hosted_plan=HostedPlan.HOSTED_STARTER,
         amount_cents=2000,
         standard_credits=0,
         browser_credits=100,

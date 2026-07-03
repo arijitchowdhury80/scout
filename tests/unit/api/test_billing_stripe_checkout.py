@@ -590,6 +590,7 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
     assert "standard_1000" in package_ids
     assert "browser_100" in package_ids
     assert standard_1000["amount_cents"] == 1000
+    assert standard_1000["hosted_plan"] == "hosted_starter"
     assert standard_1000["standard_credits"] == 1000
     assert standard_1000["browser_credits"] == 0
     assert data["credit_costs"]["scrape"] == "1 standard credit"

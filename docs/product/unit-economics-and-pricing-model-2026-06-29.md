@@ -10,6 +10,9 @@ Recommended launch candidate as of 2026-07-03:
 - Local Scout remains free.
 - Beta trial: 30 days, 100 standard credits, card-backed $0 setup when Stripe and SMTP are configured. Until then, `/beta` records name/email requests for queued delivery.
 - First pay-as-you-go package: $10 for 1,000 standard credits.
+- The $10 / 1,000-credit package provisions or upgrades the account to
+  `hosted_starter` limits. The $100 / 15,000-credit package provisions or
+  upgrades the account to `hosted_pro` limits.
 - Browser-heavy work is not included in the first public pay-as-you-go package.
 - Browser credits remain private/controlled until browser-worker cost is measured.
 - Subscriptions remain deferred until usage telemetry proves recurring demand.
@@ -46,9 +49,19 @@ This model is implemented in `scout.core.platform.pricing`, returned by
 billing model. The response includes both the package economics and the
 assumptions behind them: fixed monthly cost, standard-credit cost,
 browser-credit cost, allocated support cost, payment percent fee, payment fixed
-fee, and target gross margin. It is a launch candidate, not an irrevocable
-public price. If hosting, LLM, browser, firewall, storage, support, or payment
-costs change, change the package before enabling paid checkout.
+fee, target gross margin, and the `hosted_plan` attached to each package. It is
+a launch candidate, not an irrevocable public price. If hosting, LLM, browser,
+firewall, storage, support, or payment costs change, change the package before
+enabling paid checkout.
+
+Current package-to-plan mapping:
+
+| Package | Price | Credits | Hosted Plan |
+|---|---:|---:|---|
+| `beta_trial` | $0 | 100 standard / 0 browser | `hosted_beta_pass` |
+| `standard_1000` | $10 | 1,000 standard / 0 browser | `hosted_starter` |
+| `standard_3000` | $25 | 3,000 standard / 0 browser | `hosted_starter` |
+| `standard_15000` | $100 | 15,000 standard / 0 browser | `hosted_pro` |
 
 ## Decision Update
 

@@ -227,6 +227,7 @@ class HostedPaymentProvisioningService:
             return rejection
 
         package = get_credit_package(request.package_id)
+        effective_plan = package.hosted_plan
         existing_tenant = self.account_service.find_tenant_by_email(str(request.email))
         if existing_tenant is not None:
             if package.amount_cents > 0:
@@ -235,25 +236,32 @@ class HostedPaymentProvisioningService:
                     standard_credits=package.standard_credits,
                     browser_credits=package.browser_credits,
                 )
+                effective_plan = self.account_service.upgrade_tenant_plan(
+                    existing_tenant.tenant_id,
+                    effective_plan,
+                )
+            else:
+                effective_plan = existing_tenant.plan
             key_id = self.account_service.latest_key_id_for_tenant(existing_tenant.tenant_id)
             self.payment_store.save_checkout(
                 _record_from_request(
                     request,
                     tenant_id=existing_tenant.tenant_id,
                     key_id=key_id,
+                    plan=effective_plan,
                 )
             )
             return HostedCheckoutProvisioningResult(
                 success=True,
                 tenant_id=existing_tenant.tenant_id,
                 key_id=key_id,
-                plan=existing_tenant.plan,
+                plan=effective_plan,
             )
 
         provisioned = self.account_service.provision_account(
             email=str(request.email),
             name=request.name,
-            plan=request.plan,
+            plan=effective_plan,
             scopes=request.scopes,
             key_name=f"{request.provider.value} checkout {request.checkout_session_id}",
             standard_credits=package.standard_credits,
@@ -264,13 +272,14 @@ class HostedPaymentProvisioningService:
                 request,
                 tenant_id=provisioned.tenant.tenant_id,
                 key_id=provisioned.api_key.key_id,
+                plan=effective_plan,
             )
         )
         return HostedCheckoutProvisioningResult(
             success=True,
             tenant_id=provisioned.tenant.tenant_id,
             key_id=provisioned.api_key.key_id,
-            plan=request.plan,
+            plan=effective_plan,
             raw_api_key=provisioned.raw_api_key,
         )
 
@@ -301,8 +310,6 @@ def _price_reason(request: HostedCheckoutProvisioningRequest) -> str:
     """Return a rejection reason when checkout price does not match the plan."""
     package = get_credit_package(request.package_id)
     expected = f"Expected checkout amount {package.amount_cents} {package.currency}"
-    if request.plan is not HostedPlan.HOSTED_BETA_PASS:
-        return "Payment provisioning currently supports hosted_beta_pass only."
     if request.amount_total_cents != package.amount_cents:
         return f"{expected} for package {package.package_id}."
     if request.currency.lower() != package.currency:
@@ -328,6 +335,7 @@ def _record_from_request(
     *,
     tenant_id: str,
     key_id: str,
+    plan: HostedPlan,
 ) -> HostedCheckoutProvisioningRecord:
     """Build a persisted checkout mapping from request and account result."""
     return HostedCheckoutProvisioningRecord(
@@ -337,7 +345,7 @@ def _record_from_request(
         key_id=key_id,
         email=request.email,
         package_id=request.package_id,
-        plan=request.plan,
+        plan=plan,
         amount_total_cents=request.amount_total_cents,
         currency=request.currency.lower(),
         customer_id=request.customer_id,
