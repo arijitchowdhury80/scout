@@ -24,6 +24,7 @@ SCRIPT_NAMES = [
     "scout-vps-configure-hosted-env",
     "scout-hosted-load-test",
     "scout-stripe-bootstrap-prices",
+    "hosted_beta_signup_smoke.py",
     "hosted_production_smoke.py",
 ]
 
@@ -50,6 +51,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "list-purchases",
             "list-signups",
             "send-test-email",
+            "beta-signup-smoke",
             "process-pending-signups",
             "disable-access",
             "readiness",
@@ -64,6 +66,12 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "--base-url",
             "--json",
             "--require-ready",
+        ],
+        "hosted_beta_signup_smoke.py": [
+            "Smoke-test Scout public beta signup",
+            "--base-url",
+            "--email",
+            "--name",
         ],
         "scout-stripe-bootstrap-prices": [
             "Create Stripe one-time price IDs",

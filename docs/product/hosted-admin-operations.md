@@ -217,6 +217,21 @@ create a hosted account, grant credits, issue a real API key, or print SMTP
 secrets. The email body clearly says it is a smoke test and cannot be mistaken
 for a real hosted Scout key.
 
+After the SMTP smoke succeeds, run a real public beta signup smoke against the
+hosted endpoint. This creates or confirms a beta account for the supplied email
+and verifies the public status endpoint, but it still never prints the raw API
+key:
+
+```bash
+scripts/scout-hosted-admin beta-signup-smoke \
+  --email tester@example.com \
+  --name "Tester Name"
+```
+
+Use a disposable test recipient for this command. The API key is delivered only
+to that inbox, so the terminal output remains safe to paste into tickets or
+release notes.
+
 ### Process Queued Beta Signups
 
 When beta signup is enabled before SMTP is configured, Scout records
