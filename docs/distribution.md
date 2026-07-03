@@ -89,9 +89,10 @@ does not pass an exact `--output-dir` or JSON `output_dir`.
 
 ## Hosted Beta Configuration
 
-Local use does not require Stripe or SMTP. The hosted beta can generate keys by
-email delivery or by the one-time response fallback. Paid hosted checkout still
-requires Stripe and SMTP.
+Local use does not require Stripe or SMTP. Hosted beta signup now starts through
+Stripe Checkout and requires webhook-confirmed provisioning plus SMTP key
+delivery before it is live-ready. Public signup never returns raw API keys in
+the browser.
 
 Minimum Stripe Checkout settings:
 
@@ -102,9 +103,9 @@ STRIPE_SUCCESS_URL=https://your-domain.example/?checkout=success
 STRIPE_CANCEL_URL=https://your-domain.example/?checkout=cancelled
 ```
 
-Paid checkout uses Stripe Checkout. The beta launch key-generation path does not
-require Stripe when `/v1/hosted/beta-key` is enabled with email delivery or the
-one-time response fallback.
+Paid checkout also uses Stripe Checkout. The legacy `/v1/hosted/beta-key` path
+is not the public self-service route; it remains fail-closed unless operator
+configuration explicitly enables SMTP-backed delivery.
 
 Email delivery or payment-confirmed provisioning needs:
 
@@ -173,9 +174,9 @@ Scout exposes a non-secret readiness check for the website:
 curl http://localhost:8421/v1/billing/stripe/status
 ```
 
-It returns only booleans for checkout, webhook, key delivery, response fallback,
-and end-to-end paid key delivery readiness. It never returns Stripe, SMTP, or
-Scout API secrets.
+It returns only booleans for checkout, webhook, key delivery, and end-to-end
+paid key delivery readiness. It never returns Stripe, SMTP, or Scout API
+secrets.
 
 For a real Stripe test-mode smoke, start Scout with the Stripe and SMTP
 settings above, then run:

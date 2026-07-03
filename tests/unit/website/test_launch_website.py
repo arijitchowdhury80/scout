@@ -316,12 +316,12 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "The hosted playground lives under the demo flow",
             "Open playground",
             "Call the live Scout API.",
-            "Register for a beta API key.",
-            "Scout emails the API key, or shows it once when response fallback is enabled",
+            "Start hosted beta checkout.",
+            "Public signup never shows raw keys in the browser",
             'href="/beta#hosted-checkout"',
             "API reference",
             "The endpoints testers actually need.",
-            "POST /v1/hosted/beta-key",
+            "POST /v1/billing/stripe/checkout-session",
             "POST /v1/hosted/products",
             "POST /v1/hosted/run/{use_case}",
             "https://scout.chowmes.com",
@@ -337,7 +337,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "SCOUT_HOSTED_API_KEY",
             "/v1/hosted/me",
             "/v1/hosted/scrape",
-            "email-based or one-time-key-display based",
+            "checkout-gated and metered",
             "Examples",
             "Page to markdown",
             "Product category to records",
@@ -367,8 +367,8 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "What changed in the blocker burndown?",
             "Arijit decisions: closed",
             "Codex gates: closed",
-            "Self-service beta keys: active",
-            "Current blockers: 0",
+            "Hosted checkout: gated",
+            "Current blockers: configuration",
             "Blocker summary",
             "Future public registry work",
             "Future paid checkout work",
@@ -397,7 +397,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         ],
             "beta.html": [
                 "Scout Private Beta",
-                "Generate your hosted beta key",
+                "Start hosted beta checkout",
                 "Tester handoff packet",
                 "docs/product/private-beta-tester-handoff.md",
                 "Hosted beta checkout",
@@ -471,13 +471,11 @@ def test_docs_beta_access_is_self_service_email_delivery_without_password() -> N
     assert 'name="invite_password"' not in html
     assert 'type="password"' not in html
     assert 'id="copyHostedKey"' not in html
-    assert "Register for a beta API key." in normalized_html
-    assert (
-        "Scout emails the API key, or shows it once when response fallback is enabled"
-        in normalized_html
-    )
+    assert "Start hosted beta checkout." in normalized_html
+    assert "Public signup never shows raw keys in the browser" in normalized_html
     assert 'href="/beta#hosted-checkout"' in html
-    assert "/v1/hosted/beta-key" in html
+    assert "/v1/hosted/beta-key" not in html
+    assert "/v1/billing/stripe/checkout-session" in html
     assert ".hosted-key-card" in css
     assert ".hosted-key-result" in css
     assert "Only after `scout serve` is running on your own machine" in html

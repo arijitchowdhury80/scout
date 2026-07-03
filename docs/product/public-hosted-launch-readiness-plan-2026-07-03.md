@@ -49,9 +49,9 @@ Production domain: `https://scout.chowmes.com/`
 - `/app` returns `403`, consistent with hosted-only production guard.
 - `/api/docs` returns `403`, consistent with hosted-only production guard.
 - `/assets/hosted-keygen.js` is no longer part of the public beta website.
-- `/beta` exposes the public beta registration form and posts to
-  `POST /v1/hosted/beta-key`; the path requires SMTP delivery to email the raw
-  API key and fails closed without it.
+- `/beta` exposes the public hosted beta checkout form and posts to
+  `POST /v1/billing/stripe/checkout-session`; webhook-confirmed provisioning and
+  SMTP key delivery are required before the path is live-ready.
 - `/pricing` exposes `$0` beta trial and paid credit checkout options; the
   Stripe path requires Stripe price IDs, checkout URLs, webhook secret, and SMTP
   delivery before it is live-ready.
@@ -188,11 +188,12 @@ The launch requirement says most users will run hosted, log in, create their own
 Current reality:
 
 - Full login/account UI is not implemented.
-- The public `/beta` page exposes direct name/email key registration through
-  `/v1/hosted/beta-key`.
-- Hosted beta can also use `$0` Stripe setup-mode checkout from `/pricing` with
+- The public `/beta` page exposes hosted checkout, not direct browser key
+  generation.
+- Hosted beta uses `$0` Stripe setup-mode checkout with
   `package_id=beta_trial` once Stripe is configured.
-- Direct `/beta` signup is live-ready only when SMTP delivery is configured.
+- `/beta` signup is live-ready only when Stripe webhook provisioning and SMTP
+  delivery are configured.
   Stripe checkout also requires SMTP delivery because the raw key must be
   delivered after the signed webhook provisions access.
 
@@ -266,7 +267,8 @@ Verification:
 - Production `curl` confirms:
   - `/beta#hosted-checkout` is the public beta access path
   - `/v1/billing/stripe/checkout-session` creates a `beta_trial` checkout when configured
-  - `/v1/hosted/beta-key` remains disabled unless SMTP delivery is configured
+  - `/v1/hosted/beta-key` is not the public signup route and remains fail-closed
+    unless operator SMTP delivery is configured
   - generated key can call `/v1/hosted/me`
   - generated key can run one capped hosted workflow
   - credits decrement

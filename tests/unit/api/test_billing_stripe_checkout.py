@@ -180,6 +180,33 @@ def test_stripe_status_reports_beta_checkout_readiness(monkeypatch) -> None:
     }
 
 
+def test_stripe_status_does_not_enable_beta_without_checkout_webhook_and_delivery(
+    monkeypatch,
+) -> None:
+    service = RecordingStripeCheckoutService(
+        StripeCheckoutResult(success=False),
+        enabled=False,
+    )
+    delivery = RecordingDeliveryService(enabled=False)
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
+    app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_webhook_secret] = lambda: ""
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    client = TestClient(app)
+
+    response = client.get("/v1/billing/stripe/status")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "beta_signup_enabled": True,
+        "checkout_configured": False,
+        "webhook_configured": False,
+        "key_delivery_configured": False,
+        "ready_for_beta_checkout": False,
+        "ready_for_paid_key_delivery": False,
+    }
+
+
 def test_billing_packages_returns_credit_meanings_and_unit_economics_without_secrets() -> None:
     client = TestClient(app)
 

@@ -82,12 +82,12 @@
               <p>The real `v0.1.0-beta.1` release workflow passed and the downloaded artifacts were smoke-tested locally.</p>
             </article>
             <article>
-              <h3>Self-service beta keys: active</h3>
-              <p>Hosted beta registration can provision finite beta keys through email delivery or one-time response display. Paid checkout remains separate.</p>
+              <h3>Hosted checkout: gated</h3>
+              <p>Hosted beta signup now fails closed until Stripe Checkout, webhook verification, and SMTP key delivery are configured in production.</p>
             </article>
             <article>
-              <h3>Current blockers: 0</h3>
-              <p>`scout launch-readiness --json` reports no current release blockers.</p>
+              <h3>Current blockers: configuration</h3>
+              <p>The hosted service is online, but checkout and key delivery remain blocked until production Stripe and SMTP secrets are installed.</p>
             </article>
           </div>
         </section>

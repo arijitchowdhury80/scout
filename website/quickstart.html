@@ -123,9 +123,9 @@
             <h2 id="hosted-api-title">Call the live Scout API.</h2>
           </div>
           <p>
-            Hosted HTTP beta is email-based or one-time-key-display based and
-            metered. Use the domain below with the API key generated for you. Do
-            not use localhost for hosted calls.
+            Hosted HTTP beta is checkout-gated and metered. Use the domain below
+            with the API key delivered to you after hosted account provisioning.
+            Do not use localhost for hosted calls.
             Hosted credits are capped while unit economics are validated; Scout
             does not offer unlimited hosted crawling.
           </p>
@@ -142,18 +142,19 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
           <div class="hosted-key-card" aria-labelledby="hosted-key-title">
             <div>
               <p class="wi-label wi-label--accent">Private beta access</p>
-              <h3 id="hosted-key-title">Register for a beta API key.</h3>
+              <h3 id="hosted-key-title">Start hosted beta checkout.</h3>
               <p>
-                Beta testers register with name and email. Scout emails the API
-                key, or shows it once when response fallback is enabled, after
-                the hosted account is provisioned.
+                Beta testers enter name and email on the beta page. Scout opens
+                Stripe Checkout for the beta trial, provisions the hosted
+                account after confirmation, and emails the API key. Public
+                signup never shows raw keys in the browser.
               </p>
             </div>
-            <a class="wi-btn" href="/beta#hosted-checkout">Open beta key registration</a>
+            <a class="wi-btn" href="/beta#hosted-checkout">Open hosted beta checkout</a>
             <div id="hostedKeyResult" class="hosted-key-result" aria-live="polite">
               <p>
-                Use the beta registration form for key delivery. Existing keys still
-                work with the hosted API examples below.
+                Use the hosted beta checkout form for key delivery. Existing
+                keys still work with the hosted API examples below.
               </p>
             </div>
           </div>
@@ -173,7 +174,7 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
             </article>
             <article>
               <h3>Keys</h3>
-              <p>Beta key registration posts to `/v1/hosted/beta-key`. Never paste hosted API keys into frontend code, public repos, screenshots, tickets, or shared logs.</p>
+              <p>Hosted beta signup starts at `/v1/billing/stripe/checkout-session`. Never paste hosted API keys into frontend code, public repos, screenshots, tickets, or shared logs.</p>
             </article>
           </div>
         </section>
@@ -189,8 +190,8 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               <span role="cell">Check hosted beta plan, credits, limits, and retention.</span>
             </div>
             <div role="row">
-              <strong role="cell">POST /v1/hosted/beta-key</strong>
-              <span role="cell">Generate a finite-credit hosted beta key from name and email.</span>
+              <strong role="cell">POST /v1/billing/stripe/checkout-session</strong>
+              <span role="cell">Start beta or paid hosted checkout. Webhooks provision the account and key delivery.</span>
             </div>
             <div role="row">
               <strong role="cell">POST /v1/hosted/scrape</strong>

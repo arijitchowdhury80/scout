@@ -11,7 +11,7 @@ Status: In progress - positioning refresh
 - [x] Static homepage implemented.
 - [x] Browser/static verification completed.
 - [x] Final notes and next steps documented.
-- [x] Hosted beta registration form wired to `/v1/hosted/beta-key`.
+- [x] Hosted beta checkout form wired to `/v1/billing/stripe/checkout-session`.
 - [x] Hosted beta registration form desktop/mobile smoke completed.
 - [x] Scout API root now serves the launch website from the same origin.
 - [x] Refresh homepage around evidence-grade records differentiation.

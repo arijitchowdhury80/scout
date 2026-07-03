@@ -188,34 +188,6 @@ def test_hosted_beta_key_generation_requires_configured_delivery_service(
     assert account_service.store.find_tenant_by_email("no-email@example.com") is None
 
 
-def test_hosted_beta_key_generation_rejects_response_fallback_even_when_env_set(
-    monkeypatch,
-) -> None:
-    account_service, _raw_key, _tenant_id = _account_service_with_key()
-    delivery = FakeDeliveryService()
-    delivery.enabled = False
-    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
-    monkeypatch.setenv("HOSTED_KEY_DELIVERY_ALLOW_RESPONSE_FALLBACK", "true")
-    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
-    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
-    try:
-        client = TestClient(app)
-        resp = client.post(
-            "/v1/hosted/beta-key",
-            json={
-                "name": "Fallback Tester",
-                "email": "fallback@example.com",
-                "key_name": "Fallback beta key",
-            },
-        )
-    finally:
-        app.dependency_overrides.clear()
-
-    assert resp.status_code == 503
-    assert resp.json()["detail"] == "Hosted API key delivery is not configured."
-    assert account_service.store.find_tenant_by_email("fallback@example.com") is None
-
-
 def test_hosted_beta_key_response_schema_does_not_expose_raw_key() -> None:
     client = TestClient(app)
 
