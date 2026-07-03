@@ -5,6 +5,7 @@
   const unitEconomics = document.getElementById("pricingUnitEconomics");
   const checkoutForm = document.getElementById("pricingCheckoutForm");
   const checkoutStatus = document.getElementById("pricingCheckoutStatus");
+  const checkoutReturnStatus = document.getElementById("pricingCheckoutReturnStatus");
 
   if (!pricingSection || !packageGrid || !creditCosts || !unitEconomics) {
     return;
@@ -27,6 +28,8 @@
     .catch(() => {
       packageGrid.dataset.pricingStatus = "fallback";
     });
+
+  handleCheckoutReturnState();
 
   checkoutForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -156,6 +159,22 @@
     if (!checkoutStatus) return;
     checkoutStatus.textContent = message;
     checkoutStatus.dataset.state = state;
+  }
+
+  function handleCheckoutReturnState() {
+    if (!checkoutReturnStatus) return;
+    const checkoutState = new URLSearchParams(window.location.search).get("checkout");
+    if (checkoutState === "success") {
+      checkoutReturnStatus.hidden = false;
+      checkoutReturnStatus.dataset.state = "success";
+      checkoutReturnStatus.textContent =
+        "Stripe payment completed. Scout will email your hosted API key after the signed webhook provisions access.";
+    } else if (checkoutState === "cancelled") {
+      checkoutReturnStatus.hidden = false;
+      checkoutReturnStatus.dataset.state = "error";
+      checkoutReturnStatus.textContent =
+        "Stripe checkout was cancelled. No hosted credits were provisioned; local Scout remains available.";
+    }
   }
 
   function formatDollars(cents) {

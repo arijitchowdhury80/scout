@@ -7,27 +7,44 @@ Status: private beta operations
 
 Scout hosted beta has API-key based access, not a login system.
 
-- Users can register for one hosted API key through `POST /v1/hosted/beta-key` when `HOSTED_BETA_SIGNUP_ENABLED=true` and SMTP key delivery is configured.
+- Public beta testers start access through the hosted beta Stripe Checkout flow
+  on `/beta#hosted-checkout`; the direct `POST /v1/hosted/beta-key` route is a
+  legacy/operator exception path and should stay disabled unless explicitly
+  needed.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
 - Self-service signup emails the raw API key and never returns it in the HTTP response. Operator CLI provisioning still prints the raw key once. Scout stores only a hash.
+- The key-delivery email is signed by Arijit, explains the 100-credit/30-day
+  beta boundary, includes credit meaning, links to docs/pricing, and asks users
+  to reply with their use case, target site, and failing run ID for support.
 - Hosted calls use `Authorization: Bearer scout_live_...`.
 - Users can inspect their current hosted account, recent usage, and purchase
   records with `/v1/hosted/me`, `/v1/hosted/usage`, and
   `/v1/hosted/purchases`.
 - Public pricing and credit metadata is available through
   `/v1/billing/packages`; it contains no Stripe secrets.
+- The public pricing page can start Stripe Checkout for hosted credit packages
+  through `/v1/billing/stripe/checkout-session` when Stripe price IDs and
+  checkout settings are configured.
+- Hosted Stripe success/cancel redirects should land on
+  `https://scout.chowmes.com/pricing?checkout=success` or
+  `https://scout.chowmes.com/pricing?checkout=cancelled` so users see a clear
+  post-checkout status on the same page that initiated purchase.
 
 ## What Does Not Exist Yet
 
 - No email/password login.
 - No user dashboard.
 - No self-serve password reset.
-- No Stripe-backed public purchase flow enabled for production.
 - No invoice dashboard, revenue dashboard, or cost-of-goods dashboard.
-- No formal pay-as-you-go pricing package approved.
+- No verified production Stripe loop yet: real test-mode Checkout completion,
+  signed webhook delivery, email key delivery, and post-purchase `/v1/hosted/me`
+  verification are still required before calling the hosted purchase path ready.
+- No formal public self-serve account portal or Stripe customer portal.
 
-Stripe checkout, webhook, and key-delivery scaffolding exists in code and tests, but the paid production loop is not the current beta access path.
+Stripe checkout, webhook, and key-delivery scaffolding exists in code and
+tests, and the pricing page can initiate a hosted credit checkout. The paid
+production loop is still pending live Stripe test-mode certification.
 
 ## Admin Scripts
 
@@ -39,10 +56,11 @@ cd /Users/arijitchowdhury/Dropbox/AI-Development/Scout
 
 ### Enable Or Disable Email-Based Beta Signup
 
-Set `HOSTED_BETA_SIGNUP_ENABLED=true` in `/opt/prism/scout/.env` only when
-SMTP delivery is configured and the launch operator is ready for public key
-generation. Set it back to `false` to stop new keys without disabling existing
-Bearer keys.
+Keep `HOSTED_BETA_SIGNUP_ENABLED=false` for the normal hosted beta checkout
+path. Set it to `true` only for a deliberate direct-key exception when SMTP
+delivery is configured and the launch operator accepts bypassing Stripe payment
+method capture. Set it back to `false` to stop new direct keys without disabling
+existing Bearer keys.
 
 Required delivery settings:
 
@@ -232,11 +250,12 @@ Pay-as-you-go pricing candidate:
 - A standard credit means one scrape, one returned crawl page, or one product/intelligence record.
 - Browser credits remain separately metered and are not included in the first public package.
 - Current default economics estimate $2.59 loaded cost, $7.41 gross profit, 74.1% gross margin, and break-even at 17 packs/month for the $10 package.
+- The pricing page exposes `$10`, `$25`, and `$100` hosted credit checkout
+  options. Successful checkout provisioning depends on configured Stripe price
+  IDs, signed webhook delivery, and SMTP key delivery.
 
 A production billing model should still add:
 
-- Stripe customer and checkout-session records,
-- package definitions such as `$10`, `$25`, `$100` credit bundles,
 - customer-facing purchase history and invoice links,
 - hard monthly/user rate limits,
 - low-balance alerts,

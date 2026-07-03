@@ -245,3 +245,234 @@ python3 -m pytest tests/unit/api/test_billing_stripe_checkout.py::test_billing_p
 ```
 
 Result: 3 passed, 2 warnings.
+
+```bash
+python3 -m pytest tests/unit/core/platform/test_key_delivery.py tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_hosted_purchases.py tests/unit/api/test_billing_stripe_checkout.py tests/unit/website/test_launch_website.py tests/unit/test_hosted_pricing_docs.py -q
+```
+
+Result: 47 passed, 2 warnings.
+
+```bash
+python3 -m pytest tests/unit/ -q
+```
+
+Result: 704 passed, 8 warnings.
+
+```bash
+python3 -m pyright scout/
+ruff check scout/ tests/ scripts/*.py
+ruff format --check scout/ tests/ scripts/*.py
+```
+
+Result: pyright 0 errors; Ruff passed; format check passed.
+
+## Payment-Method-First Beta Access Slice
+
+Implemented:
+
+- `website/quickstart.html` no longer exposes the direct hosted beta key form.
+- Docs now point testers to `/beta#hosted-checkout`, where the `$0` Stripe
+  beta trial flow collects payment method details before key delivery.
+- Removed the unused `website/assets/hosted-keygen.js` script and removed it
+  from the launch-site public asset allowlist and auth public-path allowlist.
+- The quickstart API reference now lists
+  `POST /v1/billing/stripe/checkout-session` instead of
+  `POST /v1/hosted/beta-key` as the tester-facing access path.
+- Hosted operations and public-hosted launch docs now mark direct
+  `/v1/hosted/beta-key` as a disabled legacy/operator exception path, not the
+  public beta path.
+
+Verification:
+
+```bash
+python3 -m pytest tests/unit/website/test_launch_website.py::test_launch_website_has_beta_onboarding_pages tests/unit/website/test_launch_website.py::test_docs_beta_access_is_payment_method_first tests/unit/website/test_launch_website.py::test_api_serves_launch_website_static_assets_without_auth tests/unit/api/test_auth.py::test_public_hosted_only_allows_product_docs_but_blocks_api_docs -q
+```
+
+Result: 4 passed, 2 warnings.
+
+## Pricing Checkout UX Slice
+
+Implemented:
+
+- `website/pricing.html` now includes a hosted credit checkout form on the
+  pricing page instead of leaving paid packages as read-only copy.
+- The form lets a user enter the API-key delivery email and choose
+  `standard_1000`, `standard_3000`, or `standard_15000`.
+- `website/assets/pricing.js` posts `{email, package_id}` to
+  `/v1/billing/stripe/checkout-session` and redirects only when the API returns
+  a Stripe `checkout_url`.
+- Hosted operations docs now state the precise boundary: checkout initiation
+  exists, but real Stripe test-mode completion, signed webhook delivery, SMTP
+  key email, and post-purchase hosted account verification are still pending.
+
+Verification:
+
+```bash
+python3 -m pytest tests/unit/website/test_launch_website.py::test_pricing_page_explains_credit_packages_and_unit_economics -q
+```
+
+Result: 1 passed, 2 warnings.
+
+## Hosted Async Acceptance Load Evidence
+
+Production commit deployed: `458603d`.
+
+Runtime guardrails verified on the VPS:
+
+```bash
+SCOUT_PUBLIC_HOSTED_ONLY=true
+HOSTED_LLM_MODE=disabled
+LLM_API_KEY=
+HOSTED_RATE_LIMIT_MAX_REQUESTS=40
+HOSTED_RATE_LIMIT_WINDOW_SECONDS=60
+HOSTED_JOB_QUEUE_MAX_SIZE=5000
+HOSTED_JOB_QUEUE_WORKERS=0
+HOSTED_ASYNC_FIRST=true
+```
+
+Important boundary:
+
+- This test proves the hosted API can accept a 250-user burst across the hosted
+  HTTP surface when expensive work is accepted asynchronously.
+- It does not prove that the current 2-vCPU VPS can execute 250 concurrent
+  scrape/crawl/product jobs to completion at the same time.
+- With `HOSTED_JOB_QUEUE_WORKERS=0`, queued work is intentionally not drained
+  in-process during the load test. A production-ready execution path still needs
+  a durable queue and separate worker capacity before claiming 250 simultaneous
+  long-running jobs are supported.
+
+Failed/noisy intermediate probes:
+
+- Public async-first probe with in-process workers enabled:
+  `/tmp/scout-load-results/hosted-250-async-1783049074.json`.
+  Result: 4,000 requests, 250 users, p95 43,453ms, error rate 21.45%.
+  Root cause: worker execution in the API container saturated the 2-vCPU box.
+- Public acceptance-only probe before queue flush:
+  `/tmp/scout-load-results/hosted-250-accept-only-1783049379.json`.
+  Result: 4,000 requests, 250 users, p95 42,080ms, error rate 22.95%.
+  Root cause: stale accepted jobs remained in the in-memory queue because
+  workers were disabled.
+- VPS-local acceptance-only probe before queue flush:
+  `/tmp/scout-load-vpslocal-result.json`.
+  Result: 4,000 requests, 250 users, p95 6,090ms, error rate 29.68%.
+  Root cause: same pre-filled in-memory queue, returning retryable 429s.
+
+Clean VPS-local 250-user hosted probe after revoking temp keys and restarting
+Scout:
+
+- Command target: `http://127.0.0.1:8421`
+- Users/concurrency: 250/250
+- Requests: 4,000 across `/v1/hosted/me`, hosted scrape/crawl/products,
+  hosted intelligence runs, and hosted run listing.
+- Result file: `/tmp/scout-load-cleanlocal-result.json`
+- Duration: 71.81s
+- Throughput: 55.70 req/s
+- P95 latency: 5,805ms
+- Error rate: 0.00%
+- Result: passed `p95 <= 15000ms` and `error_rate <= 2%`.
+- Post-test container: CPU 0.18%, memory 152.8MiB, PIDs 45.
+
+Clean public HTTPS 250-user hosted probe after another restart:
+
+- Command target: `https://scout.chowmes.com`
+- Users/concurrency: 250/250
+- Requests: 4,000 across `/v1/hosted/me`, hosted scrape/crawl/products,
+  hosted intelligence runs, and hosted run listing.
+- Result file: `/tmp/scout-load-cleanpublic-result.json`
+- Duration: 82.32s
+- Throughput: 48.59 req/s
+- P95 latency: 5,677ms
+- Error rate: 0.00%
+- Result: passed `p95 <= 15000ms` and `error_rate <= 2%`.
+- Post-test container: CPU 0.19%, memory 148.8MiB, PIDs 27.
+
+Cleanup:
+
+- Revoked all `load250_%@chowmes.internal` hosted load-test keys.
+- Restarted the Scout container to flush the in-process acceptance queue.
+- Verified public health after cleanup:
+  `{"status":"ok","crawl4ai_version":"0.9.0","scout_version":"0.1.0"}`.
+- Post-cleanup container: CPU 0.17%, memory 104.8MiB, PIDs 7.
+
+```bash
+python3 -m pytest tests/unit/core/platform/test_key_delivery.py tests/unit/api/test_billing_stripe_webhook.py tests/unit/api/test_hosted_purchases.py tests/unit/api/test_billing_stripe_checkout.py tests/unit/website/test_launch_website.py tests/unit/test_hosted_pricing_docs.py -q
+```
+
+Result: 46 passed, 2 warnings.
+
+```bash
+python3 -m pytest tests/unit/ -q
+```
+
+Result: 703 passed, 8 warnings.
+
+```bash
+python3 -m pyright scout/
+ruff check scout/ tests/ scripts/*.py
+ruff format --check scout/ tests/ scripts/*.py
+```
+
+Result: pyright 0 errors; Ruff passed; format check passed.
+
+## Pricing Checkout Return Slice
+
+Implemented:
+
+- `website/pricing.html` now includes a hidden Stripe checkout return status
+  region with explicit `checkout=success` and `checkout=cancelled` markers.
+- `website/assets/pricing.js` now displays paid-checkout success/cancel copy on
+  the pricing page, matching the beta page behavior.
+- `.env.example` now points hosted Stripe redirects at
+  `https://scout.chowmes.com/pricing?checkout=success` and
+  `https://scout.chowmes.com/pricing?checkout=cancelled` instead of localhost.
+- `docs/product/stripe-test-mode-readiness-2026-06-29.md` now uses the same
+  hosted pricing redirect URLs for the real Stripe test-mode smoke.
+
+Verification:
+
+```bash
+python3 -m pytest tests/unit/website/test_launch_website.py::test_launch_website_handles_stripe_checkout_return_states_without_secrets tests/unit/website/test_launch_website.py::test_pricing_page_explains_credit_packages_and_unit_economics tests/unit/test_hosted_pricing_docs.py::test_stripe_redirect_examples_use_hosted_pricing_page_not_localhost -q
+```
+
+Result: 3 passed, 2 warnings.
+
+```bash
+python3 -m pytest tests/unit/api/test_billing_stripe_checkout.py tests/unit/website/test_launch_website.py tests/unit/test_hosted_pricing_docs.py -q
+```
+
+Result: 34 passed, 2 warnings.
+
+```bash
+python3 -m pytest tests/unit/ -q
+```
+
+Result: 703 passed, 8 warnings.
+
+```bash
+python3 -m pyright scout/
+ruff check scout/ tests/ scripts/*.py
+ruff format --check scout/ tests/ scripts/*.py
+```
+
+Result: pyright 0 errors; Ruff passed; format check passed.
+
+## Hosted Key Email Onboarding Slice
+
+Implemented:
+
+- The hosted API-key email now tells beta users exactly what they received:
+  100 standard credits for 30 days.
+- The email explains credit meaning: one scrape, one returned crawl page, or
+  one product/intelligence record equals one standard credit.
+- The email links to hosted docs and pricing, and asks users to reply with their
+  use case, target site, and failing run ID for support.
+- The delivery test now parses the generated email body with the modern email
+  policy so it verifies decoded user-visible copy instead of raw MIME wrapping.
+
+Verification:
+
+```bash
+python3 -m pytest tests/unit/core/platform/test_key_delivery.py::test_smtp_delivery_service_sends_one_time_key_email -q
+```
+
+Result: 1 passed, 2 warnings.

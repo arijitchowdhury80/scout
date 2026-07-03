@@ -45,14 +45,17 @@ def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
 
 
 def test_launch_website_handles_stripe_checkout_return_states_without_secrets() -> None:
-    for page_name in ("beta.html",):
+    for page_name in ("beta.html", "pricing.html"):
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
+        checkout_source = html
+        if page_name == "pricing.html":
+            checkout_source += (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
 
         assert "checkout=success" in html
         assert "checkout=cancelled" in html
-        assert "Stripe payment completed. Scout will email your hosted API key" in html
-        assert "Stripe checkout was cancelled." in html
-        assert "handleCheckoutReturnState" in html
+        assert "Stripe payment completed. Scout will email your hosted API key" in checkout_source
+        assert "Stripe checkout was cancelled." in checkout_source
+        assert "handleCheckoutReturnState" in checkout_source
         assert "sk_live_" not in html
         assert "sk_test_" not in html
 
@@ -142,9 +145,9 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     logo = client.get("/assets/scout-wordmark.svg")
     mark = client.get("/assets/scout-mark.svg")
     copy_code = client.get("/assets/copy-code.js")
-    hosted_keygen = client.get("/assets/hosted-keygen.js")
     playground = client.get("/assets/playground.js")
     pricing = client.get("/assets/pricing.js")
+    old_hosted_keygen = client.get("/assets/hosted-keygen.js")
 
     assert styles.status_code == 200
     assert "text/css" in styles.headers["content-type"]
@@ -172,9 +175,6 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert "javascript" in copy_code.headers["content-type"]
     assert "navigator.clipboard.writeText" in copy_code.text
     assert "Copy code sample" in copy_code.text
-    assert hosted_keygen.status_code == 200
-    assert "javascript" in hosted_keygen.headers["content-type"]
-    assert "/v1/hosted/beta-key" in hosted_keygen.text
     assert playground.status_code == 200
     assert "javascript" in playground.headers["content-type"]
     assert "/v1/playground/run" in playground.text
@@ -182,6 +182,7 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert pricing.status_code == 200
     assert "javascript" in pricing.headers["content-type"]
     assert "/v1/billing/packages" in pricing.text
+    assert old_hosted_keygen.status_code == 403
 
 
 def test_launch_website_uses_flux_not_warm_industrial() -> None:
@@ -313,14 +314,12 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "The hosted playground lives under the demo flow",
             "Open playground",
             "Call the live Scout API.",
-            "Generate a hosted beta key.",
-            "Register for your hosted beta API key.",
-            "/v1/hosted/beta-key",
-            'id="hostedKeyForm"',
-            'id="hostedKeyResult"',
+            "Start hosted beta checkout.",
+            "Beta testers use the $0 Stripe checkout path",
+            'href="/beta#hosted-checkout"',
             "API reference",
             "The endpoints testers actually need.",
-            "POST /v1/hosted/beta-key",
+            "POST /v1/billing/stripe/checkout-session",
             "POST /products",
             "POST /run/{use_case}",
             "https://scout.chowmes.com",
@@ -461,24 +460,25 @@ def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
     assert "Do not use localhost for hosted calls." in html
 
 
-def test_docs_key_generation_form_is_email_delivery_based() -> None:
+def test_docs_beta_access_is_payment_method_first() -> None:
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
-    js = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(encoding="utf-8")
+    normalized_html = " ".join(html.split())
     css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
 
-    assert '<form id="hostedKeyForm"' in html
+    assert '<form id="hostedKeyForm"' not in html
+    assert 'src="./assets/hosted-keygen.js"' not in html
+    assert "/v1/hosted/beta-key" not in html
     assert 'name="invite_password"' not in html
     assert 'type="password"' not in html
-    assert 'name="name"' in html
-    assert 'name="email"' in html
     assert 'id="copyHostedKey"' not in html
-    assert "Register for your hosted beta API key." in html
-    assert "Scout will email the key to you." in html
-    assert "/v1/hosted/beta-key" in js
-    assert "navigator.clipboard.writeText" not in js
-    assert "raw_api_key" not in js
-    assert "Check your email" in js
-    assert "invite_password" not in js
+    assert "Start hosted beta checkout." in normalized_html
+    assert "Beta testers use the $0 Stripe checkout path" in normalized_html
+    assert (
+        "Scout emails the API key after the signed Stripe webhook provisions access."
+        in normalized_html
+    )
+    assert 'href="/beta#hosted-checkout"' in html
+    assert "/v1/billing/stripe/checkout-session" in html
     assert ".hosted-key-card" in css
     assert ".hosted-key-result" in css
     assert "Only after `scout serve` is running on your own machine" in html
@@ -514,6 +514,9 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     assert 'id="pricingCreditCosts"' in html
     assert 'id="pricingUnitEconomics"' in html
     assert 'id="pricingCheckoutForm"' in html
+    assert 'id="pricingCheckoutReturnStatus"' in html
+    assert 'data-success-query="checkout=success"' in html
+    assert 'data-cancel-query="checkout=cancelled"' in html
     assert 'name="email"' in html
     assert 'name="package_id"' in html
     assert 'value="standard_1000"' in html
@@ -525,6 +528,8 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     assert "/v1/billing/packages" in pricing_js
     assert "/v1/billing/stripe/checkout-session" in pricing_js
     assert "pricingCheckoutForm" in pricing_js
+    assert "handleCheckoutReturnState" in pricing_js
+    assert "pricingCheckoutReturnStatus" in pricing_js
     assert "window.location.assign" in pricing_js
     assert "package_id" in pricing_js
     assert "amount_cents" in pricing_js

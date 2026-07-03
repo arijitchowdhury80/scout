@@ -78,8 +78,8 @@ The release checklist item **"Stripe checkout and webhook tested in Stripe test 
    - `STRIPE_SECRET_KEY=sk_test_...`
    - `STRIPE_STANDARD_1000_PRICE_ID=price_...` for the paid $10 / 1,000-credit package
    - `STRIPE_WEBHOOK_SECRET=whsec_...`
-   - `STRIPE_SUCCESS_URL=http://127.0.0.1:8421/?checkout=success`
-   - `STRIPE_CANCEL_URL=http://127.0.0.1:8421/?checkout=cancelled`
+   - `STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success`
+   - `STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled`
    - hosted key delivery settings for a non-production recipient.
 2. Start Scout locally.
 3. Verify `/v1/billing/stripe/status` reports:

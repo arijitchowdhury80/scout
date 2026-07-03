@@ -10,6 +10,9 @@
 
 from __future__ import annotations
 
+from email import message_from_string
+from email.message import EmailMessage
+from email.policy import default
 from types import TracebackType
 
 from scout.core.platform.hosted import HostedPlan
@@ -56,12 +59,23 @@ def test_smtp_delivery_service_sends_one_time_key_email() -> None:
     assert smtp_factory.client.login_args == ("scout-user", "smtp-secret")
     assert sent.sender == "scout@example.com"
     assert sent.recipients == ["builder@example.com"]
-    assert "Your Scout hosted API key" in sent.message
-    assert "Hi Builder Person," in sent.message
-    assert "scout_live_test_key" in sent.message
-    assert "tenant_123" in sent.message
-    assert "key_123" in sent.message
-    assert "Arijit Chowdhury" in sent.message
+    message = message_from_string(sent.message, policy=default)
+    assert isinstance(message, EmailMessage)
+    body = str(message.get_content())
+    assert message["Subject"] == "Your Scout hosted API key"
+    assert "Hi Builder Person," in body
+    assert "Your beta trial includes 100 standard credits for 30 days." in body
+    assert (
+        "1 scrape, 1 returned crawl page, or 1 product/intelligence record = 1 standard credit."
+        in body
+    )
+    assert "https://scout.chowmes.com/docs" in body
+    assert "https://scout.chowmes.com/pricing" in body
+    assert "scout_live_test_key" in body
+    assert "tenant_123" in body
+    assert "key_123" in body
+    assert "Reply to this email with your use case, target site, and any failing run ID." in body
+    assert "Arijit Chowdhury" in body
 
 
 def test_smtp_delivery_service_returns_failure_when_send_fails() -> None:

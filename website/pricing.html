@@ -84,6 +84,17 @@
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted credit checkout">
+            <p
+              id="pricingCheckoutReturnStatus"
+              class="beta-status checkout-return-status"
+              role="status"
+              aria-live="polite"
+              data-success-query="checkout=success"
+              data-cancel-query="checkout=cancelled"
+              hidden
+            >
+              Stripe checkout return status appears here.
+            </p>
             <form
               id="pricingCheckoutForm"
               class="beta-form"

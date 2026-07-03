@@ -45,7 +45,6 @@ async def launch_site_asset(asset_name: str) -> FileResponse:
     """Serve allowlisted launch-site media assets."""
     allowed_assets = {
         "copy-code.js",
-        "hosted-keygen.js",
         "playground.js",
         "pricing.js",
         "scout-mark.svg",

@@ -30,11 +30,6 @@ def _make_app(api_key: str = "test-key", public_hosted_only: bool = False) -> Fa
         """Swagger docs endpoint — no auth."""
         return {"docs": "ok"}
 
-    @test_app.get("/assets/hosted-keygen.js")
-    async def hosted_keygen_asset() -> dict:
-        """Hosted keygen browser asset — no auth."""
-        return {"asset": "ok"}
-
     @test_app.get("/openapi.json")
     async def openapi() -> dict:
         """OpenAPI schema endpoint — no auth."""
@@ -152,13 +147,11 @@ def test_public_hosted_only_allows_product_docs_but_blocks_api_docs() -> None:
     client = TestClient(_make_app(api_key="test-key", public_hosted_only=True))
 
     product_docs_resp = client.get("/docs")
-    hosted_keygen_asset_resp = client.get("/assets/hosted-keygen.js")
     api_docs_resp = client.get("/api/docs")
     openapi_resp = client.get("/openapi.json")
     health_resp = client.get("/health")
 
     assert product_docs_resp.status_code == 200
-    assert hosted_keygen_asset_resp.status_code == 200
     assert api_docs_resp.status_code == 403
     assert openapi_resp.status_code == 403
     assert health_resp.status_code == 200

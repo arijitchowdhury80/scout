@@ -141,29 +141,19 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
           <div class="hosted-key-card" aria-labelledby="hosted-key-title">
             <div>
               <p class="wi-label wi-label--accent">Private beta access</p>
-              <h3 id="hosted-key-title">Generate a hosted beta key.</h3>
+              <h3 id="hosted-key-title">Start hosted beta checkout.</h3>
               <p>
-                Register for your hosted beta API key. Scout will email the key to you.
-                It is not exposed in the browser.
+                Beta testers use the $0 Stripe checkout path so Scout can verify
+                the payment pipeline without charging you. Scout emails the API
+                key after the signed Stripe webhook provisions access.
               </p>
             </div>
-            <form id="hostedKeyForm" class="hosted-key-form">
-              <label>
-                Name
-                <input name="name" type="text" autocomplete="name" placeholder="Your name" required />
-              </label>
-              <label>
-                Email
-                <input name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
-              </label>
-              <label>
-                Key name
-                <input name="key_name" type="text" placeholder="My app beta key" />
-              </label>
-              <button class="wi-btn" type="submit">Generate API key</button>
-            </form>
+            <a class="wi-btn" href="/beta#hosted-checkout">Open hosted beta checkout</a>
             <div id="hostedKeyResult" class="hosted-key-result" aria-live="polite">
-              <p>Enter your name and email to request a hosted beta key.</p>
+              <p>
+                Use the beta checkout form for key delivery. Existing keys still
+                work with the hosted API examples below.
+              </p>
             </div>
           </div>
           <div class="note-grid">
@@ -193,8 +183,8 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               <span role="cell">Check hosted beta plan, credits, limits, and retention.</span>
             </div>
             <div role="row">
-              <strong role="cell">POST /v1/hosted/beta-key</strong>
-              <span role="cell">Email-based beta key generation from the Docs page.</span>
+              <strong role="cell">POST /v1/billing/stripe/checkout-session</strong>
+              <span role="cell">Create a hosted beta trial or credit-package Stripe Checkout Session.</span>
             </div>
             <div role="row">
               <strong role="cell">POST /v1/hosted/scrape</strong>
@@ -355,6 +345,5 @@ scout launch-readiness --require-public</code></pre>
       </main>
     </div>
     <script src="./assets/copy-code.js" defer></script>
-    <script src="./assets/hosted-keygen.js" defer></script>
   </body>
 </html>

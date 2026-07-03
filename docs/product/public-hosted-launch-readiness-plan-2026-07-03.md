@@ -46,8 +46,9 @@ Production domain: `https://scout.chowmes.com/`
 - `/v1/hosted/me` correctly returns `401` without a Bearer key.
 - `/app` returns `403`, consistent with hosted-only production guard.
 - `/api/docs` returns `403`, consistent with hosted-only production guard.
-- `/assets/hosted-keygen.js` returns `403`.
-- `POST /v1/hosted/beta-key` returns `404`.
+- `/assets/hosted-keygen.js` is no longer part of the public beta website.
+- `POST /v1/hosted/beta-key` is not the public beta path; hosted beta access
+  now starts with the `$0` Stripe Checkout/payment-method flow.
 
 Production playground workflow smoke via `curl`:
 
@@ -180,18 +181,20 @@ The launch requirement says most users will run hosted, log in, create their own
 Current reality:
 
 - Full login/account UI is not implemented.
-- An email-based beta key generation route exists locally in the worktree; production deployment must be verified.
-- The deployed production route `/v1/hosted/beta-key` returns `404`.
-- The deployed asset `/assets/hosted-keygen.js` returns `403`.
+- The public docs no longer expose the old direct email key-generation form.
+- Hosted beta access is designed to start at `/beta#hosted-checkout`, using
+  Stripe Checkout with `package_id=beta_trial`.
+- The direct `/v1/hosted/beta-key` route remains a disabled legacy/operator
+  exception path, not the public signup path.
 
 Tomorrow options:
 
 1. Controlled hosted beta, fastest:
-   - Deploy the email-based keygen route.
-   - Set `HOSTED_BETA_SIGNUP_ENABLED=true` on the VPS only for the beta window.
-   - Put the keygen form on `/docs` or `/quickstart`.
-   - Users enter email and receive one API key.
-   - This is not real login. It is email-based key issuance.
+   - Configure Stripe test/live keys and SMTP delivery.
+   - Send testers to `/beta#hosted-checkout`.
+   - Users enter email/payment method through Stripe and receive one API key
+     after the signed webhook provisions access.
+   - This is not real login. It is payment-method-backed key issuance.
 
 2. Manual key provisioning, safest:
    - Pre-create a small pool of API keys.
@@ -223,12 +226,12 @@ Decision to make before any deploy:
 
 Implement:
 
-- Deploy beta key generation or choose manual provisioning.
+- Configure beta trial checkout or choose manual provisioning.
 - Lower hosted beta credits.
 - Set browser credits to 0 for public beta.
 - Add hosted LLM disabled policy.
 - Add provider rejection tests.
-- Add keygen brute-force throttling.
+- Keep direct keygen disabled except for operator exceptions.
 - Add global hosted run emergency cap.
 - Add config kill switches.
 - Make launch-readiness distinguish:
@@ -238,14 +241,14 @@ Implement:
 
 Verification:
 
-- Unit tests for keygen, throttles, LLM denylist, and credit limits.
+- Unit tests for checkout, throttles, LLM denylist, and credit limits.
 - `python3 -m pytest tests/unit/ -q`
 - `python3 -m pyright scout/`
 - `ruff check scout/ tests/ && ruff format --check scout/ tests/`
 - Production `curl` confirms:
-  - `/assets/hosted-keygen.js` returns `200`
-  - `/v1/hosted/beta-key` returns `503` when disabled or `200` with email when enabled
-  - duplicate email returns `409`
+  - `/beta#hosted-checkout` is the public beta access path
+  - `/v1/billing/stripe/checkout-session` creates a `beta_trial` checkout when configured
+  - `/v1/hosted/beta-key` remains disabled unless an operator explicitly enables a direct-key exception
   - generated key can call `/v1/hosted/me`
   - generated key can run one capped hosted workflow
   - credits decrement

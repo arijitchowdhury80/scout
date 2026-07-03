@@ -41,3 +41,15 @@ def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     assert "hosted_payment_checkouts" in doc
     assert "$10 for 1,000 standard credits" in doc
     assert "Pay-as-you-go pricing candidate" in doc
+
+
+def test_stripe_redirect_examples_use_hosted_pricing_page_not_localhost() -> None:
+    env_example = _read(".env.example")
+    readiness = _read("docs/product/stripe-test-mode-readiness-2026-06-29.md")
+
+    assert "STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success" in env_example
+    assert "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled" in env_example
+    assert "STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success" in readiness
+    assert "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled" in readiness
+    assert "STRIPE_SUCCESS_URL=http://127.0.0.1" not in env_example
+    assert "STRIPE_CANCEL_URL=http://127.0.0.1" not in env_example
