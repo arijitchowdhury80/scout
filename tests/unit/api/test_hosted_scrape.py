@@ -268,7 +268,7 @@ def test_hosted_beta_key_generation_rate_limits_same_client(monkeypatch) -> None
     assert delivery.requests[0].email == "first-rate@example.com"
 
 
-def test_hosted_beta_key_generation_requires_configured_delivery_service(
+def test_hosted_beta_key_generation_queues_request_when_delivery_is_not_configured(
     monkeypatch,
 ) -> None:
     account_service, _raw_key, _tenant_id = _account_service_with_key()
@@ -283,14 +283,58 @@ def test_hosted_beta_key_generation_requires_configured_delivery_service(
     finally:
         app.dependency_overrides.clear()
 
-    assert resp.status_code == 503
-    assert resp.json()["detail"] == "Hosted API key delivery is not configured."
+    assert resp.status_code == 202
+    data = resp.json()
+    assert data["success"] is True
+    assert data["name"] == "Tester"
+    assert data["email"] == "no-email@example.com"
+    assert data["tenant_id"] == ""
+    assert data["key_id"] == ""
+    assert data["plan"] == "hosted_beta_pass"
+    assert data["scopes"] == []
+    assert data["standard_credits_remaining"] == 0
+    assert data["browser_credits_remaining"] == 0
+    assert data["delivery_status"] == "pending_delivery"
+    assert "recorded" in data["warning"]
     assert account_service.store.find_tenant_by_email("no-email@example.com") is None
     signup_events = account_service.list_signup_events()
     assert signup_events[0].email == "no-email@example.com"
     assert signup_events[0].name == "Tester"
-    assert signup_events[0].status == "failed"
+    assert signup_events[0].status == "pending_delivery"
     assert signup_events[0].reason == "Hosted API key delivery is not configured."
+
+
+def test_hosted_beta_key_generation_does_not_duplicate_pending_delivery_requests(
+    monkeypatch,
+) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        first = client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "Pending Tester", "email": "pending@example.com"},
+        )
+        second = client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "Pending Tester Again", "email": "pending@example.com"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert first.status_code == 202
+    assert second.status_code == 202
+    assert second.json()["delivery_status"] == "pending_delivery"
+    assert second.json()["warning"] == (
+        "Your beta registration is already recorded. Scout will email your API key "
+        "when hosted key delivery is configured."
+    )
+    assert account_service.store.find_tenant_by_email("pending@example.com") is None
+    signup_events = account_service.list_signup_events()
+    assert len(signup_events) == 1
+    assert signup_events[0].email == "pending@example.com"
+    assert signup_events[0].status == "pending_delivery"
 
 
 def test_hosted_beta_key_response_schema_does_not_expose_raw_key() -> None:

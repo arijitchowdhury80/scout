@@ -809,3 +809,46 @@ ruff format --check scout/ tests/ scripts/
 Result: hosted scrape `18 passed`; script env tests `2 passed`; docs tests
 `32 passed`; full unit suite `763 passed, 8 warnings`; pyright `0 errors`;
 Ruff and format checks passed.
+
+## 2026-07-03 — pending beta registration capture
+
+Implemented:
+
+- Changed `POST /v1/hosted/beta-key` so when hosted beta signup is enabled
+  but SMTP API-key delivery is not configured, Scout records a
+  `pending_delivery` signup event and returns `202 Accepted` instead of a
+  dead-end `503`.
+- The pending path does not create a tenant, does not create an API key, and
+  does not expose raw key material.
+- Duplicate pending requests for the same email return the same queued status
+  without creating duplicate signup events.
+- Updated the beta page JavaScript so the form remains usable while beta
+  signup is enabled and email delivery is still being configured. The user now
+  sees a queued-registration message instead of a disabled form.
+
+Verification RED:
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_generation_queues_request_when_delivery_is_not_configured tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_generation_does_not_duplicate_pending_delivery_requests -q
+python3 -m pytest tests/unit/website/test_launch_website.py::test_beta_signup_collects_name_and_email_without_password -q
+```
+
+Result: backend tests failed because the route returned `503`; website test
+failed because the queued-registration status copy did not exist.
+
+Verification GREEN:
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_generation_queues_request_when_delivery_is_not_configured tests/unit/api/test_hosted_scrape.py::test_hosted_beta_key_generation_does_not_duplicate_pending_delivery_requests -q
+python3 -m pytest tests/unit/website/test_launch_website.py::test_beta_signup_collects_name_and_email_without_password -q
+python3 -m pytest tests/unit/api/test_hosted_scrape.py tests/unit/website/test_launch_website.py -q
+python3 -m pyright scout/api/routers/hosted.py
+ruff check scout/api/routers/hosted.py tests/unit/api/test_hosted_scrape.py tests/unit/website/test_launch_website.py
+```
+
+Result: new backend tests `2 passed`; website test `1 passed`; affected
+hosted/website suites `48 passed`; pyright `0 errors`; Ruff passed.
+
+Still pending: Real self-service key delivery still requires SMTP production
+configuration. This slice makes the public beta form useful and measurable
+before SMTP is live; it does not deliver API keys by itself.

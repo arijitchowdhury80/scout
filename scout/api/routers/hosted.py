@@ -333,7 +333,7 @@ async def hosted_beta_key(
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     delivery_service: HostedApiKeyDeliveryService = Depends(get_hosted_key_delivery_service),
     signup_rate_limiter: HostedRateLimiter = Depends(get_hosted_beta_signup_rate_limiter),
-) -> HostedBetaKeyResponse:
+) -> HostedBetaKeyResponse | JSONResponse:
     """Provision a hosted beta API key after email capture."""
     if not settings.hosted_beta_signup_enabled:
         raise HTTPException(
@@ -342,16 +342,29 @@ async def hosted_beta_key(
         )
     _enforce_beta_signup_rate_limit(signup_rate_limiter, request)
     if not delivery_service.enabled:
-        account_service.record_signup_event(
-            _signup_event(
-                req,
-                status="failed",
-                reason="Hosted API key delivery is not configured.",
+        pending_signup_exists = _pending_signup_exists(account_service, str(req.email))
+        if not pending_signup_exists:
+            account_service.record_signup_event(
+                _signup_event(
+                    req,
+                    status="pending_delivery",
+                    reason="Hosted API key delivery is not configured.",
+                )
             )
-        )
-        raise HTTPException(
-            status_code=503,
-            detail="Hosted API key delivery is not configured.",
+        return JSONResponse(
+            status_code=202,
+            content=_pending_beta_key_response(
+                req,
+                warning=(
+                    "Your beta registration is already recorded. Scout will email your API key "
+                    "when hosted key delivery is configured."
+                )
+                if pending_signup_exists
+                else (
+                    "Scout recorded your beta registration. Scout will email your API key when "
+                    "hosted key delivery is configured."
+                ),
+            ).model_dump(mode="json"),
         )
     try:
         provisioned = account_service.provision_account(
@@ -437,6 +450,32 @@ def _signup_event(
         key_id=key_id,
         delivery_status=delivery_status,
         reason=reason,
+    )
+
+
+def _pending_signup_exists(account_service: HostedAccountService, email: str) -> bool:
+    """Return whether an email already has a pending hosted beta signup."""
+    normalized = email.strip().lower()
+    return any(
+        str(event.email).lower() == normalized and event.status == "pending_delivery"
+        for event in account_service.list_signup_events(limit=1000)
+    )
+
+
+def _pending_beta_key_response(req: HostedBetaKeyRequest, *, warning: str) -> HostedBetaKeyResponse:
+    """Build the public response for a recorded signup awaiting email delivery."""
+    return HostedBetaKeyResponse(
+        success=True,
+        tenant_id="",
+        key_id="",
+        name=req.name,
+        email=str(req.email),
+        plan=HostedPlan.HOSTED_BETA_PASS.value,
+        scopes=[],
+        standard_credits_remaining=0,
+        browser_credits_remaining=0,
+        delivery_status="pending_delivery",
+        warning=warning,
     )
 
 

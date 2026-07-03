@@ -43,10 +43,17 @@
       if (!response.ok) {
         throw new Error(payload.detail || "Hosted beta key registration is not ready yet.");
       }
-      setStatus(
-        `Scout emailed your beta tester API key to ${email}. Check your inbox and keep the key private.`,
-        "success",
-      );
+      if (payload.delivery_status === "pending_delivery") {
+        setStatus(
+          `Scout recorded your beta request for ${email}. The API key will be emailed when hosted key delivery is configured.`,
+          "success",
+        );
+      } else {
+        setStatus(
+          `Scout emailed your beta tester API key to ${email}. Check your inbox and keep the key private.`,
+          "success",
+        );
+      }
       form.reset();
     } catch (error) {
       const message =
@@ -63,10 +70,17 @@
       const response = await fetch(statusEndpoint, { headers: { accept: "application/json" } });
       if (!response.ok) return;
       const status = await response.json();
+      if (status.beta_signup_enabled === true && status[readyFlag] !== true) {
+        setStatus(
+          "Hosted beta registration is open. API-key email delivery is still being configured, so requests may be queued for delivery.",
+          "success",
+        );
+        return;
+      }
       if (status[readyFlag] !== true) {
         if (submitButton) submitButton.disabled = true;
         setStatus(
-          "Hosted beta key registration is paused until API-key email delivery is configured. Existing keys still work.",
+          "Hosted beta registration is not open yet. Existing keys still work.",
           "error",
         );
       }
