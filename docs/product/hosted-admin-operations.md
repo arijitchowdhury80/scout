@@ -123,6 +123,34 @@ scripts/scout-hosted-admin list-accounts --format json --limit 100
 
 This shows email, tenant, key metadata, and remaining credits. It does not print raw keys or stored key hashes.
 
+### List Hosted Credit Usage
+
+```bash
+scripts/scout-hosted-admin list-usage
+```
+
+JSON output:
+
+```bash
+scripts/scout-hosted-admin list-usage --format json --limit 100
+```
+
+Aggregate usage by action:
+
+```bash
+scripts/scout-hosted-admin list-usage --summary
+```
+
+Filter one account:
+
+```bash
+scripts/scout-hosted-admin list-usage --email tester@example.com
+```
+
+This shows email, tenant, key id, metered action, credit bucket, credits spent,
+remaining balances after each event, and event timestamps. It does not print raw
+keys or stored key hashes.
+
 ### List Stripe Checkout And Package Purchase Records
 
 ```bash

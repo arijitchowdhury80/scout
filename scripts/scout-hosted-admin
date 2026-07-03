@@ -13,12 +13,15 @@ Commands:
   generate-api-key  Generate and register a hosted API key on the VPS.
   provision-key     Generate a hosted API key on the VPS for a user or app.
   list-accounts     List hosted tenants, API-key metadata, and balances.
+  list-usage        List hosted credit usage ledger entries.
   list-purchases    List Stripe checkout/package purchase records.
 
 Examples:
   scripts/scout-hosted-admin generate-api-key --email prism@example.com --name PRISM --key-name "PRISM beta key"
   scripts/scout-hosted-admin provision-key --email prism@example.com --name PRISM --key-name "PRISM beta key"
   scripts/scout-hosted-admin list-accounts --format table
+  scripts/scout-hosted-admin list-usage --format table --limit 100
+  scripts/scout-hosted-admin list-usage --summary
   scripts/scout-hosted-admin list-purchases --format table
 EOF
 }
@@ -29,6 +32,10 @@ provision_key() {
 
 list_accounts() {
   exec "$SCRIPT_DIR/scout-vps-list-hosted-accounts" "$@"
+}
+
+list_usage() {
+  exec "$SCRIPT_DIR/scout-vps-list-hosted-usage" "$@"
 }
 
 list_purchases() {
@@ -56,6 +63,10 @@ case "$1" in
   list-accounts)
     shift
     list_accounts "$@"
+    ;;
+  list-usage)
+    shift
+    list_usage "$@"
     ;;
   list-purchases)
     shift
