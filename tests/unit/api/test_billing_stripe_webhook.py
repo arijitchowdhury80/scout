@@ -248,6 +248,55 @@ def test_stripe_webhook_paid_checkout_tops_up_existing_account_without_key_email
     assert "scout_live_" not in response.text
 
 
+def test_stripe_webhook_beta_trial_for_existing_account_does_not_add_free_credits(
+    tmp_path: Path,
+) -> None:
+    account_store = InMemoryHostedAccountStore()
+    account_service = HostedAccountService(account_store)
+    payment_store = SQLiteHostedPaymentStore(tmp_path / "hosted.sqlite")
+    beta = account_service.provision_account(
+        email="scout-beta-test@example.com",
+        name="Builder Person",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+        key_name="Initial beta key",
+    )
+    account_service.set_balance(
+        beta.tenant.tenant_id,
+        standard_credits=60,
+        browser_credits=0,
+    )
+    service = HostedPaymentProvisioningService(account_service, payment_store)
+    delivery_service = RecordingKeyDeliveryService()
+    payload = _checkout_event_payload(checkout_session_id="cs_test_beta_repeat")
+    client = _client(service, delivery_service)
+
+    response = client.post(
+        "/v1/billing/stripe/webhook",
+        content=payload,
+        headers={
+            "content-type": "application/json",
+            "Stripe-Signature": _signature_header(payload),
+        },
+    )
+    stored = _stored_checkout(payment_store, checkout_session_id="cs_test_beta_repeat")
+    balance = account_service.get_balance(beta.tenant.tenant_id)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["delivery_status"] == "not_required"
+    assert body["tenant_id"] == beta.tenant.tenant_id
+    assert body["key_id"] == beta.api_key.key_id
+    assert balance.standard_credits_remaining == 60
+    assert balance.browser_credits_remaining == 0
+    assert stored is not None
+    assert stored.package_id == "beta_trial"
+    assert stored.amount_total_cents == 0
+    assert len(delivery_service.deliveries) == 0
+    assert "scout_live_" not in response.text
+
+
 def test_stripe_webhook_ignores_irrelevant_event_type(tmp_path: Path) -> None:
     payment_store = SQLiteHostedPaymentStore(tmp_path / "hosted.sqlite")
     service = _payment_service(payment_store)
@@ -295,15 +344,16 @@ def _payment_service(
 
 def _stored_checkout(
     payment_store: SQLiteHostedPaymentStore,
+    checkout_session_id: str = "cs_test_beta_001",
 ) -> HostedCheckoutProvisioningRecord | None:
     """Return the stored checkout fixture, if the webhook provisioned it."""
     return payment_store.get_checkout(
         HostedPaymentProvider.STRIPE,
-        "cs_test_beta_001",
+        checkout_session_id,
     )
 
 
-def _checkout_event_payload() -> bytes:
+def _checkout_event_payload(checkout_session_id: str = "cs_test_beta_001") -> bytes:
     """Return a Stripe checkout.session.completed event payload."""
     return _event_payload(
         {
@@ -311,7 +361,7 @@ def _checkout_event_payload() -> bytes:
             "type": "checkout.session.completed",
             "data": {
                 "object": {
-                    "id": "cs_test_beta_001",
+                    "id": checkout_session_id,
                     "customer": "cus_test_001",
                     "setup_intent": "seti_test_001",
                     "amount_total": 0,

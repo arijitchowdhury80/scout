@@ -39,6 +39,9 @@ Scout hosted beta has API-key based access, not a login system.
   email already has a hosted account. Existing-account top-ups do not email a
   second raw API key; they record the purchase against the tenant/key and update
   the credit balance.
+- A `$0` `beta_trial` checkout for an email that already has a hosted account
+  is recorded for auditability but does not add another 100 free beta credits.
+  Only paid packages add credits to an existing tenant balance.
 - Hosted Stripe success/cancel redirects should land on
   `https://scout.chowmes.com/pricing?checkout=success` or
   `https://scout.chowmes.com/pricing?checkout=cancelled` so users see a clear
@@ -237,7 +240,7 @@ A future account portal should add email verification, login, key rotation,
 downloadable invoices, explicit top-up history UX, and Stripe customer portal
 links. The backend already records paid checkout purchases and can top up an
 existing tenant balance when the Stripe checkout email matches an existing
-hosted account.
+hosted account. Repeated `$0` beta-trial checkouts are not credit top-ups.
 
 ## Current Credit Model
 

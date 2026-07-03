@@ -129,6 +129,10 @@ the existing tenant, records the purchase, and does not send another raw API
 key. First-time paid buyers still receive a one-time API key email after
 webhook provisioning succeeds.
 
+The `$0` `beta_trial` package is different: repeat beta-trial checkout sessions
+for an existing hosted email are recorded but do not grant more free credits.
+Only paid packages increase an existing hosted balance.
+
 All key delivery paths use the same SMTP settings:
 
 ```text

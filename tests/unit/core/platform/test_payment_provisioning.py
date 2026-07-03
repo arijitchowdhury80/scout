@@ -113,6 +113,48 @@ def test_process_checkout_standard_1000_tops_up_existing_beta_account_without_ne
     assert stored_event.package_id == "standard_1000"
 
 
+def test_process_checkout_beta_trial_for_existing_account_does_not_grant_extra_free_credits(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "hosted.sqlite"
+    account_service = HostedAccountService(SQLiteHostedAccountStore(db_path))
+    payment_store = SQLiteHostedPaymentStore(db_path)
+    service = HostedPaymentProvisioningService(account_service, payment_store)
+    beta = account_service.provision_account(
+        email="builder@example.com",
+        name="Builder Person",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+        key_name="Initial beta key",
+    )
+    account_service.set_balance(
+        beta.tenant.tenant_id,
+        standard_credits=75,
+        browser_credits=0,
+    )
+
+    result = service.process_checkout(
+        _beta_trial_checkout(checkout_session_id="cs_test_beta_trial_repeat")
+    )
+    balance = account_service.get_balance(beta.tenant.tenant_id)
+    stored_event = payment_store.get_checkout(
+        provider=HostedPaymentProvider.STRIPE,
+        checkout_session_id="cs_test_beta_trial_repeat",
+    )
+
+    assert result.success is True
+    assert result.already_processed is False
+    assert result.tenant_id == beta.tenant.tenant_id
+    assert result.key_id == beta.api_key.key_id
+    assert result.raw_api_key == ""
+    assert balance.standard_credits_remaining == 75
+    assert balance.browser_credits_remaining == 0
+    assert stored_event is not None
+    assert stored_event.tenant_id == beta.tenant.tenant_id
+    assert stored_event.key_id == beta.api_key.key_id
+    assert stored_event.package_id == "beta_trial"
+
+
 def test_process_checkout_duplicate_session_is_idempotent_without_raw_key_reprint(
     tmp_path: Path,
 ) -> None:

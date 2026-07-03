@@ -229,11 +229,12 @@ class HostedPaymentProvisioningService:
         package = get_credit_package(request.package_id)
         existing_tenant = self.account_service.find_tenant_by_email(str(request.email))
         if existing_tenant is not None:
-            self.account_service.add_credits(
-                existing_tenant.tenant_id,
-                standard_credits=package.standard_credits,
-                browser_credits=package.browser_credits,
-            )
+            if package.amount_cents > 0:
+                self.account_service.add_credits(
+                    existing_tenant.tenant_id,
+                    standard_credits=package.standard_credits,
+                    browser_credits=package.browser_credits,
+                )
             key_id = self.account_service.latest_key_id_for_tenant(existing_tenant.tenant_id)
             self.payment_store.save_checkout(
                 _record_from_request(
