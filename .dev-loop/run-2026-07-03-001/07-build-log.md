@@ -367,6 +367,31 @@ python3 -m pytest tests/unit/ -q
 
 Result: 705 passed, 8 warnings.
 
+Production deployment verification for this slice:
+
+- Commit deployed: `e7d8da8`.
+- Public smoke returned `200` for `/health`, `/pricing`, `/quickstart`,
+  `/assets/pricing.js`, and `/v1/billing/packages`.
+- Old `/assets/hosted-keygen.js` returned `403`, as expected.
+- VPS env still had `HOSTED_LLM_MODE=disabled`, empty `LLM_API_KEY`,
+  `HOSTED_ASYNC_FIRST=true`, and `HOSTED_JOB_QUEUE_WORKERS=0`.
+- Fresh public HTTPS 250-user hosted acceptance load:
+  `/tmp/scout-load-e7d8da8-result.json`.
+- Users/concurrency: 250/250.
+- Requests: 4,000.
+- Duration: 84.36s.
+- Throughput: 47.42 req/s.
+- P95 latency: 5,601ms.
+- Error rate: 0.00%.
+- Result: passed `p95 <= 15000ms` and `error_rate <= 2%`.
+- Post-test container: CPU 0.20%, memory 149.9MiB, PIDs 26.
+- Final cleanup revoked the 250 `load250_e7d8da8_%@chowmes.internal` keys,
+  restarted Scout to flush the in-process queue, verified public health `200`,
+  and left the container idle at CPU 0.19%, memory 104.9MiB, PIDs 7.
+
+Boundary: this remains hosted async-acceptance capacity evidence, not proof of
+250 simultaneous completed crawler/browser executions on the 2-vCPU VPS.
+
 ## Payment-Method-First Beta Access Slice
 
 Implemented:
