@@ -56,7 +56,7 @@ Scout hosted beta has API-key based access, not a login system.
   checkout settings, webhook signing, and SMTP key delivery are configured.
 - The checkout API itself fails closed before creating paid Stripe sessions if
   the webhook secret or SMTP key delivery is missing.
-- If a future `$0` `beta_trial` Checkout Session is created, Scout records a
+- If a $0 beta setup flow creates a `beta_trial` Checkout Session, Scout records a
   non-secret `hosted_signup_events` row with status `checkout_started`, source
   `stripe_checkout`, delivery status `checkout_session_created`, and the
   Stripe Checkout Session id as the reference.
@@ -375,8 +375,10 @@ The underlying `GET /v1/billing/stripe/status` response is also operator
 actionable. In addition to backward-compatible booleans such as
 `ready_for_beta_checkout` and `ready_for_paid_key_delivery`, it returns:
 
-- `public_self_service_path`: currently `email_beta_registration`; beta
-  testers should start at `/beta` and receive the key by email.
+- `public_self_service_path`: currently
+  `stripe_beta_checkout_with_email_queue_fallback`; beta testers should start
+  at `/beta`, use $0 Stripe setup when ready, and fall back to queued email
+  registration while checkout is paused.
 - `public_beta_key_endpoint`: the API endpoint used by `/beta` to register a
   beta tester and deliver the API key by email.
 - `public_beta_checkout_endpoint` and `public_paid_checkout_endpoint`: the
@@ -724,14 +726,16 @@ fully validated Stripe production flow.
 
 Pay-as-you-go pricing candidate:
 
-- Beta trial: 30 days, 100 standard credits, $0 charge, name/email registration, and API-key email delivery.
+- Beta trial: 30 days, 100 standard credits, $0 card-backed Stripe setup when configured, with queued email registration as the temporary fallback while checkout is paused.
 - First paid package: $10 for 1,000 standard credits.
 - A standard credit means one scrape, one returned crawl page, or one product/intelligence record.
 - Browser credits remain separately metered and are not included in the first public package.
 - Current default economics estimate $2.59 loaded cost, $7.41 gross profit, 74.1% gross margin, and break-even at 17 packs/month for the $10 package.
 - The pricing page exposes readiness-gated `$10`, `$25`, and `$100` hosted
-  credit checkout options. The beta page exposes a separate readiness-gated
-  beta key registration form. Successful beta delivery depends on SMTP key
+  credit checkout options. The beta page exposes the readiness-gated `$0`
+  beta setup flow and falls back to queued email registration while Stripe is
+  paused. Successful beta checkout depends on configured Stripe, signed webhook,
+  and SMTP key delivery; queued fallback delivery depends on SMTP key
   delivery; successful paid checkout additionally depends on configured Stripe
   price IDs and signed webhook delivery.
 
