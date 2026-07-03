@@ -73,7 +73,11 @@ def test_stripe_checkout_route_blocks_when_webhook_is_not_configured(
 
     response = client.post(
         "/v1/billing/stripe/checkout-session",
-        json={"email": "builder@example.com", "package_id": "standard_1000"},
+        json={
+            "email": "builder@example.com",
+            "name": "Builder Person",
+            "package_id": "standard_1000",
+        },
     )
 
     assert response.status_code == 503
@@ -90,7 +94,11 @@ def test_stripe_checkout_route_blocks_when_key_delivery_is_not_configured(
 
     response = client.post(
         "/v1/billing/stripe/checkout-session",
-        json={"email": "builder@example.com", "package_id": "standard_1000"},
+        json={
+            "email": "builder@example.com",
+            "name": "Builder Person",
+            "package_id": "standard_1000",
+        },
     )
 
     assert response.status_code == 503
@@ -104,7 +112,11 @@ def test_stripe_checkout_route_blocks_beta_trial_when_beta_signup_disabled() -> 
 
     response = client.post(
         "/v1/billing/stripe/checkout-session",
-        json={"email": "builder@example.com", "package_id": "beta_trial"},
+        json={
+            "email": "builder@example.com",
+            "name": "Builder Person",
+            "package_id": "beta_trial",
+        },
     )
 
     assert response.status_code == 503
@@ -124,11 +136,51 @@ def test_stripe_checkout_route_returns_503_when_checkout_is_not_configured(
     monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
     client = _client(service)
 
-    response = client.post("/v1/billing/stripe/checkout-session", json={})
+    response = client.post(
+        "/v1/billing/stripe/checkout-session",
+        json={
+            "email": "builder@example.com",
+            "name": "Builder Person",
+            "package_id": "beta_trial",
+        },
+    )
 
     assert response.status_code == 503
     assert response.json()["detail"] == "Stripe Checkout is not configured."
-    assert service.requests == [("", "", "beta_trial")]
+    assert service.requests == [("builder@example.com", "Builder Person", "beta_trial")]
+
+
+def test_stripe_checkout_route_rejects_missing_self_service_identity(
+    monkeypatch,
+) -> None:
+    service = RecordingStripeCheckoutService(StripeCheckoutResult(success=True))
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
+    client = _client(service)
+
+    response = client.post("/v1/billing/stripe/checkout-session", json={})
+
+    assert response.status_code == 422
+    assert service.requests == []
+
+
+def test_stripe_checkout_route_rejects_invalid_email_before_checkout(
+    monkeypatch,
+) -> None:
+    service = RecordingStripeCheckoutService(StripeCheckoutResult(success=True))
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
+    client = _client(service)
+
+    response = client.post(
+        "/v1/billing/stripe/checkout-session",
+        json={
+            "email": "not-an-email",
+            "name": "Builder Person",
+            "package_id": "beta_trial",
+        },
+    )
+
+    assert response.status_code == 422
+    assert service.requests == []
 
 
 def test_stripe_status_returns_non_secret_readiness_flags() -> None:

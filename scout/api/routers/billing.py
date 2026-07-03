@@ -8,7 +8,7 @@ import json
 import time
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 from scout.api.config import settings
 from scout.api.deps import (
@@ -70,8 +70,8 @@ class StripeWebhookResponse(BaseModel):
 class StripeCheckoutSessionRequestBody(BaseModel):
     """Request body for creating a hosted Scout beta checkout session."""
 
-    name: str = ""
-    email: str = ""
+    name: str = Field(min_length=1)
+    email: EmailStr
     package_id: str = "beta_trial"
 
 
