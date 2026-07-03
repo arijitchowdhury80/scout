@@ -2,7 +2,7 @@
 
 Date: 2026-07-03
 Repo: `/Users/arijitchowdhury/Dropbox/AI-Development/Scout`
-Branch: `codex/scout-platform-foundation`
+Branch: `codex/scout-saas-prod-ready`
 
 ## Executive Verdict
 
@@ -50,10 +50,10 @@ Production domain: `https://scout.chowmes.com/`
 - `/api/docs` returns `403`, consistent with hosted-only production guard.
 - `/assets/hosted-keygen.js` is part of the public beta website for status and
   replacement-key support.
-- `/beta` exposes the public `$0` card-backed beta setup form and posts to
-  `POST /v1/billing/stripe/checkout-session` with package `beta_trial`; Stripe
-  setup, signed webhook provisioning, and SMTP key delivery are required before
-  the path is live-ready.
+- `/beta` exposes the public name/email beta registration form and posts to
+  `POST /v1/hosted/beta-key`. SMTP key delivery is required before the path can
+  send API keys end to end. If SMTP is missing, Scout records
+  `pending_delivery` signups without creating accounts, keys, or credits.
 - `/pricing` exposes paid credit package information; the Stripe path requires
   Stripe price IDs, checkout URLs, webhook secret, and SMTP delivery before
   paid checkout is live-ready.
@@ -190,16 +190,15 @@ The launch requirement says most users will run hosted, log in, create their own
 Current reality:
 
 - Full login/account UI is not implemented.
-- The public `/beta` page exposes `$0` card-backed beta setup, not an on-screen
-  raw-key fallback and not direct key registration as the primary CTA.
-- Hosted beta uses `POST /v1/billing/stripe/checkout-session` for name/email
-  capture, setup-mode Checkout, signed webhook provisioning, and email-only
-  API-key delivery once SMTP is configured.
-- `/v1/hosted/beta-key` remains a compatibility/admin recovery endpoint, not
-  the advertised public self-service path.
-- `/beta` signup is live-ready only when hosted beta signup is enabled, Stripe
-  Checkout is configured, webhook signing is configured, and SMTP delivery is
-  configured.
+- The public `/beta` page exposes direct name/email registration through
+  `POST /v1/hosted/beta-key`.
+- Raw hosted API keys are never returned in the browser. They are emailed once
+  when SMTP key delivery is configured.
+- `/v1/billing/stripe/checkout-session` remains the paid hosted-credit checkout
+  path and a future/secondary card-backed beta verification path, not the
+  current public beta CTA.
+- `/beta` registration is live-ready only when hosted beta signup is enabled
+  and SMTP delivery is configured and smoke-tested.
 
 Tomorrow options:
 
@@ -249,8 +248,7 @@ Decision to make before any deploy:
 
 Implement:
 
-- Configure card-backed beta setup, signed webhook provisioning, and hosted key
-  delivery.
+- Configure hosted SMTP delivery and smoke-test beta API-key email delivery.
 - Lower hosted beta credits.
 - Set browser credits to 0 for public beta.
 - Add hosted LLM disabled policy.
@@ -271,8 +269,9 @@ Verification:
 - `ruff check scout/ tests/ && ruff format --check scout/ tests/`
 - Production `curl` confirms:
   - `/beta#beta-key` is the public beta access path
-  - `/v1/billing/stripe/checkout-session` starts `beta_trial` setup-mode Checkout
-  - `/v1/hosted/beta-key` remains available only as compatibility/admin recovery
+  - `/v1/hosted/beta-key` records beta registration by name/email
+  - `/v1/billing/stripe/checkout-session` remains reserved for paid packages
+    and future/secondary card-backed beta verification
   - generated key can call `/v1/hosted/me`
   - generated key can run one capped hosted workflow
   - credits decrement

@@ -53,7 +53,7 @@ enough for controlled beta because it:
 | Use cases | Product catalogs, competitive intelligence, agent tools | Pass. Honest and current. |
 | Docs path | Navigation keeps `/docs` as FastAPI/Swagger API docs and adds `/quickstart` | Pass. Developer-friendly. |
 | Pricing | `/pricing` explains free local and finite hosted beta pass | Pass. Matches competitor credit/subscription economics. |
-| Payment/free trial flow | `/beta` and homepage include hosted checkout form using `/v1/billing/stripe/checkout-session` | Pass for implementation readiness; live Stripe test-mode smoke remains pending. |
+| Payment/free trial flow | `/beta` uses name/email API-key registration through `/v1/hosted/beta-key`; `/pricing` uses `/v1/billing/stripe/checkout-session` for paid hosted-credit packages. | Pass for current private-beta posture; SMTP key-delivery smoke and Stripe paid-checkout smoke remain pending. |
 | FAQ/legal boundaries | `/legal`, `/terms`, and `/privacy` cover beta placeholders and third-party notices | Pass for private beta; lawyer-reviewed docs still required for broad commercial launch. |
 | Trust/social proof | Not present | Acceptable for private beta. Do not fake logos or testimonials. |
 | Enterprise security claims | Not present | Correct. Current security posture does not support enterprise claims. |
@@ -120,4 +120,3 @@ Skill usage docs tested from current package.
 Local install instructions tested on a fresh machine or clean container.
 Docker install instructions tested from docs only.
 ```
-

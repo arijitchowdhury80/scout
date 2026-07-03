@@ -84,7 +84,7 @@
             </article>
             <article>
               <h3>Hosted beta keys: gated by email delivery</h3>
-              <p>Hosted beta signup records name and email, provisions a finite-credit beta account, and emails the API key. Paid checkout remains gated until Stripe Checkout and webhook signing are configured.</p>
+              <p>Hosted beta signup can register testers and queue API-key delivery by name and email. Until SMTP is configured, requests enter the pending delivery queue without creating accounts, keys, or credits. Paid checkout remains gated until Stripe Checkout and webhook signing are configured.</p>
             </article>
             <article>
               <h3>Current blockers: configuration</h3>
@@ -118,7 +118,7 @@
             </article>
             <article>
               <h3>Hosted: self-service beta keys</h3>
-              <p>Hosted beta can register testers with name and email, finite credits, email-only key delivery, and account lookup; paid checkout remains a separate launch gate.</p>
+              <p>Hosted beta can register testers with name and email, queue API-key delivery, and later support account lookup once the emailed key exists; paid checkout remains a separate launch gate.</p>
             </article>
           </div>
         </section>
