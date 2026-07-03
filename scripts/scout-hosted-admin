@@ -16,6 +16,7 @@ Commands:
   list-usage        List hosted credit usage ledger entries.
   list-purchases    List Stripe checkout/package purchase records.
   list-signups      List beta API-key signup requests and delivery outcomes.
+  send-test-email   Send a hosted API-key delivery smoke-test email.
   configure-production-env
                     Install allowlisted SMTP/Stripe settings on the VPS.
 
@@ -27,6 +28,7 @@ Examples:
   scripts/scout-hosted-admin list-usage --summary
   scripts/scout-hosted-admin list-purchases --format table
   scripts/scout-hosted-admin list-signups --format table --limit 100
+  scripts/scout-hosted-admin send-test-email --email arijit@example.com --name Arijit
   scripts/scout-hosted-admin configure-production-env --secrets-file secrets/scout-production.env --restart
 EOF
 }
@@ -49,6 +51,10 @@ list_purchases() {
 
 list_signups() {
   exec "$SCRIPT_DIR/scout-vps-list-hosted-signups" "$@"
+}
+
+send_test_email() {
+  exec "$SCRIPT_DIR/scout-vps-send-hosted-test-email" "$@"
 }
 
 configure_production_env() {
@@ -88,6 +94,10 @@ case "$1" in
   list-signups)
     shift
     list_signups "$@"
+    ;;
+  send-test-email)
+    shift
+    send_test_email "$@"
     ;;
   configure-production-env)
     shift

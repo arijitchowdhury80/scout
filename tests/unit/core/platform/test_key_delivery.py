@@ -89,6 +89,39 @@ def test_smtp_delivery_service_sends_one_time_key_email() -> None:
     assert "Arijit Chowdhury" in body
 
 
+def test_smtp_delivery_service_sends_smoke_test_email_without_real_key_claims() -> None:
+    smtp_factory = FakeSmtpFactory()
+    service = SmtpHostedApiKeyDeliveryService(
+        config=SmtpHostedApiKeyDeliveryConfig(
+            host="smtp.example.com",
+            port=587,
+            from_email="scout@example.com",
+            username="scout-user",
+            password="smtp-secret",
+            use_tls=True,
+        ),
+        smtp_factory=smtp_factory,
+    )
+
+    result = service.deliver(_delivery_request(smoke_test=True))
+    sent = smtp_factory.client.messages[0]
+    message = message_from_string(sent.message, policy=default)
+    assert isinstance(message, EmailMessage)
+    body = str(message.get_content())
+
+    assert result.delivered is True
+    assert message["Subject"] == "Scout hosted key delivery smoke test"
+    assert "This is a delivery smoke test." in body
+    assert "No hosted account was created." in body
+    assert "No real Scout API key was issued." in body
+    assert "Smoke reference: smtp_smoke_test" in body
+    assert "Your hosted beta tester API key is ready" not in body
+    assert "Quick test:" not in body
+    assert "scout_live_test_key" not in body
+    assert "Arijit Chowdhury" in body
+    assert "Founder, Chowmes" in body
+
+
 def test_smtp_delivery_service_returns_failure_when_send_fails() -> None:
     smtp_factory = FakeSmtpFactory(send_error=RuntimeError("smtp down"))
     service = SmtpHostedApiKeyDeliveryService(
@@ -114,7 +147,7 @@ def test_smtp_delivery_config_requires_host_and_from_email() -> None:
     assert missing_from.enabled is False
 
 
-def _delivery_request() -> HostedApiKeyDeliveryRequest:
+def _delivery_request(*, smoke_test: bool = False) -> HostedApiKeyDeliveryRequest:
     """Build a hosted API-key delivery request."""
     return HostedApiKeyDeliveryRequest(
         email="builder@example.com",
@@ -123,7 +156,8 @@ def _delivery_request() -> HostedApiKeyDeliveryRequest:
         key_id="key_123",
         plan=HostedPlan.HOSTED_BETA_PASS,
         raw_api_key="scout_live_test_key",
-        checkout_session_id="cs_test_123",
+        checkout_session_id="smtp_smoke_test" if smoke_test else "cs_test_123",
+        smoke_test=smoke_test,
     )
 
 

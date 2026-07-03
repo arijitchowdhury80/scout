@@ -23,6 +23,7 @@ class HostedApiKeyDeliveryRequest(BaseModel):
     plan: HostedPlan
     raw_api_key: str
     checkout_session_id: str
+    smoke_test: bool = False
 
 
 class HostedApiKeyDeliveryResult(BaseModel):
@@ -169,9 +170,38 @@ def _delivery_message(sender: str, request: HostedApiKeyDeliveryRequest) -> Emai
     message = EmailMessage()
     message["From"] = sender
     message["To"] = str(request.email)
-    message["Subject"] = "Your Scout beta tester API key is ready"
-    message.set_content(_delivery_body(request))
+    if request.smoke_test:
+        message["Subject"] = "Scout hosted key delivery smoke test"
+        message.set_content(_smoke_test_body(request))
+    else:
+        message["Subject"] = "Your Scout beta tester API key is ready"
+        message.set_content(_delivery_body(request))
     return message
+
+
+def _smoke_test_body(request: HostedApiKeyDeliveryRequest) -> str:
+    """Build the plaintext body for SMTP smoke-test delivery."""
+    greeting_name = request.name.strip() or "there"
+    return "\n".join(
+        [
+            f"Hi {greeting_name},",
+            "",
+            "This is a delivery smoke test.",
+            "It verifies the hosted Scout API-key email path.",
+            "No hosted account was created.",
+            "No real Scout API key was issued.",
+            "No credits were granted or charged.",
+            "",
+            f"Smoke reference: {request.checkout_session_id}",
+            f"Recipient: {request.email}",
+            "",
+            "If you received this, Scout's SMTP delivery path can reach this inbox.",
+            "",
+            "Thanks,",
+            "Arijit Chowdhury",
+            "Founder, Chowmes",
+        ]
+    )
 
 
 def _delivery_body(request: HostedApiKeyDeliveryRequest) -> str:

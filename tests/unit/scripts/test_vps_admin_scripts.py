@@ -16,6 +16,7 @@ SCRIPT_NAMES = [
     "scout-vps-list-hosted-usage",
     "scout-vps-list-hosted-purchases",
     "scout-vps-list-hosted-signups",
+    "scout-vps-send-hosted-test-email",
     "scout-vps-configure-hosted-env",
     "scout-hosted-load-test",
 ]
@@ -42,6 +43,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "list-usage",
             "list-purchases",
             "list-signups",
+            "send-test-email",
             "configure-production-env",
         ],
         "scout-vps-configure-hosted-env": [
@@ -92,6 +94,13 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "--status",
             "--email",
             "/data/hosted_accounts.sqlite",
+        ],
+        "scout-vps-send-hosted-test-email": [
+            "Send a Scout hosted API-key delivery smoke-test email",
+            "--email",
+            "HOSTED_KEY_DELIVERY_SMTP_HOST",
+            "No hosted account is created",
+            "smoke_test=True",
         ],
         "scout-hosted-load-test": [
             "--users",
@@ -164,6 +173,19 @@ def test_list_signups_script_never_prints_raw_keys_or_key_hashes() -> None:
     assert "direct_beta_key" in script_text
     assert "key_hash" not in script_text
     assert "raw_api_key" not in script_text
+
+
+def test_send_test_email_script_uses_smoke_mode_and_never_prints_secret_values() -> None:
+    script_text = (REPO_ROOT / "scripts" / "scout-vps-send-hosted-test-email").read_text()
+
+    assert "docker exec -i scout" in script_text
+    assert "SmtpHostedApiKeyDeliveryService" in script_text
+    assert "smoke_test=True" in script_text
+    assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" in script_text
+    assert "raw_api_key=''" in script_text
+    assert "key_hash" not in script_text
+    assert "scout_live_" not in script_text
+    assert 'echo "$encoded' not in script_text
 
 
 def test_hosted_admin_does_not_expose_password_or_secret_generation() -> None:

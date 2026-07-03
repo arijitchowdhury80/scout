@@ -120,6 +120,20 @@ The helper updates `/opt/prism/scout/.env`, preserves unrelated existing env
 lines, prints variable names only, never prints secret values, and recreates the
 `scout` container when `--restart` is passed.
 
+After SMTP values are installed, send a smoke-test email before inviting real
+testers:
+
+```bash
+scripts/scout-hosted-admin send-test-email \
+  --email arijit@example.com \
+  --name "Arijit"
+```
+
+The smoke email uses the same hosted key-delivery SMTP path, but it does not
+create a hosted account, grant credits, issue a real API key, or print SMTP
+secrets. The email body clearly says it is a smoke test and cannot be mistaken
+for a real hosted Scout key.
+
 After configuration, verify readiness:
 
 ```bash
@@ -282,6 +296,20 @@ timestamp. It is the fastest operator view for answering who requested a hosted
 key, whether it was delivered, whether it was a duplicate, and why it failed.
 It does not print raw keys or stored key hashes.
 
+### Send Hosted Key Delivery Smoke-Test Email
+
+```bash
+scripts/scout-hosted-admin send-test-email \
+  --email tester@example.com \
+  --name "Tester Name"
+```
+
+Use this after configuring SMTP and before enabling self-service beta testers.
+It sends a smoke-test email through the same SMTP delivery service used by
+`/v1/hosted/beta-key` and Stripe provisioning. It does not create an account,
+grant credits, issue a real API key, or print SMTP secrets, raw API keys, or
+stored key hashes.
+
 ### Hosted Billing Admin Metrics API
 
 Operators can also inspect non-secret hosted beta metrics through the live
@@ -413,6 +441,8 @@ Today, Scout can answer:
   purchase, and revenue summaries through `/v1/billing/admin/metrics`,
 - self-service signup event review from the Mac with
   `scripts/scout-hosted-admin list-signups`,
+- SMTP/key-delivery smoke testing from the Mac with
+  `scripts/scout-hosted-admin send-test-email`,
 - every direct beta key request outcome in the `hosted_signup_events` table,
 - every successful hosted credit debit in the `hosted_credit_ledger` table,
 - Stripe checkout/package purchase records in `hosted_payment_checkouts`,
