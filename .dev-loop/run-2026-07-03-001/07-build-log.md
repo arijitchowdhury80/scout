@@ -137,6 +137,56 @@ Hosted plus playground 250-user probe:
 
 Interpretation: production now survives a 250-concurrent-user stampede by rejecting excess expensive work quickly. It is not verified to successfully execute all workflows for 250 simultaneous users on the current 2-vCPU VPS.
 
+## Production Verification After Hosted Queue Deploy
+
+Commit deployed: `145586e`.
+
+Runtime guardrails:
+
+```bash
+SCOUT_PUBLIC_HOSTED_ONLY=true
+HOSTED_LLM_MODE=disabled
+LLM_API_KEY=
+HOSTED_RATE_LIMIT_MAX_REQUESTS=40
+HOSTED_RATE_LIMIT_WINDOW_SECONDS=60
+HOSTED_MAX_ACTIVE_REQUESTS=2
+HOSTED_JOB_QUEUE_MAX_SIZE=250
+HOSTED_JOB_QUEUE_WORKERS=2
+PLAYGROUND_MAX_ACTIVE_REQUESTS=1
+CAPACITY_RETRY_AFTER_SECONDS=10
+```
+
+Queue smoke:
+
+- Command target: `https://scout.chowmes.com/v1/hosted/scrape`
+- Requests/concurrency: 10/10 using one temporary hosted key.
+- Result: 2 synchronous `200` responses and 8 queued `202 Accepted` responses.
+- Queued responses returned `credits_charged: 0`, `job_id`, and `job_url`.
+
+Hosted-only 250-user / 250-key production probe:
+
+- Command target: `https://scout.chowmes.com`
+- Users/concurrency: 250/250
+- Requests: 4,000 across `/v1/hosted/me`, hosted scrape/crawl/products, hosted intelligence runs, and hosted run listing.
+- Result file: `/tmp/scout-load-results/hosted-250-1783048267.json`
+- Duration: 237.51s
+- Throughput: 16.84 req/s
+- P95 latency: 41,388ms
+- Error rate: 81.20%
+- Result: failed the `p95 <= 15000ms` and `error_rate <= 2%` gates.
+- Sample failures included `429 Too Many Requests` and local client `TimeoutError(60, 'Operation timed out')`.
+- Post-test `/health`: 200
+- During drain container: CPU 196.21%, memory 951.4MiB, PIDs 594.
+
+Cleanup:
+
+- Revoked 251 temporary load-test keys, including the smoke key.
+- Restarted the Scout container to flush the in-process queue.
+- Post-cleanup container: healthy, CPU 0.18%, memory 105.2MiB, PIDs 7.
+- Revoked smoke key returned `403 {"detail":"API key is not active."}`.
+
+Interpretation: the queue slice is working, but the current single 2-vCPU VPS still cannot honestly support 250 users simultaneously hitting every heavy endpoint. The current production posture protects the box and limits cost; it does not yet meet the 250-user all-endpoint success bar.
+
 ## Still Pending
 
 - No email/password login, user dashboard, or password reset.
@@ -156,6 +206,8 @@ Implemented:
 - `scripts/scout-vps-list-hosted-purchases` lists Stripe checkout/package records from `/data/hosted_accounts.sqlite`.
 - `scripts/scout-hosted-admin list-purchases` wraps the VPS purchase ledger command.
 - README and hosted admin docs now show `generate-api-key`, `list-accounts`, and `list-purchases`.
+- Removed the obsolete beta invite-password framing from admin helper/docs; hosted signup is name plus email plus one-time key delivery.
+- `/v1/hosted/purchases` now returns checkout/package purchase records for the authenticated Bearer key's tenant only.
 
 Verification:
 
@@ -164,3 +216,32 @@ python3 -m pytest tests/unit/core/platform/test_payment_provisioning.py::test_sq
 ```
 
 Result: 6 passed, 2 warnings.
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_purchases.py tests/unit/scripts/test_vps_admin_scripts.py tests/unit/test_hosted_pricing_docs.py -q
+```
+
+Result: 10 passed, 2 warnings.
+
+```bash
+rg -n "BETA_INVITE|HOSTED_BETA_INVITE_PASSWORD|beta invite password|invite-password|invite password|password gate" scripts scout docs website README.md .env.example
+```
+
+Result: no matches.
+
+## Public Package Discovery Slice
+
+Implemented:
+
+- `/v1/billing/packages` returns public hosted package definitions, credit-cost meanings, and unit-economics outputs with no Stripe secrets.
+- `website/pricing.html` now exposes `data-packages-endpoint="/v1/billing/packages"` and stable containers for package cards, credit meanings, and unit economics.
+- `website/assets/pricing.js` hydrates the pricing page from Scout's package model while preserving static fallback copy.
+- Auth/static allowlists now expose `/v1/billing/packages` and `/assets/pricing.js` publicly.
+
+Verification:
+
+```bash
+python3 -m pytest tests/unit/api/test_billing_stripe_checkout.py::test_billing_packages_returns_credit_meanings_and_unit_economics_without_secrets tests/unit/website/test_launch_website.py::test_pricing_page_explains_credit_packages_and_unit_economics tests/unit/website/test_launch_website.py::test_api_serves_launch_website_static_assets_without_auth -q
+```
+
+Result: 3 passed, 2 warnings.
