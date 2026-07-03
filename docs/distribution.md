@@ -97,8 +97,8 @@ does not pass an exact `--output-dir` or JSON `output_dir`.
 
 Local use does not require Stripe or SMTP. Public hosted beta starts at `/beta`.
 When the hosted stack is fully ready, testers register name/email, complete the
-`$0` `beta_trial` Stripe setup flow, and receive the hosted API key by email
-after the signed webhook provisions the account. The beta path is fully
+card-backed $0 setup for the `beta_trial` Stripe flow, and receive the hosted
+API key by email after the signed webhook provisions the account. The beta path is fully
 live-ready when `ready_for_beta_checkout` is true. That requires
 `HOSTED_BETA_SIGNUP_ENABLED=true`, Stripe Checkout, a signed webhook, and SMTP
 key delivery. If checkout is not configured, `/beta` can still record a

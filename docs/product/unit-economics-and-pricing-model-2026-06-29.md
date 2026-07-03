@@ -8,7 +8,7 @@ Status: Launch candidate model defined; final paid launch still requires founder
 Recommended launch candidate as of 2026-07-03:
 
 - Local Scout remains free.
-- Beta trial: 30 days, 100 standard credits, email-first API-key registration while hosted beta is invite-controlled.
+- Beta trial: 30 days, 100 standard credits, card-backed $0 setup when Stripe and SMTP are configured. Until then, `/beta` records name/email requests for queued delivery.
 - First pay-as-you-go package: $10 for 1,000 standard credits.
 - Browser-heavy work is not included in the first public pay-as-you-go package.
 - Browser credits remain private/controlled until browser-worker cost is measured.
@@ -62,7 +62,7 @@ The current recommended direction is:
 
 - local Scout remains free for users who bring their own compute, browser,
   storage, and keys;
-- hosted Scout starts with a small free allowance or invite-only test credits;
+- hosted Scout starts with a small free allowance through card-backed beta setup or queued name/email requests while Stripe/SMTP configuration is incomplete;
 - paid hosted Scout should be pay-as-you-go or prepaid credits first;
 - subscriptions should come later only if usage telemetry proves predictable
   recurring value;
@@ -199,9 +199,10 @@ public website must not show `$22`, `$9/month`, or any other arbitrary hosted
 price. It can say:
 
 ```text
-Local Scout is free during beta. Hosted Scout is metered and invite-only while
-we validate unit economics. Pricing will be based on actual compute, browser,
-LLM, storage, security, and support costs.
+Local Scout is free during beta. Hosted Scout is metered. Beta access uses a
+card-backed $0 setup once Stripe and SMTP are configured; before that, `/beta`
+records name/email requests for queued API-key delivery. Pricing is based on
+actual compute, browser, LLM, storage, security, and support costs.
 ```
 
 ## Launch Checklist Impact

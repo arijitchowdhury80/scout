@@ -23,11 +23,12 @@ def test_unit_economics_doc_records_pay_as_you_go_candidate() -> None:
         "Estimated cost for 1,000 standard credits: $2.59",
         "Estimated gross margin: 74.1%",
         "Break-even: 17 packs/month",
-        "Beta trial: 30 days, 100 standard credits, email-first API-key registration while hosted beta is invite-controlled",
+        "Beta trial: 30 days, 100 standard credits, card-backed $0 setup when Stripe and SMTP are configured",
     ]
 
     for marker in expected:
         assert marker in doc
+    assert "email-first API-key registration while hosted beta is invite-controlled" not in doc
 
 
 def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
@@ -43,8 +44,11 @@ def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     assert "Public beta testers start access on `/beta`" in doc
     assert "Public signup never shows the raw key in the browser" in normalized_doc
     assert "Paid Stripe checkout forms are available from `/pricing`" in normalized_doc
-    assert "$0 beta setup flow" not in normalized_doc
-    assert "successful paid checkout additionally depends on configured Stripe" in normalized_doc
+    assert "$0 beta setup flow" in normalized_doc
+    assert (
+        "successful paid checkout additionally depends on configured stripe"
+        in normalized_doc.lower()
+    )
     assert "`credit_policy`" in doc
     assert "included_in_standard_1000" in doc
     assert "$10 for 1,000 standard credits" in doc
@@ -60,6 +64,7 @@ def test_distribution_docs_make_card_backed_beta_setup_the_live_path() -> None:
     assert "`ready_for_beta_checkout`" in doc
     assert "name/email request through `/v1/hosted/beta-key`" in normalized_doc
     assert "only a request queue, not a completed beta onboarding pipeline" in normalized_doc
+    assert "card-backed $0 setup" in normalized_doc
 
 
 def test_stripe_redirect_examples_use_hosted_pricing_page_not_localhost() -> None:

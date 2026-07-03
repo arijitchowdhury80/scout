@@ -13,8 +13,8 @@ Scout hosted beta has API-key based access, not a login system.
   Public signup never shows the raw key in the browser.
 - Paid hosted credit packages start from `/pricing`, which posts to
   `POST /v1/billing/stripe/checkout-session`. Stripe remains the paid
-  purchase path and the future card-backed beta path if that policy is
-  re-approved.
+  purchase path and the card-backed $0 beta setup path when hosted billing is
+  configured.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
 - Self-service signup emails the raw API key when SMTP delivery is configured.
@@ -56,7 +56,7 @@ Scout hosted beta has API-key based access, not a login system.
   checkout settings, webhook signing, and SMTP key delivery are configured.
 - The checkout API itself fails closed before creating paid Stripe sessions if
   the webhook secret or SMTP key delivery is missing.
-- If a future $0 beta verification flow creates a `beta_trial` Checkout Session, Scout records a
+- If the $0 beta setup flow creates a `beta_trial` Checkout Session, Scout records a
   non-secret `hosted_signup_events` row with status `checkout_started`, source
   `stripe_checkout`, delivery status `checkout_session_created`, and the
   Stripe Checkout Session id as the reference.
@@ -736,17 +736,17 @@ fully validated Stripe production flow.
 
 Pay-as-you-go pricing candidate:
 
-- Beta trial: 30 days, 100 standard credits, email-first API-key registration while hosted beta is invite-controlled.
+- Beta trial: 30 days, 100 standard credits, card-backed $0 setup when Stripe and SMTP are configured.
 - First paid package: $10 for 1,000 standard credits.
 - A standard credit means one scrape, one returned crawl page, or one product/intelligence record.
 - Browser credits remain separately metered and are not included in the first public package.
 - Current default economics estimate $2.59 loaded cost, $7.41 gross profit, 74.1% gross margin, and break-even at 17 packs/month for the $10 package.
 - The pricing page exposes readiness-gated `$10`, `$25`, and `$100` hosted
-  credit checkout options. The beta page exposes email-first beta registration.
-  Successful paid checkout depends on configured Stripe, signed webhook,
-  and SMTP key delivery; beta API-key delivery depends on SMTP key
-  delivery; successful paid checkout additionally depends on configured Stripe
-  price IDs and signed webhook delivery.
+  credit checkout options. The beta page exposes card-backed $0 beta setup
+  when `ready_for_beta_checkout` is true, and otherwise records a name/email
+  request queue through `/v1/hosted/beta-key`. Successful beta setup depends on
+  configured Stripe Checkout, signed webhook delivery, and SMTP key delivery.
+  Successful paid checkout additionally depends on configured Stripe price IDs.
 
 A production billing model should still add:
 
@@ -757,4 +757,6 @@ A production billing model should still add:
 - unit-economics inputs: host cost, LLM cost, browser minutes, storage, bandwidth, support, maintenance, and target gross margin,
 - admin usage exports.
 
-Until that exists, Scout is a private hosted beta with manually controlled access, not a fully self-serve paid SaaS.
+Until those remaining billing operations exist and live Stripe/SMTP smoke tests
+pass, Scout is a hosted beta with self-service registration code and
+readiness-gated checkout, not a fully launched paid SaaS.
