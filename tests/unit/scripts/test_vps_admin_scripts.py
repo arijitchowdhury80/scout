@@ -11,6 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 SCRIPT_NAMES = [
     "scout-hosted-admin",
     "scout-validate-hosted-config",
+    "scout-write-hosted-config-template",
     "scout-generate-api-key",
     "scout-vps-provision-hosted-key",
     "scout-vps-list-hosted-accounts",
@@ -49,7 +50,17 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "disable-access",
             "readiness",
             "validate-config",
+            "write-config-template",
             "configure-production-env",
+        ],
+        "scout-write-hosted-config-template": [
+            "Write a Scout hosted SMTP and Stripe env template",
+            "--output",
+            "--force",
+            "HOSTED_BETA_SIGNUP_ENABLED=true",
+            "HOSTED_KEY_DELIVERY_SMTP_HOST=",
+            "STRIPE_SECRET_KEY=",
+            "STRIPE_WEBHOOK_SECRET=",
         ],
         "scout-validate-hosted-config": [
             "Validate Scout hosted SMTP and Stripe config",
@@ -298,6 +309,63 @@ def test_hosted_admin_validate_config_command_wraps_validator() -> None:
     assert "--secrets-file" in output
     assert "--require" in output
     assert "scout-validate-hosted-config" in script_text
+
+
+def test_hosted_admin_write_config_template_command_wraps_template_writer() -> None:
+    script = REPO_ROOT / "scripts" / "scout-hosted-admin"
+    result = subprocess.run(
+        [str(script), "write-config-template", "--help"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+    script_text = script.read_text(encoding="utf-8")
+
+    assert "--output" in output
+    assert "--force" in output
+    assert "scout-write-hosted-config-template" in script_text
+
+
+def test_write_hosted_config_template_creates_non_secret_template(tmp_path: Path) -> None:
+    output = tmp_path / "scout-production.env"
+    script = REPO_ROOT / "scripts" / "scout-write-hosted-config-template"
+
+    result = subprocess.run(
+        [str(script), "--output", str(output)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    text = output.read_text(encoding="utf-8")
+    assert "Wrote hosted config template" in result.stdout
+    assert "HOSTED_BETA_SIGNUP_ENABLED=true" in text
+    assert "HOSTED_KEY_DELIVERY_SMTP_HOST=" in text
+    assert 'HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"' in text
+    assert "STRIPE_SECRET_KEY=" in text
+    assert "STRIPE_WEBHOOK_SECRET=" in text
+    assert "sk_test_" not in text
+    assert "sk_live_" not in text
+    assert "whsec_" not in text
+    assert "smtp-secret" not in text
+
+
+def test_write_hosted_config_template_refuses_overwrite_without_force(tmp_path: Path) -> None:
+    output = tmp_path / "scout-production.env"
+    output.write_text("EXISTING=1\n", encoding="utf-8")
+    script = REPO_ROOT / "scripts" / "scout-write-hosted-config-template"
+
+    result = subprocess.run(
+        [str(script), "--output", str(output)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "already exists" in result.stderr
+    assert output.read_text(encoding="utf-8") == "EXISTING=1\n"
 
 
 def test_validate_hosted_config_reports_missing_required_keys_without_secret_values(

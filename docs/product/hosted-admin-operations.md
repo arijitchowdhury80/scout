@@ -89,6 +89,17 @@ and SMTP key delivery are both present.
 Required delivery settings, stored in an ignored local file such as
 `secrets/scout-production.env` before pushing to the VPS:
 
+Create a starter template first so the required hosted keys are not assembled
+from memory:
+
+```bash
+scripts/scout-hosted-admin write-config-template \
+  --output secrets/scout-production.env
+```
+
+The template contains only placeholder values and safe defaults. It refuses to
+overwrite an existing file unless `--force` is passed.
+
 ```bash
 HOSTED_BETA_SIGNUP_ENABLED=true
 HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com

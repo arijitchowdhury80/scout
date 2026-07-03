@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+"""Write a Scout hosted SMTP and Stripe env template without secrets."""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+
+TEMPLATE = """# Scout hosted production secrets template.
+# Fill this file locally, keep it ignored, then validate before pushing:
+#
+#   scripts/scout-hosted-admin validate-config --secrets-file secrets/scout-production.env --require all
+#   scripts/scout-hosted-admin configure-production-env --secrets-file secrets/scout-production.env --require all --restart
+#
+# This file intentionally contains no real SMTP password, Stripe key, webhook
+# secret, API key, or generated Scout hosted key.
+
+# Passwordless beta key registration. Set true only when SMTP delivery below is real.
+HOSTED_BETA_SIGNUP_ENABLED=true
+
+# SMTP delivery for one-time hosted API keys.
+HOSTED_KEY_DELIVERY_SMTP_HOST=
+HOSTED_KEY_DELIVERY_SMTP_PORT=587
+HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"
+HOSTED_KEY_DELIVERY_SMTP_USERNAME=
+HOSTED_KEY_DELIVERY_SMTP_PASSWORD=
+HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
+
+# Stripe Checkout for paid credit packages and beta card setup.
+STRIPE_SECRET_KEY=
+STRIPE_BETA_PRICE_ID=
+STRIPE_STANDARD_1000_PRICE_ID=
+STRIPE_STANDARD_3000_PRICE_ID=
+STRIPE_STANDARD_15000_PRICE_ID=
+STRIPE_BROWSER_100_PRICE_ID=
+STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success
+STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled
+STRIPE_WEBHOOK_SECRET=
+"""
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """Build the command parser."""
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""Template includes:
+  HOSTED_BETA_SIGNUP_ENABLED=true
+  HOSTED_KEY_DELIVERY_SMTP_HOST=
+  HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"
+  STRIPE_SECRET_KEY=
+  STRIPE_WEBHOOK_SECRET=
+""",
+    )
+    parser.add_argument(
+        "--output",
+        default="secrets/scout-production.env",
+        help="Template path to write. Default: secrets/scout-production.env.",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite an existing template file.",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Write the hosted config template."""
+    args = build_parser().parse_args(argv)
+    output = Path(args.output)
+    if output.exists() and not args.force:
+        print(
+            f"Config template already exists: {output}. Use --force to overwrite.",
+            file=sys.stderr,
+        )
+        return 1
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(TEMPLATE, encoding="utf-8")
+    print(f"Wrote hosted config template: {output}")
+    print("Next: fill SMTP and Stripe values, then run scout-hosted-admin validate-config.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

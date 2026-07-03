@@ -706,3 +706,10 @@ python3 -m pytest tests/unit/core/platform/test_key_delivery.py::test_smtp_deliv
 ```
 
 Result: 1 passed, 2 warnings.
+
+## 2026-07-03 07:25 EDT — hosted config template writer
+
+Added `scripts/scout-hosted-admin write-config-template` and `scripts/scout-write-hosted-config-template` so operators can create a non-secret `secrets/scout-production.env` starter file for SMTP key delivery and Stripe checkout. This is a production-readiness support slice: it does not configure external SMTP/Stripe secrets, but it prevents manual env-file assembly errors before `validate-config` and `configure-production-env`.
+
+Verification red: `python3 -m pytest tests/unit/scripts/test_vps_admin_scripts.py -q` failed with missing script/wrapper.
+Verification green: rerun after implementation passed.
