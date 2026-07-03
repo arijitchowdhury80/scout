@@ -180,7 +180,8 @@ scout launch-readiness --json
 scout launch-readiness --owner Arijit
 scout launch-readiness --blocker-type engineering
 scout launch-readiness --blocker-id public-pricing-and-hosted-usage-limits
-scout launch-readiness --require-public</code></pre>
+scout launch-readiness --require-public
+scout launch-readiness --require-hosted-saas</code></pre>
           <div class="note-grid">
             <article>
               <h3>Filtered reports</h3>
@@ -189,6 +190,10 @@ scout launch-readiness --require-public</code></pre>
             <article>
               <h3>Release gate</h3>
               <p>`--require-public` is expected to pass for the current controlled beta release after the blocker burndown.</p>
+            </article>
+            <article>
+              <h3>Hosted SaaS gate</h3>
+              <p>`--require-hosted-saas` is expected to fail until SMTP key delivery, Stripe Checkout, webhook signing, and live smoke tests are complete.</p>
             </article>
           </div>
         </section>

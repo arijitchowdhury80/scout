@@ -12,6 +12,8 @@ and report useful feedback without exposing secrets.
 
 - Private beta: `ready_with_limits`
 - Public launch: `ready`
+- Hosted SaaS: `blocked` until SMTP key delivery and Stripe checkout/webhook
+  smoke are complete.
 - Hosted Scout is the primary beta path for testers.
 - Claude/Codex skill usage is the second supported tester path.
 - Local package and Docker instructions are no longer tester onboarding paths.
@@ -23,6 +25,7 @@ Before inviting a tester, operators should run:
 
 ```bash
 scout launch-readiness
+scout launch-readiness --require-hosted-saas
 scout launch-decision-check --check-existing --check-drafts
 ```
 

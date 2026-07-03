@@ -337,7 +337,8 @@ scout scrape https://example.com \
           </p>
           <pre><code>scout launch-readiness
 scout launch-readiness --json
-scout launch-readiness --require-public</code></pre>
+scout launch-readiness --require-public
+scout launch-readiness --require-hosted-saas</code></pre>
           <div class="note-grid">
             <article>
               <h3>Beta gate</h3>
@@ -346,6 +347,10 @@ scout launch-readiness --require-public</code></pre>
             <article>
               <h3>Release gate</h3>
               <p>`--require-public` should pass for the current controlled beta release.</p>
+            </article>
+            <article>
+              <h3>Hosted SaaS gate</h3>
+              <p>`--require-hosted-saas` should fail until SMTP delivery and Stripe checkout/webhook smoke are complete.</p>
             </article>
           </div>
         </section>

@@ -245,6 +245,83 @@ PUBLIC_BLOCKER_REMEDIATION = {
 }
 
 
+HOSTED_SAAS_BLOCKERS = [
+    EvidenceCheck(
+        area="hosted SMTP key delivery",
+        status="blocked",
+        evidence="secrets/scout-production.env",
+        note="Hosted API-key email delivery is not configured and smoke-tested.",
+        check_id="hosted-smtp-key-delivery",
+        blocker_type="external_config",
+        owner="Arijit + Codex",
+        next_action=(
+            "Fill HOSTED_KEY_DELIVERY_SMTP_* values, run "
+            "scripts/scout-hosted-admin validate-config --require beta, upload with "
+            "configure-production-env --require beta --restart, and run send-test-email."
+        ),
+        closure_evidence="SMTP smoke-test output plus successful pending beta delivery drain.",
+        codex_actionable_now=False,
+    ),
+    EvidenceCheck(
+        area="Stripe Checkout configuration",
+        status="blocked",
+        evidence="secrets/scout-production.env",
+        note="STRIPE_SECRET_KEY and hosted checkout URLs are not configured for production.",
+        check_id="stripe-checkout-config",
+        blocker_type="external_config",
+        owner="Arijit + Codex",
+        next_action=(
+            "Fill STRIPE_SECRET_KEY, success URL, and cancel URL, then validate and upload "
+            "the hosted env."
+        ),
+        closure_evidence="Hosted Stripe status reports checkout_configured=true.",
+        codex_actionable_now=False,
+    ),
+    EvidenceCheck(
+        area="Stripe webhook secret",
+        status="blocked",
+        evidence="secrets/scout-production.env",
+        note="STRIPE_WEBHOOK_SECRET is not configured for signed checkout fulfillment.",
+        check_id="stripe-webhook-secret",
+        blocker_type="external_config",
+        owner="Arijit + Codex",
+        next_action="Create the signed Stripe webhook endpoint secret and upload it to production.",
+        closure_evidence="Hosted Stripe status reports webhook_configured=true.",
+        codex_actionable_now=False,
+    ),
+    EvidenceCheck(
+        area="hosted beta email smoke",
+        status="blocked",
+        evidence="scripts/scout-hosted-admin send-test-email",
+        note="Beta key email delivery has not passed a live SMTP smoke test.",
+        check_id="hosted-beta-email-smoke",
+        blocker_type="external_smoke",
+        owner="Codex",
+        next_action=(
+            "Run scripts/scout-hosted-admin send-test-email, then "
+            "process-pending-signups --dry-run and --yes after SMTP succeeds."
+        ),
+        closure_evidence="Live smoke output plus successful processing of queued beta registrations.",
+        codex_actionable_now=False,
+    ),
+    EvidenceCheck(
+        area="paid checkout smoke",
+        status="blocked",
+        evidence="scripts/stripe_test_mode_smoke.py",
+        note="Paid checkout, signed webhook, credit top-up, and API-key delivery have not passed live smoke.",
+        check_id="paid-checkout-smoke",
+        blocker_type="external_smoke",
+        owner="Codex",
+        next_action=(
+            "Bootstrap Stripe prices, upload price IDs, then run "
+            "scripts/stripe_test_mode_smoke.py for standard_1000."
+        ),
+        closure_evidence="Stripe test-mode checkout/webhook/key-delivery smoke report.",
+        codex_actionable_now=False,
+    ),
+]
+
+
 def default_root() -> Path:
     """Return the best root containing Scout launch evidence."""
     package_root = Path(__file__).resolve().parents[1]
@@ -447,9 +524,11 @@ def _actionable_summary(blockers: list[EvidenceCheck]) -> dict[str, int]:
 def build_report(root: Path) -> dict[str, Any]:
     private_beta = _private_beta_checks(root)
     public_blockers = _public_blockers(root)
+    hosted_saas_blockers = _hosted_saas_blockers(root)
 
     private_beta_ready = all(check.status == "verified" for check in private_beta)
     public_ready = not public_blockers
+    hosted_saas_ready = not hosted_saas_blockers
 
     return {
         "private_beta": {
@@ -471,7 +550,24 @@ def build_report(root: Path) -> dict[str, Any]:
             "actionable_summary": _actionable_summary(public_blockers),
             "blockers": [blocker.as_dict() for blocker in public_blockers],
         },
+        "hosted_saas": {
+            "status": "ready" if hosted_saas_ready else "blocked",
+            "blocker_summary": _blocker_summary(hosted_saas_blockers),
+            "owner_summary": _owner_summary(hosted_saas_blockers),
+            "actionable_summary": _actionable_summary(hosted_saas_blockers),
+            "blockers": [blocker.as_dict() for blocker in hosted_saas_blockers],
+        },
     }
+
+
+def _hosted_saas_blockers(root: Path) -> list[EvidenceCheck]:
+    """Return deterministic hosted SaaS blockers for self-service production readiness."""
+    # The launch-readiness command is intentionally offline and deterministic.
+    # Live truth is verified by scripts/hosted_readiness_check.py and
+    # scripts/hosted_production_smoke.py. This gate prevents the static launch
+    # checker from implying hosted self-service is ready while those live gates
+    # still require external SMTP/Stripe configuration and smoke tests.
+    return list(HOSTED_SAAS_BLOCKERS)
 
 
 def filter_report(
@@ -542,6 +638,7 @@ def _dict_actionable_summary(blockers: list[dict[str, Any]]) -> dict[str, int]:
 def print_text_report(report: dict[str, Any]) -> None:
     private_beta = report["private_beta"]
     public_launch = report["public_launch"]
+    hosted_saas = report["hosted_saas"]
 
     print(f"Private beta: {private_beta['status']}")
     for check in private_beta["checks"]:
@@ -583,6 +680,20 @@ def print_text_report(report: dict[str, Any]) -> None:
             "launch is blocked."
         )
 
+    print("")
+    print(f"Hosted SaaS: {hosted_saas['status']}")
+    hosted_summary = hosted_saas["blocker_summary"]
+    print(f"Hosted SaaS blocker summary: {hosted_summary['total']} total")
+    for blocker_type, count in hosted_summary["by_type"].items():
+        print(f"  - {blocker_type}: {count}")
+    for blocker in hosted_saas["blockers"]:
+        print(
+            f"  - {blocker['id']}: {blocker['summary']} "
+            f"[{blocker['blocker_type']}]: {blocker['note']}"
+        )
+        if "next_action" in blocker:
+            print(f"      next action: {blocker['next_action']}")
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -592,6 +703,11 @@ def main(argv: list[str] | None = None) -> int:
         "--require-public",
         action="store_true",
         help="Exit nonzero unless public launch is ready.",
+    )
+    parser.add_argument(
+        "--require-hosted-saas",
+        action="store_true",
+        help="Exit nonzero unless hosted self-service SaaS is ready.",
     )
     parser.add_argument(
         "--owner",
@@ -622,6 +738,8 @@ def main(argv: list[str] | None = None) -> int:
         print_text_report(display_report)
 
     if args.require_public and report["public_launch"]["status"] != "ready":
+        return 1
+    if args.require_hosted_saas and report["hosted_saas"]["status"] != "ready":
         return 1
     if report["private_beta"]["status"] != "ready_with_limits":
         return 1

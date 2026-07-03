@@ -25,6 +25,7 @@ Executable readiness check:
 scout launch-readiness
 scout launch-readiness --json
 scout launch-readiness --require-public
+scout launch-readiness --require-hosted-saas
 scout launch-readiness --owner Arijit
 scout launch-readiness --blocker-type founder_decision
 scout launch-readiness --blocker-id license-decision
@@ -37,6 +38,10 @@ exposes the same check as `scout launch-readiness`.
 `--require-public` exits zero for the current controlled beta release after the
 blocker burndown. Reopen the relevant gates before enabling public self-serve
 SaaS, PyPI, GHCR, Docker Hub, paid checkout, or security-clean claims.
+
+`--require-hosted-saas` is the stricter production SaaS gate. It exits nonzero
+until hosted SMTP key delivery, Stripe Checkout configuration, Stripe webhook
+signing, beta key email smoke, and paid checkout smoke are all closed.
 
 Use `--owner`, `--blocker-type`, or `--blocker-id` to filter the displayed
 public-launch blockers without changing the underlying readiness verdict. For

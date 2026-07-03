@@ -111,6 +111,11 @@ def launch_readiness(
         "--require-public",
         help="Exit nonzero unless public launch is ready.",
     ),
+    require_hosted_saas: bool = typer.Option(
+        False,
+        "--require-hosted-saas",
+        help="Exit nonzero unless hosted self-service SaaS is ready.",
+    ),
     owner: str = typer.Option(
         "",
         "--owner",
@@ -143,6 +148,8 @@ def launch_readiness(
         print_text_report(display_report)
 
     if require_public and report["public_launch"]["status"] != "ready":
+        raise SystemExit(1)
+    if require_hosted_saas and report["hosted_saas"]["status"] != "ready":
         raise SystemExit(1)
     if report["private_beta"]["status"] != "ready_with_limits":
         raise SystemExit(1)

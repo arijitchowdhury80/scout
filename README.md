@@ -40,7 +40,8 @@ Current launch gate truth:
 
 - Private beta: `ready_with_limits`
 - Public launch: `ready`
-- Current blockers: `0`
+- Hosted SaaS: `blocked` until SMTP key delivery and Stripe checkout/webhook
+  smoke are configured and verified.
 
 Use the launch readiness commands before making release or website claims:
 
@@ -48,6 +49,7 @@ Use the launch readiness commands before making release or website claims:
 scout launch-readiness
 scout launch-readiness --json
 scout launch-readiness --require-public
+scout launch-readiness --require-hosted-saas
 scout launch-decision-check --check-existing --check-drafts
 ```
 

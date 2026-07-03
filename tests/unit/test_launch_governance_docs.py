@@ -697,10 +697,11 @@ def test_readme_exposes_private_beta_launch_readiness_workflow() -> None:
     assert "## Launch Readiness And Decision Workflow" in readme
     assert "Private beta: `ready_with_limits`" in readme
     assert "Public launch: `ready`" in readme
-    assert "Current blockers: `0`" in readme
+    assert "Hosted SaaS: `blocked`" in readme
     assert "scout launch-readiness" in readme
     assert "scout launch-readiness --json" in readme
     assert "scout launch-readiness --require-public" in readme
+    assert "scout launch-readiness --require-hosted-saas" in readme
     assert "scout launch-decision-check --check-existing --check-drafts" in readme
     assert "docs/product/founder-decision-drafts/index.md" in readme
     assert "drafts are not approvals" in readme

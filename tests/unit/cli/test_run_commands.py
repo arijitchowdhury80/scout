@@ -2,13 +2,10 @@ import json
 from pathlib import Path
 
 from typer.testing import CliRunner
-
-import scout.cli as cli
 from scout.cli import app
 from scout.core.platform.account_service import HostedAccountService
 from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
 from scout.core.platform.hosted import HostedPlan, plan_limits
-from scout.core.platform.types import RunResponse
 
 
 def _product_record_payload() -> dict:
@@ -64,6 +61,7 @@ def test_launch_readiness_command_reports_private_beta_and_public_status() -> No
     assert result.exit_code == 0
     assert "Private beta: ready_with_limits" in result.output
     assert "Public launch: ready" in result.output
+    assert "Hosted SaaS: blocked" in result.output
 
 
 def test_launch_readiness_command_outputs_json() -> None:
@@ -76,6 +74,7 @@ def test_launch_readiness_command_outputs_json() -> None:
     data = json.loads(result.output)
     assert data["private_beta"]["status"] == "ready_with_limits"
     assert data["public_launch"]["status"] == "ready"
+    assert data["hosted_saas"]["status"] == "blocked"
 
 
 def test_launch_readiness_command_can_fail_public_gate() -> None:
@@ -86,6 +85,19 @@ def test_launch_readiness_command_can_fail_public_gate() -> None:
 
     assert result.exit_code == 0
     assert "Public launch: ready" in result.output
+
+
+def test_launch_readiness_command_can_fail_hosted_saas_gate() -> None:
+    runner = CliRunner()
+    root = Path(__file__).resolve().parents[3]
+
+    result = runner.invoke(
+        app,
+        ["launch-readiness", "--root", str(root), "--require-hosted-saas"],
+    )
+
+    assert result.exit_code == 1
+    assert "Hosted SaaS: blocked" in result.output
 
 
 def test_launch_readiness_command_can_filter_by_blocker_id() -> None:

@@ -17,6 +17,14 @@ def test_launch_readiness_report_marks_current_release_ready() -> None:
 
     assert report["private_beta"]["status"] == "ready_with_limits"
     assert report["public_launch"]["status"] == "ready"
+    assert report["hosted_saas"]["status"] == "blocked"
+    assert report["hosted_saas"]["blocker_summary"] == {
+        "total": 5,
+        "by_type": {
+            "external_config": 3,
+            "external_smoke": 2,
+        },
+    }
     assert report["public_launch"]["blocker_summary"] == {
         "total": 0,
         "by_type": {},
@@ -33,6 +41,14 @@ def test_launch_readiness_report_marks_current_release_ready() -> None:
     assert all(check["status"] == "verified" for check in report["private_beta"]["checks"])
 
     assert report["public_launch"]["blockers"] == []
+    hosted_blocker_ids = {blocker["id"] for blocker in report["hosted_saas"]["blockers"]}
+    assert hosted_blocker_ids == {
+        "hosted-smtp-key-delivery",
+        "stripe-checkout-config",
+        "stripe-webhook-secret",
+        "hosted-beta-email-smoke",
+        "paid-checkout-smoke",
+    }
 
 
 def test_launch_readiness_script_outputs_json() -> None:
@@ -46,6 +62,8 @@ def test_launch_readiness_script_outputs_json() -> None:
 
     assert payload["private_beta"]["status"] == "ready_with_limits"
     assert payload["public_launch"]["status"] == "ready"
+    assert payload["hosted_saas"]["status"] == "blocked"
+    assert payload["hosted_saas"]["blocker_summary"]["total"] == 5
     assert payload["public_launch"]["blocker_summary"]["total"] == 0
     assert payload["public_launch"]["blocker_summary"]["by_type"] == {}
     assert payload["public_launch"]["owner_summary"] == {}
@@ -174,3 +192,18 @@ def test_launch_readiness_script_can_fail_for_public_launch_gate() -> None:
     assert "license-decision: license decision [founder_decision]" not in result.stdout
     assert "owner: Arijit" not in result.stdout
     assert "codex actionable now: false" not in result.stdout
+
+
+def test_launch_readiness_script_can_fail_for_hosted_saas_gate() -> None:
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--root", str(ROOT), "--require-hosted-saas"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "Private beta: ready_with_limits" in result.stdout
+    assert "Public launch: ready" in result.stdout
+    assert "Hosted SaaS: blocked" in result.stdout
+    assert "Hosted SaaS blocker summary: 5 total" in result.stdout
