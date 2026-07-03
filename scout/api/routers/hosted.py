@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, EmailStr
 
 from scout.api.config import settings
@@ -16,9 +16,11 @@ from scout.api.deps import (
     get_crawler_optional,
     get_hosted_admission_controller,
     get_hosted_account_service,
+    get_hosted_job_queue,
     get_hosted_key_delivery_service,
     get_hosted_rate_limiter,
 )
+from scout.api.hosted_jobs import HostedJobQueue, HostedQueueFull
 from scout.api.run_store import remember_run
 from scout.api.run_store import get_run, list_runs
 from scout.api.run_store import StoredRun
@@ -103,6 +105,35 @@ class HostedRunResponse(BaseModel):
     success: bool
     hosted: HostedUsageSummary
     run: RunResponse
+
+
+class HostedAcceptedJobResponse(BaseModel):
+    """Response returned when hosted work is queued for async execution."""
+
+    success: bool = True
+    accepted: bool = True
+    job_id: str
+    kind: str
+    status: str
+    job_url: str
+    retry_after_seconds: int
+    hosted: HostedUsageSummary
+
+
+class HostedJobStatusResponse(BaseModel):
+    """Pollable hosted job state and result."""
+
+    success: bool
+    job_id: str
+    kind: str
+    status: str
+    retry_after_seconds: int
+    hosted: HostedUsageSummary
+    created_at: str
+    started_at: str = ""
+    finished_at: str = ""
+    result: dict[str, Any] | None = None
+    error: str = ""
 
 
 class HostedAccountSummaryResponse(BaseModel):
@@ -248,7 +279,8 @@ async def hosted_scrape(
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
     admission: AdmissionController = Depends(get_hosted_admission_controller),
-) -> HostedScrapeResponse:
+    job_queue: HostedJobQueue = Depends(get_hosted_job_queue),
+) -> HostedScrapeResponse | JSONResponse:
     """Run a hosted scrape after Bearer auth, URL safety, and credit admission."""
     raw_key = _bearer_token(authorization)
     auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
@@ -258,26 +290,16 @@ async def hosted_scrape(
     _enforce_rate_limit(rate_limiter, auth.key_id)
     try:
         async with admission.admit():
-            usage = account_service.consume_action(
-                raw_key,
-                HostedAction.SCRAPE,
-                required_scope="runs:create",
-            )
-            if not usage.allowed:
-                raise HTTPException(status_code=403, detail=usage.reason)
-            scrape_response = await crawler.scrape(req)
+            return await _execute_hosted_scrape(req, raw_key, crawler, account_service)
     except AdmissionRejected as exc:
-        raise _capacity_exception("Hosted worker capacity is full; retry shortly.", exc) from exc
-    return HostedScrapeResponse(
-        success=scrape_response.success,
-        hosted=HostedUsageSummary(
-            tenant_id=usage.tenant_id,
-            key_id=usage.key_id,
-            credits_charged=usage.usage.cost if usage.usage else 0,
-            credit_type=usage.usage.credit_type if usage.usage else "",
-        ),
-        scrape=scrape_response,
-    )
+        return _queue_hosted_job(
+            job_queue,
+            kind="scrape",
+            tenant_id=auth.tenant_id,
+            key_id=auth.key_id,
+            retry_after_seconds=exc.retry_after_seconds,
+            work=lambda: _execute_hosted_scrape(req, raw_key, crawler, account_service),
+        )
 
 
 @router.post("/crawl", response_model=HostedCrawlResponse)
@@ -288,7 +310,8 @@ async def hosted_crawl(
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
     admission: AdmissionController = Depends(get_hosted_admission_controller),
-) -> HostedCrawlResponse:
+    job_queue: HostedJobQueue = Depends(get_hosted_job_queue),
+) -> HostedCrawlResponse | JSONResponse:
     """Run a hosted crawl after Bearer auth, URL safety, rate, and credit checks."""
     raw_key = _bearer_token(authorization)
     auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
@@ -305,27 +328,24 @@ async def hosted_crawl(
 
     try:
         async with admission.admit():
-            crawl_response = await crawler.crawl(req)
+            return await _execute_hosted_crawl(
+                req, auth.tenant_id, auth.key_id, crawler, account_service
+            )
     except AdmissionRejected as exc:
-        raise _capacity_exception("Hosted worker capacity is full; retry shortly.", exc) from exc
-    pages_charged = _hosted_crawl_pages_charged(crawl_response, req.max_pages)
-    _debit_standard_credits(
-        account_service,
-        tenant_id=auth.tenant_id,
-        key_id=auth.key_id,
-        action=HostedAction.CRAWL_PAGE,
-        credits=pages_charged,
-    )
-    return HostedCrawlResponse(
-        success=crawl_response.success,
-        hosted=HostedUsageSummary(
+        return _queue_hosted_job(
+            job_queue,
+            kind="crawl",
             tenant_id=auth.tenant_id,
             key_id=auth.key_id,
-            credits_charged=pages_charged,
-            credit_type=HostedAction.CRAWL_PAGE.credit_type,
-        ),
-        crawl=crawl_response,
-    )
+            retry_after_seconds=exc.retry_after_seconds,
+            work=lambda: _execute_hosted_crawl(
+                req,
+                auth.tenant_id,
+                auth.key_id,
+                crawler,
+                account_service,
+            ),
+        )
 
 
 @router.post("/products", response_model=HostedProductsResponse)
@@ -336,7 +356,8 @@ async def hosted_products(
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
     admission: AdmissionController = Depends(get_hosted_admission_controller),
-) -> HostedProductsResponse:
+    job_queue: HostedJobQueue = Depends(get_hosted_job_queue),
+) -> HostedProductsResponse | JSONResponse:
     """Run hosted product extraction after auth, URL safety, rate, and credit checks."""
     raw_key = _bearer_token(authorization)
     auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
@@ -354,27 +375,28 @@ async def hosted_products(
 
     try:
         async with admission.admit():
-            products_response = await crawler.products(req)
+            return await _execute_hosted_products(
+                req,
+                auth.tenant_id,
+                auth.key_id,
+                crawler,
+                account_service,
+            )
     except AdmissionRejected as exc:
-        raise _capacity_exception("Hosted worker capacity is full; retry shortly.", exc) from exc
-    records_charged = _hosted_product_records_charged(products_response, req.max_products)
-    _debit_standard_credits(
-        account_service,
-        tenant_id=auth.tenant_id,
-        key_id=auth.key_id,
-        action=HostedAction.CRAWL_PAGE,
-        credits=records_charged,
-    )
-    return HostedProductsResponse(
-        success=products_response.success,
-        hosted=HostedUsageSummary(
+        return _queue_hosted_job(
+            job_queue,
+            kind="products",
             tenant_id=auth.tenant_id,
             key_id=auth.key_id,
-            credits_charged=records_charged,
-            credit_type=HostedAction.CRAWL_PAGE.credit_type,
-        ),
-        products=products_response,
-    )
+            retry_after_seconds=exc.retry_after_seconds,
+            work=lambda: _execute_hosted_products(
+                req,
+                auth.tenant_id,
+                auth.key_id,
+                crawler,
+                account_service,
+            ),
+        )
 
 
 @router.post("/run/{use_case}", response_model=HostedRunResponse)
@@ -386,7 +408,8 @@ async def hosted_run(
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
     admission: AdmissionController = Depends(get_hosted_admission_controller),
-) -> HostedRunResponse:
+    job_queue: HostedJobQueue = Depends(get_hosted_job_queue),
+) -> HostedRunResponse | JSONResponse:
     """Run a hosted high-level Scout use case after hosted admission checks."""
     raw_key = _bearer_token(authorization)
     auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
@@ -414,28 +437,56 @@ async def hosted_run(
     )
     try:
         async with admission.admit():
-            run_response = await run_use_case(hosted_req, crawler)
+            return await _execute_hosted_run(
+                hosted_req, auth.tenant_id, auth.key_id, account_service, crawler
+            )
     except AdmissionRejected as exc:
-        raise _capacity_exception("Hosted worker capacity is full; retry shortly.", exc) from exc
-    if run_response.manifest is not None:
-        await remember_run(run_response.manifest, tenant_id=auth.tenant_id, key_id=auth.key_id)
-    records_charged = _hosted_run_records_charged(run_response, req.max_records)
-    _debit_standard_credits(
-        account_service,
-        tenant_id=auth.tenant_id,
-        key_id=auth.key_id,
-        action=HostedAction.CRAWL_PAGE,
-        credits=records_charged,
-    )
-    return HostedRunResponse(
-        success=run_response.success,
-        hosted=HostedUsageSummary(
+        return _queue_hosted_job(
+            job_queue,
+            kind=f"run:{use_case}",
             tenant_id=auth.tenant_id,
             key_id=auth.key_id,
-            credits_charged=records_charged,
+            retry_after_seconds=exc.retry_after_seconds,
+            work=lambda: _execute_hosted_run(
+                hosted_req,
+                auth.tenant_id,
+                auth.key_id,
+                account_service,
+                crawler,
+            ),
+        )
+
+
+@router.get("/jobs/{job_id}", response_model=HostedJobStatusResponse)
+async def hosted_job_status(
+    job_id: str,
+    authorization: str = Header(default=""),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+    job_queue: HostedJobQueue = Depends(get_hosted_job_queue),
+) -> HostedJobStatusResponse:
+    """Return queued hosted job status/result for the owning tenant."""
+    auth = _hosted_auth_for_read(authorization, account_service, rate_limiter)
+    job = job_queue.get(job_id)
+    if job is None or job.tenant_id != auth.tenant_id:
+        raise HTTPException(status_code=404, detail=f"Job not found: {job_id}")
+    return HostedJobStatusResponse(
+        success=job.status == "complete",
+        job_id=job.job_id,
+        kind=job.kind,
+        status=job.status,
+        retry_after_seconds=job.retry_after_seconds,
+        hosted=HostedUsageSummary(
+            tenant_id=job.tenant_id,
+            key_id=job.key_id,
+            credits_charged=0,
             credit_type=HostedAction.CRAWL_PAGE.credit_type,
         ),
-        run=run_response,
+        created_at=job.created_at,
+        started_at=job.started_at,
+        finished_at=job.finished_at,
+        result=job.result,
+        error=job.error,
     )
 
 
@@ -522,6 +573,162 @@ def _bearer_token(authorization: str) -> str:
     if not token:
         raise HTTPException(status_code=401, detail="Missing Bearer token")
     return token
+
+
+async def _execute_hosted_scrape(
+    req: ScrapeRequest,
+    raw_key: str,
+    crawler: ScoutCrawler,
+    account_service: HostedAccountService,
+) -> HostedScrapeResponse:
+    """Run hosted scrape and debit one scrape credit when execution starts."""
+    usage = account_service.consume_action(
+        raw_key,
+        HostedAction.SCRAPE,
+        required_scope="runs:create",
+    )
+    if not usage.allowed:
+        raise HTTPException(status_code=403, detail=usage.reason)
+    scrape_response = await crawler.scrape(req)
+    return HostedScrapeResponse(
+        success=scrape_response.success,
+        hosted=HostedUsageSummary(
+            tenant_id=usage.tenant_id,
+            key_id=usage.key_id,
+            credits_charged=usage.usage.cost if usage.usage else 0,
+            credit_type=usage.usage.credit_type if usage.usage else "",
+        ),
+        scrape=scrape_response,
+    )
+
+
+async def _execute_hosted_crawl(
+    req: CrawlRequest,
+    tenant_id: str,
+    key_id: str,
+    crawler: ScoutCrawler,
+    account_service: HostedAccountService,
+) -> HostedCrawlResponse:
+    """Run hosted crawl and debit returned page credits."""
+    crawl_response = await crawler.crawl(req)
+    pages_charged = _hosted_crawl_pages_charged(crawl_response, req.max_pages)
+    _debit_standard_credits(
+        account_service,
+        tenant_id=tenant_id,
+        key_id=key_id,
+        action=HostedAction.CRAWL_PAGE,
+        credits=pages_charged,
+    )
+    return HostedCrawlResponse(
+        success=crawl_response.success,
+        hosted=HostedUsageSummary(
+            tenant_id=tenant_id,
+            key_id=key_id,
+            credits_charged=pages_charged,
+            credit_type=HostedAction.CRAWL_PAGE.credit_type,
+        ),
+        crawl=crawl_response,
+    )
+
+
+async def _execute_hosted_products(
+    req: ProductCrawlRequest,
+    tenant_id: str,
+    key_id: str,
+    crawler: ScoutCrawler,
+    account_service: HostedAccountService,
+) -> HostedProductsResponse:
+    """Run hosted product extraction and debit returned record credits."""
+    products_response = await crawler.products(req)
+    records_charged = _hosted_product_records_charged(products_response, req.max_products)
+    _debit_standard_credits(
+        account_service,
+        tenant_id=tenant_id,
+        key_id=key_id,
+        action=HostedAction.CRAWL_PAGE,
+        credits=records_charged,
+    )
+    return HostedProductsResponse(
+        success=products_response.success,
+        hosted=HostedUsageSummary(
+            tenant_id=tenant_id,
+            key_id=key_id,
+            credits_charged=records_charged,
+            credit_type=HostedAction.CRAWL_PAGE.credit_type,
+        ),
+        products=products_response,
+    )
+
+
+async def _execute_hosted_run(
+    hosted_req: RunRequest,
+    tenant_id: str,
+    key_id: str,
+    account_service: HostedAccountService,
+    crawler: ScoutCrawler | None,
+) -> HostedRunResponse:
+    """Run a hosted high-level use case, persist artifacts, and debit records."""
+    run_response = await run_use_case(hosted_req, crawler)
+    if run_response.manifest is not None:
+        await remember_run(run_response.manifest, tenant_id=tenant_id, key_id=key_id)
+    records_charged = _hosted_run_records_charged(run_response, hosted_req.max_records)
+    _debit_standard_credits(
+        account_service,
+        tenant_id=tenant_id,
+        key_id=key_id,
+        action=HostedAction.CRAWL_PAGE,
+        credits=records_charged,
+    )
+    return HostedRunResponse(
+        success=run_response.success,
+        hosted=HostedUsageSummary(
+            tenant_id=tenant_id,
+            key_id=key_id,
+            credits_charged=records_charged,
+            credit_type=HostedAction.CRAWL_PAGE.credit_type,
+        ),
+        run=run_response,
+    )
+
+
+def _queue_hosted_job(
+    queue: HostedJobQueue,
+    *,
+    kind: str,
+    tenant_id: str,
+    key_id: str,
+    retry_after_seconds: int,
+    work,
+) -> JSONResponse:
+    """Queue hosted work and return a 202 response with a poll URL."""
+    try:
+        job = queue.enqueue(
+            kind=kind,
+            tenant_id=tenant_id,
+            key_id=key_id,
+            retry_after_seconds=retry_after_seconds,
+            work=work,
+        )
+    except HostedQueueFull as exc:
+        raise _capacity_exception("Hosted async queue is full; retry shortly.", exc) from exc
+    response = HostedAcceptedJobResponse(
+        job_id=job.job_id,
+        kind=job.kind,
+        status=job.status,
+        job_url=f"/v1/hosted/jobs/{job.job_id}",
+        retry_after_seconds=job.retry_after_seconds,
+        hosted=HostedUsageSummary(
+            tenant_id=tenant_id,
+            key_id=key_id,
+            credits_charged=0,
+            credit_type=HostedAction.CRAWL_PAGE.credit_type,
+        ),
+    )
+    return JSONResponse(
+        status_code=202,
+        content=response.model_dump(mode="json"),
+        headers={"Retry-After": str(job.retry_after_seconds)},
+    )
 
 
 def _enforce_hosted_url_safety(url: str) -> None:
@@ -644,7 +851,7 @@ def _enforce_rate_limit(rate_limiter: HostedRateLimiter, key_id: str) -> None:
     )
 
 
-def _capacity_exception(detail: str, exc: AdmissionRejected) -> HTTPException:
+def _capacity_exception(detail: str, exc: AdmissionRejected | HostedQueueFull) -> HTTPException:
     """Return a retryable overload response for expensive hosted work."""
     return HTTPException(
         status_code=429,

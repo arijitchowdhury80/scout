@@ -46,12 +46,13 @@ Warnings were from Crawl4AI/Pydantic deprecation warnings imported during test c
 The following real Stripe test-mode settings were not configured in the process environment:
 
 - `STRIPE_SECRET_KEY`
-- `STRIPE_BETA_PRICE_ID`
+- `STRIPE_STANDARD_1000_PRICE_ID` for paid 1,000-credit package checkout
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_SUCCESS_URL`
 - `STRIPE_CANCEL_URL`
 
-The local `.env` file exists, but those settings are blank there as well. `.env.local` does not exist.
+Beta trial checkout uses Stripe Checkout `mode=setup` and does not require a
+Stripe price ID. Paid package checkout uses configured package price IDs.
 
 No secret values were printed during this check.
 
@@ -65,7 +66,7 @@ No secret values were printed during this check.
 | `/v1/billing/stripe/checkout-session` returns checkout URL when service succeeds | Passed | `tests/unit/api/test_billing_stripe_checkout.py` |
 | Checkout route returns `503` when unconfigured | Passed | `tests/unit/api/test_billing_stripe_checkout.py` |
 | Webhook rejects missing or invalid signatures | Passed | `tests/unit/api/test_billing_stripe_webhook.py` |
-| Valid `checkout.session.completed` provisions hosted beta access | Passed | `tests/unit/api/test_billing_stripe_webhook.py` |
+| Valid `checkout.session.completed` provisions hosted beta trial access | Passed | `tests/unit/api/test_billing_stripe_webhook.py` |
 | Duplicate checkout session is idempotent | Passed | `tests/unit/api/test_billing_stripe_webhook.py` |
 | Key delivery sends hosted key without route response leakage | Passed | `tests/unit/core/platform/test_key_delivery.py` |
 
@@ -75,7 +76,7 @@ The release checklist item **"Stripe checkout and webhook tested in Stripe test 
 
 1. Configure:
    - `STRIPE_SECRET_KEY=sk_test_...`
-   - `STRIPE_BETA_PRICE_ID=price_...`
+   - `STRIPE_STANDARD_1000_PRICE_ID=price_...` for the paid $10 / 1,000-credit package
    - `STRIPE_WEBHOOK_SECRET=whsec_...`
    - `STRIPE_SUCCESS_URL=http://127.0.0.1:8421/?checkout=success`
    - `STRIPE_CANCEL_URL=http://127.0.0.1:8421/?checkout=cancelled`
@@ -87,7 +88,7 @@ The release checklist item **"Stripe checkout and webhook tested in Stripe test 
    - `key_delivery_configured: true`
    - `ready_for_paid_key_delivery: true`
 4. Create a real test-mode Checkout Session through `/v1/billing/stripe/checkout-session`.
-5. Complete test payment in Stripe Checkout.
+5. Complete beta trial setup-mode Checkout or paid package test payment in Stripe Checkout.
 6. Deliver the real Stripe webhook to `/v1/billing/stripe/webhook`.
 7. Confirm hosted API key is provisioned, delivered, and usable against `/v1/hosted/me`.
 8. Confirm no raw hosted key or Stripe secret appears in HTTP responses, logs, artifacts, or website source.

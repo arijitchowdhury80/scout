@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     hosted_rate_limit_max_requests: int = 60
     hosted_rate_limit_window_seconds: int = 60
     hosted_max_active_requests: int = 8
+    hosted_job_queue_max_size: int = 250
+    hosted_job_queue_workers: int = 2
     playground_max_active_requests: int = 4
     capacity_retry_after_seconds: int = 5
     hosted_beta_signup_enabled: bool = False

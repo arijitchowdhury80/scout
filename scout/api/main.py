@@ -43,6 +43,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from pathlib import Path
 
     from scout.api.db import RunDB
+    from scout.api.hosted_jobs import HostedJobQueue
     from scout.api.run_store import bind_db
     from scout.core.platform.account_service import HostedAccountService
     from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
@@ -82,6 +83,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         max_active=settings.hosted_max_active_requests,
         retry_after_seconds=settings.capacity_retry_after_seconds,
     )
+    app.state.hosted_job_queue = HostedJobQueue(
+        max_queued=settings.hosted_job_queue_max_size,
+        worker_count=settings.hosted_job_queue_workers,
+        retry_after_seconds=settings.capacity_retry_after_seconds,
+    )
+    app.state.hosted_job_queue.start()
     app.state.playground_admission_controller = AdmissionController(
         max_active=settings.playground_max_active_requests,
         retry_after_seconds=settings.capacity_retry_after_seconds,
@@ -110,6 +117,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
     bind_db(run_db)
     yield
+    await app.state.hosted_job_queue.close()
     await run_db.close()
 
 

@@ -381,7 +381,7 @@ def test_hosted_scrape_rate_limit_rejects_without_second_debit_or_crawl() -> Non
     assert balance.standard_credits_remaining == limits.standard_credits - 1
 
 
-def test_hosted_scrape_capacity_rejects_without_debit_or_crawl() -> None:
+def test_hosted_scrape_capacity_queues_without_debit_or_crawl() -> None:
     account_service, raw_key, tenant_id = _account_service_with_key()
     admission = AdmissionController(max_active=0, retry_after_seconds=3)
     mock_crawler = MagicMock()
@@ -401,8 +401,11 @@ def test_hosted_scrape_capacity_rejects_without_debit_or_crawl() -> None:
 
     balance = account_service.get_balance(tenant_id)
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
-    assert resp.status_code == 429
-    assert resp.json()["detail"] == "Hosted worker capacity is full; retry shortly."
+    data = resp.json()
+    assert resp.status_code == 202
+    assert data["status"] == "queued"
+    assert data["kind"] == "scrape"
+    assert data["hosted"]["credits_charged"] == 0
     assert resp.headers["retry-after"] == "3"
     assert mock_crawler.scrape.await_count == 0
     assert balance.standard_credits_remaining == limits.standard_credits

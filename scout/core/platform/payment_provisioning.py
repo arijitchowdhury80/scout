@@ -85,6 +85,8 @@ class HostedPaymentStore(Protocol):
 
     def save_checkout(self, record: HostedCheckoutProvisioningRecord) -> None: ...
 
+    def list_checkouts(self, limit: int = 100) -> list[HostedCheckoutProvisioningRecord]: ...
+
 
 class SQLiteHostedPaymentStore:
     """SQLite payment event store for hosted checkout idempotency."""
@@ -126,6 +128,22 @@ class SQLiteHostedPaymentStore:
                 """,
                 _record_values(record),
             )
+
+    def list_checkouts(self, limit: int = 100) -> list[HostedCheckoutProvisioningRecord]:
+        """Return recent checkout purchase records without secret material."""
+        safe_limit = max(1, min(limit, 500))
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT provider, checkout_session_id, tenant_id, key_id, email, package_id, plan,
+                       amount_total_cents, currency, customer_id, payment_intent_id, created_at
+                FROM hosted_payment_checkouts
+                ORDER BY created_at DESC, checkout_session_id DESC
+                LIMIT ?
+                """,
+                (safe_limit,),
+            ).fetchall()
+        return [_record_from_row(row) for row in rows]
 
     def _connect(self) -> sqlite3.Connection:
         """Open a configured SQLite connection."""

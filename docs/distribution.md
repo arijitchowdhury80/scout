@@ -61,10 +61,14 @@ Minimum Stripe Checkout settings:
 
 ```text
 STRIPE_SECRET_KEY=sk_test_...
-STRIPE_BETA_PRICE_ID=price_...
+STRIPE_STANDARD_1000_PRICE_ID=price_...
 STRIPE_SUCCESS_URL=https://your-domain.example/?checkout=success
 STRIPE_CANCEL_URL=https://your-domain.example/?checkout=cancelled
 ```
+
+The beta trial checkout uses Stripe Checkout `mode=setup`, collects a payment
+method, charges `$0`, and does not require a Stripe price ID. Paid packages use
+package-specific price IDs such as `STRIPE_STANDARD_1000_PRICE_ID`.
 
 Payment-confirmed provisioning also needs:
 
@@ -104,6 +108,22 @@ on the public web. See `docs/product/hosted-saas-api-guide.md`.
 in-memory and process-local. It is enough for a single-node private beta, but a
 multi-instance hosted launch still needs a shared limiter such as Redis or an
 API-gateway/WAF policy.
+
+Expensive hosted acquisition endpoints use a bounded async queue when worker
+capacity is saturated. Configure it with:
+
+```text
+HOSTED_MAX_ACTIVE_REQUESTS=8
+HOSTED_JOB_QUEUE_MAX_SIZE=250
+HOSTED_JOB_QUEUE_WORKERS=2
+CAPACITY_RETRY_AFTER_SECONDS=5
+```
+
+When all synchronous workers are busy, `/v1/hosted/scrape`, `/crawl`,
+`/products`, and `/run/{use_case}` return `202 Accepted` with a `job_id` and
+`job_url`. Poll `/v1/hosted/jobs/{job_id}` with the same Bearer key for status
+and result. Credits are charged only when the queued job actually executes.
+If the queue is also full, Scout returns `429` with `Retry-After`.
 
 Scout exposes a non-secret readiness check for the website:
 

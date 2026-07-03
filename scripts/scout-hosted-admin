@@ -12,13 +12,17 @@ Admin helper for Scout hosted beta operations from the Mac.
 
 Commands:
   generate-secret   Generate a strong shared secret/password for env files.
+  generate-api-key  Generate and register a hosted API key on the VPS.
   provision-key     Generate a hosted API key on the VPS for a user or app.
   list-accounts     List hosted tenants, API-key metadata, and balances.
+  list-purchases    List Stripe checkout/package purchase records.
 
 Examples:
   scripts/scout-hosted-admin generate-secret --label HOSTED_ADMIN_TOKEN
+  scripts/scout-hosted-admin generate-api-key --email prism@example.com --name PRISM --key-name "PRISM beta key"
   scripts/scout-hosted-admin provision-key --email prism@example.com --name PRISM --key-name "PRISM beta key"
   scripts/scout-hosted-admin list-accounts --format table
+  scripts/scout-hosted-admin list-purchases --format table
 
 Default secret label: $DEFAULT_SECRET_LABEL
 EOF
@@ -83,6 +87,10 @@ list_accounts() {
   exec "$SCRIPT_DIR/scout-vps-list-hosted-accounts" "$@"
 }
 
+list_purchases() {
+  exec "$SCRIPT_DIR/scout-vps-list-hosted-purchases" "$@"
+}
+
 if [ $# -eq 0 ]; then
   usage
   exit 0
@@ -97,6 +105,10 @@ case "$1" in
     shift
     generate_secret "$@"
     ;;
+  generate-api-key)
+    shift
+    provision_key "$@"
+    ;;
   provision-key)
     shift
     provision_key "$@"
@@ -104,6 +116,10 @@ case "$1" in
   list-accounts)
     shift
     list_accounts "$@"
+    ;;
+  list-purchases)
+    shift
+    list_purchases "$@"
     ;;
   *)
     echo "Unknown command: $1" >&2

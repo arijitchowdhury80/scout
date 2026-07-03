@@ -37,6 +37,16 @@ Feature: Public hosted beta production hardening for 250 testers
 - Updated public pricing surface and product docs.
   - `website/pricing.html` now explains the beta trial, $10 package, credit meanings, and margin math.
   - Product docs no longer claim the stale 2,000 standard / 100 browser beta pass; active beta pass is aligned to 100 standard / 0 browser credits.
+- Added package-aware Stripe Checkout and webhook provisioning.
+  - `beta_trial` creates a Stripe Checkout `mode=setup` session, collects a payment method, charges `$0`, and provisions 100 standard credits after signed webhook completion.
+  - `standard_1000` creates a Stripe Checkout `mode=payment` session using `STRIPE_STANDARD_1000_PRICE_ID` and provisions 1,000 standard credits after signed webhook completion.
+  - Payment records now persist `package_id` for auditability and older SQLite payment DBs receive a safe `package_id` column migration.
+  - `website/beta.html` posts `package_id: beta_trial` explicitly.
+- Added bounded async hosted job queue for saturated expensive endpoints.
+  - `/v1/hosted/scrape`, `/crawl`, `/products`, and `/run/{use_case}` now return `202 Accepted` with `job_id`/`job_url` when synchronous worker capacity is full and queue space is available.
+  - `/v1/hosted/jobs/{job_id}` returns tenant-scoped queued/running/complete/failed state and completed result payloads.
+  - Credits are charged only when queued work executes, not when it is accepted.
+  - Queue controls are `HOSTED_JOB_QUEUE_MAX_SIZE`, `HOSTED_JOB_QUEUE_WORKERS`, and `CAPACITY_RETRY_AFTER_SECONDS`.
 
 ## Verified
 
@@ -53,12 +63,28 @@ python3 -m pytest tests/unit/core/platform/test_pricing.py tests/unit/test_hoste
 Result: 42 passed, 2 warnings.
 
 ```bash
+python3 -m pytest tests/unit/core/platform/test_stripe_checkout.py tests/unit/api/test_billing_stripe_checkout.py tests/unit/core/platform/test_payment_provisioning.py tests/unit/api/test_billing_stripe_webhook.py tests/unit/core/platform/test_pricing.py tests/unit/test_hosted_pricing_docs.py tests/unit/website/test_launch_website.py tests/unit/test_launch_governance_docs.py::test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke -q
+```
+
+Result: 56 passed, 2 warnings.
+
+```bash
+python3 -m pytest tests/unit/ -q
+```
+
+Result: 696 passed, 8 warnings.
+
+```bash
+python3 -m pytest tests/unit/api/test_hosted_jobs.py tests/unit/api/test_hosted_scrape.py tests/unit/api/test_hosted_crawl.py tests/unit/api/test_hosted_products.py tests/unit/api/test_hosted_run.py tests/unit/api/test_hosted_run_retrieval.py -q
+```
+
+Result: 41 passed, 2 warnings.
+
+```bash
 python3 -m pyright scout/
-ruff check scout/ tests/ scripts/scout-hosted-load-test
-ruff format --check scout/ tests/
-bash -n scripts/scout-hosted-admin
-bash -n scripts/scout-vps-list-hosted-accounts
-bash -n scripts/scout-vps-provision-hosted-key
+ruff check scout/ tests/ scripts/*.py
+ruff format --check scout/ tests/ scripts/*.py
+bash -n scripts/scout-hosted-admin scripts/scout-vps-list-hosted-accounts scripts/scout-vps-provision-hosted-key scripts/scout-vps-list-hosted-purchases scripts/scout-hosted-load-test
 ```
 
 Result: pyright 0 errors; Ruff passed; format passed; shell syntax passed.
@@ -115,7 +141,26 @@ Interpretation: production now survives a 250-concurrent-user stampede by reject
 
 - No email/password login, user dashboard, or password reset.
 - No public paid self-serve Stripe purchase flow enabled in production.
-- No invoice ledger, revenue dashboard, COGS dashboard, or packaged per-customer analytics.
-- Stripe checkout still needs to map to the new package model; old deterministic checkout scaffolding is not yet the production pay-as-you-go flow.
+- No invoice dashboard, revenue dashboard, COGS dashboard, or packaged per-customer analytics.
+- Real Stripe test-mode smoke is still required with live Stripe test credentials, Checkout completion, Stripe CLI/webhook delivery, emailed key delivery, and `/v1/hosted/me` verification.
+- Stripe payment records persist checkout/package/idempotency, usage ledger persists debits, and `scripts/scout-hosted-admin list-purchases` now gives an operator purchase ledger view.
 - Unit-economics assumptions still need live cost validation from hosting, browser workers, LLM usage, support, firewall/security, and payment operations.
 - The beta signup path currently emails one hosted key; account management beyond that is still admin/manual.
+- The hosted queue is in-process and single-node. It improves the current VPS beta behavior, but a larger public launch still needs a durable queue, shared rate limiter, worker autoscaling, and external artifact storage.
+
+## Purchase Ledger Admin Slice
+
+Implemented:
+
+- `SQLiteHostedPaymentStore.list_checkouts(limit=...)` returns recent checkout/package records without secret material.
+- `scripts/scout-vps-list-hosted-purchases` lists Stripe checkout/package records from `/data/hosted_accounts.sqlite`.
+- `scripts/scout-hosted-admin list-purchases` wraps the VPS purchase ledger command.
+- README and hosted admin docs now show `generate-api-key`, `list-accounts`, and `list-purchases`.
+
+Verification:
+
+```bash
+python3 -m pytest tests/unit/core/platform/test_payment_provisioning.py::test_sqlite_payment_store_lists_checkout_purchase_records tests/unit/scripts/test_vps_admin_scripts.py -q
+```
+
+Result: 6 passed, 2 warnings.

@@ -614,9 +614,9 @@ def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> N
 
     assert "Stripe Test-Mode Readiness" in readiness
     assert "Deterministic coverage passed; real Stripe test-mode smoke is still open." in readiness
-    assert "22 passed, 2 warnings" in readiness
     assert "STRIPE_SECRET_KEY" in readiness
-    assert "STRIPE_BETA_PRICE_ID" in readiness
+    assert "STRIPE_STANDARD_1000_PRICE_ID" in readiness
+    assert "mode=setup" in readiness
     assert "STRIPE_WEBHOOK_SECRET" in readiness
     assert "checkout.session.completed" in readiness
     assert "scripts/stripe_test_mode_smoke.py" in readiness

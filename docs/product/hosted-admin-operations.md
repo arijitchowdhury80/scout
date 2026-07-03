@@ -8,7 +8,7 @@ Status: private beta operations
 Scout hosted beta has API-key based access, not a login system.
 
 - Users can register for one hosted API key through `POST /v1/hosted/beta-key` when `HOSTED_BETA_SIGNUP_ENABLED=true` and SMTP key delivery is configured.
-- Operators can provision a key from the Mac with `scripts/scout-hosted-admin provision-key`, which wraps the VPS `scout hosted-provision` command.
+- Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
 - Self-service signup emails the raw API key and never returns it in the HTTP response. Operator CLI provisioning still prints the raw key once. Scout stores only a hash.
 - Hosted calls use `Authorization: Bearer scout_live_...`.
@@ -20,7 +20,7 @@ Scout hosted beta has API-key based access, not a login system.
 - No user dashboard.
 - No self-serve password reset.
 - No Stripe-backed public purchase flow enabled for production.
-- No invoice ledger, revenue dashboard, or cost-of-goods dashboard.
+- No invoice dashboard, revenue dashboard, or cost-of-goods dashboard.
 - No formal pay-as-you-go pricing package approved.
 
 Stripe checkout, webhook, and key-delivery scaffolding exists in code and tests, but the paid production loop is not the current beta access path.
@@ -53,6 +53,16 @@ HOSTED_KEY_DELIVERY_SMTP_PASSWORD=...
 ### Provision A Hosted API Key Directly
 
 ```bash
+scripts/scout-hosted-admin generate-api-key \
+  --email tester@example.com \
+  --name "Tester Name" \
+  --key-name "PRISM beta key" \
+  --plan hosted_beta_pass
+```
+
+Compatibility alias:
+
+```bash
 scripts/scout-hosted-admin provision-key \
   --email tester@example.com \
   --name "Tester Name" \
@@ -76,6 +86,22 @@ scripts/scout-hosted-admin list-accounts --format json --limit 100
 
 This shows email, tenant, key metadata, and remaining credits. It does not print raw keys or stored key hashes.
 
+### List Stripe Checkout And Package Purchase Records
+
+```bash
+scripts/scout-hosted-admin list-purchases
+```
+
+JSON output:
+
+```bash
+scripts/scout-hosted-admin list-purchases --format json --limit 100
+```
+
+This shows email, package id, amount, currency, Stripe checkout/customer/payment
+references, tenant id, key id, and creation time. It does not print raw keys or
+stored key hashes.
+
 ### Generate A Strong Password Or Secret
 
 For beta invite passwords, admin tokens, SMTP app secrets, or temporary shared
@@ -90,6 +116,22 @@ scripts/scout-hosted-admin generate-secret --label HOSTED_BETA_INVITE_PASSWORD
 Current hosted self-service key generation does not require an invite password.
 If an invite-password gate is reintroduced later, store that password only in
 the VPS environment, not in Git.
+
+## Login And Signup Status
+
+There is no hosted email/password login yet. Hosted Scout currently uses API
+keys, not user sessions:
+
+- self-service signup captures name and email, provisions one tenant, emails
+  one raw API key, and stores only the key hash;
+- admin provisioning captures name and email through the operator command and
+  prints the raw API key once;
+- API callers identify themselves only by `Authorization: Bearer scout_live_...`;
+- `/v1/hosted/me` and `/v1/hosted/usage` are the current account-inspection
+  surfaces.
+
+A future account portal should add email verification, login, key rotation,
+downloadable invoices, credit top-up, and Stripe customer portal links.
 
 ## Current Credit Model
 
@@ -119,6 +161,31 @@ Current plan balances:
 
 These are engineering limits, not final public pricing.
 
+## Hosted Worker And Queue Limits
+
+Hosted acquisition is intentionally bounded so beta testers cannot stampede the
+VPS or create surprise crawl/browser/LLM cost. The key runtime controls are:
+
+```text
+HOSTED_RATE_LIMIT_MAX_REQUESTS=60
+HOSTED_RATE_LIMIT_WINDOW_SECONDS=60
+HOSTED_MAX_ACTIVE_REQUESTS=8
+HOSTED_JOB_QUEUE_MAX_SIZE=250
+HOSTED_JOB_QUEUE_WORKERS=2
+CAPACITY_RETRY_AFTER_SECONDS=5
+```
+
+Per-key rate-limit overflow returns `429` and spends no credits. Worker
+saturation returns `202 Accepted` for expensive hosted acquisition endpoints
+when queue space is available. The response includes `job_id`, `job_url`, and
+`Retry-After`; callers poll `/v1/hosted/jobs/{job_id}` with the same Bearer key.
+Queued jobs spend credits only when execution starts and produces the same
+hosted result shape as the synchronous path. Queue overflow returns `429`.
+
+This queue is in-process and single-node. It is appropriate for the current VPS
+private beta, but a larger public launch should replace it with a durable queue,
+shared rate limiter, worker autoscaling, and external artifact storage.
+
 ## Measurement Today
 
 Today, Scout can answer:
@@ -130,19 +197,20 @@ Today, Scout can answer:
 - current standard/browser credit balances,
 - recent per-tenant usage through `/v1/hosted/usage`,
 - every successful hosted credit debit in the `hosted_credit_ledger` table,
+- Stripe checkout/package purchase records in `hosted_payment_checkouts`,
 - hosted run ownership through stored `tenant_id` and `key_id`,
 - per-response `credits_charged` for hosted API calls.
 
 Scout cannot yet answer, as a polished product feature:
 
-- total spend by customer,
 - invoice history,
 - cost of goods sold by run,
 - margin by customer or plan,
 - packaged per-customer usage analytics,
 - conversion funnel from playground to paid account.
 
-Those require a billing ledger, cost model, analytics dashboard, and Stripe integration phase.
+Those require a cost model, analytics dashboard, customer account portal, and
+fully validated Stripe production flow.
 
 ## Pricing And Billing Gap
 
@@ -158,7 +226,7 @@ A production billing model should still add:
 
 - Stripe customer and checkout-session records,
 - package definitions such as `$10`, `$25`, `$100` credit bundles,
-- a paid-credit purchase ledger separate from the usage ledger,
+- customer-facing purchase history and invoice links,
 - hard monthly/user rate limits,
 - low-balance alerts,
 - refund/manual adjustment operations,

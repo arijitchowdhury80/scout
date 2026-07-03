@@ -113,7 +113,7 @@ Do not claim security-clean public launch while `pip-audit` reports
 Required inputs:
 
 - `STRIPE_SECRET_KEY=sk_test_...`
-- `STRIPE_BETA_PRICE_ID=price_...`
+- `STRIPE_STANDARD_1000_PRICE_ID=price_...`
 - `STRIPE_WEBHOOK_SECRET=whsec_...`
 - hosted key delivery test config
 - non-production recipient email

@@ -179,8 +179,47 @@ def test_sqlite_payment_store_persists_checkout_event_for_fresh_store(
     assert stored_event.package_id == "standard_1000"
 
 
+def test_sqlite_payment_store_lists_checkout_purchase_records(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "hosted.sqlite"
+    account_service = HostedAccountService(SQLiteHostedAccountStore(db_path))
+    payment_store = SQLiteHostedPaymentStore(db_path)
+    service = HostedPaymentProvisioningService(account_service, payment_store)
+
+    first = service.process_checkout(
+        _standard_1000_checkout(
+            checkout_session_id="cs_test_paid_001",
+            email="paid@example.com",
+        )
+    )
+    second = service.process_checkout(
+        _beta_trial_checkout(
+            checkout_session_id="cs_test_trial_001",
+            email="trial@example.com",
+        )
+    )
+
+    records = payment_store.list_checkouts(limit=10)
+
+    assert [record.checkout_session_id for record in records] == [
+        "cs_test_trial_001",
+        "cs_test_paid_001",
+    ]
+    assert records[0].package_id == "beta_trial"
+    assert records[0].amount_total_cents == 0
+    assert records[0].tenant_id == second.tenant_id
+    assert records[1].package_id == "standard_1000"
+    assert records[1].amount_total_cents == 1000
+    assert records[1].tenant_id == first.tenant_id
+    assert first.raw_api_key not in db_path.read_text(encoding="utf-8", errors="ignore")
+    assert second.raw_api_key not in db_path.read_text(encoding="utf-8", errors="ignore")
+
+
 def _beta_trial_checkout(
     *,
+    checkout_session_id: str = "cs_test_beta_001",
+    email: str = "builder@example.com",
     amount_total_cents: int = 0,
     currency: str = "usd",
     status: HostedCheckoutPaymentStatus = HostedCheckoutPaymentStatus.NO_PAYMENT_REQUIRED,
@@ -188,6 +227,8 @@ def _beta_trial_checkout(
     """Build a valid hosted beta trial setup request for tests."""
     return _checkout(
         package_id="beta_trial",
+        checkout_session_id=checkout_session_id,
+        email=email,
         amount_total_cents=amount_total_cents,
         currency=currency,
         status=status,
@@ -196,6 +237,8 @@ def _beta_trial_checkout(
 
 def _standard_1000_checkout(
     *,
+    checkout_session_id: str = "cs_test_beta_001",
+    email: str = "builder@example.com",
     amount_total_cents: int = 1000,
     currency: str = "usd",
     status: HostedCheckoutPaymentStatus = HostedCheckoutPaymentStatus.PAID,
@@ -203,6 +246,8 @@ def _standard_1000_checkout(
     """Build a valid paid standard credit package request for tests."""
     return _checkout(
         package_id="standard_1000",
+        checkout_session_id=checkout_session_id,
+        email=email,
         amount_total_cents=amount_total_cents,
         currency=currency,
         status=status,
@@ -212,6 +257,8 @@ def _standard_1000_checkout(
 def _checkout(
     *,
     package_id: str,
+    checkout_session_id: str,
+    email: str,
     amount_total_cents: int,
     currency: str,
     status: HostedCheckoutPaymentStatus,
@@ -219,10 +266,10 @@ def _checkout(
     """Build a hosted checkout request for tests."""
     return HostedCheckoutProvisioningRequest(
         provider=HostedPaymentProvider.STRIPE,
-        checkout_session_id="cs_test_beta_001",
+        checkout_session_id=checkout_session_id,
         customer_id="cus_test_001",
         payment_intent_id="pi_test_001",
-        email="builder@example.com",
+        email=email,
         package_id=package_id,
         amount_total_cents=amount_total_cents,
         currency=currency,

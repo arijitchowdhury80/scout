@@ -163,7 +163,7 @@ Recommended answers:
 
 | Gate | Needs | Codex action |
 |---|---|---|
-| Stripe real test-mode smoke | `STRIPE_SECRET_KEY`, `STRIPE_BETA_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`, test recipient/key delivery setup | Run `scripts/stripe_test_mode_smoke.py --create-checkout`, complete test payment, deliver webhook, verify hosted key works. |
+| Stripe real test-mode smoke | `STRIPE_SECRET_KEY`, `STRIPE_STANDARD_1000_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`, test recipient/key delivery setup | Run `scripts/stripe_test_mode_smoke.py --create-checkout`, complete beta trial setup or paid package test payment, deliver webhook, verify hosted key works. |
 
 ## What Codex Can Do Immediately After Approval
 

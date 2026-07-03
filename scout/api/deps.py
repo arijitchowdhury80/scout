@@ -4,6 +4,7 @@ from fastapi import Request
 
 from scout.api.config import settings
 from scout.api.db import RunDB
+from scout.api.hosted_jobs import HostedJobQueue
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
 from scout.core.platform.admission import AdmissionController
@@ -90,6 +91,16 @@ def get_hosted_admission_controller(request: Request) -> AdmissionController:
         AdmissionController(max_active=100_000),
     )
     return controller
+
+
+def get_hosted_job_queue(request: Request) -> HostedJobQueue:
+    """Return the bounded hosted async queue stored on app.state."""
+    queue: HostedJobQueue = getattr(
+        request.app.state,
+        "hosted_job_queue",
+        HostedJobQueue(max_queued=settings.hosted_job_queue_max_size, worker_count=0),
+    )
+    return queue
 
 
 def get_playground_admission_controller(request: Request) -> AdmissionController:
