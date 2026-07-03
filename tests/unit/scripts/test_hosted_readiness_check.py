@@ -104,12 +104,12 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
         "hosted API key email delivery not configured",
         "Stripe Checkout not configured",
         "Stripe webhook secret not configured",
-        "hosted beta key delivery not ready",
+        "card-backed beta checkout not ready",
         "paid checkout/key delivery not ready",
     ]
 
 
-def test_hosted_readiness_requires_beta_key_delivery_not_response_fallback(
+def test_hosted_readiness_requires_card_backed_beta_checkout_not_only_key_delivery(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     responses = {
@@ -124,8 +124,8 @@ def test_hosted_readiness_requires_beta_key_delivery_not_response_fallback(
             "beta_signup_enabled": True,
             "checkout_configured": False,
             "webhook_configured": False,
-            "key_delivery_configured": False,
-            "ready_for_beta_key_delivery": False,
+            "key_delivery_configured": True,
+            "ready_for_beta_key_delivery": True,
             "ready_for_beta_checkout": False,
             "ready_for_paid_key_delivery": False,
         },
@@ -142,10 +142,9 @@ def test_hosted_readiness_requires_beta_key_delivery_not_response_fallback(
 
     assert result.ready_for_beta_signup is False
     assert result.blockers == [
-        "hosted API key email delivery not configured",
         "Stripe Checkout not configured",
         "Stripe webhook secret not configured",
-        "hosted beta key delivery not ready",
+        "card-backed beta checkout not ready",
         "paid checkout/key delivery not ready",
     ]
 

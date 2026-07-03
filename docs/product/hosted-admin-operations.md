@@ -348,10 +348,10 @@ scripts/scout-hosted-admin readiness \
 ```
 
 The checker calls only non-secret endpoints: `/health`,
-`/v1/billing/packages`, and `/v1/billing/stripe/status`. It fails if beta signup
-is disabled, SMTP delivery is missing, Stripe Checkout is missing, webhook
-verification is missing, required packages are absent, or a response contains
-secret-looking material.
+`/v1/billing/packages`, and `/v1/billing/stripe/status`. It fails if card-backed
+beta setup is not ready, paid checkout is not ready, SMTP delivery is missing,
+Stripe Checkout is missing, webhook verification is missing, required packages
+are absent, or a response contains secret-looking material.
 
 Machine-readable output for deployment logs:
 

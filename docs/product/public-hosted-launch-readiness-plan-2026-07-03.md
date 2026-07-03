@@ -249,7 +249,8 @@ Decision to make before any deploy:
 
 Implement:
 
-- Configure hosted beta key delivery or choose manual provisioning.
+- Configure card-backed beta setup, signed webhook provisioning, and hosted key
+  delivery.
 - Lower hosted beta credits.
 - Set browser credits to 0 for public beta.
 - Add hosted LLM disabled policy.

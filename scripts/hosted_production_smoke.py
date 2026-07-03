@@ -109,7 +109,7 @@ def _next_steps_for_blockers(blockers: list[str]) -> list[str]:
     if not blockers:
         return ["Run a real Stripe Checkout + webhook + delivered-key E2E test."]
     steps: list[str] = []
-    if any("email delivery" in blocker or "beta key delivery" in blocker for blocker in blockers):
+    if any("email delivery" in blocker for blocker in blockers):
         steps.append(
             "Configure SMTP with scripts/scout-hosted-admin configure-production-env "
             "--secrets-file secrets/scout-production.env --require beta --restart"
@@ -118,7 +118,10 @@ def _next_steps_for_blockers(blockers: list[str]) -> list[str]:
             "Smoke-test email delivery with scripts/scout-hosted-admin send-test-email "
             "--email you@example.com --name 'Your Name'"
         )
-    if any("Stripe" in blocker or "paid checkout" in blocker for blocker in blockers):
+    if any(
+        "Stripe" in blocker or "beta checkout" in blocker or "paid checkout" in blocker
+        for blocker in blockers
+    ):
         steps.append(
             "Configure Stripe prices/webhook with scripts/scout-hosted-admin "
             "bootstrap-stripe-prices and configure-production-env --require all --restart"
@@ -167,7 +170,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Hosted Scout: {result.base_url}")
         print(f"Health: {'ready' if result.health_ok else 'blocked'}")
         print(f"Packages: {'ready' if result.packages_ok else 'blocked'}")
-        print(f"Beta signup/key delivery: {'ready' if result.beta_signup_ready else 'blocked'}")
+        print(f"Beta setup checkout: {'ready' if result.beta_signup_ready else 'blocked'}")
         print(f"Paid checkout/key delivery: {'ready' if result.paid_checkout_ready else 'blocked'}")
         print(f"Beta Stripe smoke: {'ready' if result.beta_checkout_ok else 'not run'}")
         print(f"Paid Stripe smoke: {'ready' if result.paid_checkout_ok else 'not run'}")
