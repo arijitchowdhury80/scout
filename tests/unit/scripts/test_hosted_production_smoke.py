@@ -20,6 +20,10 @@ def test_production_smoke_stops_before_stripe_when_readiness_is_blocked() -> Non
                 "hosted API key email delivery not configured",
                 "Stripe Checkout not configured",
             ],
+            missing_environment_keys=[
+                "HOSTED_KEY_DELIVERY_SMTP_HOST",
+                "STRIPE_SECRET_KEY",
+            ],
         )
 
     def fake_stripe(**kwargs: object) -> object:
@@ -42,6 +46,10 @@ def test_production_smoke_stops_before_stripe_when_readiness_is_blocked() -> Non
         "hosted API key email delivery not configured",
         "Stripe Checkout not configured",
     ]
+    assert result.missing_environment_keys == [
+        "HOSTED_KEY_DELIVERY_SMTP_HOST",
+        "STRIPE_SECRET_KEY",
+    ]
     assert "configure-production-env" in result.next_steps[0]
     assert stripe_calls == []
 
@@ -57,6 +65,7 @@ def test_production_smoke_checks_beta_and_paid_paths_when_ready() -> None:
             ready_for_beta_signup=True,
             ready_for_paid_checkout=True,
             blockers=[],
+            missing_environment_keys=[],
         )
 
     def fake_stripe(**kwargs: object) -> object:
@@ -88,6 +97,7 @@ def test_production_smoke_json_output_never_contains_raw_secrets() -> None:
         beta_checkout_ok=True,
         paid_checkout_ok=False,
         blockers=["paid checkout/key delivery not ready"],
+        missing_environment_keys=["STRIPE_STANDARD_1000_PRICE_ID"],
         next_steps=["Configure Stripe paid package price IDs."],
     )
 
@@ -96,4 +106,5 @@ def test_production_smoke_json_output_never_contains_raw_secrets() -> None:
     assert "scout_live_" not in payload
     assert "sk_test_" not in payload
     assert "whsec_" not in payload
+    assert "STRIPE_STANDARD_1000_PRICE_ID" in payload
     assert '"ok": false' in payload

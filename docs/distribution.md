@@ -233,9 +233,12 @@ Scout exposes a non-secret readiness check for the website:
 curl http://localhost:8421/v1/billing/stripe/status
 ```
 
-It returns only booleans for checkout, webhook, key delivery, and end-to-end
-paid key delivery readiness. It never returns Stripe, SMTP, or Scout API
-secrets.
+It returns booleans for checkout, webhook, key delivery, and end-to-end paid key
+delivery readiness plus the public self-service path and exact non-secret
+environment variable names that still need configuration. Production
+self-service should report `public_self_service_path: "stripe_checkout"` and
+`direct_beta_key_enabled: false`. It never returns Stripe, SMTP, or Scout API
+secret values.
 
 For a real Stripe test-mode smoke, start Scout with the Stripe and SMTP
 settings above, then run:

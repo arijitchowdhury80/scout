@@ -7,7 +7,7 @@ import argparse
 import json
 import ssl
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
@@ -33,6 +33,7 @@ class HostedReadinessResult:
     ready_for_beta_signup: bool
     ready_for_paid_checkout: bool
     blockers: list[str]
+    missing_environment_keys: list[str] = field(default_factory=list)
 
 
 def assert_no_secret_leak(text: str) -> None:
@@ -96,6 +97,9 @@ def run_readiness(base_url: str, timeout: float = 20.0) -> HostedReadinessResult
     packages_ok = {"beta_trial", "standard_1000"}.issubset(package_ids)
     ready_for_beta_signup = billing.get("ready_for_beta_checkout") is True
     ready_for_paid_checkout = billing.get("ready_for_paid_key_delivery") is True
+    missing_environment_keys = [
+        str(key) for key in billing.get("missing_environment_keys", []) if isinstance(key, str)
+    ]
 
     blockers: list[str] = []
     if not health_ok:
@@ -122,6 +126,7 @@ def run_readiness(base_url: str, timeout: float = 20.0) -> HostedReadinessResult
         ready_for_beta_signup=ready_for_beta_signup,
         ready_for_paid_checkout=ready_for_paid_checkout,
         blockers=blockers,
+        missing_environment_keys=missing_environment_keys,
     )
 
 
@@ -165,6 +170,10 @@ def main(argv: list[str] | None = None) -> int:
             print("Blockers:", file=sys.stderr)
             for blocker in result.blockers:
                 print(f"  - {blocker}", file=sys.stderr)
+        if result.missing_environment_keys:
+            print("Missing environment keys:")
+            for key in result.missing_environment_keys:
+                print(f"  - {key}")
 
     if args.require_beta_signup and not result.ready_for_beta_signup:
         return 2

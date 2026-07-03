@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Callable
 
@@ -31,6 +31,7 @@ class ProductionSmokeResult:
     paid_checkout_ok: bool
     blockers: list[str]
     next_steps: list[str]
+    missing_environment_keys: list[str] = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
@@ -93,6 +94,7 @@ def run_production_smoke(
         beta_checkout_ok=beta_checkout_ok,
         paid_checkout_ok=paid_checkout_ok,
         blockers=blockers,
+        missing_environment_keys=readiness.missing_environment_keys,
         next_steps=next_steps,
     )
 
@@ -178,6 +180,10 @@ def main(argv: list[str] | None = None) -> int:
             print("Blockers:", file=sys.stderr)
             for blocker in result.blockers:
                 print(f"  - {blocker}", file=sys.stderr)
+        if result.missing_environment_keys:
+            print("Missing environment keys:")
+            for key in result.missing_environment_keys:
+                print(f"  - {key}")
         if result.next_steps:
             print("Next steps:")
             for step in result.next_steps:

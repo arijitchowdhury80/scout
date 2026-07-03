@@ -200,20 +200,23 @@ def test_stripe_status_returns_non_secret_readiness_flags() -> None:
     response = client.get("/v1/billing/stripe/status")
 
     assert response.status_code == 200
-    assert response.json() == {
-        "beta_signup_enabled": False,
-        "checkout_configured": True,
-        "webhook_configured": True,
-        "key_delivery_configured": True,
-        "ready_for_beta_key_delivery": False,
-        "ready_for_beta_checkout": False,
-        "ready_for_paid_key_delivery": True,
-        "missing_configuration": ["hosted_beta_signup"],
-        "blocking_reasons": ["Hosted beta signup is disabled."],
-        "operator_next_actions": [
-            "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open."
-        ],
-    }
+    _assert_status_subset(
+        response.json(),
+        {
+            "beta_signup_enabled": False,
+            "checkout_configured": True,
+            "webhook_configured": True,
+            "key_delivery_configured": True,
+            "ready_for_beta_key_delivery": False,
+            "ready_for_beta_checkout": False,
+            "ready_for_paid_key_delivery": True,
+            "missing_configuration": ["hosted_beta_signup"],
+            "blocking_reasons": ["Hosted beta signup is disabled."],
+            "operator_next_actions": [
+                "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open."
+            ],
+        },
+    )
     assert "whsec_test" not in response.text
     assert "sk_" not in response.text
 
@@ -222,6 +225,7 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
     service = RecordingStripeCheckoutService(
         StripeCheckoutResult(success=False),
         enabled=False,
+        paid_packages_configured=False,
     )
     delivery = RecordingDeliveryService(enabled=False)
     app.dependency_overrides[get_stripe_checkout_service] = lambda: service
@@ -233,36 +237,93 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
 
     assert response.status_code == 200
     data = response.json()
-    assert data == {
-        "beta_signup_enabled": False,
-        "checkout_configured": False,
-        "webhook_configured": False,
-        "key_delivery_configured": False,
-        "ready_for_beta_key_delivery": False,
-        "ready_for_beta_checkout": False,
-        "ready_for_paid_key_delivery": False,
-        "missing_configuration": [
-            "hosted_beta_signup",
-            "stripe_checkout",
-            "stripe_webhook_secret",
-            "hosted_key_delivery_smtp",
-        ],
-        "blocking_reasons": [
-            "Hosted beta signup is disabled.",
-            "Stripe Checkout is not configured.",
-            "Stripe webhook secret is not configured.",
-            "Hosted API-key email delivery is not configured.",
-        ],
-        "operator_next_actions": [
-            "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open.",
-            "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
-            "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
-            "Configure hosted API-key SMTP delivery settings.",
-        ],
-    }
+    _assert_status_subset(
+        data,
+        {
+            "beta_signup_enabled": False,
+            "checkout_configured": False,
+            "webhook_configured": False,
+            "key_delivery_configured": False,
+            "ready_for_beta_key_delivery": False,
+            "ready_for_beta_checkout": False,
+            "ready_for_paid_key_delivery": False,
+            "missing_configuration": [
+                "hosted_beta_signup",
+                "stripe_checkout",
+                "stripe_webhook_secret",
+                "hosted_key_delivery_smtp",
+            ],
+            "blocking_reasons": [
+                "Hosted beta signup is disabled.",
+                "Stripe Checkout is not configured.",
+                "Stripe webhook secret is not configured.",
+                "Hosted API-key email delivery is not configured.",
+            ],
+            "operator_next_actions": [
+                "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open.",
+                "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
+                "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
+                "Configure hosted API-key SMTP delivery settings.",
+            ],
+        },
+    )
     assert "sk_" not in response.text
     assert "whsec_" not in response.text
-    assert "SMTP_PASSWORD" not in response.text
+
+
+def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
+    monkeypatch,
+) -> None:
+    service = RecordingStripeCheckoutService(
+        StripeCheckoutResult(success=False),
+        enabled=False,
+        paid_packages_configured=False,
+    )
+    delivery = RecordingDeliveryService(enabled=False)
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
+    monkeypatch.setattr(settings, "hosted_direct_beta_key_enabled", False)
+    monkeypatch.setattr(settings, "stripe_secret_key", "")
+    monkeypatch.setattr(settings, "stripe_success_url", "")
+    monkeypatch.setattr(settings, "stripe_cancel_url", "")
+    monkeypatch.setattr(settings, "stripe_standard_1000_price_id", "")
+    monkeypatch.setattr(settings, "stripe_standard_3000_price_id", "")
+    monkeypatch.setattr(settings, "stripe_standard_15000_price_id", "")
+    monkeypatch.setattr(settings, "hosted_key_delivery_smtp_host", "")
+    monkeypatch.setattr(settings, "hosted_key_delivery_smtp_from_email", "")
+    monkeypatch.setattr(settings, "hosted_key_delivery_smtp_username", "")
+    monkeypatch.setattr(settings, "hosted_key_delivery_smtp_password", "")
+    app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_webhook_secret] = lambda: ""
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    client = TestClient(app)
+
+    response = client.get("/v1/billing/stripe/status")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["public_self_service_path"] == "stripe_checkout"
+    assert data["public_beta_checkout_endpoint"] == "/v1/billing/stripe/checkout-session"
+    assert data["legacy_direct_beta_key_endpoint"] == "/v1/hosted/beta-key"
+    assert data["direct_beta_key_enabled"] is False
+    assert data["customer_next_actions"] == [
+        "Use /beta to start the card-backed beta setup checkout when readiness is true.",
+        "Use /pricing to buy paid credit packages when paid checkout readiness is true.",
+    ]
+    assert data["missing_environment_keys"] == [
+        "STRIPE_SECRET_KEY",
+        "STRIPE_SUCCESS_URL",
+        "STRIPE_CANCEL_URL",
+        "STRIPE_WEBHOOK_SECRET",
+        "STRIPE_STANDARD_1000_PRICE_ID",
+        "STRIPE_STANDARD_3000_PRICE_ID",
+        "STRIPE_STANDARD_15000_PRICE_ID",
+        "HOSTED_KEY_DELIVERY_SMTP_HOST",
+        "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL",
+        "HOSTED_KEY_DELIVERY_SMTP_USERNAME",
+        "HOSTED_KEY_DELIVERY_SMTP_PASSWORD",
+    ]
+    assert "sk_" not in response.text
+    assert "whsec_" not in response.text
 
 
 def test_stripe_status_requires_checkout_webhook_and_delivery_for_beta(monkeypatch) -> None:
@@ -280,27 +341,30 @@ def test_stripe_status_requires_checkout_webhook_and_delivery_for_beta(monkeypat
     response = client.get("/v1/billing/stripe/status")
 
     assert response.status_code == 200
-    assert response.json() == {
-        "beta_signup_enabled": True,
-        "checkout_configured": False,
-        "webhook_configured": False,
-        "key_delivery_configured": True,
-        "ready_for_beta_key_delivery": True,
-        "ready_for_beta_checkout": False,
-        "ready_for_paid_key_delivery": False,
-        "missing_configuration": [
-            "stripe_checkout",
-            "stripe_webhook_secret",
-        ],
-        "blocking_reasons": [
-            "Stripe Checkout is not configured.",
-            "Stripe webhook secret is not configured.",
-        ],
-        "operator_next_actions": [
-            "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
-            "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
-        ],
-    }
+    _assert_status_subset(
+        response.json(),
+        {
+            "beta_signup_enabled": True,
+            "checkout_configured": False,
+            "webhook_configured": False,
+            "key_delivery_configured": True,
+            "ready_for_beta_key_delivery": True,
+            "ready_for_beta_checkout": False,
+            "ready_for_paid_key_delivery": False,
+            "missing_configuration": [
+                "stripe_checkout",
+                "stripe_webhook_secret",
+            ],
+            "blocking_reasons": [
+                "Stripe Checkout is not configured.",
+                "Stripe webhook secret is not configured.",
+            ],
+            "operator_next_actions": [
+                "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
+                "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
+            ],
+        },
+    )
 
 
 def test_stripe_status_reports_beta_checkout_readiness(monkeypatch) -> None:
@@ -319,18 +383,21 @@ def test_stripe_status_reports_beta_checkout_readiness(monkeypatch) -> None:
 
     assert response.status_code == 200
     data = response.json()
-    assert data == {
-        "beta_signup_enabled": True,
-        "checkout_configured": True,
-        "webhook_configured": True,
-        "key_delivery_configured": True,
-        "ready_for_beta_key_delivery": True,
-        "ready_for_beta_checkout": True,
-        "ready_for_paid_key_delivery": True,
-        "missing_configuration": [],
-        "blocking_reasons": [],
-        "operator_next_actions": [],
-    }
+    _assert_status_subset(
+        data,
+        {
+            "beta_signup_enabled": True,
+            "checkout_configured": True,
+            "webhook_configured": True,
+            "key_delivery_configured": True,
+            "ready_for_beta_key_delivery": True,
+            "ready_for_beta_checkout": True,
+            "ready_for_paid_key_delivery": True,
+            "missing_configuration": [],
+            "blocking_reasons": [],
+            "operator_next_actions": [],
+        },
+    )
 
 
 def test_stripe_status_keeps_paid_checkout_blocked_without_paid_price_ids(
@@ -377,30 +444,33 @@ def test_stripe_status_does_not_enable_beta_without_checkout_webhook_and_deliver
     response = client.get("/v1/billing/stripe/status")
 
     assert response.status_code == 200
-    assert response.json() == {
-        "beta_signup_enabled": True,
-        "checkout_configured": False,
-        "webhook_configured": False,
-        "key_delivery_configured": False,
-        "ready_for_beta_key_delivery": False,
-        "ready_for_beta_checkout": False,
-        "ready_for_paid_key_delivery": False,
-        "missing_configuration": [
-            "stripe_checkout",
-            "stripe_webhook_secret",
-            "hosted_key_delivery_smtp",
-        ],
-        "blocking_reasons": [
-            "Stripe Checkout is not configured.",
-            "Stripe webhook secret is not configured.",
-            "Hosted API-key email delivery is not configured.",
-        ],
-        "operator_next_actions": [
-            "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
-            "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
-            "Configure hosted API-key SMTP delivery settings.",
-        ],
-    }
+    _assert_status_subset(
+        response.json(),
+        {
+            "beta_signup_enabled": True,
+            "checkout_configured": False,
+            "webhook_configured": False,
+            "key_delivery_configured": False,
+            "ready_for_beta_key_delivery": False,
+            "ready_for_beta_checkout": False,
+            "ready_for_paid_key_delivery": False,
+            "missing_configuration": [
+                "stripe_checkout",
+                "stripe_webhook_secret",
+                "hosted_key_delivery_smtp",
+            ],
+            "blocking_reasons": [
+                "Stripe Checkout is not configured.",
+                "Stripe webhook secret is not configured.",
+                "Hosted API-key email delivery is not configured.",
+            ],
+            "operator_next_actions": [
+                "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
+                "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
+                "Configure hosted API-key SMTP delivery settings.",
+            ],
+        },
+    )
 
 
 def test_billing_packages_returns_credit_meanings_and_unit_economics_without_secrets() -> None:
@@ -566,6 +636,11 @@ def _client(
         delivery_enabled
     )
     return TestClient(app)
+
+
+def _assert_status_subset(actual: dict[str, object], expected: dict[str, object]) -> None:
+    """Assert important readiness fields while allowing additive status metadata."""
+    assert {key: actual.get(key) for key in expected} == expected
 
 
 class RecordingStripeCheckoutService:

@@ -373,14 +373,28 @@ The underlying `GET /v1/billing/stripe/status` response is also operator
 actionable. In addition to backward-compatible booleans such as
 `ready_for_beta_checkout` and `ready_for_paid_key_delivery`, it returns:
 
+- `public_self_service_path`: currently `stripe_checkout`; public beta and paid
+  customers should start at Stripe Checkout rather than the legacy direct key
+  endpoint.
+- `public_beta_checkout_endpoint` and `public_paid_checkout_endpoint`: the
+  endpoint the website uses to create setup/payment Checkout Sessions.
+- `direct_beta_key_enabled`: whether the compatibility
+  `/v1/hosted/beta-key` route is explicitly open. Production self-service keeps
+  this `false`.
+- `missing_environment_keys`: exact non-secret environment variable names still
+  needed for checkout, webhook verification, paid price IDs, or SMTP delivery.
 - `missing_configuration`: machine-readable missing capability names such as
   `stripe_checkout`, `stripe_webhook_secret`, and `hosted_key_delivery_smtp`.
 - `blocking_reasons`: human-readable, non-secret reasons shown by the launch
   website when checkout is paused.
 - `operator_next_actions`: non-secret setup steps for the operator to complete.
+- `customer_next_actions`: stable user-facing routes such as `/beta` and
+  `/pricing`.
 
 The status route never returns Stripe secret keys, webhook secret values, SMTP
-passwords, API-key hashes, or raw hosted API keys.
+password values, API-key hashes, or raw hosted API keys. It may return
+environment variable names such as `HOSTED_KEY_DELIVERY_SMTP_PASSWORD` so an
+operator can configure the missing secret without exposing the secret itself.
 
 ### Provision A Hosted API Key Directly
 

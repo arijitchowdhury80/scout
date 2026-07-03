@@ -93,12 +93,19 @@ class StripeBillingStatusResponse(BaseModel):
     checkout_configured: bool
     webhook_configured: bool
     key_delivery_configured: bool
+    public_self_service_path: str
+    public_beta_checkout_endpoint: str
+    public_paid_checkout_endpoint: str
+    legacy_direct_beta_key_endpoint: str
+    direct_beta_key_enabled: bool
     ready_for_beta_key_delivery: bool
     ready_for_beta_checkout: bool
     ready_for_paid_key_delivery: bool
+    missing_environment_keys: list[str] = Field(default_factory=list)
     missing_configuration: list[str] = Field(default_factory=list)
     blocking_reasons: list[str] = Field(default_factory=list)
     operator_next_actions: list[str] = Field(default_factory=list)
+    customer_next_actions: list[str] = Field(default_factory=list)
 
 
 class HostedBillingPackagesResponse(BaseModel):
@@ -257,12 +264,18 @@ async def stripe_status(
         paid_packages_configured=paid_packages_configured,
         webhook_configured=webhook_configured,
         key_delivery_configured=key_delivery_configured,
+        webhook_secret=webhook_secret,
     )
     return StripeBillingStatusResponse(
         beta_signup_enabled=beta_signup_enabled,
         checkout_configured=checkout_configured,
         webhook_configured=webhook_configured,
         key_delivery_configured=key_delivery_configured,
+        public_self_service_path="stripe_checkout",
+        public_beta_checkout_endpoint="/v1/billing/stripe/checkout-session",
+        public_paid_checkout_endpoint="/v1/billing/stripe/checkout-session",
+        legacy_direct_beta_key_endpoint="/v1/hosted/beta-key",
+        direct_beta_key_enabled=settings.hosted_direct_beta_key_enabled,
         ready_for_beta_key_delivery=beta_signup_enabled and key_delivery_configured,
         ready_for_beta_checkout=(
             beta_signup_enabled
@@ -276,9 +289,14 @@ async def stripe_status(
             and webhook_configured
             and key_delivery_configured
         ),
+        missing_environment_keys=diagnostics["missing_environment_keys"],
         missing_configuration=diagnostics["missing_configuration"],
         blocking_reasons=diagnostics["blocking_reasons"],
         operator_next_actions=diagnostics["operator_next_actions"],
+        customer_next_actions=[
+            "Use /beta to start the card-backed beta setup checkout when readiness is true.",
+            "Use /pricing to buy paid credit packages when paid checkout readiness is true.",
+        ],
     )
 
 
@@ -289,28 +307,36 @@ def _stripe_status_diagnostics(
     paid_packages_configured: bool,
     webhook_configured: bool,
     key_delivery_configured: bool,
+    webhook_secret: str,
 ) -> dict[str, list[str]]:
     """Build actionable readiness diagnostics without exposing secret values."""
+    missing_environment_keys: list[str] = []
     missing_configuration: list[str] = []
     blocking_reasons: list[str] = []
     operator_next_actions: list[str] = []
 
     if not beta_signup_enabled:
+        missing_environment_keys.append("HOSTED_BETA_SIGNUP_ENABLED")
         missing_configuration.append("hosted_beta_signup")
         blocking_reasons.append("Hosted beta signup is disabled.")
         operator_next_actions.append(
             "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open."
         )
     if not checkout_configured:
+        missing_environment_keys.extend(_missing_stripe_checkout_environment_keys())
         missing_configuration.append("stripe_checkout")
         blocking_reasons.append("Stripe Checkout is not configured.")
         operator_next_actions.append(
             "Configure Stripe secret key, price IDs, success URL, and cancel URL."
         )
+    if not webhook_secret:
+        missing_environment_keys.append("STRIPE_WEBHOOK_SECRET")
     if checkout_configured and not paid_packages_configured:
         missing_configuration.append("stripe_paid_price_ids")
         blocking_reasons.append("Stripe paid package price IDs are not configured.")
         operator_next_actions.append("Configure Stripe price IDs for public paid packages.")
+    if not paid_packages_configured:
+        missing_environment_keys.extend(_missing_paid_package_environment_keys())
     if not webhook_configured:
         missing_configuration.append("stripe_webhook_secret")
         blocking_reasons.append("Stripe webhook secret is not configured.")
@@ -318,15 +344,67 @@ def _stripe_status_diagnostics(
             "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint."
         )
     if not key_delivery_configured:
+        missing_environment_keys.extend(_missing_key_delivery_environment_keys())
         missing_configuration.append("hosted_key_delivery_smtp")
         blocking_reasons.append("Hosted API-key email delivery is not configured.")
         operator_next_actions.append("Configure hosted API-key SMTP delivery settings.")
 
     return {
+        "missing_environment_keys": _unique_ordered(missing_environment_keys),
         "missing_configuration": missing_configuration,
         "blocking_reasons": blocking_reasons,
         "operator_next_actions": operator_next_actions,
     }
+
+
+def _missing_stripe_checkout_environment_keys() -> list[str]:
+    """Return missing non-secret Stripe Checkout config key names."""
+    missing: list[str] = []
+    if not settings.stripe_secret_key:
+        missing.append("STRIPE_SECRET_KEY")
+    if not settings.stripe_success_url:
+        missing.append("STRIPE_SUCCESS_URL")
+    if not settings.stripe_cancel_url:
+        missing.append("STRIPE_CANCEL_URL")
+    return missing
+
+
+def _missing_paid_package_environment_keys() -> list[str]:
+    """Return missing public paid-package Stripe price environment key names."""
+    missing: list[str] = []
+    if not settings.stripe_standard_1000_price_id:
+        missing.append("STRIPE_STANDARD_1000_PRICE_ID")
+    if not settings.stripe_standard_3000_price_id:
+        missing.append("STRIPE_STANDARD_3000_PRICE_ID")
+    if not settings.stripe_standard_15000_price_id:
+        missing.append("STRIPE_STANDARD_15000_PRICE_ID")
+    return missing
+
+
+def _missing_key_delivery_environment_keys() -> list[str]:
+    """Return missing hosted API-key email delivery environment key names."""
+    missing: list[str] = []
+    if not settings.hosted_key_delivery_smtp_host:
+        missing.append("HOSTED_KEY_DELIVERY_SMTP_HOST")
+    if not settings.hosted_key_delivery_smtp_from_email:
+        missing.append("HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL")
+    if not settings.hosted_key_delivery_smtp_username:
+        missing.append("HOSTED_KEY_DELIVERY_SMTP_USERNAME")
+    if not settings.hosted_key_delivery_smtp_password:
+        missing.append("HOSTED_KEY_DELIVERY_SMTP_PASSWORD")
+    return missing
+
+
+def _unique_ordered(values: list[str]) -> list[str]:
+    """Deduplicate strings while preserving first-seen order."""
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        result.append(value)
+    return result
 
 
 def _deliver_pending_beta_key(

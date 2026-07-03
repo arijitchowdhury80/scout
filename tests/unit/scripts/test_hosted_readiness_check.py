@@ -86,6 +86,11 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
             "ready_for_beta_key_delivery": False,
             "ready_for_beta_checkout": False,
             "ready_for_paid_key_delivery": False,
+            "missing_environment_keys": [
+                "HOSTED_KEY_DELIVERY_SMTP_HOST",
+                "STRIPE_SECRET_KEY",
+                "STRIPE_WEBHOOK_SECRET",
+            ],
         },
     }
 
@@ -106,6 +111,11 @@ def test_hosted_readiness_lists_missing_smtp_and_stripe_blockers(
         "Stripe webhook secret not configured",
         "card-backed beta checkout not ready",
         "paid checkout/key delivery not ready",
+    ]
+    assert result.missing_environment_keys == [
+        "HOSTED_KEY_DELIVERY_SMTP_HOST",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
     ]
 
 
@@ -168,6 +178,7 @@ def test_hosted_readiness_main_fails_require_beta_when_blocked(
             ready_for_beta_signup=False,
             ready_for_paid_checkout=False,
             blockers=["hosted API key email delivery not configured"],
+            missing_environment_keys=["HOSTED_KEY_DELIVERY_SMTP_HOST"],
         ),
     )
 
