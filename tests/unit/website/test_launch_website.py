@@ -157,6 +157,7 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     pricing = client.get("/assets/pricing.js")
     account = client.get("/assets/account.js")
     hosted_keygen = client.get("/assets/hosted-keygen.js")
+    status_js = client.get("/assets/status.js")
 
     assert styles.status_code == 200
     assert "text/css" in styles.headers["content-type"]
@@ -207,6 +208,10 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert "form?.dataset.endpoint" in hosted_keygen.text
     assert "form.dataset.endpoint" not in hosted_keygen.text
     assert "payload.raw_api_key" not in hosted_keygen.text
+    assert status_js.status_code == 200
+    assert "javascript" in status_js.headers["content-type"]
+    assert "/v1/billing/stripe/status" in status_js.text
+    assert "operator_next_actions" in status_js.text
 
 
 def test_beta_page_uses_email_registration_and_optional_card_setup_without_password() -> None:

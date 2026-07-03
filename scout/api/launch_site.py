@@ -52,6 +52,7 @@ async def launch_site_asset(asset_name: str) -> FileResponse:
         "scout-mark.svg",
         "scout-product-demo.gif",
         "scout-wordmark.svg",
+        "status.js",
     }
     if asset_name not in allowed_assets:
         raise HTTPException(status_code=404, detail="Launch site asset not found.")
