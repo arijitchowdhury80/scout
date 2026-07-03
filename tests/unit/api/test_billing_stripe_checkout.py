@@ -33,7 +33,7 @@ def _clear_dependency_overrides() -> Iterator[None]:
     app.dependency_overrides.clear()
 
 
-def test_stripe_checkout_route_returns_checkout_url_without_static_api_key() -> None:
+def test_stripe_checkout_route_returns_checkout_url_without_static_api_key(monkeypatch) -> None:
     service = RecordingStripeCheckoutService(
         StripeCheckoutResult(
             success=True,
@@ -41,6 +41,7 @@ def test_stripe_checkout_route_returns_checkout_url_without_static_api_key() -> 
             checkout_url="https://checkout.stripe.com/c/pay/cs_test_checkout_001",
         )
     )
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
     client = _client(service)
 
     response = client.post(
@@ -63,13 +64,64 @@ def test_stripe_checkout_route_returns_checkout_url_without_static_api_key() -> 
     assert "sk_test" not in response.text
 
 
-def test_stripe_checkout_route_returns_503_when_checkout_is_not_configured() -> None:
+def test_stripe_checkout_route_blocks_when_webhook_is_not_configured(
+    monkeypatch,
+) -> None:
+    service = RecordingStripeCheckoutService(StripeCheckoutResult(success=True))
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
+    client = _client(service, webhook_secret="")
+
+    response = client.post(
+        "/v1/billing/stripe/checkout-session",
+        json={"email": "builder@example.com", "package_id": "standard_1000"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Stripe webhook secret is not configured."
+    assert service.requests == []
+
+
+def test_stripe_checkout_route_blocks_when_key_delivery_is_not_configured(
+    monkeypatch,
+) -> None:
+    service = RecordingStripeCheckoutService(StripeCheckoutResult(success=True))
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
+    client = _client(service, delivery_enabled=False)
+
+    response = client.post(
+        "/v1/billing/stripe/checkout-session",
+        json={"email": "builder@example.com", "package_id": "standard_1000"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Hosted API key delivery is not configured."
+    assert service.requests == []
+
+
+def test_stripe_checkout_route_blocks_beta_trial_when_beta_signup_disabled() -> None:
+    service = RecordingStripeCheckoutService(StripeCheckoutResult(success=True))
+    client = _client(service)
+
+    response = client.post(
+        "/v1/billing/stripe/checkout-session",
+        json={"email": "builder@example.com", "package_id": "beta_trial"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Hosted beta signup is disabled."
+    assert service.requests == []
+
+
+def test_stripe_checkout_route_returns_503_when_checkout_is_not_configured(
+    monkeypatch,
+) -> None:
     service = RecordingStripeCheckoutService(
         StripeCheckoutResult(
             success=False,
             reason="Stripe Checkout is not configured.",
         )
     )
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
     client = _client(service)
 
     response = client.post("/v1/billing/stripe/checkout-session", json={})
@@ -238,9 +290,18 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
     assert "whsec_" not in response.text
 
 
-def _client(service: StripeCheckoutService) -> TestClient:
+def _client(
+    service: StripeCheckoutService,
+    *,
+    webhook_secret: str = "whsec_test",
+    delivery_enabled: bool = True,
+) -> TestClient:
     """Build a test client with the checkout service dependency overridden."""
     app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_webhook_secret] = lambda: webhook_secret
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: RecordingDeliveryService(
+        delivery_enabled
+    )
     return TestClient(app)
 
 

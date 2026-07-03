@@ -203,15 +203,32 @@ async def stripe_status(
 @router.post("/stripe/checkout-session", response_model=StripeCheckoutSessionResponse)
 async def stripe_checkout_session(
     body: StripeCheckoutSessionRequestBody,
+    webhook_secret: str = Depends(get_stripe_webhook_secret),
     checkout_service: StripeCheckoutService = Depends(get_stripe_checkout_service),
+    delivery_service: HostedApiKeyDeliveryService = Depends(get_hosted_key_delivery_service),
 ) -> StripeCheckoutSessionResponse:
     """Create a Stripe Checkout Session for a hosted Scout credit package."""
+    _assert_checkout_ready(body, webhook_secret, delivery_service)
     result = checkout_service.create_checkout_session(
         StripeCheckoutRequest(name=body.name, email=body.email, package_id=body.package_id)
     )
     if not result.success:
         raise HTTPException(status_code=503, detail=result.reason)
     return _checkout_session_response(result)
+
+
+def _assert_checkout_ready(
+    body: StripeCheckoutSessionRequestBody,
+    webhook_secret: str,
+    delivery_service: HostedApiKeyDeliveryService,
+) -> None:
+    """Fail closed before creating Stripe sessions that cannot provision keys."""
+    if body.package_id == "beta_trial" and not settings.hosted_beta_signup_enabled:
+        raise HTTPException(status_code=503, detail="Hosted beta signup is disabled.")
+    if webhook_secret == "":
+        raise HTTPException(status_code=503, detail="Stripe webhook secret is not configured.")
+    if not delivery_service.enabled:
+        raise HTTPException(status_code=503, detail="Hosted API key delivery is not configured.")
 
 
 @router.post("/stripe/webhook", response_model=StripeWebhookResponse)

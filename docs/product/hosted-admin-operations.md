@@ -38,6 +38,9 @@ Scout hosted beta has API-key based access, not a login system.
 - The public pricing page can start Stripe Checkout for hosted credit packages
   through `/v1/billing/stripe/checkout-session` when Stripe price IDs,
   checkout settings, webhook signing, and SMTP key delivery are configured.
+- The checkout API itself fails closed before creating Stripe sessions if the
+  webhook secret or SMTP key delivery is missing. `$0` `beta_trial` setup also
+  requires hosted beta signup to be enabled.
 - A successful paid Stripe webhook creates a hosted tenant for a first-time
   buyer, or adds the purchased credits to the existing tenant when the checkout
   email already has a hosted account. Existing-account top-ups do not email a
@@ -64,7 +67,9 @@ Scout hosted beta has API-key based access, not a login system.
 
 Direct beta registration, Stripe checkout, webhook, and key-delivery scaffolding
 exist in code and tests. Production still needs live SMTP for beta signup, plus
-Stripe settings before the paid checkout path is operational end to end.
+Stripe settings before the paid checkout path is operational end to end. Partial
+Stripe configuration is not enough: checkout creation intentionally remains
+blocked until webhook verification and key delivery are also ready.
 
 ## Admin Scripts
 
