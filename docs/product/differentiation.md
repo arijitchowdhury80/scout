@@ -72,7 +72,6 @@ Scout's useful output is not just markdown. It can produce:
 - career-site records,
 - investor records,
 - news records,
-- website-quality records,
 - downstream-ready product records with Algolia as one export/ingestion path.
 
 This makes Scout an acquisition-to-record engine.
@@ -91,7 +90,6 @@ shaped around opinionated workflows:
 - product catalog to Algolia,
 - PRISM company intelligence,
 - competitive intelligence acquisition,
-- website-quality review,
 - captured browser page to records,
 - agent-accessible local acquisition.
 

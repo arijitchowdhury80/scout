@@ -42,6 +42,7 @@ from scout.core.platform.key_delivery import (
     HostedApiKeyDeliveryService,
 )
 from scout.core.platform.payment_provisioning import HostedPaymentProvisioningService
+from scout.core.platform.registry import get_use_case
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest, RunResponse
 from scout.core.platform.url_safety import validate_hosted_url_fields
@@ -1011,6 +1012,7 @@ async def hosted_run(
     auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
     if not auth.allowed:
         raise HTTPException(status_code=403, detail=auth.reason)
+    _enforce_supported_hosted_use_case(use_case)
     _enforce_hosted_run_url_safety(req)
     tenant = account_service.get_tenant(auth.tenant_id)
     if tenant is None:
@@ -1416,10 +1418,15 @@ def _enforce_hosted_run_url_safety(req: RunRequest) -> None:
     if req.url:
         values.append(req.url)
     values.extend(req.targets)
-    values.extend(req.job_urls)
     url_safety = validate_hosted_url_fields(values)
     if not url_safety.allowed:
         raise HTTPException(status_code=403, detail=url_safety.reason)
+
+
+def _enforce_supported_hosted_use_case(use_case: str) -> None:
+    """Reject removed or unknown high-level workflows before hosted work starts."""
+    if get_use_case(use_case) is None:
+        raise HTTPException(status_code=400, detail=f"Unsupported use case: {use_case}")
 
 
 def _hosted_auth_for_read(

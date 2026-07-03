@@ -420,7 +420,6 @@ async def test_live_prism_runner_is_bounded_to_v1_bundle(monkeypatch, tmp_path) 
         news,
         research,
         social,
-        website_quality,
     )
 
     called: list[str] = []
@@ -460,7 +459,6 @@ async def test_live_prism_runner_is_bounded_to_v1_bundle(monkeypatch, tmp_path) 
     monkeypatch.setattr(social, "run_social", fake_runner("social"))
     monkeypatch.setattr(research, "run_research", forbidden_runner("research"))
     monkeypatch.setattr(locations, "run_locations", forbidden_runner("locations"))
-    monkeypatch.setattr(website_quality, "run_website_quality", forbidden_runner("website-quality"))
 
     resp = await run_use_case(
         RunRequest(

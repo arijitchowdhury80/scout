@@ -40,16 +40,11 @@ _RATE_BUCKETS: dict[str, list[float]] = {}
 _MAX_RECORDS = 10
 _INTELLIGENCE_CAPABILITIES = {
     "company",
-    "prism",
     "investor",
     "careers",
-    "jobs",
     "news",
-    "research",
-    "docs",
     "social",
     "locations",
-    "website-quality",
 }
 
 _CAPABILITIES: list[dict[str, str]] = [
@@ -78,24 +73,6 @@ _CAPABILITIES: list[dict[str, str]] = [
         "description": "Capture one rendered page screenshot.",
     },
     {
-        "name": "extract",
-        "label": "Extract",
-        "category": "Structure",
-        "description": "Extract a small structured record from a page.",
-    },
-    {
-        "name": "docs",
-        "label": "Docs",
-        "category": "Structure",
-        "description": "Turn docs pages into reusable research records.",
-    },
-    {
-        "name": "research",
-        "label": "Research",
-        "category": "Structure",
-        "description": "Summarize target pages into cited research records.",
-    },
-    {
         "name": "products",
         "label": "Products",
         "category": "Commerce",
@@ -108,12 +85,6 @@ _CAPABILITIES: list[dict[str, str]] = [
         "description": "Company overview, about evidence, socials, and leadership signals.",
     },
     {
-        "name": "prism",
-        "label": "PRISM",
-        "category": "Intelligence",
-        "description": "Company, careers, investor, news, and social evidence bundle.",
-    },
-    {
         "name": "investor",
         "label": "Investor",
         "category": "Intelligence",
@@ -124,12 +95,6 @@ _CAPABILITIES: list[dict[str, str]] = [
         "label": "Careers",
         "category": "Intelligence",
         "description": "Careers page, ATS, departments, and hiring signals.",
-    },
-    {
-        "name": "jobs",
-        "label": "Jobs",
-        "category": "Intelligence",
-        "description": "Job target/profile records and job evidence where supplied.",
     },
     {
         "name": "news",
@@ -148,12 +113,6 @@ _CAPABILITIES: list[dict[str, str]] = [
         "label": "Locations",
         "category": "Intelligence",
         "description": "Store, office, or location page signals.",
-    },
-    {
-        "name": "website-quality",
-        "label": "Website Quality",
-        "category": "Intelligence",
-        "description": "UX, SEO, semantic HTML, and evidence-backed quality signals.",
     },
 ]
 _CAPABILITY_NAMES = {capability["name"] for capability in _CAPABILITIES}
@@ -507,8 +466,6 @@ async def _run_intelligence_playground(
             max_targets=3,
             max_records=_MAX_RECORDS,
         )
-        if req.workflow == "jobs":
-            run_req = run_req.model_copy(update={"targets": [req.query or req.url]})
         response = await run_use_case(run_req, crawler)
         records = _read_records(Path(tmp))[:_MAX_RECORDS]
         blocked = _read_json_list(Path(tmp) / "blocked_pages.json")

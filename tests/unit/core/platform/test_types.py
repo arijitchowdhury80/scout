@@ -118,19 +118,19 @@ def test_validation_finding_severity_enum() -> None:
 
 def test_run_request_and_response_contract() -> None:
     request = RunRequest(
-        use_case="jobs",
-        query="AI product marketing roles",
-        output_dir="scout-runs/jobs",
+        use_case="careers",
+        query="hiring signals",
+        output_dir="scout-runs/careers",
         targets=["Adobe", "Salesforce"],
         providers=[FetchProviderKind.CRAWL4AI],
     )
     response = RunResponse(
         success=True,
-        use_case="jobs",
-        output_dir="scout-runs/jobs",
+        use_case="careers",
+        output_dir="scout-runs/careers",
         manifest=RunManifest(
             run_id="run_789",
-            use_case="jobs",
+            use_case="careers",
             query=request.query,
             started_at="2026-05-16T12:00:00Z",
             output_dir=request.output_dir,
@@ -139,4 +139,4 @@ def test_run_request_and_response_contract() -> None:
 
     assert request.targets == ["Adobe", "Salesforce"]
     assert response.success is True
-    assert response.manifest.use_case == "jobs"
+    assert response.manifest.use_case == "careers"

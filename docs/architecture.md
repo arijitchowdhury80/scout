@@ -23,8 +23,8 @@ flowchart TD
     API["api\nATS, commerce, investor, social adapters"]
 
     Evidence["Source Evidence\nmarkdown, html, DOM, links, provenance"]
-    Processors["Vertical Processors\ncompany, prism, investor, careers, jobs,\nproducts, news, research"]
-    Records["Typed Records\ncompany.v1, executive.v1, company_social.v1,\ninvestor_asset.v1, career_site.v1,\njob_posting.v1, product, news_signal.v1,\nresearch_record.v1"]
+    Processors["Vertical Processors\ncompany, prism, investor, careers,\nproducts, news, research"]
+    Records["Typed Records\ncompany.v1, executive.v1, company_social.v1,\ninvestor_asset.v1, career_site.v1,\nproduct, news_signal.v1,\nresearch_record.v1"]
     Artifacts["Run Artifacts\nmanifest.json, records.json, records.jsonl,\nsource_pages.json, blocked_pages.json,\nvalidation.json, extraction_report.md"]
     Consumers["Consumers\nAlgolia, PRISM, job monitor,\nreports, notebooks, agents"]
 
@@ -78,7 +78,6 @@ not require the HTTP server.
 
 ```bash
 scout run company --query Adobe --mode auto --output-dir ./scout-runs/adobe
-scout run jobs --profile ./private-job-profile.yaml --mode api --output-dir ./scout-runs/jobs
 scout products "men shirts" --site lacoste.com --output-dir ./scout-runs/lacoste
 ```
 
@@ -111,7 +110,6 @@ The skill is a playbook. It should choose the lightest available path:
 | `prism` | Algolia prospect research bundle | company, careers, investor, news records |
 | `investor` | IR pages, filings, reports, decks, events | `investor_asset.v1` |
 | `careers` | Careers page, ATS, departments, hiring signals | `career_site.v1` |
-| `jobs` | Job extraction, matching, scoring, monitoring | `job_posting.v1` |
 | `products` | Product/category extraction for Algolia | product records |
 | `news` | Newsroom/blog/recent announcements | `news_signal.v1` |
 | `research` | Generic web/page/document research | `research_record.v1` |
@@ -124,7 +122,7 @@ Scout validates against a balanced target matrix rather than a SaaS-only sample:
 - Private retail commerce: L.L.Bean, Patagonia
 - Public companies: Adobe, Home Depot
 - Specialized primary targets: Estée Lauder for hard-site retail behavior and
-  British Airways for travel/research/website-quality behavior
+  British Airways for travel/research behavior
 
 Secondary targets include Nike, Amplience, Salesforce, and Intuit. The
 executable registry lives in `scout.core.platform.targets`; see

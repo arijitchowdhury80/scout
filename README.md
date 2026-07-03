@@ -14,7 +14,7 @@ Scout focuses on:
 
 - evidence-first acquisition: source pages, blocked evidence, screenshots, reports, and artifacts;
 - browser/session handoff: structure pages visible in a browser without pretending every block can be magically bypassed;
-- records, not blobs: product, company, careers, investor, news, docs, research, and website-quality records;
+- records, not blobs: product, company, careers, investor, news, docs, research, and location records;
 - downstream readiness: Algolia preview/push, JSON/JSONL records, run folders, and agent/tool integration;
 - local and self-hosted operation for workflows where control matters.
 
@@ -617,8 +617,7 @@ Run a high-level intelligence workflow. Each use case has a dedicated runner tha
 | `research` | Blog posts, whitepapers, technical documentation | `https://stripe.com` |
 | `social` | Social media profiles — LinkedIn, Twitter, Facebook, YouTube | `https://stripe.com` |
 | `locations` | Office addresses, phone numbers, GPS coordinates | `https://stripe.com` |
-| `website-quality` | SEO signals, structured data, accessibility, performance indicators | `https://stripe.com` |
-| `prism` | **All 8 verticals above in one call** — full company dossier | `https://stripe.com` |
+| `prism` | Company, careers, investor, news, and social evidence in one call | `https://stripe.com` |
 | `products` | Product catalog (delegates to `/products` engine) | `https://books.toscrape.com` |
 
 **Response:**
@@ -914,8 +913,7 @@ scout/
 │           ├── news.py
 │           ├── research.py
 │           ├── social.py
-│           ├── locations.py
-│           └── website_quality.py
+│           └── locations.py
 ├── cli/                    # Internal command entry points
 └── skill/                  # Claude/Codex skill definition
 ```

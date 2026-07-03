@@ -14,7 +14,7 @@ of company or website.
 | Public company | Adobe | company, investor, careers, blogs/news |
 | Public company | Home Depot | public retail, investor, careers, product catalog, news |
 | Public / hard-site retail | Estée Lauder | hard-site product/category fallback and blocked-page handling |
-| Public travel / airline | British Airways | travel company intel, careers, research, website-quality |
+| Public travel / airline | British Airways | travel company intel, careers, research |
 
 ## Secondary Targets
 
@@ -23,16 +23,16 @@ of company or website.
 | Nike | public retail product/catalog and brand validation |
 | Amplience | alternate private B2B SaaS target |
 | Salesforce | optional public SaaS investor/careers/company validation |
-| Intuit | optional public careers/jobs validation |
+| Intuit | optional public careers validation |
 
 ## Coverage Rules
 
 - Company/PRISM: all primary targets.
 - Investor: Adobe, Home Depot, Estée Lauder if available through parent/public filings, British Airways if public-parent evidence is useful.
 - Products: L.L.Bean, Patagonia, Home Depot, Estée Lauder, and Nike.
-- Careers/jobs: all primary targets.
+- Careers: all primary targets.
 - News/blogs: all primary targets.
 - Hard-site behavior: Estée Lauder.
-- Travel/research/website-quality: British Airways.
+- Travel/research: British Airways.
 
 The executable source of truth lives in `scout.core.platform.targets`.

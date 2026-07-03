@@ -64,15 +64,15 @@ def test_write_run_artifacts_creates_standard_files(tmp_path) -> None:
 def test_write_run_artifacts_updates_manifest_counts(tmp_path) -> None:
     manifest = RunManifest(
         run_id="run_456",
-        use_case="jobs",
+        use_case="careers",
         started_at="2026-05-15T12:00:00Z",
         output_dir=str(tmp_path),
     )
     source = FetchResult(
         evidence=SourceEvidence(
             provider=FetchProviderKind.SAVED,
-            source_url="https://example.com/jobs",
-            final_url="https://example.com/jobs",
+            source_url="https://example.com/careers",
+            final_url="https://example.com/careers",
             fetched_at="2026-05-15T12:00:00Z",
         )
     )
@@ -80,7 +80,7 @@ def test_write_run_artifacts_updates_manifest_counts(tmp_path) -> None:
     write_run_artifacts(
         output_dir=tmp_path,
         manifest=manifest,
-        records=[{"objectID": "job_1"}, {"objectID": "job_2"}],
+        records=[{"objectID": "career_1"}, {"objectID": "career_2"}],
         sources=[source],
         blocked=[{"url": "https://example.com/blocked", "reason": "blocked"}],
         findings=[],

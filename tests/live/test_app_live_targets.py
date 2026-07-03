@@ -82,11 +82,6 @@ ADDITIONAL_TARGETS = [
     ("research", "Algolia", "https://www.algolia.com/"),
     ("social", "Algolia", "https://www.algolia.com/"),
     ("locations", "Home Depot", "https://www.homedepot.com/l/"),
-    (
-        "website-quality",
-        "British Airways",
-        "https://www.britishairways.com/content/information/about-ba",
-    ),
 ]
 
 
@@ -487,7 +482,7 @@ def _slug(value: str) -> str:
 
 
 def _certification_scenario_id(use_case: str, company: str) -> str:
-    area = {"news": "news_blogs", "website-quality": "website_quality"}.get(use_case, use_case)
+    area = {"news": "news_blogs"}.get(use_case, use_case)
     if area == "research":
         return "research.public.live"
     if area == "investor" and company == "Estée Lauder":

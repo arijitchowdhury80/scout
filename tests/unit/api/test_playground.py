@@ -28,19 +28,21 @@ ALL_PLAYGROUND_CAPABILITIES = {
     "scrape",
     "crawl",
     "map",
-    "extract",
     "screenshot",
     "products",
     "company",
-    "prism",
     "investor",
     "careers",
-    "jobs",
     "news",
-    "research",
-    "docs",
     "social",
     "locations",
+}
+INTERNAL_OR_UTILITY_WORKFLOWS = {
+    "extract",
+    "jobs",
+    "prism",
+    "research",
+    "docs",
     "website-quality",
 }
 
@@ -319,7 +321,7 @@ def test_playground_crawl_demo_is_public_limited_and_downloadable() -> None:
     assert crawler.crawl_request.timeout_ms <= 30_000
 
 
-def test_playground_capabilities_endpoint_lists_every_scout_feature() -> None:
+def test_playground_capabilities_endpoint_lists_public_demo_features_only() -> None:
     client = TestClient(app)
 
     resp = client.get("/v1/playground/capabilities")
@@ -327,7 +329,8 @@ def test_playground_capabilities_endpoint_lists_every_scout_feature() -> None:
     assert resp.status_code == 200
     payload = resp.json()
     capability_names = {capability["name"] for capability in payload["capabilities"]}
-    assert ALL_PLAYGROUND_CAPABILITIES.issubset(capability_names)
+    assert capability_names == ALL_PLAYGROUND_CAPABILITIES
+    assert capability_names.isdisjoint(INTERNAL_OR_UTILITY_WORKFLOWS)
     assert payload["limits"]["max_products"] == 10
     assert payload["limits"]["max_pages"] == 5
     assert payload["limits"]["max_records"] == 10
@@ -398,6 +401,29 @@ def test_playground_runs_all_scout_capabilities_with_public_caps() -> None:
         assert payload["downloads"]["json"]
         assert payload["downloads"]["markdown"]
         assert payload["download_filenames"]["json"] == f"scout-playground-{capability}.json"
+
+
+def test_playground_rejects_internal_utility_workflows() -> None:
+    crawler = _FakePlaygroundCrawler()
+    app.dependency_overrides[get_crawler] = lambda: crawler
+    try:
+        client = TestClient(app)
+        for workflow in sorted(INTERNAL_OR_UTILITY_WORKFLOWS):
+            resp = client.post(
+                "/v1/playground/run",
+                headers={"X-Forwarded-For": f"198.51.101.{len(workflow)}"},
+                json={
+                    "workflow": workflow,
+                    "url": "https://example.com",
+                    "query": "Demo Company",
+                    "max_items": 99,
+                    "output_format": "json",
+                },
+            )
+            assert resp.status_code == 400, workflow
+            assert "Unsupported playground workflow" in resp.json()["detail"]
+    finally:
+        app.dependency_overrides.clear()
 
 
 def test_playground_rejects_private_or_local_urls_without_running() -> None:

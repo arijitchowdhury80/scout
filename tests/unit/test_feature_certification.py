@@ -179,14 +179,14 @@ def test_load_certification_evidence_from_directory(tmp_path: Path) -> None:
         ),
         encoding="utf-8",
     )
-    (evidence_dir / "jobs.fixture.json").write_text(
+    (evidence_dir / "careers.fixture.json").write_text(
         json.dumps(
             {
-                "scenario_id": "jobs.fixture",
+                "scenario_id": "careers.fixture",
                 "status": "success",
-                "records": [{"record_type": "job_posting", "title": "Director"}],
-                "sources": [{"source_id": "src_job", "url": "https://example.com/jobs"}],
-                "citations": [{"source_id": "src_job"}],
+                "records": [{"record_type": "career_site", "careers_url": "https://example.com/careers"}],
+                "sources": [{"source_id": "src_careers", "url": "https://example.com/careers"}],
+                "citations": [{"source_id": "src_careers"}],
                 "raw_response": {"source": "unit-test"},
             }
         ),
@@ -195,8 +195,8 @@ def test_load_certification_evidence_from_directory(tmp_path: Path) -> None:
 
     evidence = load_certification_evidence(evidence_dir)
 
-    assert sorted(evidence) == ["company.fixture", "jobs.fixture"]
-    assert evidence["jobs.fixture"].record_count == 1
+    assert sorted(evidence) == ["careers.fixture", "company.fixture"]
+    assert evidence["careers.fixture"].record_count == 1
 
 
 def test_generate_service_certification_evidence_closes_l1_fixture_gaps(tmp_path: Path) -> None:
@@ -221,13 +221,11 @@ def test_generate_service_certification_evidence_closes_l1_fixture_gaps(tmp_path
         "prism.fixture",
         "investor.fixture",
         "careers.fixture",
-        "jobs.fixture",
         "news_blogs.fixture",
         "research.fixture",
         "docs.fixture",
         "social.fixture",
         "locations.fixture",
-        "website_quality.fixture",
         "cli.smoke",
         "api.contract",
         "persistence_sse.restart",

@@ -23,7 +23,6 @@ _REAL_RUNNERS = {
     "docs",
     "social",
     "locations",
-    "website-quality",
     "products",
 }
 _LIVE_MODES = {"auto", "crawl4ai", "browser", "user-browser"}
@@ -46,11 +45,6 @@ async def run_use_case(req: RunRequest, crawler: "ScoutCrawler | None" = None) -
             output_dir=req.output_dir,
             error=f"Unsupported use case: {req.use_case}",
         )
-    if req.use_case == "jobs":
-        from scout.core.use_cases.jobs_runner import run_jobs_use_case
-
-        return run_jobs_use_case(req)
-
     if _should_use_real_runner(req, crawler):
         assert crawler is not None
         return await _run_real_vertical(req, crawler, use_case.description)
@@ -65,7 +59,6 @@ async def run_use_case(req: RunRequest, crawler: "ScoutCrawler | None" = None) -
         "prism",
         "investor",
         "research",
-        "website-quality",
         "docs",
         "news",
         "social",
@@ -161,10 +154,6 @@ async def _run_real_vertical(
             from scout.core.use_cases.runners.locations import run_locations
 
             records = await run_locations(req, crawler)
-        elif req.use_case == "website-quality":
-            from scout.core.use_cases.runners.website_quality import run_website_quality
-
-            records = await run_website_quality(req, crawler)
         elif req.use_case == "products":
             from scout.core.types import ProductCrawlRequest
 
@@ -215,7 +204,7 @@ async def _run_real_vertical(
 
 
 async def _run_prism(req: RunRequest, crawler: "ScoutCrawler", description: str) -> RunResponse:
-    """PRISM = all intelligence verticals combined."""
+    """Run the bounded PRISM prospect bundle by composing atomic runners."""
     from scout.core.use_cases.runners.careers import run_careers
     from scout.core.use_cases.runners.company import run_company
     from scout.core.use_cases.runners.investor import run_investor
@@ -230,7 +219,7 @@ async def _run_prism(req: RunRequest, crawler: "ScoutCrawler", description: str)
     errors: list[str] = []
 
     # PRISM V1 is the prospect-intelligence bundle: company/executive/social,
-    # careers, investor, and recent news. Keep broader research/docs/quality
+    # careers, investor, and recent news. Keep broader research/docs
     # workflows as explicit use cases so PRISM remains bounded for UI runs.
     for runner in [run_company, run_careers, run_investor, run_news, run_social]:
         try:

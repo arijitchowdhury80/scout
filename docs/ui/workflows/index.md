@@ -23,10 +23,9 @@ Scout uses one workspace with three run states:
 | PRISM company intelligence | `prism-company-intelligence.md` |
 | Company intelligence | `company-intelligence.md` |
 | Investor intelligence | `investor-intelligence.md` |
-| Careers and jobs | `careers-and-jobs.md` |
+| Careers and hiring signals | `careers-hiring-signals.md` |
 | News and blogs | `news-and-blogs.md` |
 | Research and documentation | `research-and-documentation.md` |
-| Website quality | `website-quality.md` |
 | History, presets, and targets | `history-presets-targets.md` |
 | Data, integrations, settings, and help | `data-integrations-settings-help.md` |
 

@@ -29,7 +29,7 @@ Implementation seed:
   localhost, unsafe IP literals, unsafe resolved IPs, and unsafe redirect hops;
 - hosted scrape, crawl, products, and high-level run endpoints now enforce
   admission-layer URL safety before crawler invocation or credit debit;
-- high-level runs validate URL-like values in `url`, `targets`, and `job_urls`;
+- high-level runs validate URL-like values in `url` and `targets`;
 - public hosted launch still needs deployment egress policy and proof that every
   crawler redirect/retry path is revalidated.
 

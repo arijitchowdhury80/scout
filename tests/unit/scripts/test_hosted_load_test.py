@@ -33,7 +33,9 @@ def test_hosted_load_test_dry_run_covers_250_user_hosted_surface() -> None:
     assert "POST /v1/hosted/products" in payload["endpoints"]
     assert "POST /v1/hosted/run/company" in payload["endpoints"]
     assert "POST /v1/hosted/run/prism" in payload["endpoints"]
-    assert "POST /v1/hosted/run/website-quality" in payload["endpoints"]
+    assert "POST /v1/hosted/run/jobs" not in payload["endpoints"]
+    assert "POST /v1/hosted/run/website-quality" not in payload["endpoints"]
+    assert "POST /v1/hosted/run/locations" in payload["endpoints"]
     assert payload["targets"]["scrape_crawl_map"] == "https://www.wikimedia.org/"
     assert payload["targets"]["screenshot"] == "https://www.cnn.com/"
     assert payload["targets"]["products"] == "https://www.lacoste.com/us/"
@@ -59,8 +61,8 @@ def test_hosted_load_test_can_include_all_playground_workflows() -> None:
 
     payload = json.loads(result.stdout)
 
-    assert payload["requests_per_user"] >= 31
-    assert payload["total_planned_requests"] >= 7750
+    assert payload["requests_per_user"] >= 20
+    assert payload["total_planned_requests"] >= 5000
     assert set(payload["playground_endpoints"]) == {
         "scrape",
         "crawl",
@@ -68,16 +70,11 @@ def test_hosted_load_test_can_include_all_playground_workflows() -> None:
         "screenshot",
         "products",
         "company",
-        "prism",
         "investor",
         "careers",
-        "jobs",
         "news",
-        "research",
-        "docs",
         "social",
         "locations",
-        "website-quality",
     }
 
 

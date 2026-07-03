@@ -123,19 +123,14 @@ def test_hosted_run_rejects_unsafe_url_targets_without_running(monkeypatch) -> N
     assert balance.standard_credits_remaining == limits.standard_credits
 
 
-def test_hosted_run_rejects_unsafe_job_urls_without_running() -> None:
+def test_hosted_run_rejects_removed_jobs_workflow_without_running() -> None:
     account_service, raw_key, tenant_id = _account_service_with_key()
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
     try:
         client = TestClient(app)
         resp = client.post(
             "/v1/hosted/run/jobs",
-            json={
-                "query": "partnerships",
-                "mode": "saved",
-                "job_urls": ["file:///etc/passwd"],
-                "max_records": 2,
-            },
+            json={"query": "partnerships", "mode": "saved", "max_records": 2},
             headers={"Authorization": f"Bearer {raw_key}"},
         )
     finally:
@@ -143,8 +138,8 @@ def test_hosted_run_rejects_unsafe_job_urls_without_running() -> None:
 
     balance = account_service.get_balance(tenant_id)
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
-    assert resp.status_code == 403
-    assert resp.json()["detail"] == "Unsupported URL scheme: file."
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "Unsupported use case: jobs"
     assert balance.standard_credits_remaining == limits.standard_credits
 
 

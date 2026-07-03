@@ -298,43 +298,15 @@ def _scenario_actuals(root: Path) -> dict[str, dict[str, Any]]:
         )
     ]
 
-    website_quality_records = [
-        _record(
-            "src_website_quality",
-            company_url,
-            record_type="website_quality",
-            object_id="website_quality_acme",
-            title="Acme website quality",
-            finding="Homepage has core metadata, semantic HTML, and image alt coverage gaps.",
-            has_viewport_meta=True,
-            has_description_meta=True,
-        )
-    ]
-
-    jobs_records = [
-        _record(
-            "src_jobs",
-            "fixture://tests/fixtures/jobs/greenhouse_eve_director_cs.html",
-            record_type="job_posting",
-            object_id="job_eve_4245857009",
-            title="Director Enterprise Customer Success",
-            company="Eve",
-            location="United States",
-            department="Customer Success",
-        )
-    ]
-
     verticals = {
         "company.fixture": company_records,
         "careers.fixture": careers_records,
         "investor.fixture": investor_records,
-        "jobs.fixture": jobs_records,
         "news_blogs.fixture": news_records,
         "research.fixture": research_records,
         "docs.fixture": docs_records,
         "social.fixture": social_records,
         "locations.fixture": location_records,
-        "website_quality.fixture": website_quality_records,
     }
 
     prism_records = [*company_records, *careers_records, *news_records]

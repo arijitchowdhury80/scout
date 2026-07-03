@@ -77,8 +77,8 @@ app = typer.Typer(
 )
 run_app = typer.Typer(
     help=(
-        "Run high-level Scout use cases: products, jobs, prism, investor, research, "
-        "website-quality, docs, news, social, locations."
+        "Run high-level Scout use cases: products, prism, investor, research, "
+        "docs, news, social, locations."
     )
 )
 app.add_typer(run_app, name="run")
@@ -300,7 +300,6 @@ def _run_high_level_use_case(
     query: str = "",
     output_dir: str = "",
     profile_path: str = "",
-    job_urls: list[str] | None = None,
     mode: str = "auto",
     workdir: str = "",
 ) -> None:
@@ -320,7 +319,6 @@ def _run_high_level_use_case(
                 query=query,
                 mode=mode,
                 profile_path=profile_path,
-                job_urls=job_urls or [],
                 output_dir=chosen_output,
             ),
             crawler,
@@ -352,31 +350,6 @@ def run_company(
     """Run company intelligence extraction."""
     _run_high_level_use_case(
         "company", query=query, output_dir=output_dir, mode=mode, workdir=workdir
-    )
-
-
-@run_app.command("jobs")
-def run_jobs(
-    query: str = typer.Option("", "--query", help="Use-case query"),
-    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
-    profile: str = typer.Option("", "--profile", help="Path to a JobSearchProfile YAML file"),
-    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
-    job_url: list[str] | None = typer.Option(
-        None,
-        "--job-url",
-        help="Seed job URL to extract and score. Repeat for multiple jobs.",
-    ),
-    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
-) -> None:
-    """Run job hunter extraction."""
-    _run_high_level_use_case(
-        "jobs",
-        query=query,
-        output_dir=output_dir,
-        profile_path=profile,
-        job_urls=job_url or [],
-        mode=mode,
-        workdir=workdir,
     )
 
 
@@ -429,19 +402,6 @@ def run_research(
     """Run generic web research extraction."""
     _run_high_level_use_case(
         "research", query=query, output_dir=output_dir, mode=mode, workdir=workdir
-    )
-
-
-@run_app.command("website-quality")
-def run_website_quality(
-    query: str = typer.Option("", "--query", help="Use-case query"),
-    mode: str = typer.Option("auto", "--mode", help=_MODE_HELP),
-    workdir: str = typer.Option("", "--workdir", help="Base directory for Scout run outputs"),
-    output_dir: str = typer.Option("", "--output-dir", help="Directory for run artifacts"),
-) -> None:
-    """Run website quality assessment."""
-    _run_high_level_use_case(
-        "website-quality", query=query, output_dir=output_dir, mode=mode, workdir=workdir
     )
 
 

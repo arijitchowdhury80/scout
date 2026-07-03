@@ -254,7 +254,7 @@ STRUCTURE_TESTS = [
         use_case="structure",
         site="inline HTML (job listings)",
         description="Structure captured HTML — extract job listings",
-        why="Tests CSS extraction on a different content type (jobs, not products).",
+        why="Tests CSS extraction on a different content type (careers pages, not products).",
         endpoint="/structure",
         payload={
             "html": """<html><body>
@@ -364,22 +364,6 @@ INTELLIGENCE_TESTS = [
         failure_criteria=[
             "success=false",
             "total_records = 0",
-        ],
-    ),
-    E2ETestCase(
-        use_case="run/website-quality",
-        site="https://stripe.com",
-        description="Audit Stripe's website quality",
-        why="Stripe has a well-built website. Tests SEO, structured data, accessibility signal extraction.",
-        endpoint="/run/website-quality",
-        payload={"url": "https://stripe.com", "mode": "auto"},
-        success_criteria=[
-            "success=true",
-            "total_records >= 1",
-            "use_case = 'website-quality'",
-        ],
-        failure_criteria=[
-            "success=false",
         ],
     ),
     E2ETestCase(

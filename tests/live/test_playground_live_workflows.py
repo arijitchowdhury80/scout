@@ -49,12 +49,6 @@ PLAYGROUND_LIVE_CASES: list[dict[str, Any]] = [
         "min_records": 1,
     },
     {
-        "workflow": "extract",
-        "url": "https://example.com",
-        "query": "Extract structured page data",
-        "min_records": 1,
-    },
-    {
         "workflow": "products",
         "url": "https://books.toscrape.com/",
         "query": "Extract book products",
@@ -64,12 +58,6 @@ PLAYGROUND_LIVE_CASES: list[dict[str, Any]] = [
         "workflow": "company",
         "url": "https://www.algolia.com",
         "query": "Algolia company overview",
-        "min_records": 1,
-    },
-    {
-        "workflow": "prism",
-        "url": "https://www.algolia.com",
-        "query": "Algolia PRISM bundle",
         "min_records": 1,
     },
     {
@@ -85,27 +73,9 @@ PLAYGROUND_LIVE_CASES: list[dict[str, Any]] = [
         "min_records": 1,
     },
     {
-        "workflow": "jobs",
-        "url": "https://jobs.ashbyhq.com/kong",
-        "query": "",
-        "min_records": 1,
-    },
-    {
         "workflow": "news",
         "url": "https://www.algolia.com/blog",
         "query": "Latest Algolia blogs",
-        "min_records": 1,
-    },
-    {
-        "workflow": "research",
-        "url": "https://openai.com/news",
-        "query": "OpenAI news research summary",
-        "min_records": 1,
-    },
-    {
-        "workflow": "docs",
-        "url": "https://www.algolia.com/doc/",
-        "query": "Algolia documentation records",
         "min_records": 1,
     },
     {
@@ -118,12 +88,6 @@ PLAYGROUND_LIVE_CASES: list[dict[str, Any]] = [
         "workflow": "locations",
         "url": "https://example.com",
         "query": "Location signals",
-        "min_records": 1,
-    },
-    {
-        "workflow": "website-quality",
-        "url": "https://example.com",
-        "query": "Website quality findings",
         "min_records": 1,
     },
 ]

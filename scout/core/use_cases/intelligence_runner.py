@@ -279,7 +279,7 @@ def records_for_use_case(req: RunRequest, source: FetchResult) -> list[dict]:
         return investor_records(req, source)
     if req.use_case == "news":
         return news_records(req, source)
-    if req.use_case in {"research", "docs", "website-quality", "social", "locations"}:
+    if req.use_case in {"research", "docs", "social", "locations"}:
         return research_records(req, source)
     if req.use_case == "products":
         return product_records(req, source)

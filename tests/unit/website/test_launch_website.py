@@ -638,30 +638,33 @@ def test_homepage_has_hosted_playground_controls_under_demo_flow() -> None:
     assert "Acquire" in html
     assert "Intelligence" in html
     assert "Commerce" in html
-    assert "Structured Records" in html
     assert "Evidence And Exports" not in html
+    assert "Structured Records" not in html
     assert 'id="playgroundForm"' in html
     assert 'name="workflow"' in html
     for capability in (
         "scrape",
         "crawl",
         "map",
-        "extract",
         "screenshot",
         "products",
         "company",
-        "prism",
         "investor",
         "careers",
-        "jobs",
         "news",
-        "research",
-        "docs",
         "social",
         "locations",
-        "website-quality",
     ):
         assert f'value="{capability}"' in html
+    for internal_or_utility in (
+        "extract",
+        "jobs",
+        "prism",
+        "research",
+        "docs",
+        "website-quality",
+    ):
+        assert f'value="{internal_or_utility}"' not in html
     assert 'id="playgroundUrl"' in html
     assert (
         'id="playgroundUrl"\n                      name="url"\n                      type="text"'

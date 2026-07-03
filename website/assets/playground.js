@@ -24,12 +24,6 @@
       maxItems: 1,
       placeholder: "https://example.com",
     },
-    extract: {
-      label: "Extract",
-      help: "Extract a small structured record from one public page.",
-      maxItems: 1,
-      placeholder: "https://example.com",
-    },
     products: {
       label: "Products",
       help: "Extract up to ten product records with source citations when available.",
@@ -39,12 +33,6 @@
     company: {
       label: "Company intelligence",
       help: "Build company overview, about, leadership, social, and URL evidence records.",
-      maxItems: 10,
-      placeholder: "https://www.algolia.com",
-    },
-    prism: {
-      label: "PRISM company bundle",
-      help: "Bundle company, careers, investor, news, and social evidence for prospect research.",
       maxItems: 10,
       placeholder: "https://www.algolia.com",
     },
@@ -59,12 +47,6 @@
       help: "Find career pages, ATS hints, departments, and hiring signals.",
       maxItems: 10,
       placeholder: "https://www.adobe.com/careers.html",
-    },
-    jobs: {
-      label: "Jobs",
-      help: "Extract job records from supplied public job or career URLs.",
-      maxItems: 10,
-      placeholder: "https://jobs.example.com",
     },
     news: {
       label: "News and blogs",
@@ -83,24 +65,6 @@
       help: "Extract store, office, or location page signals when public pages expose them.",
       maxItems: 10,
       placeholder: "https://www.homedepot.com",
-    },
-    "website-quality": {
-      label: "Website quality",
-      help: "Return evidence-backed UX, content, metadata, and technical quality findings.",
-      maxItems: 10,
-      placeholder: "https://www.britishairways.com",
-    },
-    research: {
-      label: "Research",
-      help: "Turn a public page into cited research records and a concise summary.",
-      maxItems: 10,
-      placeholder: "https://openai.com/news",
-    },
-    docs: {
-      label: "Documentation",
-      help: "Turn public docs pages into reusable records with source URLs.",
-      maxItems: 10,
-      placeholder: "https://www.algolia.com/doc/",
     },
   };
 

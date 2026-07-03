@@ -102,7 +102,6 @@ scout run investor --query Salesforce --mode auto --output-dir ./scout-runs/sale
 scout run prism --query Nike --mode auto --output-dir ./scout-runs/nike-prism
 scout run news --query "Adobe AI announcements" --mode websearch --output-dir ./scout-runs/adobe-news
 scout run research --query "companies with weak ecommerce search UX" --mode auto --output-dir ./scout-runs/research
-scout run jobs --profile ./private-job-profile.yaml --mode api --output-dir ./scout-runs/jobs
 scout run products --query "top skincare products" --mode auto --output-dir ./scout-runs/products
 ```
 
@@ -184,13 +183,6 @@ hiring signals.
 
 Output record: `career_site.v1`.
 
-### Jobs
-
-Use for job extraction, matching, scoring, monitoring, and quality filtering.
-Do not auto-apply. Keep private profiles outside the public repo.
-
-Output record: `job_posting.v1`.
-
 ### Products
 
 Use for product/category extraction and Algolia-ready records. Prefer explicit
@@ -209,8 +201,8 @@ Output record: `news_signal.v1`.
 
 ### Research
 
-Use for generic page, site, document, website-quality, documentation, and market
-research workflows.
+Use for generic page, site, document, documentation, and market research
+workflows.
 
 Output record: `research_record.v1`.
 

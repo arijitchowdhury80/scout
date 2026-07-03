@@ -64,33 +64,6 @@ Records:
 
 Test targets: all primary targets in [docs/target-matrix.md](target-matrix.md).
 
-## Job Hunter
-
-Goal: find and score high-quality roles against a private profile. Scout should
-first discover likely companies, then find roles at those companies, then score
-jobs by title, seniority, compensation, location, skills, and strategic fit.
-
-```bash
-scout run jobs \
-  --profile ./private-job-profile.yaml \
-  --job-url https://job-boards.greenhouse.io/eve/jobs/4245857009 \
-  --mode api \
-  --output-dir ./scout-runs/job-hunter
-```
-
-Records:
-
-- `job_posting.v1`
-
-Boundaries:
-
-- Scout does not auto-apply.
-- Private resume-derived data belongs in ignored local profiles or vault files.
-- Public fixtures must stay sanitized.
-
-Test targets: all primary targets plus ATS fixtures for Greenhouse, Lever,
-Ashby, and Workday.
-
 ## Product Catalogs
 
 Goal: crawl product/category pages, extract product attributes, and prepare
@@ -148,8 +121,8 @@ including latest 3-5 blog posts when available.
 ## Generic Research
 
 Goal: retrieve and normalize page, site, or document evidence for broad web
-research. Examples include website quality research, documentation extraction,
-market mapping, and opportunity discovery.
+research. Examples include documentation extraction, market mapping, and
+opportunity discovery.
 
 ```bash
 scout run research --query "companies with weak ecommerce search UX" --mode auto --output-dir ./scout-runs/research

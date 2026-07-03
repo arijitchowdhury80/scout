@@ -36,7 +36,6 @@ Use-case set and ICP rationale: `docs/decisions/2026-06-13-scout-icp-and-use-cas
 | 04 | investor & filings (merged) | stub / absent | algolia-intel-investor |
 | 05 | tech-stack (NEW, DOM/network only) | absent | algolia-intel-techstack (DOM half) |
 | 06 | search-probe (NEW, needs embedded browser) | absent | algolia-audit-browser |
-| 07 | site-signals (was "website-quality") | stub | search audit |
 | 10 | products | LIVE | SE demo indexing |
 | 11 | bundle (incl. competitor-set variant) | stub | PRISM / algolia-audit-research |
 

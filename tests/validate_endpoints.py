@@ -866,11 +866,6 @@ class ScoutValidator:
                 "https://stripe.com",
                 "Office locations — addresses, phone numbers, coordinates",
             ),
-            (
-                "website-quality",
-                "https://stripe.com",
-                "Website quality audit — SEO, accessibility, structured data",
-            ),
         ]
 
         for uc, url, description in use_cases:

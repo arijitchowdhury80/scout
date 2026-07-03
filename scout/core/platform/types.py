@@ -118,7 +118,6 @@ class RunRequest(BaseModel):
     url: str = ""
     targets: list[str] = Field(default_factory=list)
     profile_path: str = ""
-    job_urls: list[str] = Field(default_factory=list)
     output_dir: str = ""
     providers: list[FetchProviderKind] = Field(default_factory=list)
     max_targets: int = Field(default=25, gt=0)

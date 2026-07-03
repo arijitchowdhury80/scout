@@ -19,10 +19,6 @@ _USE_CASES: dict[str, UseCaseMetadata] = {
         name="products",
         description="Product catalog extraction and Algolia-ready records.",
     ),
-    "jobs": UseCaseMetadata(
-        name="jobs",
-        description="Job hunter, company discovery, and career monitoring.",
-    ),
     "careers": UseCaseMetadata(
         name="careers",
         description="Careers page, ATS detection, departments, and hiring signals.",
@@ -38,10 +34,6 @@ _USE_CASES: dict[str, UseCaseMetadata] = {
     "research": UseCaseMetadata(
         name="research",
         description="Generic web research and opportunity discovery.",
-    ),
-    "website-quality": UseCaseMetadata(
-        name="website-quality",
-        description="Website quality and competitive gap analysis.",
     ),
     "docs": UseCaseMetadata(
         name="docs",

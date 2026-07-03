@@ -76,7 +76,6 @@ Scout includes V1 vertical runners for:
 - documentation sites,
 - social profile discovery,
 - locations/store locator signals,
-- website quality signals,
 - PRISM-style bundle runs.
 
 These runners are useful but should be described as V1 heuristic workflows. They

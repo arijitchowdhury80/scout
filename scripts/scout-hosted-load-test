@@ -115,16 +115,6 @@ PLAN = [
     ),
     PlannedRequest(
         "POST",
-        "/v1/hosted/run/jobs",
-        {
-            "query": "software engineer microsoft",
-            "job_urls": ["https://jobs.careers.microsoft.com/"],
-            "mode": "auto",
-            "max_records": 1,
-        },
-    ),
-    PlannedRequest(
-        "POST",
         "/v1/hosted/run/news",
         {
             "query": "Microsoft news",
@@ -168,16 +158,6 @@ PLAN = [
         "/v1/hosted/run/locations",
         {
             "query": "Microsoft locations",
-            "url": "https://www.microsoft.com/",
-            "mode": "auto",
-            "max_records": 1,
-        },
-    ),
-    PlannedRequest(
-        "POST",
-        "/v1/hosted/run/website-quality",
-        {
-            "query": "Microsoft website quality",
             "url": "https://www.microsoft.com/",
             "mode": "auto",
             "max_records": 1,
@@ -228,11 +208,6 @@ PLAYGROUND_PLAN = [
     PlannedRequest(
         "POST",
         "/v1/playground/run",
-        {"workflow": "prism", "url": "https://www.microsoft.com/", "query": "Microsoft"},
-    ),
-    PlannedRequest(
-        "POST",
-        "/v1/playground/run",
         {"workflow": "investor", "url": "https://www.microsoft.com/en-us/investor"},
     ),
     PlannedRequest(
@@ -243,22 +218,7 @@ PLAYGROUND_PLAN = [
     PlannedRequest(
         "POST",
         "/v1/playground/run",
-        {"workflow": "jobs", "url": "https://jobs.careers.microsoft.com/"},
-    ),
-    PlannedRequest(
-        "POST",
-        "/v1/playground/run",
         {"workflow": "news", "url": "https://news.microsoft.com/"},
-    ),
-    PlannedRequest(
-        "POST",
-        "/v1/playground/run",
-        {"workflow": "research", "url": "https://www.microsoft.com/en-us/research/"},
-    ),
-    PlannedRequest(
-        "POST",
-        "/v1/playground/run",
-        {"workflow": "docs", "url": "https://learn.microsoft.com/"},
     ),
     PlannedRequest(
         "POST",
@@ -269,11 +229,6 @@ PLAYGROUND_PLAN = [
         "POST",
         "/v1/playground/run",
         {"workflow": "locations", "url": "https://www.microsoft.com/"},
-    ),
-    PlannedRequest(
-        "POST",
-        "/v1/playground/run",
-        {"workflow": "website-quality", "url": "https://www.microsoft.com/"},
     ),
 ]
 
@@ -287,10 +242,10 @@ def build_parser() -> argparse.ArgumentParser:
             "/v1/hosted/crawl, /v1/hosted/map, /v1/hosted/screenshot, "
             "/v1/hosted/products, /v1/hosted/run/company, "
             "/v1/hosted/run/prism, /v1/hosted/run/investor, "
-            "/v1/hosted/run/careers, /v1/hosted/run/jobs, "
+            "/v1/hosted/run/careers, "
             "/v1/hosted/run/news, /v1/hosted/run/research, "
             "/v1/hosted/run/docs, /v1/hosted/run/social, "
-            "/v1/hosted/run/locations, /v1/hosted/run/website-quality, "
+            "/v1/hosted/run/locations, "
             "/v1/hosted/runs. Add --include-playground for all public "
             "/v1/playground/run workflows."
         ),

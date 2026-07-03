@@ -447,19 +447,6 @@ separate security review.
 HTTP, Docker, scheduled jobs, and skill calls do not prompt. Configure
 `SCOUT_WORKDIR` or send `output_dir` in the request body.
 
-Job Hunter URL-seeded runs:
-
-```bash
-scout run jobs \
-  --profile ./private-job-profile.yaml \
-  --job-url https://job-boards.greenhouse.io/eve/jobs/4245857009 \
-  --output-dir ./scout-runs/jobs
-```
-
-Candidate profiles often contain private career, compensation, and resume-derived
-data. Keep those files outside the public repository and pass them by path at
-runtime. Public examples should use generic/sanitized profiles only.
-
 Every `scout run` workflow writes the same standard artifact set:
 
 ```text

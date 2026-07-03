@@ -38,8 +38,8 @@ paths.
 The matrix covers:
 
 - core modes: scrape, crawl, map, extract, screenshot, products
-- intelligence: company, PRISM, investor, careers, jobs, news/blogs, research,
-  docs, social, locations, website quality
+- intelligence: company, PRISM, investor, careers, news/blogs, research,
+  docs, social, locations
 - browser/CDP capture capability for blocked or user-session pages
 - product-to-Algolia path
 - CLI, API, run persistence/artifacts, Docker/distribution, docs
