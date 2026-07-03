@@ -371,9 +371,10 @@ async def hosted_beta_key(
     req: HostedBetaKeyRequest,
     request: Request,
     account_service: HostedAccountService = Depends(get_hosted_account_service),
+    delivery_service: HostedApiKeyDeliveryService = Depends(get_hosted_key_delivery_service),
     signup_rate_limiter: HostedRateLimiter = Depends(get_hosted_beta_signup_rate_limiter),
 ) -> HostedBetaKeyResponse | JSONResponse:
-    """Record a hosted beta request without issuing a key from the public route."""
+    """Register a hosted beta tester and email the one-time raw API key."""
     if not settings.hosted_beta_signup_enabled:
         raise HTTPException(
             status_code=503,
@@ -381,30 +382,128 @@ async def hosted_beta_key(
         )
     _enforce_beta_signup_rate_limit(signup_rate_limiter, request)
 
-    pending_signup_exists = _pending_signup_exists(account_service, str(req.email))
-    if not pending_signup_exists:
+    existing_tenant = account_service.find_tenant_by_email(str(req.email))
+    if existing_tenant is not None:
+        key_id = account_service.latest_key_id_for_tenant(existing_tenant.tenant_id)
         account_service.record_signup_event(
             _signup_event(
                 req,
-                status="pending_delivery",
-                delivery_status="pending_delivery",
-                reason="Awaiting card-backed beta setup or operator delivery.",
+                status="duplicate",
+                tenant_id=existing_tenant.tenant_id,
+                key_id=key_id,
+                delivery_status="account_exists",
+                reason="Hosted Scout account already exists for this email.",
             )
         )
-    return JSONResponse(
-        status_code=202,
-        content=_pending_beta_key_response(
-            req,
-            warning=(
-                "Your beta registration is already recorded. Scout will email your API key "
-                "after card-backed beta setup or operator delivery."
+        return JSONResponse(
+            status_code=202,
+            content=HostedBetaKeyResponse(
+                success=True,
+                tenant_id=existing_tenant.tenant_id,
+                key_id=key_id,
+                name=existing_tenant.name,
+                email=str(existing_tenant.email),
+                plan=existing_tenant.plan.value,
+                scopes=["runs:create"],
+                standard_credits_remaining=account_service.get_balance(
+                    existing_tenant.tenant_id
+                ).standard_credits_remaining,
+                browser_credits_remaining=account_service.get_balance(
+                    existing_tenant.tenant_id
+                ).browser_credits_remaining,
+                delivery_status="account_exists",
+                warning=(
+                    "A hosted Scout account already exists for this email. "
+                    "Use the original key or request a replacement."
+                ),
+            ).model_dump(mode="json"),
+        )
+
+    pending_signup_exists = _pending_signup_exists(account_service, str(req.email))
+    if not delivery_service.enabled:
+        if not pending_signup_exists:
+            account_service.record_signup_event(
+                _signup_event(
+                    req,
+                    status="pending_delivery",
+                    delivery_status="pending_delivery",
+                    reason="Awaiting hosted API-key email delivery configuration.",
+                )
             )
-            if pending_signup_exists
-            else (
-                "Scout recorded your beta registration. Scout will email your API key "
-                "after card-backed beta setup or operator delivery."
-            ),
-        ).model_dump(mode="json"),
+        return JSONResponse(
+            status_code=202,
+            content=_pending_beta_key_response(
+                req,
+                warning=(
+                    "Your beta registration is already recorded. Scout will email your API key "
+                    "after email delivery is configured."
+                )
+                if pending_signup_exists
+                else (
+                    "Scout recorded your beta registration. Scout will email your API key "
+                    "after email delivery is configured."
+                ),
+            ).model_dump(mode="json"),
+        )
+
+    provisioned = account_service.provision_account(
+        email=str(req.email),
+        name=req.name,
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+        key_name=req.key_name,
+    )
+    delivery = delivery_service.deliver(
+        HostedApiKeyDeliveryRequest(
+            email=provisioned.tenant.email,
+            name=provisioned.tenant.name,
+            tenant_id=provisioned.tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            plan=provisioned.tenant.plan,
+            package_id="beta_trial",
+            standard_credits=100,
+            browser_credits=0,
+            trial_days=30,
+            raw_api_key=provisioned.raw_api_key,
+            checkout_session_id="beta_email_registration",
+        )
+    )
+    if not delivery.delivered:
+        account_service.delete_account(provisioned.tenant.tenant_id)
+        account_service.record_signup_event(
+            _signup_event(
+                req,
+                status="failed",
+                tenant_id=provisioned.tenant.tenant_id,
+                key_id=provisioned.api_key.key_id,
+                delivery_status=delivery.delivery_status,
+                reason=delivery.reason,
+            )
+        )
+        raise HTTPException(status_code=502, detail=delivery.reason)
+
+    balance = account_service.get_balance(provisioned.tenant.tenant_id)
+    account_service.record_signup_event(
+        _signup_event(
+            req,
+            status="delivered",
+            tenant_id=provisioned.tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            delivery_status=delivery.delivery_status,
+        )
+    )
+    return HostedBetaKeyResponse(
+        success=True,
+        tenant_id=provisioned.tenant.tenant_id,
+        key_id=provisioned.api_key.key_id,
+        name=provisioned.tenant.name,
+        email=str(provisioned.tenant.email),
+        plan=provisioned.tenant.plan.value,
+        scopes=["runs:create"],
+        standard_credits_remaining=balance.standard_credits_remaining,
+        browser_credits_remaining=balance.browser_credits_remaining,
+        delivery_status=delivery.delivery_status,
+        warning="Scout emailed your beta tester API key. Check your inbox and keep it private.",
     )
 
 

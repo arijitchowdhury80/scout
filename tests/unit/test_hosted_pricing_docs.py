@@ -23,7 +23,7 @@ def test_unit_economics_doc_records_pay_as_you_go_candidate() -> None:
         "Estimated cost for 1,000 standard credits: $2.59",
         "Estimated gross margin: 74.1%",
         "Break-even: 17 packs/month",
-        "Beta trial: 30 days, 100 standard credits, card-backed $0 setup when Stripe and SMTP are configured",
+        "Beta trial: 30 days, 100 standard credits, name/email registration, and SMTP API-key delivery when configured",
     ]
 
     for marker in expected:
@@ -44,7 +44,7 @@ def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     assert "Public beta testers start access on `/beta`" in doc
     assert "Public signup never shows the raw key in the browser" in normalized_doc
     assert "Paid Stripe checkout forms are available from `/pricing`" in normalized_doc
-    assert "$0 beta setup flow" in normalized_doc
+    assert "name/email api-key registration through `/v1/hosted/beta-key`" in normalized_doc.lower()
     assert (
         "successful paid checkout additionally depends on configured stripe"
         in normalized_doc.lower()
@@ -55,16 +55,16 @@ def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     assert "Pay-as-you-go pricing candidate" in doc
 
 
-def test_distribution_docs_make_card_backed_beta_setup_the_live_path() -> None:
+def test_distribution_docs_make_email_beta_registration_the_live_path() -> None:
     doc = _read("docs/distribution.md")
     normalized_doc = " ".join(doc.split())
 
     assert "Public hosted beta starts at `/beta`" in normalized_doc
     assert "`/v1/hosted/beta-key`" in doc
-    assert "`ready_for_beta_checkout`" in doc
+    assert "`ready_for_beta_key_delivery`" in doc
     assert "name/email request through `/v1/hosted/beta-key`" in normalized_doc
     assert "only a request queue, not a completed beta onboarding pipeline" in normalized_doc
-    assert "card-backed $0 setup" in normalized_doc
+    assert "SMTP key delivery" in doc
 
 
 def test_stripe_redirect_examples_use_hosted_pricing_page_not_localhost() -> None:

@@ -8,7 +8,7 @@ Status: Launch candidate model defined; final paid launch still requires founder
 Recommended launch candidate as of 2026-07-03:
 
 - Local Scout remains free.
-- Beta trial: 30 days, 100 standard credits, card-backed $0 setup when Stripe and SMTP are configured. Until then, `/beta` records name/email requests for queued delivery.
+- Beta trial: 30 days, 100 standard credits, name/email registration, and SMTP API-key delivery when configured. Until then, `/beta` records name/email requests for queued delivery.
 - First pay-as-you-go package: $10 for 1,000 standard credits.
 - The $10 / 1,000-credit package provisions or upgrades the account to
   `hosted_starter` limits. The $100 / 15,000-credit package provisions or
@@ -75,7 +75,7 @@ The current recommended direction is:
 
 - local Scout remains free for users who bring their own compute, browser,
   storage, and keys;
-- hosted Scout starts with a small free allowance through card-backed beta setup or queued name/email requests while Stripe/SMTP configuration is incomplete;
+- hosted Scout starts with a small free allowance through name/email beta registration or queued name/email requests while SMTP delivery is incomplete;
 - paid hosted Scout should be pay-as-you-go or prepaid credits first;
 - subscriptions should come later only if usage telemetry proves predictable
   recurring value;
@@ -212,9 +212,9 @@ public website must not show `$22`, `$9/month`, or any other arbitrary hosted
 price. It can say:
 
 ```text
-Local Scout is free during beta. Hosted Scout is metered. Beta access uses a
-card-backed $0 setup once Stripe and SMTP are configured; before that, `/beta`
-records name/email requests for queued API-key delivery. Pricing is based on
+Local Scout is free during beta. Hosted Scout is metered. Beta access uses
+name/email registration and SMTP API-key delivery once configured; before that,
+`/beta` records name/email requests for queued API-key delivery. Pricing is based on
 actual compute, browser, LLM, storage, security, and support costs.
 ```
 

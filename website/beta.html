@@ -98,13 +98,11 @@ scout launch-readiness --require-public</code></pre>
             <p class="wi-label wi-label--accent">Hosted beta registration</p>
             <h2>Register and receive your API key by email.</h2>
             <p>
-              Register with your name and email. When Stripe setup is ready,
-              Scout sends you through a $0 card-backed beta setup flow. Scout
-              records the tester, provisions a finite-credit hosted beta key from the
-              signed webhook, and emails the API key to the address you provide.
-              If checkout is not configured yet, Scout records the request and
-              follows up after card-backed setup or operator delivery. Public
-              signup never shows raw keys in the browser.
+              Register with your name and email. Scout provisions a finite-credit
+              hosted beta key for the tester and emails the API key
+              to the address you provide. If email delivery is not configured
+              yet, Scout records the request and follows up after delivery is
+              enabled. Public signup never shows raw keys in the browser.
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted beta API key registration">
@@ -112,9 +110,7 @@ scout launch-readiness --require-public</code></pre>
               id="hostedKeyForm"
               class="beta-form"
               data-endpoint="/v1/hosted/beta-key"
-              data-checkout-endpoint="/v1/billing/stripe/checkout-session"
               data-status-endpoint="/v1/billing/stripe/status"
-              data-ready-flag="ready_for_beta_checkout"
             >
               <label for="hostedKeyName">Name or app name</label>
               <input
@@ -147,9 +143,9 @@ scout launch-readiness --require-public</code></pre>
 
               <button class="wi-btn" type="submit">Register for Beta API Key</button>
               <p id="hostedKeyStatus" class="beta-status" role="status" aria-live="polite">
-                Hosted beta registration uses card-backed setup when Stripe is
-                ready. Until then, Scout records your request for card-backed
-                setup or operator delivery.
+                Hosted beta registration emails a finite-credit API key when
+                delivery is configured. Until then, Scout records your request
+                for follow-up.
               </p>
               <p class="beta-note">
                 The beta trial includes 100 standard credits for 30 days.

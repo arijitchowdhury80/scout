@@ -8,21 +8,20 @@ Status: private beta operations
 Scout hosted beta has API-key based access, not a login system.
 
 - Public beta testers start access on `/beta`, which posts name and email to
-  `POST /v1/hosted/beta-key` only while card-backed setup is not ready. That
-  public route records a pending tester request; it does not provision a
-  tenant, email a key, or bypass card-backed setup. Public signup never shows
+  `POST /v1/hosted/beta-key`. When hosted beta signup and SMTP delivery are
+  configured, the public route provisions a finite-credit beta tenant, emails
+  the one-time API key, and records the signup event. When SMTP delivery is not
+  configured, it records a pending tester request. Public signup never shows
   the raw key in the browser.
 - Paid hosted credit packages start from `/pricing`, which posts to
-  `POST /v1/billing/stripe/checkout-session`. Stripe remains the paid
-  purchase path and the card-backed $0 beta setup path when hosted billing is
-  configured.
+  `POST /v1/billing/stripe/checkout-session`. Stripe remains the paid purchase
+  path for hosted credit packages.
 - Operators can provision a key from the Mac with `scripts/scout-hosted-admin generate-api-key`, which wraps the VPS `scout hosted-provision` command. The older `provision-key` alias remains available.
 - Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
-- Self-service card-backed setup emails the raw API key only after the signed
-  Stripe webhook provisions the account and SMTP delivery succeeds. Public
-  browser/API request capture never returns `raw_api_key`; operator CLI
-  provisioning is the only flow that prints the raw key once. Scout stores only
-  a hash.
+- Self-service beta registration emails the raw API key only after account
+  provisioning and SMTP delivery succeeds. Public browser/API request capture
+  never returns `raw_api_key`; operator CLI provisioning is the only flow that
+  prints the raw key once. Scout stores only a hash.
 - Queued beta signups can be inspected with `list-signups` and processed after
   SMTP configuration with `process-pending-signups`.
 - Testers can check non-secret registration state from `/beta` or
@@ -393,18 +392,18 @@ scripts/scout-hosted-admin readiness --json
 ```
 
 The underlying `GET /v1/billing/stripe/status` response is also operator
-actionable. In addition to booleans such as `ready_for_beta_key_delivery`,
-`ready_for_beta_checkout`, and `ready_for_paid_key_delivery`, it returns:
+actionable. In addition to booleans such as `ready_for_beta_key_delivery` and
+`ready_for_paid_key_delivery`, it returns:
 
 - `public_self_service_path`: currently
-  `email_beta_registration_with_checkout_hook`; beta testers should start at
-  `/beta`. When `ready_for_beta_checkout` is true, the beta form starts the
-  `$0` Stripe setup flow. When checkout is not ready, the same form records a
-  name/email request for later API-key delivery.
+  `email_beta_registration`; beta testers should start at `/beta`. When
+  `ready_for_beta_key_delivery` is true, the beta form registers the account
+  and emails the API key. When email delivery is not ready, the same form
+  records a name/email request for later API-key delivery.
 - `public_beta_key_endpoint`: the API endpoint used by `/beta` to register a
   beta tester and deliver the API key by email.
-- `public_beta_checkout_endpoint` and `public_paid_checkout_endpoint`: the
-  endpoint the website uses to create setup/payment Checkout Sessions.
+- `public_paid_checkout_endpoint`: the endpoint the website uses to create
+  paid credit-package Checkout Sessions.
 - `missing_environment_keys`: exact non-secret environment variable names still
   needed for checkout, webhook verification, paid price IDs, or SMTP delivery.
 - `missing_configuration`: machine-readable missing capability names such as
@@ -603,11 +602,10 @@ It does not return raw hosted API keys, key hashes, SMTP secrets, Stripe
 secrets, or customer payment details.
 
 Hosted self-service key generation intentionally does not use a shared password
-gate. The beta flow is name plus email capture, card-backed `$0` setup when
-ready, signed webhook account registration, key generation, and one-time
-API-key email delivery. When checkout is not ready, the public route records a
-request queue for later card-backed setup or protected operator delivery. Paid
-Stripe checkout remains the separate credit-package path.
+gate. The beta flow is name plus email capture, hosted account registration,
+key generation, and one-time API-key email delivery. When SMTP delivery is not
+ready, the public route records a request queue for later delivery. Paid Stripe
+checkout remains the separate credit-package path.
 
 ## Login And Signup Status
 
@@ -759,17 +757,17 @@ fully validated Stripe production flow.
 
 Pay-as-you-go pricing candidate:
 
-- Beta trial: 30 days, 100 standard credits, card-backed $0 setup when Stripe and SMTP are configured.
+- Beta trial: 30 days, 100 standard credits, name/email registration, and SMTP API-key delivery when configured.
 - First paid package: $10 for 1,000 standard credits.
 - A standard credit means one scrape, one returned crawl page, or one product/intelligence record.
 - Browser credits remain separately metered and are not included in the first public package.
 - Current default economics estimate $2.59 loaded cost, $7.41 gross profit, 74.1% gross margin, and break-even at 17 packs/month for the $10 package.
 - The pricing page exposes readiness-gated `$10`, `$25`, and `$100` hosted
-  credit checkout options. The beta page exposes card-backed $0 beta setup
-  when `ready_for_beta_checkout` is true, and otherwise records a name/email
-  request queue through `/v1/hosted/beta-key`. Successful beta setup depends on
-  configured Stripe Checkout, signed webhook delivery, and SMTP key delivery.
-  Successful paid checkout additionally depends on configured Stripe price IDs.
+  credit checkout options. The beta page exposes name/email API-key
+  registration through `/v1/hosted/beta-key`. Successful beta signup depends on
+  configured hosted beta signup and SMTP key delivery. Successful paid checkout
+  additionally depends on configured Stripe Checkout, signed webhook delivery,
+  SMTP key delivery, and Stripe price IDs.
 
 A production billing model should still add:
 

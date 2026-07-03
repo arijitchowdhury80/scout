@@ -373,12 +373,12 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
 
     assert response.status_code == 200
     data = response.json()
-    assert data["public_self_service_path"] == "email_beta_registration_with_checkout_hook"
+    assert data["public_self_service_path"] == "email_beta_registration"
     assert data["public_beta_key_endpoint"] == "/v1/hosted/beta-key"
-    assert data["public_beta_checkout_endpoint"] == "/v1/billing/stripe/checkout-session"
+    assert data["public_beta_checkout_endpoint"] == ""
     assert data["public_customer_portal_endpoint"] == ("/v1/billing/stripe/customer-portal-session")
     assert data["customer_next_actions"] == [
-        "Use /beta for card-backed $0 beta setup when ready; until then, Scout can record name/email requests for later API-key delivery.",
+        "Use /beta to register name/email and receive a hosted beta API key by email when delivery is configured.",
         "Use /pricing to buy paid credit packages when paid checkout readiness is true.",
     ]
     assert data["missing_environment_keys"] == [
@@ -399,7 +399,7 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
     assert "whsec_" not in response.text
 
 
-def test_stripe_status_requires_checkout_webhook_and_delivery_for_beta(monkeypatch) -> None:
+def test_stripe_status_requires_signup_and_email_delivery_for_beta(monkeypatch) -> None:
     service = RecordingStripeCheckoutService(
         StripeCheckoutResult(success=False),
         enabled=False,
@@ -449,7 +449,7 @@ def test_stripe_status_requires_checkout_webhook_and_delivery_for_beta(monkeypat
     )
 
 
-def test_stripe_status_reports_beta_checkout_readiness(monkeypatch) -> None:
+def test_stripe_status_reports_beta_key_delivery_readiness(monkeypatch) -> None:
     service = RecordingStripeCheckoutService(
         StripeCheckoutResult(success=True),
         enabled=True,
@@ -512,6 +512,7 @@ def test_stripe_status_keeps_paid_checkout_blocked_without_paid_price_ids(
     data = response.json()
     assert data["checkout_configured"] is True
     assert data["customer_portal_configured"] is False
+    assert data["ready_for_beta_key_delivery"] is True
     assert data["ready_for_beta_checkout"] is True
     assert data["ready_for_paid_key_delivery"] is False
     assert "stripe_customer_portal" in data["missing_configuration"]
@@ -525,7 +526,7 @@ def test_stripe_status_keeps_paid_checkout_blocked_without_paid_price_ids(
     assert "Configure Stripe price IDs for public paid packages." in data["operator_next_actions"]
 
 
-def test_stripe_status_does_not_enable_beta_without_checkout_webhook_and_delivery(
+def test_stripe_status_does_not_enable_beta_without_email_delivery(
     monkeypatch,
 ) -> None:
     service = RecordingStripeCheckoutService(

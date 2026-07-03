@@ -12,11 +12,11 @@ distribution paths.
 ## Hosted HTTP Beta
 
 Beta testers request finite-credit hosted access from `/beta`. The public beta
-flow collects name and email. When hosted billing is ready, the form starts a
-card-backed $0 `beta_trial` Stripe setup; the signed webhook provisions the
-finite-credit account and SMTP emails the API key once. When hosted billing is
-not ready, `/v1/hosted/beta-key` records a request queue only. Public
-browser/API signup never returns raw API keys and never issues a key directly.
+flow collects name and email. When hosted beta signup and SMTP delivery are
+ready, `POST /v1/hosted/beta-key` provisions the finite-credit beta account and
+SMTP emails the API key once. When SMTP delivery is not ready, the same route
+records a request queue only. Public browser/API signup never returns raw API
+keys.
 The delivery email is signed by Arijit Chowdhury, Founder, Chowmes, and
 includes the beta credit limit, account/balance link, usage ledger link,
 purchase history link, docs, pricing, secret-handling warning, and support
@@ -101,15 +101,13 @@ does not pass an exact `--output-dir` or JSON `output_dir`.
 ## Hosted Beta Configuration
 
 Local use does not require Stripe or SMTP. Public hosted beta starts at `/beta`.
-When the hosted stack is fully ready, testers register name/email, complete the
-card-backed $0 setup for the `beta_trial` Stripe flow, and receive the hosted
-API key by email after the signed webhook provisions the account. The beta path is fully
-live-ready when `ready_for_beta_checkout` is true. That requires
-`HOSTED_BETA_SIGNUP_ENABLED=true`, Stripe Checkout, a signed webhook, and SMTP
-key delivery. If checkout is not configured, `/beta` can still record a
-name/email request through `/v1/hosted/beta-key`, but that is only a request
-queue, not a completed beta onboarding pipeline. Public signup never returns
-raw API keys in the browser.
+When the hosted stack is fully ready, testers register name/email and receive
+the hosted API key by email after Scout provisions the account. The beta path is
+live-ready when `ready_for_beta_key_delivery` is true. That requires
+`HOSTED_BETA_SIGNUP_ENABLED=true` and SMTP key delivery. If SMTP is not
+configured, `/beta` can still record a name/email request through
+`/v1/hosted/beta-key`, but that is only a request queue, not a completed beta
+onboarding pipeline. Public signup never returns raw API keys in the browser.
 
 Hosted beta setup requires:
 
@@ -250,7 +248,7 @@ It returns booleans for checkout, webhook, key delivery, and end-to-end paid key
 delivery readiness plus the public self-service path and exact non-secret
 environment variable names that still need configuration. Production
 self-service should report
-`public_self_service_path: "email_beta_registration_with_checkout_hook"`
+`public_self_service_path: "email_beta_registration"`
 for beta access. It never returns Stripe, SMTP, or Scout API secret values.
 
 For a real Stripe test-mode smoke, start Scout with the Stripe and SMTP

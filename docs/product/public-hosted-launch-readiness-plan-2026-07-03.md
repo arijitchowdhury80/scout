@@ -50,11 +50,10 @@ Production domain: `https://scout.chowmes.com/`
 - `/api/docs` returns `403`, consistent with hosted-only production guard.
 - `/assets/hosted-keygen.js` is part of the public beta website for status and
   replacement-key support.
-- `/beta` exposes the public beta signup form. When Stripe checkout, signed
-  webhook provisioning, and SMTP delivery are configured, it starts a `$0`
-  card-backed beta setup through `POST /v1/billing/stripe/checkout-session`.
-  While checkout is paused, it falls back to queued name/email registration via
-  `POST /v1/hosted/beta-key`. If SMTP is missing, Scout records
+- `/beta` exposes the public beta signup form. When hosted beta signup and SMTP
+  delivery are configured, it registers name/email through
+  `POST /v1/hosted/beta-key`, provisions a finite-credit beta account, and
+  emails the one-time API key. If SMTP is missing, Scout records
   `pending_delivery` signups without creating accounts, keys, or credits.
 - `/pricing` exposes paid credit package information; the Stripe path requires
   Stripe price IDs, checkout URLs, webhook secret, and SMTP delivery before
