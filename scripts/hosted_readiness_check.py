@@ -13,10 +13,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
-try:
-    import certifi
-except ImportError:  # pragma: no cover - depends on caller environment
-    certifi = None
+import certifi
 
 
 SECRET_MARKERS = ("sk_test_", "sk_live_", "whsec_", "scout_live_")
@@ -72,8 +69,6 @@ def _ssl_context(url: str) -> ssl.SSLContext | None:
     """Return a certifi-backed TLS context for HTTPS URLs."""
     if not url.casefold().startswith("https://"):
         return None
-    if certifi is None:
-        return ssl.create_default_context()
     return ssl.create_default_context(cafile=certifi.where())
 
 
@@ -99,9 +94,7 @@ def run_readiness(base_url: str, timeout: float = 20.0) -> HostedReadinessResult
         if isinstance(package, dict)
     }
     packages_ok = {"beta_trial", "standard_1000"}.issubset(package_ids)
-    beta_signup_enabled = billing.get("beta_signup_enabled") is True
-    key_delivery_configured = billing.get("key_delivery_configured") is True
-    ready_for_beta_signup = beta_signup_enabled and key_delivery_configured
+    ready_for_beta_signup = billing.get("ready_for_beta_key_delivery") is True
     ready_for_paid_checkout = billing.get("ready_for_paid_key_delivery") is True
 
     blockers: list[str] = []
@@ -109,9 +102,12 @@ def run_readiness(base_url: str, timeout: float = 20.0) -> HostedReadinessResult
         blockers.append("health endpoint is not ok")
     if not packages_ok:
         blockers.append("billing packages are missing beta_trial or standard_1000")
-    if not beta_signup_enabled:
+    if billing.get("beta_signup_enabled") is not True:
         blockers.append("hosted beta signup disabled")
-    if not key_delivery_configured:
+    if (
+        billing.get("key_delivery_configured") is not True
+        and billing.get("key_delivery_response_fallback_enabled") is not True
+    ):
         blockers.append("hosted API key email delivery not configured")
     if billing.get("checkout_configured") is not True:
         blockers.append("Stripe Checkout not configured")
