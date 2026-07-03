@@ -23,10 +23,9 @@ Options:
   -h, --help     Show this help.
 
 Delivery:
-  Uses SmtpHostedApiKeyDeliveryService and requires HOSTED_KEY_DELIVERY_SMTP_HOST
-  plus HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL in the running container. Production
-  hosted delivery also requires HOSTED_KEY_DELIVERY_SMTP_USERNAME and
-  HOSTED_KEY_DELIVERY_SMTP_PASSWORD.
+  Uses SmtpHostedApiKeyDeliveryService. The running Scout container requires HOSTED_KEY_DELIVERY_SMTP_HOST, HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL,
+  HOSTED_KEY_DELIVERY_SMTP_USERNAME, and HOSTED_KEY_DELIVERY_SMTP_PASSWORD
+  before hosted key delivery is considered configured.
 
 Secret safety:
   This command does not print SMTP passwords, one-time API keys, or key hashes.

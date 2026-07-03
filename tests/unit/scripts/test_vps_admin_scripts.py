@@ -156,6 +156,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "Send a Scout hosted API-key delivery smoke-test email",
             "--email",
             "HOSTED_KEY_DELIVERY_SMTP_HOST",
+            "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL",
             "HOSTED_KEY_DELIVERY_SMTP_USERNAME",
             "HOSTED_KEY_DELIVERY_SMTP_PASSWORD",
             "No hosted account is created",
@@ -282,6 +283,12 @@ def test_send_test_email_script_uses_smoke_mode_and_never_prints_secret_values()
     assert "docker exec -i scout" in script_text
     assert "SmtpHostedApiKeyDeliveryService" in script_text
     assert "smoke_test=True" in script_text
+    assert (
+        "requires HOSTED_KEY_DELIVERY_SMTP_HOST, HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL,"
+        in script_text
+    )
+    assert "HOSTED_KEY_DELIVERY_SMTP_USERNAME, and HOSTED_KEY_DELIVERY_SMTP_PASSWORD" in script_text
+    assert "Production hosted delivery also requires" not in script_text
     assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" in script_text
     assert "raw_api_key=''" in script_text
     assert "key_hash" not in script_text
@@ -298,6 +305,12 @@ def test_process_pending_beta_signups_script_is_confirmed_and_never_prints_secre
     assert "pending_delivery" in script_text
     assert "pending_signup_requests" in script_text
     assert "SmtpHostedApiKeyDeliveryService" in script_text
+    assert (
+        "requires HOSTED_KEY_DELIVERY_SMTP_HOST, HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL,"
+        in script_text
+    )
+    assert "HOSTED_KEY_DELIVERY_SMTP_USERNAME, and HOSTED_KEY_DELIVERY_SMTP_PASSWORD" in script_text
+    assert "Production hosted delivery also requires" not in script_text
     assert "--dry-run" in script_text
     assert "--yes" in script_text
     assert "Refusing to process queued beta signups without --yes or --dry-run." in script_text

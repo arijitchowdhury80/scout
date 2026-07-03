@@ -12,9 +12,9 @@ Send a Scout hosted API-key delivery smoke-test email through the running VPS
 container.
 
 No hosted account is created. No credits are granted. No real API key is issued.
-The container must have HOSTED_KEY_DELIVERY_SMTP_HOST and
-HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL configured. Production hosted delivery also
-requires HOSTED_KEY_DELIVERY_SMTP_USERNAME and HOSTED_KEY_DELIVERY_SMTP_PASSWORD.
+The running Scout container requires HOSTED_KEY_DELIVERY_SMTP_HOST, HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL,
+HOSTED_KEY_DELIVERY_SMTP_USERNAME, and HOSTED_KEY_DELIVERY_SMTP_PASSWORD before
+hosted key delivery is considered configured.
 
 Options:
   --email EMAIL  Recipient for the smoke-test email. Required.
