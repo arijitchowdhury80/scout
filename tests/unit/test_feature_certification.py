@@ -184,7 +184,9 @@ def test_load_certification_evidence_from_directory(tmp_path: Path) -> None:
             {
                 "scenario_id": "careers.fixture",
                 "status": "success",
-                "records": [{"record_type": "career_site", "careers_url": "https://example.com/careers"}],
+                "records": [
+                    {"record_type": "career_site", "careers_url": "https://example.com/careers"}
+                ],
                 "sources": [{"source_id": "src_careers", "url": "https://example.com/careers"}],
                 "citations": [{"source_id": "src_careers"}],
                 "raw_response": {"source": "unit-test"},

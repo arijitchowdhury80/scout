@@ -135,6 +135,7 @@ STRIPE_SUCCESS_URL=https://your-domain.example/pricing?checkout=success
 STRIPE_CANCEL_URL=https://your-domain.example/pricing?checkout=cancelled
 STRIPE_BETA_SUCCESS_URL=https://your-domain.example/beta?checkout=success
 STRIPE_BETA_CANCEL_URL=https://your-domain.example/beta?checkout=cancelled
+STRIPE_PORTAL_RETURN_URL=https://your-domain.example/account
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
@@ -142,6 +143,10 @@ The `$0` `beta_trial` package runs through Stripe Checkout setup mode when
 `--package-id beta_trial` is used for test-mode smoke validation. That validates
 payment-method collection and webhook provisioning without charging the beta
 tester.
+
+Paid customers can manage billing through the authenticated account page, which
+creates a Stripe Customer Portal session through
+`/v1/billing/stripe/customer-portal-session`.
 
 When a paid checkout webhook uses an email that already has a hosted account,
 Scout treats the checkout as a credit top-up: it adds the purchased credits to

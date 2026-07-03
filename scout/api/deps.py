@@ -18,7 +18,12 @@ from scout.core.platform.payment_provisioning import (
     SQLiteHostedPaymentStore,
 )
 from scout.core.platform.hosted_rate_limit import HostedRateLimitConfig, HostedRateLimiter
-from scout.core.platform.stripe_checkout import StripeCheckoutConfig, StripeCheckoutService
+from scout.core.platform.stripe_checkout import (
+    StripeCheckoutConfig,
+    StripeCheckoutService,
+    StripeCustomerPortalConfig,
+    StripeCustomerPortalService,
+)
 
 
 def get_crawler(request: Request) -> ScoutCrawler:
@@ -73,6 +78,16 @@ def get_stripe_checkout_service(request: Request) -> StripeCheckoutService:
         request.app.state,
         "stripe_checkout_service",
         StripeCheckoutService(StripeCheckoutConfig()),
+    )
+    return service
+
+
+def get_stripe_customer_portal_service(request: Request) -> StripeCustomerPortalService:
+    """Return the Stripe Customer Portal service stored on app.state."""
+    service: StripeCustomerPortalService = getattr(
+        request.app.state,
+        "stripe_customer_portal_service",
+        StripeCustomerPortalService(StripeCustomerPortalConfig()),
     )
     return service
 

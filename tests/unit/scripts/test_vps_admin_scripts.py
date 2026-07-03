@@ -568,6 +568,7 @@ def test_validate_hosted_config_accepts_complete_beta_and_paid_config(tmp_path: 
                 "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled",
                 "STRIPE_BETA_SUCCESS_URL=https://scout.chowmes.com/beta?checkout=success",
                 "STRIPE_BETA_CANCEL_URL=https://scout.chowmes.com/beta?checkout=cancelled",
+                "STRIPE_PORTAL_RETURN_URL=https://scout.chowmes.com/account",
                 "STRIPE_WEBHOOK_SECRET=whsec_should_not_print",
             ]
         ),
@@ -615,6 +616,7 @@ def test_validate_hosted_config_warns_on_non_https_beta_redirects(tmp_path: Path
                 "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled",
                 "STRIPE_BETA_SUCCESS_URL=http://127.0.0.1/beta?checkout=success",
                 "STRIPE_BETA_CANCEL_URL=http://127.0.0.1/beta?checkout=cancelled",
+                "STRIPE_PORTAL_RETURN_URL=https://scout.chowmes.com/account",
                 "STRIPE_WEBHOOK_SECRET=whsec_should_not_print",
             ]
         ),
@@ -658,6 +660,7 @@ def test_configure_hosted_env_uses_allowlist_and_never_echoes_secret_values() ->
     assert "STRIPE_STANDARD_15000_PRICE_ID" in script_text
     assert "STRIPE_BETA_SUCCESS_URL" in script_text
     assert "STRIPE_BETA_CANCEL_URL" in script_text
+    assert "STRIPE_PORTAL_RETURN_URL" in script_text
     assert "scout-validate-hosted-config" in script_text
     assert "--require" in script_text
     assert "SCOUT_API_KEY" not in script_text

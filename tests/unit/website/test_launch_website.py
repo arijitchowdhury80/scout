@@ -196,6 +196,9 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert account.status_code == 200
     assert "javascript" in account.headers["content-type"]
     assert "/v1/hosted/me" in account.text
+    assert "/v1/billing/stripe/customer-portal-session" in account.text
+    assert "hostedBillingPortalButton" in account.text
+    assert "window.location.assign(portalUrl)" in account.text
     assert "localStorage" not in account.text
     assert "sessionStorage" not in account.text
     assert hosted_keygen.status_code == 200

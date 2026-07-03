@@ -5,6 +5,8 @@
   const summary = document.getElementById("hostedAccountSummary");
   const usageLedger = document.getElementById("hostedUsageLedger");
   const purchaseLedger = document.getElementById("hostedPurchaseLedger");
+  const billingPortalButton = document.getElementById("hostedBillingPortalButton");
+  let currentApiKey = "";
 
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -13,6 +15,8 @@
       setStatus("Enter a hosted API key.", "error");
       return;
     }
+    currentApiKey = "";
+    setBillingPortalEnabled(false);
     setStatus("Loading hosted account...", "loading");
     try {
       const [account, usage, purchases] = await Promise.all([
@@ -23,6 +27,8 @@
       renderSummary(account);
       renderUsage(usage);
       renderPurchases(purchases);
+      currentApiKey = apiKey;
+      setBillingPortalEnabled(true);
       setStatus("Account loaded. API key was not stored.", "success");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not load account.";
@@ -30,8 +36,45 @@
     }
   });
 
+  billingPortalButton?.addEventListener("click", async () => {
+    if (!currentApiKey) {
+      setStatus("Check account before opening billing.", "error");
+      return;
+    }
+    setBillingPortalEnabled(false);
+    setStatus("Creating Stripe billing portal session...", "loading");
+    try {
+      const payload = await postHosted("/v1/billing/stripe/customer-portal-session", currentApiKey);
+      const portalUrl = String(payload.portal_url || "");
+      if (!portalUrl) {
+        throw new Error(payload.reason || "Scout did not return a billing portal URL.");
+      }
+      setStatus("Redirecting to Stripe billing portal...", "success");
+      window.location.assign(portalUrl);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not open billing portal.";
+      setStatus(message, "error");
+      setBillingPortalEnabled(true);
+    }
+  });
+
   async function getHosted(path, apiKey) {
     const response = await fetch(path, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(payload.detail || `Scout returned HTTP ${response.status}.`);
+    }
+    return payload;
+  }
+
+  async function postHosted(path, apiKey) {
+    const response = await fetch(path, {
+      method: "POST",
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -127,6 +170,11 @@
     if (!status) return;
     status.textContent = message;
     status.dataset.state = state;
+  }
+
+  function setBillingPortalEnabled(enabled) {
+    if (!billingPortalButton) return;
+    billingPortalButton.disabled = !enabled;
   }
 
   function formatMoney(cents) {

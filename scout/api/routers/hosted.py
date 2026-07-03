@@ -356,6 +356,7 @@ def _hosted_account_links() -> dict[str, str]:
     return {
         "usage": "/v1/hosted/usage",
         "purchases": "/v1/hosted/purchases",
+        "billing_portal": "/v1/billing/stripe/customer-portal-session",
         "docs": "https://scout.chowmes.com/docs",
         "pricing": "https://scout.chowmes.com/pricing",
     }

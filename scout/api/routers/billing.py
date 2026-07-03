@@ -16,6 +16,7 @@ from scout.api.deps import (
     get_hosted_key_delivery_service,
     get_hosted_payment_provisioning_service,
     get_stripe_checkout_service,
+    get_stripe_customer_portal_service,
     get_stripe_webhook_secret,
 )
 from scout.core.platform.account_service import (
@@ -50,6 +51,9 @@ from scout.core.platform.stripe_checkout import (
     StripeCheckoutRequest,
     StripeCheckoutResult,
     StripeCheckoutService,
+    StripeCustomerPortalRequest,
+    StripeCustomerPortalResult,
+    StripeCustomerPortalService,
 )
 
 router = APIRouter(prefix="/v1/billing", tags=["billing"])
@@ -83,6 +87,15 @@ class StripeCheckoutSessionResponse(BaseModel):
     success: bool
     checkout_session_id: str = ""
     checkout_url: str = ""
+    reason: str = ""
+
+
+class StripeCustomerPortalSessionResponse(BaseModel):
+    """Non-secret Stripe Customer Portal creation response."""
+
+    success: bool
+    portal_session_id: str = ""
+    portal_url: str = ""
     reason: str = ""
 
 
@@ -515,6 +528,37 @@ async def stripe_checkout_session(
     return _checkout_session_response(result)
 
 
+@router.post(
+    "/stripe/customer-portal-session",
+    response_model=StripeCustomerPortalSessionResponse,
+)
+async def stripe_customer_portal_session(
+    authorization: str = Header(default=""),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    payment_service: HostedPaymentProvisioningService = Depends(
+        get_hosted_payment_provisioning_service
+    ),
+    portal_service: StripeCustomerPortalService = Depends(get_stripe_customer_portal_service),
+) -> StripeCustomerPortalSessionResponse:
+    """Create a Stripe Customer Portal session for the authenticated hosted account."""
+    raw_key = _bearer_token(authorization)
+    auth = account_service.authenticate_key(raw_key, required_scope="runs:create")
+    if not auth.allowed:
+        raise HTTPException(status_code=403, detail=auth.reason)
+    customer_id = _latest_stripe_customer_id(payment_service, auth.tenant_id)
+    if customer_id == "":
+        raise HTTPException(
+            status_code=404,
+            detail="No Stripe customer is linked to this hosted account.",
+        )
+    result = portal_service.create_portal_session(
+        StripeCustomerPortalRequest(customer_id=customer_id)
+    )
+    if not result.success:
+        raise HTTPException(status_code=503, detail=result.reason)
+    return _customer_portal_session_response(result)
+
+
 def _assert_checkout_ready(
     body: StripeCheckoutSessionRequestBody,
     webhook_secret: str,
@@ -570,6 +614,44 @@ def _checkout_session_response(
         checkout_url=result.checkout_url,
         reason=result.reason,
     )
+
+
+def _customer_portal_session_response(
+    result: StripeCustomerPortalResult,
+) -> StripeCustomerPortalSessionResponse:
+    """Translate the core portal result to the public API response."""
+    return StripeCustomerPortalSessionResponse(
+        success=result.success,
+        portal_session_id=result.portal_session_id,
+        portal_url=result.portal_url,
+        reason=result.reason,
+    )
+
+
+def _latest_stripe_customer_id(
+    payment_service: HostedPaymentProvisioningService,
+    tenant_id: str,
+) -> str:
+    """Return the newest Stripe customer id linked to a hosted tenant."""
+    for purchase in payment_service.payment_store.list_checkouts(
+        tenant_id=tenant_id,
+        limit=100,
+    ):
+        customer_id = purchase.customer_id.strip()
+        if customer_id:
+            return customer_id
+    return ""
+
+
+def _bearer_token(authorization: str) -> str:
+    """Extract a Bearer token or reject the hosted billing request."""
+    prefix = "Bearer "
+    if not authorization.startswith(prefix):
+        raise HTTPException(status_code=401, detail="Missing Bearer token")
+    token = authorization[len(prefix) :].strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing Bearer token")
+    return token
 
 
 def _record_checkout_started(

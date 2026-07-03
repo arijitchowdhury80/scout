@@ -146,6 +146,7 @@ def test_hosted_me_returns_usage_and_purchase_monitoring_summary(tmp_path: Path)
     assert data["links"] == {
         "usage": "/v1/hosted/usage",
         "purchases": "/v1/hosted/purchases",
+        "billing_portal": "/v1/billing/stripe/customer-portal-session",
         "docs": "https://scout.chowmes.com/docs",
         "pricing": "https://scout.chowmes.com/pricing",
     }

@@ -15,6 +15,9 @@ from scout.core.platform.stripe_checkout import (
     StripeCheckoutRequest,
     StripeCheckoutService,
     StripeCheckoutSession,
+    StripeCustomerPortalConfig,
+    StripeCustomerPortalRequest,
+    StripeCustomerPortalService,
 )
 
 
@@ -183,6 +186,59 @@ def test_stripe_checkout_missing_configuration_fails_without_transport_call() ->
     assert result.checkout_url == ""
     assert result.checkout_session_id == ""
     assert result.reason == "Stripe Checkout is not configured."
+    assert transport.calls == []
+
+
+def test_stripe_customer_portal_creates_session_for_customer_without_secret_leak() -> None:
+    transport = RecordingStripeCheckoutTransport()
+    service = StripeCustomerPortalService(
+        StripeCustomerPortalConfig(
+            secret_key="sk_test_secret",
+            return_url="https://scout.example/account",
+        ),
+        transport=transport,
+    )
+
+    result = service.create_portal_session(StripeCustomerPortalRequest(customer_id="cus_test_123"))
+
+    assert result.success is True
+    assert result.portal_session_id == "cs_test_checkout_001"
+    assert result.portal_url == "https://checkout.stripe.com/c/pay/cs_test_checkout_001"
+    assert transport.calls == [
+        {
+            "url": "https://api.stripe.com/v1/billing_portal/sessions",
+            "data": {
+                "customer": "cus_test_123",
+                "return_url": "https://scout.example/account",
+            },
+            "authorization": "Bearer sk_test_secret",
+        }
+    ]
+    assert "sk_test_secret" not in result.model_dump_json()
+
+
+def test_stripe_customer_portal_fails_closed_without_customer_or_configuration() -> None:
+    transport = RecordingStripeCheckoutTransport()
+    service = StripeCustomerPortalService(
+        StripeCustomerPortalConfig(secret_key="", return_url="https://scout.example/account"),
+        transport=transport,
+    )
+
+    missing_config = service.create_portal_session(
+        StripeCustomerPortalRequest(customer_id="cus_test_123")
+    )
+    missing_customer = StripeCustomerPortalService(
+        StripeCustomerPortalConfig(
+            secret_key="sk_test_secret",
+            return_url="https://scout.example/account",
+        ),
+        transport=transport,
+    ).create_portal_session(StripeCustomerPortalRequest(customer_id=""))
+
+    assert missing_config.success is False
+    assert missing_config.reason == "Stripe Customer Portal is not configured."
+    assert missing_customer.success is False
+    assert missing_customer.reason == "Stripe customer id is required."
     assert transport.calls == []
 
 

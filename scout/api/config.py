@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     stripe_cancel_url: str = ""
     stripe_beta_success_url: str = ""
     stripe_beta_cancel_url: str = ""
+    stripe_portal_return_url: str = ""
     hosted_key_delivery_smtp_host: str = ""
     hosted_key_delivery_smtp_port: int = 587
     hosted_key_delivery_smtp_from_email: str = ""

@@ -28,8 +28,8 @@ deployment firewall.
   multicast, reserved, and unspecified ranges.
 - Hostnames are resolved at admission time and rejected if any resolved IP is
   unsafe; this blocks DNS-resolved unsafe IPs before crawler work starts.
-- Hosted high-level runs validate URL-like values in `url` and `targets`
-  before running a use case.
+- Hosted high-level runs validate URL-like values in `url`, `targets`, and
+  nested request fields before running a use case.
 - Unsafe hosted requests are rejected before crawler invocation and before
   credit debit.
 

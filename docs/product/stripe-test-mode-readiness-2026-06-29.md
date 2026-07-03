@@ -85,6 +85,7 @@ The release checklist item **"Stripe checkout and webhook tested in Stripe test 
    - `STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled`
    - `STRIPE_BETA_SUCCESS_URL=https://scout.chowmes.com/beta?checkout=success`
    - `STRIPE_BETA_CANCEL_URL=https://scout.chowmes.com/beta?checkout=cancelled`
+   - `STRIPE_PORTAL_RETURN_URL=https://scout.chowmes.com/account`
    - hosted key delivery settings for a non-production recipient.
 2. Start Scout locally.
 3. Verify `/v1/billing/stripe/status` reports:

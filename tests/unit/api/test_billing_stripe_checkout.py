@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -16,7 +17,9 @@ from fastapi.testclient import TestClient
 from scout.api.deps import (
     get_hosted_account_service,
     get_hosted_key_delivery_service,
+    get_hosted_payment_provisioning_service,
     get_stripe_checkout_service,
+    get_stripe_customer_portal_service,
     get_stripe_webhook_secret,
 )
 from scout.api.config import settings
@@ -25,12 +28,23 @@ from scout.core.platform.account_service import (
     HostedAccountService,
     InMemoryHostedAccountStore,
 )
+from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
+from scout.core.platform.hosted import HostedPlan
+from scout.core.platform.payment_provisioning import (
+    HostedCheckoutPaymentStatus,
+    HostedCheckoutProvisioningRequest,
+    HostedPaymentProvider,
+    HostedPaymentProvisioningService,
+    SQLiteHostedPaymentStore,
+)
 from scout.core.platform.stripe_checkout import (
     StripeCheckoutConfig,
     StripeCheckoutRequest,
     StripeCheckoutService,
     StripeCheckoutResult,
     StripeCheckoutSession,
+    StripeCustomerPortalRequest,
+    StripeCustomerPortalResult,
 )
 
 
@@ -662,6 +676,91 @@ def test_paid_checkout_uses_payment_mode_price_line_item_and_customer_creation()
     }
 
 
+def test_customer_portal_route_returns_stripe_portal_for_authenticated_customer(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "hosted.sqlite"
+    account_service = HostedAccountService(SQLiteHostedAccountStore(db_path))
+    payment_service = HostedPaymentProvisioningService(
+        account_service,
+        SQLiteHostedPaymentStore(db_path),
+    )
+    provisioned = payment_service.process_checkout(
+        _checkout(
+            checkout_session_id="cs_portal_customer",
+            email="buyer@example.com",
+            package_id="standard_1000",
+            amount_total_cents=1000,
+            customer_id="cus_portal_customer",
+        )
+    )
+    portal_service = RecordingStripeCustomerPortalService(
+        StripeCustomerPortalResult(
+            success=True,
+            portal_session_id="bps_test_123",
+            portal_url="https://billing.stripe.com/p/session/test_123",
+        )
+    )
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_payment_provisioning_service] = lambda: payment_service
+    app.dependency_overrides[get_stripe_customer_portal_service] = lambda: portal_service
+    client = TestClient(app)
+
+    response = client.post(
+        "/v1/billing/stripe/customer-portal-session",
+        headers={"Authorization": f"Bearer {provisioned.raw_api_key}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "success": True,
+        "portal_session_id": "bps_test_123",
+        "portal_url": "https://billing.stripe.com/p/session/test_123",
+        "reason": "",
+    }
+    assert portal_service.requests == ["cus_portal_customer"]
+    assert provisioned.raw_api_key not in response.text
+    assert "sk_" not in response.text
+
+
+def test_customer_portal_route_requires_a_stripe_customer_id(tmp_path: Path) -> None:
+    db_path = tmp_path / "hosted.sqlite"
+    account_service = HostedAccountService(SQLiteHostedAccountStore(db_path))
+    payment_service = HostedPaymentProvisioningService(
+        account_service,
+        SQLiteHostedPaymentStore(db_path),
+    )
+    provisioned = payment_service.process_checkout(
+        _checkout(
+            checkout_session_id="cs_no_customer",
+            email="buyer@example.com",
+            package_id="standard_1000",
+            amount_total_cents=1000,
+            customer_id="",
+        )
+    )
+    portal_service = RecordingStripeCustomerPortalService(
+        StripeCustomerPortalResult(
+            success=True,
+            portal_session_id="bps_should_not_exist",
+            portal_url="https://billing.stripe.com/p/session/should-not-exist",
+        )
+    )
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_payment_provisioning_service] = lambda: payment_service
+    app.dependency_overrides[get_stripe_customer_portal_service] = lambda: portal_service
+    client = TestClient(app)
+
+    response = client.post(
+        "/v1/billing/stripe/customer-portal-session",
+        headers={"Authorization": f"Bearer {provisioned.raw_api_key}"},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "No Stripe customer is linked to this hosted account."
+    assert portal_service.requests == []
+
+
 def _client(
     service: object,
     *,
@@ -711,6 +810,21 @@ class RecordingStripeCheckoutService:
         return self.result
 
 
+class RecordingStripeCustomerPortalService:
+    """Record Stripe Customer Portal requests and return a deterministic result."""
+
+    def __init__(self, result: StripeCustomerPortalResult) -> None:
+        self.result = result
+        self.requests: list[str] = []
+
+    def create_portal_session(
+        self,
+        request: StripeCustomerPortalRequest,
+    ) -> StripeCustomerPortalResult:
+        self.requests.append(request.customer_id)
+        return self.result
+
+
 class RecordingDeliveryService:
     """Expose only delivery readiness for Stripe status tests."""
 
@@ -739,3 +853,26 @@ class RecordingStripeTransport:
             id="cs_test_payload",
             url="https://checkout.stripe.com/c/pay/cs_test_payload",
         )
+
+
+def _checkout(
+    *,
+    checkout_session_id: str,
+    email: str,
+    package_id: str,
+    amount_total_cents: int,
+    customer_id: str,
+) -> HostedCheckoutProvisioningRequest:
+    return HostedCheckoutProvisioningRequest(
+        provider=HostedPaymentProvider.STRIPE,
+        checkout_session_id=checkout_session_id,
+        customer_id=customer_id,
+        payment_intent_id=f"pi_{checkout_session_id}",
+        email=email,
+        package_id=package_id,
+        amount_total_cents=amount_total_cents,
+        currency="usd",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+        status=HostedCheckoutPaymentStatus.PAID,
+    )

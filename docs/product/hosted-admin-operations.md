@@ -142,6 +142,7 @@ STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success
 STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled
 STRIPE_BETA_SUCCESS_URL=https://scout.chowmes.com/beta?checkout=success
 STRIPE_BETA_CANCEL_URL=https://scout.chowmes.com/beta?checkout=cancelled
+STRIPE_PORTAL_RETURN_URL=https://scout.chowmes.com/account
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
@@ -165,6 +166,11 @@ only: `standard_1000`, `standard_3000`, and `standard_15000`. It excludes
 `browser_100` because browser-credit economics remain private. The helper
 prints price IDs and env key names only; it refuses to print Stripe secret
 keys.
+
+Customer billing management uses Stripe Customer Portal through
+`POST /v1/billing/stripe/customer-portal-session`. The endpoint is protected by
+the hosted Bearer API key and returns only a short-lived Stripe portal URL for
+the authenticated tenant's stored Stripe customer id.
 
 Install those values on the VPS with the allowlisted production env helper:
 

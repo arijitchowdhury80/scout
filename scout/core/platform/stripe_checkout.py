@@ -99,6 +99,35 @@ class StripeCheckoutResult(BaseModel):
     reason: str = ""
 
 
+class StripeCustomerPortalConfig(BaseModel):
+    """Configuration required to create Stripe Customer Portal sessions."""
+
+    secret_key: str = Field(default="", exclude=True)
+    return_url: str = ""
+    endpoint_url: str = "https://api.stripe.com/v1/billing_portal/sessions"
+    timeout_seconds: float = 20.0
+
+    @property
+    def enabled(self) -> bool:
+        """Return whether Customer Portal creation has required configuration."""
+        return bool(self.secret_key and self.return_url)
+
+
+class StripeCustomerPortalRequest(BaseModel):
+    """Request to create a Stripe Customer Portal session."""
+
+    customer_id: str = ""
+
+
+class StripeCustomerPortalResult(BaseModel):
+    """Non-secret result returned after Customer Portal creation."""
+
+    success: bool
+    portal_session_id: str = ""
+    portal_url: str = ""
+    reason: str = ""
+
+
 class StripeCheckoutTransport(Protocol):
     """Transport boundary for posting form-encoded data to Stripe."""
 
@@ -240,6 +269,60 @@ class StripeCheckoutService:
             success=True,
             checkout_session_id=session.id,
             checkout_url=session.url,
+        )
+
+
+class StripeCustomerPortalService:
+    """Create Stripe Customer Portal sessions for hosted Scout customers."""
+
+    def __init__(
+        self,
+        config: StripeCustomerPortalConfig,
+        transport: StripeCheckoutTransport | None = None,
+    ) -> None:
+        self._config = config
+        self._transport = transport or UrllibStripeCheckoutTransport(config.timeout_seconds)
+
+    @property
+    def enabled(self) -> bool:
+        """Return whether Stripe Customer Portal creation has required configuration."""
+        return self._config.enabled
+
+    def create_portal_session(
+        self,
+        request: StripeCustomerPortalRequest,
+    ) -> StripeCustomerPortalResult:
+        """Create a Customer Portal Session for a Stripe customer id."""
+        if not self._config.enabled:
+            return StripeCustomerPortalResult(
+                success=False,
+                reason="Stripe Customer Portal is not configured.",
+            )
+        customer_id = request.customer_id.strip()
+        if customer_id == "":
+            return StripeCustomerPortalResult(
+                success=False,
+                reason="Stripe customer id is required.",
+            )
+        headers = {
+            "Authorization": f"Bearer {self._config.secret_key}",
+            "Content-Type": "application/x-www-form-urlencoded",
+        }
+        try:
+            session = self._transport.post_form(
+                self._config.endpoint_url,
+                {
+                    "customer": customer_id,
+                    "return_url": self._config.return_url,
+                },
+                headers,
+            )
+        except StripeCheckoutError as exc:
+            return StripeCustomerPortalResult(success=False, reason=str(exc))
+        return StripeCustomerPortalResult(
+            success=True,
+            portal_session_id=session.id,
+            portal_url=session.url,
         )
 
 
