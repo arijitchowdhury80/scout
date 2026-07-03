@@ -151,6 +151,7 @@ class StripeCheckoutService:
         if package.amount_cents == 0:
             data = {
                 "mode": "setup",
+                "payment_method_types[0]": "card",
                 "success_url": self._config.success_url,
                 "cancel_url": self._config.cancel_url,
                 "metadata[package_id]": package.package_id,

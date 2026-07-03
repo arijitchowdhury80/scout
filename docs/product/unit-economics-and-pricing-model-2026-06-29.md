@@ -8,7 +8,7 @@ Status: Launch candidate model defined; final paid launch still requires founder
 Recommended launch candidate as of 2026-07-03:
 
 - Local Scout remains free.
-- Beta trial: 30 days, 100 standard credits, $0 charge, payment method required later.
+- Beta trial: 30 days, 100 standard credits, $0 charge, payment method required through Stripe setup-mode once hosted billing is configured.
 - First pay-as-you-go package: $10 for 1,000 standard credits.
 - Browser-heavy work is not included in the first public pay-as-you-go package.
 - Browser credits remain private/controlled until browser-worker cost is measured.

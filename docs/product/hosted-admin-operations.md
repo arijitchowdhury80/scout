@@ -16,8 +16,10 @@ Scout hosted beta has API-key based access, not a login system.
 - Self-service signup emails the raw API key and never returns it in the HTTP response. Operator CLI provisioning still prints the raw key once. Scout stores only a hash.
 - Stripe checkout registration is available from `/pricing` for `$0` beta trial
   payment-method verification and paid credit packages once Stripe settings are
-  configured. A signed checkout webhook writes the customer name/email onto the
-  hosted tenant and includes it in one-time API-key delivery.
+  configured. The `$0` beta trial uses Stripe Checkout `mode=setup` with card
+  payment-method collection, so beta testers can verify the billing pipeline
+  without paying during the trial. A signed checkout webhook writes the customer
+  name/email onto the hosted tenant and includes it in one-time API-key delivery.
 - The key-delivery email is signed by Arijit, explains the 100-credit/30-day
   beta boundary, includes credit meaning, links to docs/pricing, and asks users
   to reply with their use case, target site, and failing run ID for support.
@@ -281,7 +283,7 @@ fully validated Stripe production flow.
 
 Pay-as-you-go pricing candidate:
 
-- Beta trial: 30 days, 100 standard credits, $0 charge, payment method required later.
+- Beta trial: 30 days, 100 standard credits, $0 charge, payment method required through Stripe setup-mode once hosted billing is configured.
 - First paid package: $10 for 1,000 standard credits.
 - A standard credit means one scrape, one returned crawl page, or one product/intelligence record.
 - Browser credits remain separately metered and are not included in the first public package.

@@ -23,7 +23,7 @@ def test_unit_economics_doc_records_pay_as_you_go_candidate() -> None:
         "Estimated cost for 1,000 standard credits: $2.59",
         "Estimated gross margin: 74.1%",
         "Break-even: 17 packs/month",
-        "Beta trial: 30 days, 100 standard credits, $0 charge, payment method required later",
+        "Beta trial: 30 days, 100 standard credits, $0 charge, payment method required through Stripe setup-mode once hosted billing is configured",
     ]
 
     for marker in expected:
@@ -39,6 +39,7 @@ def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     assert "hosted_credit_ledger" in doc
     assert "list-purchases" in doc
     assert "hosted_payment_checkouts" in doc
+    assert "Stripe Checkout `mode=setup` with card" in doc
     assert "$10 for 1,000 standard credits" in doc
     assert "Pay-as-you-go pricing candidate" in doc
 

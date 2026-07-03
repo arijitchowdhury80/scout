@@ -46,6 +46,7 @@ def test_stripe_checkout_creates_beta_trial_setup_session_with_expected_payload(
             "url": "https://api.stripe.com/v1/checkout/sessions",
             "data": {
                 "mode": "setup",
+                "payment_method_types[0]": "card",
                 "success_url": "https://scout.example/success",
                 "cancel_url": "https://scout.example/cancel",
                 "customer_email": "builder@example.com",
