@@ -436,6 +436,34 @@ class HostedAccountService:
                 return account.key_id
         return ""
 
+    def issue_api_key_for_tenant(
+        self,
+        tenant_id: str,
+        *,
+        scopes: list[str],
+        key_name: str = "Replacement hosted key",
+    ) -> HostedProvisioningResult:
+        """Issue an additional API key for an existing hosted tenant."""
+        tenant = self.store.get_tenant(tenant_id)
+        if tenant is None:
+            raise ValueError("Hosted account was not found.")
+        balance = self.store.get_balance(tenant_id)
+        raw_key = generate_api_key()
+        api_key = ApiKeyRecord(
+            key_id=f"key_{uuid4().hex}",
+            tenant_id=tenant.tenant_id,
+            key_hash=hash_api_key(raw_key),
+            name=key_name,
+            scopes=scopes,
+        )
+        self.store.save_account(tenant, api_key, balance)
+        return HostedProvisioningResult(
+            tenant=tenant,
+            api_key=api_key,
+            balance=balance,
+            raw_api_key=raw_key,
+        )
+
     def add_credits(
         self,
         tenant_id: str,

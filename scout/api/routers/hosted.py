@@ -198,6 +198,12 @@ class HostedBetaKeyStatusRequest(BaseModel):
     email: EmailStr
 
 
+class HostedBetaKeyReissueRequest(BaseModel):
+    """Hosted beta key reissue request for users who lost their one-time key."""
+
+    email: EmailStr
+
+
 class HostedBetaKeyResponse(BaseModel):
     """Hosted beta key registration response without raw secret material."""
 
@@ -221,6 +227,19 @@ class HostedBetaKeyStatusResponse(BaseModel):
     email: str
     status: str
     delivery_status: str = ""
+    has_account: bool
+    tenant_id: str = ""
+    key_id: str = ""
+    message: str
+
+
+class HostedBetaKeyReissueResponse(BaseModel):
+    """Non-secret hosted beta key reissue response."""
+
+    success: bool = True
+    email: str
+    status: str
+    delivery_status: str
     has_account: bool
     tenant_id: str = ""
     key_id: str = ""
@@ -464,6 +483,101 @@ async def hosted_beta_key_status(
     """Return non-secret status for a hosted beta key request by email."""
     _enforce_beta_signup_rate_limit(signup_rate_limiter, request)
     return _beta_key_status_response(account_service, str(req.email))
+
+
+@router.post(
+    "/beta-key/reissue",
+    response_model=HostedBetaKeyReissueResponse,
+    response_model_exclude_none=True,
+)
+async def hosted_beta_key_reissue(
+    req: HostedBetaKeyReissueRequest,
+    request: Request,
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    delivery_service: HostedApiKeyDeliveryService = Depends(get_hosted_key_delivery_service),
+    signup_rate_limiter: HostedRateLimiter = Depends(get_hosted_beta_signup_rate_limiter),
+) -> HostedBetaKeyReissueResponse | JSONResponse:
+    """Email a replacement hosted API key without exposing account secrets."""
+    if not settings.hosted_beta_signup_enabled:
+        raise HTTPException(
+            status_code=503,
+            detail="Hosted beta key generation is disabled.",
+        )
+    _enforce_beta_signup_rate_limit(signup_rate_limiter, request)
+    if not delivery_service.enabled:
+        raise HTTPException(status_code=503, detail="Hosted API key delivery is not configured.")
+
+    normalized = str(req.email).strip().lower()
+    tenant = account_service.find_tenant_by_email(normalized)
+    if tenant is None:
+        return JSONResponse(
+            status_code=202,
+            content=HostedBetaKeyReissueResponse(
+                email=normalized,
+                status="not_found",
+                delivery_status="not_delivered",
+                has_account=False,
+                message=(
+                    "If a hosted Scout account exists for this email, Scout will email "
+                    "a replacement API key."
+                ),
+            ).model_dump(mode="json"),
+        )
+
+    previous_key_id = account_service.latest_key_id_for_tenant(tenant.tenant_id)
+    provisioned = account_service.issue_api_key_for_tenant(
+        tenant.tenant_id,
+        scopes=["runs:create"],
+        key_name="Replacement hosted beta key",
+    )
+    delivery = delivery_service.deliver(
+        HostedApiKeyDeliveryRequest(
+            email=provisioned.tenant.email,
+            name=provisioned.tenant.name,
+            tenant_id=provisioned.tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            plan=provisioned.tenant.plan,
+            raw_api_key=provisioned.raw_api_key,
+            checkout_session_id="beta_key_reissue",
+        )
+    )
+    if not delivery.delivered:
+        account_service.disable_api_key(provisioned.api_key.key_id)
+        account_service.record_signup_event(
+            HostedSignupEvent(
+                email=normalized,
+                name=tenant.name,
+                status="reissue_failed",
+                source="direct_beta_key_reissue",
+                tenant_id=tenant.tenant_id,
+                key_id=provisioned.api_key.key_id,
+                delivery_status=delivery.delivery_status,
+                reason=delivery.reason,
+            )
+        )
+        raise HTTPException(status_code=502, detail=delivery.reason)
+    if previous_key_id:
+        account_service.disable_api_key(previous_key_id)
+    account_service.record_signup_event(
+        HostedSignupEvent(
+            email=normalized,
+            name=tenant.name,
+            status="reissued",
+            source="direct_beta_key_reissue",
+            tenant_id=tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            delivery_status=delivery.delivery_status,
+        )
+    )
+    return HostedBetaKeyReissueResponse(
+        email=normalized,
+        status="reissued",
+        delivery_status=delivery.delivery_status,
+        has_account=True,
+        tenant_id=tenant.tenant_id,
+        key_id=provisioned.api_key.key_id,
+        message="Scout emailed a replacement API key. The previous key was disabled.",
+    )
 
 
 def _signup_event(

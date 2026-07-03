@@ -206,6 +206,28 @@ The endpoint does not authenticate because it is used before a tester has an
 API key. It is rate-limited through the same public beta signup limiter and
 returns only non-secret metadata.
 
+### Let Testers Reissue A Lost API Key
+
+Scout stores only API-key hashes, so it cannot show an old raw key again. The
+beta page includes a self-service recovery form that calls:
+
+```bash
+curl -X POST https://scout.chowmes.com/v1/hosted/beta-key/reissue \
+  -H "Content-Type: application/json" \
+  -d '{"email":"tester@example.com"}'
+```
+
+If a hosted account exists for that email and SMTP delivery is configured,
+Scout issues a replacement key, emails it to the same inbox, and disables the
+previous key only after delivery succeeds. The HTTP response never includes
+the raw key or key hash.
+
+If no account exists, Scout returns a non-enumerating accepted response:
+"If a hosted Scout account exists for this email, Scout will email a
+replacement API key." If SMTP delivery is not configured, the route fails
+closed with `503` because creating a replacement key without an email channel
+would lose the only raw copy.
+
 ### Disable Hosted Access
 
 If a hosted API key is leaked, a tester abuses the beta, or a consuming app
@@ -452,6 +474,8 @@ keys, not user sessions:
   one raw API key, and stores only the key hash;
 - self-service signup does not expose `raw_api_key` in the HTTP response or
   public OpenAPI schema;
+- self-service reissue emails a replacement key to the account email and
+  disables the previous key only after email delivery succeeds;
 - admin provisioning captures name and email through the operator command and
   prints the raw API key once;
 - API callers identify themselves only by `Authorization: Bearer scout_live_...`;

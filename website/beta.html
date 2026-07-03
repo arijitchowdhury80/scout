@@ -166,6 +166,29 @@ scout launch-readiness --require-public</code></pre>
                 never show an API key in the browser.
               </p>
             </form>
+            <form
+              id="hostedKeyReissueForm"
+              class="beta-form beta-form--secondary"
+              data-reissue-endpoint="/v1/hosted/beta-key/reissue"
+            >
+              <label for="hostedKeyReissueEmail">Lost your API key?</label>
+              <div class="beta-form-row">
+                <input
+                  id="hostedKeyReissueEmail"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="you@example.com"
+                  required
+                />
+                <button class="wi-btn wi-btn--secondary" type="submit">Email replacement key</button>
+              </div>
+              <p id="hostedKeyReissueStatus" class="beta-status" role="status" aria-live="polite">
+                Scout cannot show an old key again. If an account exists for
+                this inbox, Scout can email a replacement key and disable the
+                previous one.
+              </p>
+            </form>
           </div>
         </section>
 

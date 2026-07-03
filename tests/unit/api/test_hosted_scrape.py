@@ -442,6 +442,118 @@ def test_hosted_beta_key_status_response_schema_does_not_expose_raw_key() -> Non
     assert "raw_api_key" not in schema["properties"]
 
 
+def test_hosted_beta_key_reissue_emails_new_key_without_exposing_it(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        signup = client.post(
+            "/v1/hosted/beta-key",
+            json={"name": "Recoverable Tester", "email": "recover@example.com"},
+        )
+        original_key = delivery.requests[0].raw_api_key
+        reissue = client.post(
+            "/v1/hosted/beta-key/reissue",
+            json={"email": "recover@example.com"},
+        )
+        new_key = delivery.requests[1].raw_api_key
+        old_me = client.get(
+            "/v1/hosted/me",
+            headers={"Authorization": f"Bearer {original_key}"},
+        )
+        new_me = client.get(
+            "/v1/hosted/me",
+            headers={"Authorization": f"Bearer {new_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert signup.status_code == 200
+    assert reissue.status_code == 200
+    data = reissue.json()
+    assert data["success"] is True
+    assert data["email"] == "recover@example.com"
+    assert data["delivery_status"] == "delivered"
+    assert data["has_account"] is True
+    assert data["key_id"].startswith("key_")
+    assert "Scout emailed a replacement API key" in data["message"]
+    assert new_key != original_key
+    assert original_key not in reissue.text
+    assert new_key not in reissue.text
+    assert "raw_api_key" not in data
+    assert old_me.status_code == 403
+    assert old_me.json()["detail"] == "API key is not active."
+    assert new_me.status_code == 200
+    assert delivery.requests[1].checkout_session_id == "beta_key_reissue"
+    assert delivery.requests[1].email == "recover@example.com"
+    signup_events = account_service.list_signup_events()
+    assert signup_events[0].status == "reissued"
+    assert signup_events[0].source == "direct_beta_key_reissue"
+    assert signup_events[0].email == "recover@example.com"
+    assert signup_events[0].delivery_status == "delivered"
+
+
+def test_hosted_beta_key_reissue_unknown_email_is_non_enumerating(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/v1/hosted/beta-key/reissue",
+            json={"email": "unknown-reissue@example.com"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 202
+    data = response.json()
+    assert data["success"] is True
+    assert data["email"] == "unknown-reissue@example.com"
+    assert data["status"] == "not_found"
+    assert data["delivery_status"] == "not_delivered"
+    assert data["has_account"] is False
+    assert data["tenant_id"] == ""
+    assert data["key_id"] == ""
+    assert data["message"] == (
+        "If a hosted Scout account exists for this email, Scout will email a replacement API key."
+    )
+    assert delivery.requests == []
+    assert "raw_api_key" not in data
+
+
+def test_hosted_beta_key_reissue_requires_delivery_configuration(monkeypatch) -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True, raising=False)
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/v1/hosted/beta-key/reissue",
+            json={"email": "builder@example.com"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Hosted API key delivery is not configured."
+
+
+def test_hosted_beta_key_reissue_response_schema_does_not_expose_raw_key() -> None:
+    client = TestClient(app)
+
+    response = client.get("/openapi.json")
+    schema = response.json()["components"]["schemas"]["HostedBetaKeyReissueResponse"]
+
+    assert response.status_code == 200
+    assert "raw_api_key" not in schema["properties"]
+
+
 def test_hosted_beta_key_request_schema_requires_name_email_and_no_invite_password() -> None:
     client = TestClient(app)
 

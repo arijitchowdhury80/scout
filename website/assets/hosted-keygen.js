@@ -3,6 +3,8 @@
   const statusEl = document.getElementById("hostedKeyStatus");
   const statusForm = document.getElementById("hostedKeyStatusForm");
   const lookupStatusEl = document.getElementById("hostedKeyLookupStatus");
+  const reissueForm = document.getElementById("hostedKeyReissueForm");
+  const reissueStatusEl = document.getElementById("hostedKeyReissueStatus");
 
   if (!form || !statusEl) {
     return;
@@ -13,6 +15,8 @@
   const readyFlag = form.dataset.readyFlag || "ready_for_beta_key_delivery";
   const statusCheckEndpoint =
     statusForm?.dataset.statusCheckEndpoint || "/v1/hosted/beta-key/status";
+  const reissueEndpoint =
+    reissueForm?.dataset.reissueEndpoint || "/v1/hosted/beta-key/reissue";
 
   checkReadiness();
 
@@ -102,6 +106,40 @@
     }
   });
 
+  reissueForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const submitButton = reissueForm.querySelector("button[type='submit']");
+    const formData = new FormData(reissueForm);
+    const email = String(formData.get("email") || "").trim();
+
+    if (!email) {
+      setReissueStatus("Enter the email used for hosted Scout access.", "error");
+      return;
+    }
+
+    setReissueStatus("Requesting a replacement API key...", "running");
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+      const response = await fetch(reissueEndpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.detail || "Could not request a replacement API key.");
+      }
+      setReissueStatus(reissueMessage(payload), "success");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not request a replacement API key.";
+      setReissueStatus(message, "error");
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
+  });
+
   async function checkReadiness() {
     const submitButton = form.querySelector("button[type='submit']");
     try {
@@ -138,9 +176,22 @@
     lookupStatusEl.dataset.state = state;
   }
 
+  function setReissueStatus(message, state) {
+    if (!reissueStatusEl) return;
+    reissueStatusEl.textContent = message;
+    reissueStatusEl.dataset.state = state;
+  }
+
   function statusMessage(payload) {
     const message = payload.message || "Scout returned the current beta request status.";
     const status = payload.status ? `Status: ${payload.status}. ` : "";
     return `${status}${message}`;
+  }
+
+  function reissueMessage(payload) {
+    return (
+      payload.message ||
+      "If a hosted Scout account exists for this email, Scout will email a replacement API key."
+    );
   }
 })();

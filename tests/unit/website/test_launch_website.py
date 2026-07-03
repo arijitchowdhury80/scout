@@ -572,6 +572,12 @@ def test_beta_signup_collects_name_and_email_without_password() -> None:
     assert "Check beta request status" in normalized_html
     assert "/v1/hosted/beta-key/status" in hosted_keygen_js
     assert "Checking beta request status" in hosted_keygen_js
+    assert 'id="hostedKeyReissueForm"' in html
+    assert 'data-reissue-endpoint="/v1/hosted/beta-key/reissue"' in html
+    assert "Lost your API key?" in normalized_html
+    assert "Email replacement key" in normalized_html
+    assert "/v1/hosted/beta-key/reissue" in hosted_keygen_js
+    assert "Requesting a replacement API key" in hosted_keygen_js
     assert "beta_signup_enabled" in hosted_keygen_js
     assert "Hosted beta key registration is paused" not in hosted_keygen_js
     assert 'type="password"' not in html
