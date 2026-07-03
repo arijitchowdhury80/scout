@@ -98,7 +98,6 @@ def test_stripe_status_returns_non_secret_readiness_flags() -> None:
         "checkout_configured": True,
         "webhook_configured": True,
         "key_delivery_configured": True,
-        "key_delivery_response_fallback_enabled": False,
         "ready_for_beta_key_delivery": False,
         "ready_for_paid_key_delivery": True,
     }
@@ -125,7 +124,6 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
         "checkout_configured": False,
         "webhook_configured": False,
         "key_delivery_configured": False,
-        "key_delivery_response_fallback_enabled": False,
         "ready_for_beta_key_delivery": False,
         "ready_for_paid_key_delivery": False,
     }
@@ -151,13 +149,12 @@ def test_stripe_status_reports_beta_signup_delivery_readiness(monkeypatch) -> No
         "checkout_configured": False,
         "webhook_configured": False,
         "key_delivery_configured": True,
-        "key_delivery_response_fallback_enabled": False,
         "ready_for_beta_key_delivery": True,
         "ready_for_paid_key_delivery": False,
     }
 
 
-def test_stripe_status_treats_opt_in_response_fallback_as_beta_readiness(monkeypatch) -> None:
+def test_stripe_status_ignores_removed_response_fallback_env(monkeypatch) -> None:
     service = RecordingStripeCheckoutService(
         StripeCheckoutResult(success=False),
         enabled=False,
@@ -179,10 +176,10 @@ def test_stripe_status_treats_opt_in_response_fallback_as_beta_readiness(monkeyp
         "checkout_configured": False,
         "webhook_configured": False,
         "key_delivery_configured": False,
-        "key_delivery_response_fallback_enabled": True,
-        "ready_for_beta_key_delivery": True,
+        "ready_for_beta_key_delivery": False,
         "ready_for_paid_key_delivery": False,
     }
+    assert "key_delivery_response_fallback_enabled" not in data
 
 
 def test_billing_packages_returns_credit_meanings_and_unit_economics_without_secrets() -> None:
