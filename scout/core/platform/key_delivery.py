@@ -72,7 +72,12 @@ class SmtpHostedApiKeyDeliveryConfig(BaseModel):
     @property
     def enabled(self) -> bool:
         """Return whether enough SMTP config exists to deliver keys."""
-        return self.host != "" and self.from_email != ""
+        return (
+            self.host != ""
+            and self.from_email != ""
+            and self.username != ""
+            and self.password != ""
+        )
 
 
 class SmtpClient(Protocol):

@@ -128,6 +128,8 @@ def test_smtp_delivery_service_returns_failure_when_send_fails() -> None:
         config=SmtpHostedApiKeyDeliveryConfig(
             host="smtp.example.com",
             from_email="scout@example.com",
+            username="scout-user",
+            password="smtp-secret",
         ),
         smtp_factory=smtp_factory,
     )
@@ -142,9 +144,21 @@ def test_smtp_delivery_service_returns_failure_when_send_fails() -> None:
 def test_smtp_delivery_config_requires_host_and_from_email() -> None:
     missing_host = SmtpHostedApiKeyDeliveryConfig(from_email="scout@example.com")
     missing_from = SmtpHostedApiKeyDeliveryConfig(host="smtp.example.com")
+    missing_username = SmtpHostedApiKeyDeliveryConfig(
+        host="smtp.example.com",
+        from_email="scout@example.com",
+        password="smtp-secret",
+    )
+    missing_password = SmtpHostedApiKeyDeliveryConfig(
+        host="smtp.example.com",
+        from_email="scout@example.com",
+        username="scout-user",
+    )
 
     assert missing_host.enabled is False
     assert missing_from.enabled is False
+    assert missing_username.enabled is False
+    assert missing_password.enabled is False
 
 
 def _delivery_request(*, smoke_test: bool = False) -> HostedApiKeyDeliveryRequest:
