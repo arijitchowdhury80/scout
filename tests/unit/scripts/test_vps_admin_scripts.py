@@ -135,7 +135,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
         "scout-vps-list-hosted-signups": [
             "hosted_signup_events",
             "delivery_status",
-            "direct_beta_key",
+            "email_beta_registration",
             "--status",
             "--email",
             "/data/hosted_accounts.sqlite",
@@ -265,7 +265,7 @@ def test_list_signups_script_never_prints_raw_keys_or_key_hashes() -> None:
     assert "docker exec -i scout" in script_text
     assert "hosted_signup_events" in script_text
     assert "delivery_status" in script_text
-    assert "direct_beta_key" in script_text
+    assert "email_beta_registration" in script_text
     assert "key_hash" not in script_text
     assert "raw_api_key" not in script_text
 

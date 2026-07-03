@@ -206,7 +206,7 @@ def test_pending_signup_requests_returns_newest_pending_request_per_email() -> N
             email="tester@example.com",
             name="Old Name",
             status="pending_delivery",
-            source="direct_beta_key",
+            source="email_beta_registration",
             delivery_status="pending_delivery",
             created_at="2026-07-03T10:00:00+00:00",
         )
@@ -216,7 +216,7 @@ def test_pending_signup_requests_returns_newest_pending_request_per_email() -> N
             email="TESTER@example.com",
             name="New Name",
             status="pending_delivery",
-            source="direct_beta_key",
+            source="email_beta_registration",
             delivery_status="pending_delivery",
             created_at="2026-07-03T11:00:00+00:00",
         )
@@ -236,7 +236,7 @@ def test_pending_signup_requests_excludes_delivered_failed_duplicate_and_existin
             email="queued@example.com",
             name="Queued Tester",
             status="pending_delivery",
-            source="direct_beta_key",
+            source="email_beta_registration",
             delivery_status="pending_delivery",
             created_at="2026-07-03T10:00:00+00:00",
         )
@@ -246,7 +246,7 @@ def test_pending_signup_requests_excludes_delivered_failed_duplicate_and_existin
             email="done@example.com",
             name="Done Tester",
             status="pending_delivery",
-            source="direct_beta_key",
+            source="email_beta_registration",
             delivery_status="pending_delivery",
             created_at="2026-07-03T10:00:00+00:00",
         )
@@ -276,7 +276,7 @@ def test_pending_signup_requests_excludes_delivered_failed_duplicate_and_existin
             email="duplicate@example.com",
             name="Duplicate Tester",
             status="duplicate",
-            source="direct_beta_key",
+            source="email_beta_registration",
             delivery_status="duplicate",
             created_at="2026-07-03T11:00:00+00:00",
         )
@@ -286,7 +286,7 @@ def test_pending_signup_requests_excludes_delivered_failed_duplicate_and_existin
             email="existing@example.com",
             name="Existing Tester",
             status="pending_delivery",
-            source="direct_beta_key",
+            source="email_beta_registration",
             delivery_status="pending_delivery",
             created_at="2026-07-03T10:00:00+00:00",
         )

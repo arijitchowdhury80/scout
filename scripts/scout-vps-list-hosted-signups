@@ -20,7 +20,7 @@ Fields shown:
   tenant_id, key_id, event_id, created_at
 
 Typical source:
-  direct_beta_key
+  email_beta_registration
 
 Options:
   --format FORMAT  table or json. Default: table

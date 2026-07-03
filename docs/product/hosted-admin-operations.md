@@ -372,10 +372,10 @@ actionable. In addition to backward-compatible booleans such as
 
 - `public_self_service_path`: currently `email_beta_registration`; beta
   testers should start at `/beta` and receive the key by email.
+- `public_beta_key_endpoint`: the API endpoint used by `/beta` to register a
+  beta tester and deliver the API key by email.
 - `public_beta_checkout_endpoint` and `public_paid_checkout_endpoint`: the
   endpoint the website uses to create setup/payment Checkout Sessions.
-- `direct_beta_key_enabled`: deprecated compatibility flag retained for older
-  diagnostics. `/v1/hosted/beta-key` now follows `HOSTED_BETA_SIGNUP_ENABLED`.
 - `missing_environment_keys`: exact non-secret environment variable names still
   needed for checkout, webhook verification, paid price IDs, or SMTP delivery.
 - `missing_configuration`: machine-readable missing capability names such as

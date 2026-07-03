@@ -322,7 +322,6 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
     )
     delivery = RecordingDeliveryService(enabled=False)
     monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
-    monkeypatch.setattr(settings, "hosted_direct_beta_key_enabled", False)
     monkeypatch.setattr(settings, "stripe_secret_key", "")
     monkeypatch.setattr(settings, "stripe_success_url", "")
     monkeypatch.setattr(settings, "stripe_cancel_url", "")
@@ -343,9 +342,8 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
     assert response.status_code == 200
     data = response.json()
     assert data["public_self_service_path"] == "email_beta_registration"
+    assert data["public_beta_key_endpoint"] == "/v1/hosted/beta-key"
     assert data["public_beta_checkout_endpoint"] == "/v1/billing/stripe/checkout-session"
-    assert data["legacy_direct_beta_key_endpoint"] == "/v1/hosted/beta-key"
-    assert data["direct_beta_key_enabled"] is False
     assert data["customer_next_actions"] == [
         "Use /beta to register for a finite-credit beta tester API key by email.",
         "Use /pricing to buy paid credit packages when paid checkout readiness is true.",

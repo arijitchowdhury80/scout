@@ -94,10 +94,9 @@ class StripeBillingStatusResponse(BaseModel):
     webhook_configured: bool
     key_delivery_configured: bool
     public_self_service_path: str
+    public_beta_key_endpoint: str
     public_beta_checkout_endpoint: str
     public_paid_checkout_endpoint: str
-    legacy_direct_beta_key_endpoint: str
-    direct_beta_key_enabled: bool
     ready_for_beta_key_delivery: bool
     ready_for_beta_checkout: bool
     ready_for_paid_key_delivery: bool
@@ -272,10 +271,9 @@ async def stripe_status(
         webhook_configured=webhook_configured,
         key_delivery_configured=key_delivery_configured,
         public_self_service_path="email_beta_registration",
+        public_beta_key_endpoint="/v1/hosted/beta-key",
         public_beta_checkout_endpoint="/v1/billing/stripe/checkout-session",
         public_paid_checkout_endpoint="/v1/billing/stripe/checkout-session",
-        legacy_direct_beta_key_endpoint="/v1/hosted/beta-key",
-        direct_beta_key_enabled=False,
         ready_for_beta_key_delivery=beta_signup_enabled and key_delivery_configured,
         ready_for_beta_checkout=(
             beta_signup_enabled
