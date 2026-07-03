@@ -330,6 +330,33 @@ def test_stripe_status_reports_beta_checkout_readiness(monkeypatch) -> None:
     }
 
 
+def test_stripe_status_keeps_paid_checkout_blocked_without_paid_price_ids(
+    monkeypatch,
+) -> None:
+    service = RecordingStripeCheckoutService(
+        StripeCheckoutResult(success=True),
+        enabled=True,
+        paid_packages_configured=False,
+    )
+    delivery = RecordingDeliveryService(enabled=True)
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", True)
+    app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_webhook_secret] = lambda: "whsec_test"
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    client = TestClient(app)
+
+    response = client.get("/v1/billing/stripe/status")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["checkout_configured"] is True
+    assert data["ready_for_beta_checkout"] is True
+    assert data["ready_for_paid_key_delivery"] is False
+    assert "stripe_paid_price_ids" in data["missing_configuration"]
+    assert "Stripe paid package price IDs are not configured." in data["blocking_reasons"]
+    assert "Configure Stripe price IDs for public paid packages." in data["operator_next_actions"]
+
+
 def test_stripe_status_does_not_enable_beta_without_checkout_webhook_and_delivery(
     monkeypatch,
 ) -> None:
@@ -459,9 +486,15 @@ def _client(
 class RecordingStripeCheckoutService:
     """Record checkout requests and return a deterministic result."""
 
-    def __init__(self, result: StripeCheckoutResult, enabled: bool = True) -> None:
+    def __init__(
+        self,
+        result: StripeCheckoutResult,
+        enabled: bool = True,
+        paid_packages_configured: bool = True,
+    ) -> None:
         self.result = result
         self.enabled = enabled
+        self.paid_packages_configured = paid_packages_configured
         self.requests: list[tuple[str, str, str]] = []
 
     def create_checkout_session(self, request: object) -> StripeCheckoutResult:

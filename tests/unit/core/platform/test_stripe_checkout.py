@@ -118,6 +118,28 @@ def test_stripe_checkout_rejects_paid_package_without_price_id() -> None:
     assert transport.calls == []
 
 
+def test_stripe_checkout_does_not_use_beta_price_for_paid_package() -> None:
+    transport = RecordingStripeCheckoutTransport()
+    service = StripeCheckoutService(
+        StripeCheckoutConfig(
+            secret_key="sk_test_secret",
+            beta_price_id="price_beta_setup_only",
+            success_url="https://scout.example/success",
+            cancel_url="https://scout.example/cancel",
+        ),
+        transport=transport,
+    )
+
+    result = service.create_checkout_session(
+        StripeCheckoutRequest(email="builder@example.com", package_id="standard_1000")
+    )
+
+    assert service.paid_packages_configured is False
+    assert result.success is False
+    assert result.reason == "Stripe price is not configured for package standard_1000."
+    assert transport.calls == []
+
+
 def test_stripe_checkout_missing_configuration_fails_without_transport_call() -> None:
     transport = RecordingStripeCheckoutTransport()
     service = StripeCheckoutService(

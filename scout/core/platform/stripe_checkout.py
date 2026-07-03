@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 
 from pydantic import BaseModel, Field
 
-from scout.core.platform.pricing import get_credit_package
+from scout.core.platform.pricing import credit_packages, get_credit_package
 
 
 class StripeCheckoutConfig(BaseModel):
@@ -41,12 +41,24 @@ class StripeCheckoutConfig(BaseModel):
     def price_id_for_package(self, package_id: str) -> str:
         """Return the configured Stripe price id for a paid package."""
         price_ids = {
-            "standard_1000": self.standard_1000_price_id or self.beta_price_id,
+            "standard_1000": self.standard_1000_price_id,
             "standard_3000": self.standard_3000_price_id,
             "standard_15000": self.standard_15000_price_id,
             "browser_100": self.browser_100_price_id,
         }
         return price_ids.get(package_id, "")
+
+    @property
+    def paid_packages_configured(self) -> bool:
+        """Return whether every public paid package has a Stripe price id."""
+        public_paid_package_ids = [
+            package.package_id
+            for package in credit_packages()
+            if package.is_public_purchase and package.amount_cents > 0
+        ]
+        return all(
+            self.price_id_for_package(package_id) != "" for package_id in public_paid_package_ids
+        )
 
 
 class StripeCheckoutRequest(BaseModel):
@@ -133,6 +145,11 @@ class StripeCheckoutService:
     def enabled(self) -> bool:
         """Return whether Stripe Checkout creation has required configuration."""
         return self._config.enabled
+
+    @property
+    def paid_packages_configured(self) -> bool:
+        """Return whether public paid packages can create checkout sessions."""
+        return self._config.paid_packages_configured
 
     def create_checkout_session(
         self,

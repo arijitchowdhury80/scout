@@ -188,11 +188,13 @@ async def stripe_status(
     """Return non-secret Stripe readiness for the launch website."""
     beta_signup_enabled = settings.hosted_beta_signup_enabled
     checkout_configured = checkout_service.enabled
+    paid_packages_configured = checkout_service.paid_packages_configured
     webhook_configured = webhook_secret != ""
     key_delivery_configured = delivery_service.enabled
     diagnostics = _stripe_status_diagnostics(
         beta_signup_enabled=beta_signup_enabled,
         checkout_configured=checkout_configured,
+        paid_packages_configured=paid_packages_configured,
         webhook_configured=webhook_configured,
         key_delivery_configured=key_delivery_configured,
     )
@@ -209,7 +211,10 @@ async def stripe_status(
             and key_delivery_configured
         ),
         ready_for_paid_key_delivery=(
-            checkout_configured and webhook_configured and key_delivery_configured
+            checkout_configured
+            and paid_packages_configured
+            and webhook_configured
+            and key_delivery_configured
         ),
         missing_configuration=diagnostics["missing_configuration"],
         blocking_reasons=diagnostics["blocking_reasons"],
@@ -221,6 +226,7 @@ def _stripe_status_diagnostics(
     *,
     beta_signup_enabled: bool,
     checkout_configured: bool,
+    paid_packages_configured: bool,
     webhook_configured: bool,
     key_delivery_configured: bool,
 ) -> dict[str, list[str]]:
@@ -241,6 +247,10 @@ def _stripe_status_diagnostics(
         operator_next_actions.append(
             "Configure Stripe secret key, price IDs, success URL, and cancel URL."
         )
+    if checkout_configured and not paid_packages_configured:
+        missing_configuration.append("stripe_paid_price_ids")
+        blocking_reasons.append("Stripe paid package price IDs are not configured.")
+        operator_next_actions.append("Configure Stripe price IDs for public paid packages.")
     if not webhook_configured:
         missing_configuration.append("stripe_webhook_secret")
         blocking_reasons.append("Stripe webhook secret is not configured.")
