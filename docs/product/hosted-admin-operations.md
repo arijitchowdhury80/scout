@@ -247,6 +247,12 @@ For 250-user public beta bursts on the current small VPS, run with
 keeps the HTTP path responsive by accepting expensive work as jobs before live
 crawler/browser execution starts.
 
+Do not run `HOSTED_ASYNC_FIRST=true` with `HOSTED_JOB_QUEUE_WORKERS=0`. That
+configuration accepts hosted requests as `202 queued` jobs but no worker drains
+the in-process queue, so callers see a successful-looking response that never
+finishes. If no worker is running, keep `HOSTED_ASYNC_FIRST=false` so hosted
+calls execute inline and fail visibly.
+
 This queue is in-process and single-node. It is appropriate for the current VPS
 private beta, but a larger public launch should replace it with a durable queue,
 shared rate limiter, worker autoscaling, and external artifact storage.
