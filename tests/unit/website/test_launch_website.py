@@ -542,6 +542,10 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
     assert "window.location.assign" in pricing_js
     assert "amount_cents" in pricing_js
     assert "gross_margin_percent" in pricing_js
+    assert "unit_economics_assumptions" in pricing_js
+    assert "Standard credit cost" in pricing_js
+    assert "Fixed monthly cost" in pricing_js
+    assert "Payment fee" in pricing_js
     assert "sk_live_" not in pricing_js
     assert "sk_test_" not in pricing_js
 

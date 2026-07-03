@@ -37,8 +37,10 @@ from scout.core.platform.payment_provisioning import (
     HostedPaymentProvisioningService,
 )
 from scout.core.platform.pricing import (
+    DEFAULT_UNIT_ECONOMICS,
     HostedCreditPolicy,
     PackageUnitEconomics,
+    UnitEconomicsAssumptions,
     credit_cost_table,
     credit_packages,
     credit_policy_table,
@@ -106,6 +108,7 @@ class HostedBillingPackagesResponse(BaseModel):
     credit_costs: dict[str, str]
     credit_policy: list[HostedCreditPolicy]
     unit_economics: dict[str, PackageUnitEconomics]
+    unit_economics_assumptions: UnitEconomicsAssumptions
 
 
 class HostedBillingAdminMetricsResponse(BaseModel):
@@ -155,6 +158,7 @@ async def billing_packages() -> HostedBillingPackagesResponse:
         credit_costs=credit_cost_table(),
         credit_policy=credit_policy_table(),
         unit_economics=economics,
+        unit_economics_assumptions=DEFAULT_UNIT_ECONOMICS,
     )
 
 

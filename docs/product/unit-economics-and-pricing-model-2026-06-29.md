@@ -41,10 +41,14 @@ Estimated cost for 1,000 standard credits: $2.59. Estimated gross margin: 74.1%.
 | Fixed monthly cost assumption | $120 |
 | Break-even | 17 packs/month |
 
-This model is implemented in `scout.core.platform.pricing` and covered by
-`tests/unit/core/platform/test_pricing.py`. It is a launch candidate, not an
-irrevocable public price. If hosting, LLM, browser, firewall, storage, support,
-or payment costs change, change the package before enabling paid checkout.
+This model is implemented in `scout.core.platform.pricing`, returned by
+`GET /v1/billing/packages`, and rendered on the pricing page from the live
+billing model. The response includes both the package economics and the
+assumptions behind them: fixed monthly cost, standard-credit cost,
+browser-credit cost, allocated support cost, payment percent fee, payment fixed
+fee, and target gross margin. It is a launch candidate, not an irrevocable
+public price. If hosting, LLM, browser, firewall, storage, support, or payment
+costs change, change the package before enabling paid checkout.
 
 ## Decision Update
 

@@ -22,7 +22,6 @@ from scout.api.config import settings
 from scout.api.main import app
 from scout.core.platform.stripe_checkout import (
     StripeCheckoutResult,
-    StripeCheckoutService,
 )
 
 
@@ -464,12 +463,21 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
     ]
     assert data["unit_economics"]["standard_1000"]["gross_margin_percent"] == 74.1
     assert data["unit_economics"]["standard_1000"]["break_even_packages_per_month"] == 17
+    assert data["unit_economics_assumptions"] == {
+        "fixed_monthly_cost_cents": 12000,
+        "standard_credit_cost_cents": 0.15,
+        "browser_credit_cost_cents": 2.0,
+        "allocated_support_cost_cents": 50,
+        "payment_percent_fee": 2.9,
+        "payment_fixed_fee_cents": 30,
+        "target_gross_margin_percent": 70.0,
+    }
     assert "sk_" not in response.text
     assert "whsec_" not in response.text
 
 
 def _client(
-    service: StripeCheckoutService,
+    service: object,
     *,
     webhook_secret: str = "whsec_test",
     delivery_enabled: bool = True,

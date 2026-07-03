@@ -106,8 +106,9 @@
     }
 
     const standardEconomics = data.unit_economics && data.unit_economics.standard_1000;
+    const assumptions = data.unit_economics_assumptions || {};
     if (standardEconomics) {
-      unitEconomics.innerHTML = unitEconomicsCards(standardEconomics);
+      unitEconomics.innerHTML = unitEconomicsCards(standardEconomics, assumptions);
     }
   }
 
@@ -160,7 +161,7 @@
     `;
   }
 
-  function unitEconomicsCards(economics) {
+  function unitEconomicsCards(economics, assumptions) {
     return [
       economicsCard(
         "$10 package",
@@ -179,9 +180,25 @@
         ).toLocaleString()} packs/month.`,
       ),
       economicsCard(
-        "Assumption",
-        "Numbers are adjustable",
-        "Hosting, browser, LLM, support, firewall, and payment costs can change this model.",
+        "Standard credit cost",
+        `${formatDecimalCents(assumptions.standard_credit_cost_cents)} per credit`,
+        `${formatMoney(
+          Number(assumptions.standard_credit_cost_cents || 0) * 1000,
+        )} variable cost for 1,000 standard credits before support and payment fees.`,
+      ),
+      economicsCard(
+        "Payment fee",
+        `${Number(assumptions.payment_percent_fee || 0).toFixed(1)}% + ${formatMoney(
+          assumptions.payment_fixed_fee_cents,
+        )}`,
+        `${formatMoney(
+          economics.payment_fee_cents,
+        )} estimated payment processing cost for the $10 package.`,
+      ),
+      economicsCard(
+        "Fixed monthly cost",
+        `${formatMoney(assumptions.fixed_monthly_cost_cents)} baseline`,
+        "Hosting, security, monitoring, maintenance, support, and abuse controls must fit inside the break-even model.",
       ),
     ].join("");
   }
@@ -292,6 +309,12 @@
 
   function formatMoney(cents) {
     return `$${formatDollars(Number(cents || 0))}`;
+  }
+
+  function formatDecimalCents(cents) {
+    const value = Number(cents || 0);
+    if (value < 1) return `${value.toFixed(2)}¢`;
+    return `${value.toFixed(1)}¢`;
   }
 
   function titleize(value) {
