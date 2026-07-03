@@ -143,12 +143,15 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               <p class="wi-label wi-label--accent">Private beta access</p>
               <h3 id="hosted-key-title">Generate a hosted beta key.</h3>
               <p>
-                Enter your email to create your own hosted Scout key. The key is
-                shown once; store it in your server-side environment, not
-                frontend code.
+                Register for your hosted beta API key. Scout will email the key to you.
+                It is not exposed in the browser.
               </p>
             </div>
             <form id="hostedKeyForm" class="hosted-key-form">
+              <label>
+                Name
+                <input name="name" type="text" autocomplete="name" placeholder="Your name" required />
+              </label>
               <label>
                 Email
                 <input name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
@@ -160,9 +163,8 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               <button class="wi-btn" type="submit">Generate API key</button>
             </form>
             <div id="hostedKeyResult" class="hosted-key-result" aria-live="polite">
-              <p>Enter your email to generate a hosted key.</p>
+              <p>Enter your name and email to request a hosted beta key.</p>
             </div>
-            <button id="copyHostedKey" class="wi-pill" type="button" disabled>Copy key</button>
           </div>
           <div class="note-grid">
             <article>

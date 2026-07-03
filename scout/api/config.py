@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     hosted_key_delivery_smtp_use_tls: bool = True
     hosted_rate_limit_max_requests: int = 60
     hosted_rate_limit_window_seconds: int = 60
+    hosted_max_active_requests: int = 8
+    playground_max_active_requests: int = 4
+    capacity_retry_after_seconds: int = 5
     hosted_beta_signup_enabled: bool = False
     hosted_llm_mode: str = "disabled"
     hosted_llm_provider_allowlist: str = ""

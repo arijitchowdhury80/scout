@@ -18,6 +18,7 @@ def test_provision_account_creates_tenant_key_and_plan_credits() -> None:
 
     result = service.provision_account(
         email="builder@example.com",
+        name="Builder Person",
         plan=HostedPlan.HOSTED_BETA_PASS,
         key_name="Beta key",
         scopes=["runs:create"],
@@ -26,6 +27,7 @@ def test_provision_account_creates_tenant_key_and_plan_credits() -> None:
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
     assert result.raw_api_key.startswith("scout_live_")
     assert result.tenant.email == "builder@example.com"
+    assert result.tenant.name == "Builder Person"
     assert result.tenant.status is HostedAccountStatus.ACTIVE
     assert result.balance.standard_credits_remaining == limits.standard_credits
     assert result.balance.browser_credits_remaining == limits.browser_credits
@@ -109,6 +111,14 @@ def test_consume_action_debits_standard_and_denies_browser_when_beta_has_no_brow
         == limits.standard_credits - HostedAction.SCRAPE.credit_cost
     )
     assert balance.browser_credits_remaining == limits.browser_credits
+    entries = service.list_usage(result.tenant.tenant_id)
+    assert len(entries) == 1
+    assert entries[0].action == HostedAction.SCRAPE.value
+    assert entries[0].key_id == result.api_key.key_id
+    assert entries[0].credit_type == "standard"
+    assert entries[0].credits == 1
+    assert entries[0].standard_balance_after == limits.standard_credits - 1
+    assert entries[0].browser_balance_after == limits.browser_credits
 
 
 def test_consume_action_denies_without_mutating_when_credits_insufficient() -> None:
@@ -131,3 +141,21 @@ def test_consume_action_denies_without_mutating_when_credits_insufficient() -> N
     assert decision.reason == "Insufficient browser credits: need 5, have 0."
     assert balance.standard_credits_remaining == 1
     assert balance.browser_credits_remaining == 0
+
+
+def test_delete_account_removes_tenant_key_and_balance() -> None:
+    store = InMemoryHostedAccountStore()
+    service = HostedAccountService(store)
+    result = service.provision_account(
+        email="rollback@example.com",
+        name="Rollback User",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+    )
+
+    service.delete_account(result.tenant.tenant_id)
+
+    assert store.find_tenant_by_email("rollback@example.com") is None
+    assert (
+        service.authenticate_key(result.raw_api_key, required_scope="runs:create").allowed is False
+    )

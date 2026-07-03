@@ -17,6 +17,7 @@ class HostedApiKeyDeliveryRequest(BaseModel):
     """One-time raw API-key delivery request."""
 
     email: EmailStr
+    name: str = ""
     tenant_id: str
     key_id: str
     plan: HostedPlan
@@ -175,18 +176,28 @@ def _delivery_message(sender: str, request: HostedApiKeyDeliveryRequest) -> Emai
 
 def _delivery_body(request: HostedApiKeyDeliveryRequest) -> str:
     """Build the plaintext body for one-time API-key delivery."""
+    greeting_name = request.name.strip() or "there"
     return "\n".join(
         [
-            "Your Scout hosted API key is ready.",
+            f"Hi {greeting_name},",
             "",
-            "Store this key now. Scout does not store the raw key and cannot show it again.",
+            "Welcome to the Scout private beta. Your hosted API key is ready.",
+            "",
+            "Store this key now. Scout stores only a hash and cannot show the raw key again.",
             "",
             f"API key: {request.raw_api_key}",
             f"Plan: {request.plan.value}",
             f"Tenant ID: {request.tenant_id}",
             f"Key ID: {request.key_id}",
-            f"Checkout session: {request.checkout_session_id}",
+            f"Reference: {request.checkout_session_id}",
             "",
             "Use it as a Bearer token when calling hosted Scout endpoints.",
+            "",
+            "Quick test:",
+            "curl https://scout.chowmes.com/v1/hosted/me \\",
+            f"  -H 'Authorization: Bearer {request.raw_api_key}'",
+            "",
+            "Thanks,",
+            "Arijit Chowdhury",
         ]
     )

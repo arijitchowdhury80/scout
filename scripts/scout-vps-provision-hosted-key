@@ -7,13 +7,14 @@ HOSTED_DB="/data/hosted_accounts.sqlite"
 
 usage() {
   cat <<EOF
-usage: scout-vps-provision-hosted-key --email EMAIL [--key-name NAME] [--plan PLAN] [--env PATH] [--helper PATH]
+usage: scout-vps-provision-hosted-key --email EMAIL [--name NAME] [--key-name NAME] [--plan PLAN] [--env PATH] [--helper PATH]
 
 Provision a Scout hosted API key directly on the VPS with:
   scout hosted-provision --db $HOSTED_DB
 
 Options:
   --email EMAIL    User or consuming app email. Required.
+  --name NAME      User, app, or customer name to store with the tenant.
   --key-name NAME  Display name for the API key. Default: Hosted beta key
   --plan PLAN      hosted_beta_pass, hosted_starter, or hosted_pro. Default: hosted_beta_pass
   --env PATH       SSH env file for the ChowMes SSH helper. Default: $ENV_DEFAULT
@@ -27,6 +28,7 @@ EOF
 helper="$HELPER_DEFAULT"
 env_file="$ENV_DEFAULT"
 email=""
+name=""
 key_name="Hosted beta key"
 plan="hosted_beta_pass"
 
@@ -38,6 +40,14 @@ while [ $# -gt 0 ]; do
         exit 2
       fi
       email="$2"
+      shift 2
+      ;;
+    --name)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      name="$2"
       shift 2
       ;;
     --key-name)
@@ -104,16 +114,18 @@ if [ ! -x "$helper" ]; then
 fi
 
 encoded_email="$(printf '%s' "$email" | base64 | tr -d '\n')"
+encoded_name="$(printf '%s' "$name" | base64 | tr -d '\n')"
 encoded_key_name="$(printf '%s' "$key_name" | base64 | tr -d '\n')"
 
-"$helper" --env "$env_file" "python3 - '$encoded_email' '$encoded_key_name' '$plan' <<'PY'
+"$helper" --env "$env_file" "python3 - '$encoded_email' '$encoded_name' '$encoded_key_name' '$plan' <<'PY'
 import base64
 import subprocess
 import sys
 
 email = base64.b64decode(sys.argv[1]).decode('utf-8')
-key_name = base64.b64decode(sys.argv[2]).decode('utf-8')
-plan = sys.argv[3]
+name = base64.b64decode(sys.argv[2]).decode('utf-8')
+key_name = base64.b64decode(sys.argv[3]).decode('utf-8')
+plan = sys.argv[4]
 subprocess.run(
     [
         'sudo',
@@ -124,6 +136,8 @@ subprocess.run(
         'hosted-provision',
         '--email',
         email,
+        '--name',
+        name,
         '--db',
         '$HOSTED_DB',
         '--key-name',

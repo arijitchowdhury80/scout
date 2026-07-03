@@ -38,6 +38,7 @@ class HostedTenantRecord(BaseModel):
 
     tenant_id: str = Field(default_factory=lambda: f"tenant_{uuid4().hex}")
     email: EmailStr
+    name: str = ""
     plan: HostedPlan
     status: HostedAccountStatus = HostedAccountStatus.ACTIVE
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -50,6 +51,21 @@ class HostedProvisioningResult(BaseModel):
     api_key: ApiKeyRecord
     balance: HostedUsageBalance
     raw_api_key: str
+
+
+class HostedUsageLedgerEntry(BaseModel):
+    """Auditable record of a hosted credit debit."""
+
+    ledger_id: str = Field(default_factory=lambda: f"usage_{uuid4().hex}")
+    tenant_id: str
+    key_id: str
+    action: str
+    credit_type: str
+    credits: int
+    standard_balance_after: int
+    browser_balance_after: int
+    metadata: dict[str, str] = Field(default_factory=dict)
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 class HostedAccountDecision(BaseModel):
@@ -78,9 +94,15 @@ class HostedAccountStore(Protocol):
 
     def find_tenant_by_email(self, email: str) -> HostedTenantRecord | None: ...
 
+    def delete_account(self, tenant_id: str) -> None: ...
+
     def get_balance(self, tenant_id: str) -> HostedUsageBalance: ...
 
     def set_balance(self, tenant_id: str, balance: HostedUsageBalance) -> None: ...
+
+    def record_usage(self, entry: HostedUsageLedgerEntry) -> None: ...
+
+    def list_usage(self, tenant_id: str, limit: int = 100) -> list[HostedUsageLedgerEntry]: ...
 
     def update_key_status(self, key_id: str, status: ApiKeyStatus) -> None: ...
 
@@ -92,6 +114,7 @@ class InMemoryHostedAccountStore:
         self.tenants: dict[str, HostedTenantRecord] = {}
         self.api_keys: dict[str, ApiKeyRecord] = {}
         self.balances: dict[str, HostedUsageBalance] = {}
+        self.usage_entries: list[HostedUsageLedgerEntry] = []
 
     def save_account(
         self,
@@ -123,6 +146,15 @@ class InMemoryHostedAccountStore:
                 return tenant
         return None
 
+    def delete_account(self, tenant_id: str) -> None:
+        """Remove a hosted tenant, all keys, and its balance."""
+        self.tenants.pop(tenant_id, None)
+        self.balances.pop(tenant_id, None)
+        for key_id, record in list(self.api_keys.items()):
+            if record.tenant_id == tenant_id:
+                self.api_keys.pop(key_id, None)
+        self.usage_entries = [entry for entry in self.usage_entries if entry.tenant_id != tenant_id]
+
     def get_balance(self, tenant_id: str) -> HostedUsageBalance:
         """Return tenant credit balance."""
         return self.balances[tenant_id]
@@ -130,6 +162,15 @@ class InMemoryHostedAccountStore:
     def set_balance(self, tenant_id: str, balance: HostedUsageBalance) -> None:
         """Replace tenant credit balance."""
         self.balances[tenant_id] = balance
+
+    def record_usage(self, entry: HostedUsageLedgerEntry) -> None:
+        """Store a hosted usage ledger entry."""
+        self.usage_entries.append(entry)
+
+    def list_usage(self, tenant_id: str, limit: int = 100) -> list[HostedUsageLedgerEntry]:
+        """Return recent usage entries for a tenant."""
+        entries = [entry for entry in self.usage_entries if entry.tenant_id == tenant_id]
+        return list(reversed(entries))[:limit]
 
     def update_key_status(self, key_id: str, status: ApiKeyStatus) -> None:
         """Update API-key lifecycle status."""
@@ -149,6 +190,7 @@ class HostedAccountService:
         plan: HostedPlan,
         scopes: list[str],
         key_name: str = "Default key",
+        name: str = "",
     ) -> HostedProvisioningResult:
         """Provision a hosted tenant and return the raw API key once."""
         normalized_email = email.strip().lower()
@@ -158,7 +200,7 @@ class HostedAccountService:
         if not limits.hosted_enabled:
             raise ValueError(f"Plan {plan.value} is not hosted-enabled.")
 
-        tenant = HostedTenantRecord(email=normalized_email, plan=plan)
+        tenant = HostedTenantRecord(email=normalized_email, name=name.strip(), plan=plan)
         raw_key = generate_api_key()
         api_key = ApiKeyRecord(
             key_id=f"key_{uuid4().hex}",
@@ -230,7 +272,17 @@ class HostedAccountService:
                 update={"allowed": False, "reason": usage.reason, "usage": usage}
             )
 
-        self.store.set_balance(auth.tenant_id, _debit_balance(balance, action))
+        next_balance = _debit_balance(balance, action)
+        self.store.set_balance(auth.tenant_id, next_balance)
+        self.store.record_usage(
+            _usage_entry(
+                tenant_id=auth.tenant_id,
+                key_id=auth.key_id,
+                action=action,
+                credits=action.credit_cost,
+                balance=next_balance,
+            )
+        )
         return auth.model_copy(update={"usage": usage})
 
     def get_balance(self, tenant_id: str) -> HostedUsageBalance:
@@ -256,6 +308,41 @@ class HostedAccountService:
             ),
         )
 
+    def delete_account(self, tenant_id: str) -> None:
+        """Remove a hosted account after failed one-time key delivery."""
+        self.store.delete_account(tenant_id)
+
+    def debit_standard_credits(
+        self,
+        *,
+        tenant_id: str,
+        key_id: str,
+        action: HostedAction,
+        credits: int,
+        metadata: dict[str, str] | None = None,
+    ) -> HostedUsageBalance:
+        """Debit a variable number of standard credits and record the usage event."""
+        balance = self.store.get_balance(tenant_id)
+        next_balance = balance.model_copy(
+            update={"standard_credits_remaining": balance.standard_credits_remaining - credits}
+        )
+        self.store.set_balance(tenant_id, next_balance)
+        self.store.record_usage(
+            _usage_entry(
+                tenant_id=tenant_id,
+                key_id=key_id,
+                action=action,
+                credits=credits,
+                balance=next_balance,
+                metadata=metadata or {},
+            )
+        )
+        return next_balance
+
+    def list_usage(self, tenant_id: str, limit: int = 100) -> list[HostedUsageLedgerEntry]:
+        """Return recent usage entries for a hosted tenant."""
+        return self.store.list_usage(tenant_id, limit)
+
 
 def _debit_balance(balance: HostedUsageBalance, action: HostedAction) -> HostedUsageBalance:
     """Return a new balance after debiting an action."""
@@ -269,4 +356,26 @@ def _debit_balance(balance: HostedUsageBalance, action: HostedAction) -> HostedU
         update={
             "standard_credits_remaining": balance.standard_credits_remaining - action.credit_cost
         }
+    )
+
+
+def _usage_entry(
+    *,
+    tenant_id: str,
+    key_id: str,
+    action: HostedAction,
+    credits: int,
+    balance: HostedUsageBalance,
+    metadata: dict[str, str] | None = None,
+) -> HostedUsageLedgerEntry:
+    """Build an auditable hosted usage event."""
+    return HostedUsageLedgerEntry(
+        tenant_id=tenant_id,
+        key_id=key_id,
+        action=action.value,
+        credit_type=action.credit_type,
+        credits=credits,
+        standard_balance_after=balance.standard_credits_remaining,
+        browser_balance_after=balance.browser_credits_remaining,
+        metadata=metadata or {},
     )

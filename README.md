@@ -781,6 +781,11 @@ in [docs/validation/feature-certification.md](docs/validation/feature-certificat
 Hosted beta admin scripts for the Chowmes VPS live in `scripts/`:
 
 ```bash
+scripts/scout-hosted-admin generate-secret --label HOSTED_ADMIN_TOKEN
+scripts/scout-hosted-admin provision-key --email tester@example.com --name "Tester Name" --key-name "Beta key"
+scripts/scout-hosted-admin list-accounts --format table
+
+# Lower-level direct helpers remain available:
 scripts/scout-vps-provision-hosted-key --email tester@example.com --key-name "Beta key"
 scripts/scout-vps-list-hosted-accounts --format table
 ```

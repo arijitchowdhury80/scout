@@ -119,6 +119,7 @@ rows = conn.execute(
     SELECT
       t.tenant_id,
       t.email,
+      t.name,
       t.plan,
       t.status AS tenant_status,
       t.created_at AS tenant_created_at,
@@ -143,6 +144,7 @@ if output_format == 'json':
 else:
     headers = [
         'email',
+        'name',
         'plan',
         'tenant_status',
         'key_name',

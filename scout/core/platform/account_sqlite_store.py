@@ -6,7 +6,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from scout.core.platform.account_service import HostedTenantRecord
+from scout.core.platform.account_service import HostedTenantRecord, HostedUsageLedgerEntry
 from scout.core.platform.api_keys import ApiKeyRecord, ApiKeyStatus
 from scout.core.platform.hosted import HostedUsageBalance
 
@@ -30,12 +30,13 @@ class SQLiteHostedAccountStore:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO hosted_tenants
-                (tenant_id, email, plan, status, created_at)
-                VALUES (?, ?, ?, ?, ?)
+                (tenant_id, email, name, plan, status, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
                     tenant.tenant_id,
                     str(tenant.email),
+                    tenant.name,
                     tenant.plan.value,
                     tenant.status.value,
                     tenant.created_at,
@@ -80,7 +81,7 @@ class SQLiteHostedAccountStore:
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT tenant_id, email, plan, status, created_at
+                SELECT tenant_id, email, name, plan, status, created_at
                 FROM hosted_tenants
                 WHERE tenant_id = ?
                 """,
@@ -91,6 +92,7 @@ class SQLiteHostedAccountStore:
         return HostedTenantRecord(
             tenant_id=row["tenant_id"],
             email=row["email"],
+            name=row["name"],
             plan=row["plan"],
             status=row["status"],
             created_at=row["created_at"],
@@ -101,7 +103,7 @@ class SQLiteHostedAccountStore:
         with self._connect() as conn:
             row = conn.execute(
                 """
-                SELECT tenant_id, email, plan, status, created_at
+                SELECT tenant_id, email, name, plan, status, created_at
                 FROM hosted_tenants
                 WHERE lower(email) = lower(?)
                 """,
@@ -112,10 +114,19 @@ class SQLiteHostedAccountStore:
         return HostedTenantRecord(
             tenant_id=row["tenant_id"],
             email=row["email"],
+            name=row["name"],
             plan=row["plan"],
             status=row["status"],
             created_at=row["created_at"],
         )
+
+    def delete_account(self, tenant_id: str) -> None:
+        """Remove a hosted tenant, all keys, and its balance."""
+        with self._connect() as conn:
+            conn.execute("DELETE FROM hosted_credit_ledger WHERE tenant_id = ?", (tenant_id,))
+            conn.execute("DELETE FROM hosted_credit_balances WHERE tenant_id = ?", (tenant_id,))
+            conn.execute("DELETE FROM hosted_api_keys WHERE tenant_id = ?", (tenant_id,))
+            conn.execute("DELETE FROM hosted_tenants WHERE tenant_id = ?", (tenant_id,))
 
     def get_balance(self, tenant_id: str) -> HostedUsageBalance:
         """Return tenant credit balance."""
@@ -140,6 +151,47 @@ class SQLiteHostedAccountStore:
         with self._connect() as conn:
             self._set_balance(conn, tenant_id, balance)
 
+    def record_usage(self, entry: HostedUsageLedgerEntry) -> None:
+        """Persist a hosted usage ledger entry."""
+        with self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO hosted_credit_ledger
+                (ledger_id, tenant_id, key_id, action, credit_type, credits,
+                 standard_balance_after, browser_balance_after, metadata_json, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    entry.ledger_id,
+                    entry.tenant_id,
+                    entry.key_id,
+                    entry.action,
+                    entry.credit_type,
+                    entry.credits,
+                    entry.standard_balance_after,
+                    entry.browser_balance_after,
+                    json.dumps(entry.metadata, sort_keys=True),
+                    entry.created_at,
+                ),
+            )
+
+    def list_usage(self, tenant_id: str, limit: int = 100) -> list[HostedUsageLedgerEntry]:
+        """Return recent usage ledger entries for a hosted tenant."""
+        safe_limit = max(1, min(limit, 500))
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT ledger_id, tenant_id, key_id, action, credit_type, credits,
+                       standard_balance_after, browser_balance_after, metadata_json, created_at
+                FROM hosted_credit_ledger
+                WHERE tenant_id = ?
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (tenant_id, safe_limit),
+            ).fetchall()
+        return [_ledger_entry_from_row(row) for row in rows]
+
     def update_key_status(self, key_id: str, status: ApiKeyStatus) -> None:
         """Update API-key lifecycle status."""
         with self._connect() as conn:
@@ -162,6 +214,7 @@ class SQLiteHostedAccountStore:
                 CREATE TABLE IF NOT EXISTS hosted_tenants (
                   tenant_id TEXT PRIMARY KEY,
                   email TEXT NOT NULL,
+                  name TEXT NOT NULL DEFAULT '',
                   plan TEXT NOT NULL,
                   status TEXT NOT NULL,
                   created_at TEXT NOT NULL
@@ -185,8 +238,43 @@ class SQLiteHostedAccountStore:
                   browser_credits_remaining INTEGER NOT NULL,
                   FOREIGN KEY (tenant_id) REFERENCES hosted_tenants(tenant_id)
                 );
+
+                CREATE TABLE IF NOT EXISTS hosted_credit_ledger (
+                  ledger_id TEXT PRIMARY KEY,
+                  tenant_id TEXT NOT NULL,
+                  key_id TEXT NOT NULL,
+                  action TEXT NOT NULL,
+                  credit_type TEXT NOT NULL,
+                  credits INTEGER NOT NULL,
+                  standard_balance_after INTEGER NOT NULL,
+                  browser_balance_after INTEGER NOT NULL,
+                  metadata_json TEXT NOT NULL,
+                  created_at TEXT NOT NULL,
+                  FOREIGN KEY (tenant_id) REFERENCES hosted_tenants(tenant_id),
+                  FOREIGN KEY (key_id) REFERENCES hosted_api_keys(key_id)
+                );
                 """
             )
+            self._ensure_column(
+                conn,
+                table="hosted_tenants",
+                column="name",
+                definition="TEXT NOT NULL DEFAULT ''",
+            )
+
+    def _ensure_column(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        table: str,
+        column: str,
+        definition: str,
+    ) -> None:
+        """Add a SQLite column if an existing deployment database lacks it."""
+        columns = conn.execute(f"PRAGMA table_info({table})").fetchall()
+        if any(row["name"] == column for row in columns):
+            return
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
     def _set_balance(
         self,
@@ -223,4 +311,20 @@ def _api_key_from_row(row: sqlite3.Row) -> ApiKeyRecord:
         status=row["status"],
         created_at=row["created_at"],
         last_used_at=row["last_used_at"],
+    )
+
+
+def _ledger_entry_from_row(row: sqlite3.Row) -> HostedUsageLedgerEntry:
+    """Build a usage ledger entry from SQLite data."""
+    return HostedUsageLedgerEntry(
+        ledger_id=row["ledger_id"],
+        tenant_id=row["tenant_id"],
+        key_id=row["key_id"],
+        action=row["action"],
+        credit_type=row["credit_type"],
+        credits=row["credits"],
+        standard_balance_after=row["standard_balance_after"],
+        browser_balance_after=row["browser_balance_after"],
+        metadata=json.loads(row["metadata_json"] or "{}"),
+        created_at=row["created_at"],
     )

@@ -57,9 +57,11 @@ def test_smtp_delivery_service_sends_one_time_key_email() -> None:
     assert sent.sender == "scout@example.com"
     assert sent.recipients == ["builder@example.com"]
     assert "Your Scout hosted API key" in sent.message
+    assert "Hi Builder Person," in sent.message
     assert "scout_live_test_key" in sent.message
     assert "tenant_123" in sent.message
     assert "key_123" in sent.message
+    assert "Arijit Chowdhury" in sent.message
 
 
 def test_smtp_delivery_service_returns_failure_when_send_fails() -> None:
@@ -91,6 +93,7 @@ def _delivery_request() -> HostedApiKeyDeliveryRequest:
     """Build a hosted API-key delivery request."""
     return HostedApiKeyDeliveryRequest(
         email="builder@example.com",
+        name="Builder Person",
         tenant_id="tenant_123",
         key_id="key_123",
         plan=HostedPlan.HOSTED_BETA_PASS,

@@ -680,6 +680,7 @@ def product_export(
 @app.command("hosted-provision")
 def hosted_provision(
     email: str = typer.Option(..., "--email", help="Hosted beta user email"),
+    name: str = typer.Option("", "--name", help="Hosted beta user or app name"),
     db: str = typer.Option("", "--db", help="Hosted account SQLite DB path"),
     workdir: str = typer.Option("", "--workdir", help="Workdir used to derive DB path"),
     plan: HostedPlan = typer.Option(
@@ -700,6 +701,7 @@ def hosted_provision(
     try:
         result = service.provision_account(
             email=email,
+            name=name,
             plan=plan,
             scopes=scope or ["runs:create"],
             key_name=key_name,
@@ -713,6 +715,7 @@ def hosted_provision(
             "tenant_id": result.tenant.tenant_id,
             "key_id": result.api_key.key_id,
             "email": str(result.tenant.email),
+            "name": result.tenant.name,
             "plan": result.tenant.plan.value,
             "scopes": result.api_key.scopes,
             "standard_credits_remaining": result.balance.standard_credits_remaining,

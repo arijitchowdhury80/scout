@@ -6,6 +6,7 @@ from scout.api.config import settings
 from scout.api.db import RunDB
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
+from scout.core.platform.admission import AdmissionController
 from scout.core.platform.key_delivery import (
     DisabledHostedApiKeyDeliveryService,
     HostedApiKeyDeliveryService,
@@ -79,3 +80,23 @@ def get_hosted_rate_limiter(request: Request) -> HostedRateLimiter:
         HostedRateLimiter(HostedRateLimitConfig(enabled=False)),
     )
     return limiter
+
+
+def get_hosted_admission_controller(request: Request) -> AdmissionController:
+    """Return admission control for expensive hosted API execution."""
+    controller: AdmissionController = getattr(
+        request.app.state,
+        "hosted_admission_controller",
+        AdmissionController(max_active=100_000),
+    )
+    return controller
+
+
+def get_playground_admission_controller(request: Request) -> AdmissionController:
+    """Return admission control for anonymous playground execution."""
+    controller: AdmissionController = getattr(
+        request.app.state,
+        "playground_admission_controller",
+        AdmissionController(max_active=100_000),
+    )
+    return controller

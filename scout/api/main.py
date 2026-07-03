@@ -46,6 +46,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from scout.api.run_store import bind_db
     from scout.core.platform.account_service import HostedAccountService
     from scout.core.platform.account_sqlite_store import SQLiteHostedAccountStore
+    from scout.core.platform.admission import AdmissionController
     from scout.core.platform.key_delivery import (
         SmtpHostedApiKeyDeliveryConfig,
         SmtpHostedApiKeyDeliveryService,
@@ -76,6 +77,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             max_requests=settings.hosted_rate_limit_max_requests,
             window_seconds=settings.hosted_rate_limit_window_seconds,
         )
+    )
+    app.state.hosted_admission_controller = AdmissionController(
+        max_active=settings.hosted_max_active_requests,
+        retry_after_seconds=settings.capacity_retry_after_seconds,
+    )
+    app.state.playground_admission_controller = AdmissionController(
+        max_active=settings.playground_max_active_requests,
+        retry_after_seconds=settings.capacity_retry_after_seconds,
     )
     app.state.hosted_key_delivery_service = SmtpHostedApiKeyDeliveryService(
         SmtpHostedApiKeyDeliveryConfig(

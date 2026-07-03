@@ -340,6 +340,8 @@ def test_hosted_provision_command_creates_usable_key_without_storing_raw_key() -
                 "hosted-provision",
                 "--email",
                 "builder@example.com",
+                "--name",
+                "Builder Person",
                 "--db",
                 "hosted.sqlite",
             ],
@@ -356,6 +358,7 @@ def test_hosted_provision_command_creates_usable_key_without_storing_raw_key() -
         assert data["success"] is True
         assert data["plan"] == "hosted_beta_pass"
         assert data["email"] == "builder@example.com"
+        assert data["name"] == "Builder Person"
         assert raw_key.startswith("scout_live_")
         assert auth.allowed is True
         assert balance.standard_credits_remaining == limits.standard_credits

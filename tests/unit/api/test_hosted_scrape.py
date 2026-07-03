@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from scout.api.deps import (
     get_crawler,
+    get_hosted_admission_controller,
     get_hosted_account_service,
     get_hosted_key_delivery_service,
     get_hosted_rate_limiter,
@@ -18,6 +19,7 @@ from scout.core.platform.account_service import (
     HostedAccountService,
     InMemoryHostedAccountStore,
 )
+from scout.core.platform.admission import AdmissionController
 from scout.core.platform.hosted import HostedPlan, plan_limits
 from scout.core.platform.hosted_rate_limit import HostedRateLimitConfig, HostedRateLimiter
 from scout.core.platform.key_delivery import (
@@ -308,6 +310,10 @@ def test_hosted_scrape_allows_valid_key_and_debits_credits() -> None:
             json={"url": "https://example.com"},
             headers={"Authorization": f"Bearer {raw_key}"},
         )
+        usage_resp = client.get(
+            "/v1/hosted/usage",
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
     finally:
         app.dependency_overrides.clear()
 
@@ -323,6 +329,13 @@ def test_hosted_scrape_allows_valid_key_and_debits_credits() -> None:
     assert raw_key not in resp.text
     assert balance.standard_credits_remaining == limits.standard_credits - 1
     assert mock_crawler.scrape.await_count == 1
+    assert usage_resp.status_code == 200
+    usage = usage_resp.json()
+    assert usage["total"] == 1
+    assert usage["usage"][0]["action"] == "scrape"
+    assert usage["usage"][0]["credits"] == 1
+    assert usage["usage"][0]["tenant_id"] == tenant_id
+    assert raw_key not in usage_resp.text
 
 
 def test_hosted_scrape_rate_limit_rejects_without_second_debit_or_crawl() -> None:
@@ -366,6 +379,33 @@ def test_hosted_scrape_rate_limit_rejects_without_second_debit_or_crawl() -> Non
     assert raw_key not in second.text
     assert mock_crawler.scrape.await_count == 1
     assert balance.standard_credits_remaining == limits.standard_credits - 1
+
+
+def test_hosted_scrape_capacity_rejects_without_debit_or_crawl() -> None:
+    account_service, raw_key, tenant_id = _account_service_with_key()
+    admission = AdmissionController(max_active=0, retry_after_seconds=3)
+    mock_crawler = MagicMock()
+    mock_crawler.scrape = AsyncMock()
+    app.dependency_overrides[get_crawler] = lambda: mock_crawler
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_admission_controller] = lambda: admission
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/scrape",
+            json={"url": "https://example.com"},
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    balance = account_service.get_balance(tenant_id)
+    limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
+    assert resp.status_code == 429
+    assert resp.json()["detail"] == "Hosted worker capacity is full; retry shortly."
+    assert resp.headers["retry-after"] == "3"
+    assert mock_crawler.scrape.await_count == 0
+    assert balance.standard_credits_remaining == limits.standard_credits
 
 
 class FakeDeliveryService:

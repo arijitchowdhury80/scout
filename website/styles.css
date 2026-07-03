@@ -969,10 +969,6 @@ li {
   color: var(--wi-accent-surface);
 }
 
-.hosted-key-card #copyHostedKey {
-  justify-self: end;
-}
-
 .endpoint-table {
   margin-top: 24px;
   grid-template-columns: 1fr;
@@ -1695,10 +1691,6 @@ ul {
 
   .hosted-key-card h3 {
     font-size: 28px;
-  }
-
-  .hosted-key-card #copyHostedKey {
-    justify-self: stretch;
   }
 
   .docs-sidebar {

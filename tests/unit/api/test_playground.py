@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from scout.api.deps import get_crawler
+from scout.api.deps import get_crawler, get_playground_admission_controller
 from scout.api.main import app
 from scout.api.routers import playground as playground_router
+from scout.core.platform.admission import AdmissionController
 from scout.core.types import (
     AlgoliaProductRecord,
     BlockedPage,
@@ -259,6 +260,31 @@ def test_playground_accepts_scheme_less_public_urls() -> None:
     assert payload["url"] == "https://example.com"
     assert payload["records"][0]["url"] == "https://example.com"
     assert crawler.scrape_request.url == "https://example.com"
+
+
+def test_playground_rejects_when_demo_capacity_is_full_without_running_crawler() -> None:
+    crawler = _FakePlaygroundCrawler()
+    admission = AdmissionController(max_active=0, retry_after_seconds=4)
+    app.dependency_overrides[get_crawler] = lambda: crawler
+    app.dependency_overrides[get_playground_admission_controller] = lambda: admission
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/playground/run",
+            json={
+                "workflow": "scrape",
+                "url": "example.com",
+                "max_items": 1,
+                "output_format": "json",
+            },
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 429
+    assert resp.json()["detail"] == "Playground capacity is full; retry shortly."
+    assert resp.headers["retry-after"] == "4"
+    assert crawler.scrape_request is None
 
 
 def test_playground_crawl_demo_is_public_limited_and_downloadable() -> None:

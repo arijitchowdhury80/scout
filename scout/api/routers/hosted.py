@@ -14,7 +14,9 @@ from scout.api.config import settings
 from scout.api.deps import (
     get_crawler,
     get_crawler_optional,
+    get_hosted_admission_controller,
     get_hosted_account_service,
+    get_hosted_key_delivery_service,
     get_hosted_rate_limiter,
 )
 from scout.api.run_store import remember_run
@@ -22,6 +24,7 @@ from scout.api.run_store import get_run, list_runs
 from scout.api.run_store import StoredRun
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.account_service import HostedAccountService
+from scout.core.platform.admission import AdmissionController, AdmissionRejected
 from scout.core.platform.hosted import (
     HostedAction,
     HostedPlan,
@@ -30,6 +33,10 @@ from scout.core.platform.hosted import (
     plan_limits,
 )
 from scout.core.platform.hosted_rate_limit import HostedRateLimiter
+from scout.core.platform.key_delivery import (
+    HostedApiKeyDeliveryRequest,
+    HostedApiKeyDeliveryService,
+)
 from scout.core.platform.run import run_use_case
 from scout.core.platform.types import RunRequest, RunResponse
 from scout.core.platform.url_safety import validate_hosted_url_fields
@@ -112,6 +119,7 @@ class HostedAccountSummaryResponse(BaseModel):
 class HostedBetaKeyRequest(BaseModel):
     """Hosted beta key generation request."""
 
+    name: str = ""
     email: EmailStr
     key_name: str = "Hosted beta key"
 
@@ -122,12 +130,13 @@ class HostedBetaKeyResponse(BaseModel):
     success: bool
     tenant_id: str
     key_id: str
+    name: str
     email: str
     plan: str
     scopes: list[str]
     standard_credits_remaining: int
     browser_credits_remaining: int
-    raw_api_key: str
+    delivery_status: str
     warning: str
 
 
@@ -156,10 +165,27 @@ async def hosted_me(
     )
 
 
+@router.get("/usage")
+async def hosted_usage(
+    limit: int = 100,
+    authorization: str = Header(default=""),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+) -> dict[str, Any]:
+    """Return recent hosted credit ledger entries for the Bearer key tenant."""
+    auth = _hosted_auth_for_read(authorization, account_service, rate_limiter)
+    entries = account_service.list_usage(auth.tenant_id, limit=limit)
+    return {
+        "total": len(entries),
+        "usage": [entry.model_dump(mode="json") for entry in entries],
+    }
+
+
 @router.post("/beta-key", response_model=HostedBetaKeyResponse)
 async def hosted_beta_key(
     req: HostedBetaKeyRequest,
     account_service: HostedAccountService = Depends(get_hosted_account_service),
+    delivery_service: HostedApiKeyDeliveryService = Depends(get_hosted_key_delivery_service),
 ) -> HostedBetaKeyResponse:
     """Provision a hosted beta API key after email capture."""
     if not settings.hosted_beta_signup_enabled:
@@ -167,10 +193,16 @@ async def hosted_beta_key(
             status_code=503,
             detail="Hosted beta key generation is disabled.",
         )
+    if not delivery_service.enabled:
+        raise HTTPException(
+            status_code=503,
+            detail="Hosted API key email delivery is not configured.",
+        )
 
     try:
         provisioned = account_service.provision_account(
             email=str(req.email),
+            name=req.name,
             plan=HostedPlan.HOSTED_BETA_PASS,
             scopes=["runs:create"],
             key_name=req.key_name.strip() or "Hosted beta key",
@@ -179,17 +211,32 @@ async def hosted_beta_key(
         if "already exists" in str(exc):
             raise HTTPException(status_code=409, detail=str(exc)) from exc
         raise
+    delivery = delivery_service.deliver(
+        HostedApiKeyDeliveryRequest(
+            email=provisioned.tenant.email,
+            name=provisioned.tenant.name,
+            tenant_id=provisioned.tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            plan=provisioned.tenant.plan,
+            raw_api_key=provisioned.raw_api_key,
+            checkout_session_id="beta_signup",
+        )
+    )
+    if not delivery.delivered:
+        account_service.delete_account(provisioned.tenant.tenant_id)
+        raise HTTPException(status_code=502, detail=delivery.reason)
     return HostedBetaKeyResponse(
         success=True,
         tenant_id=provisioned.tenant.tenant_id,
         key_id=provisioned.api_key.key_id,
+        name=provisioned.tenant.name,
         email=str(provisioned.tenant.email),
         plan=provisioned.tenant.plan.value,
         scopes=provisioned.api_key.scopes,
         standard_credits_remaining=provisioned.balance.standard_credits_remaining,
         browser_credits_remaining=provisioned.balance.browser_credits_remaining,
-        raw_api_key=provisioned.raw_api_key,
-        warning="Copy this key now. Scout stores only its hash and cannot show it again.",
+        delivery_status=delivery.delivery_status,
+        warning="Scout emailed the API key. It stores only a hash and cannot show the raw key again.",
     )
 
 
@@ -200,6 +247,7 @@ async def hosted_scrape(
     crawler: ScoutCrawler = Depends(get_crawler),
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+    admission: AdmissionController = Depends(get_hosted_admission_controller),
 ) -> HostedScrapeResponse:
     """Run a hosted scrape after Bearer auth, URL safety, and credit admission."""
     raw_key = _bearer_token(authorization)
@@ -208,14 +256,18 @@ async def hosted_scrape(
         raise HTTPException(status_code=403, detail=auth.reason)
     _enforce_hosted_url_safety(req.url)
     _enforce_rate_limit(rate_limiter, auth.key_id)
-    usage = account_service.consume_action(
-        raw_key,
-        HostedAction.SCRAPE,
-        required_scope="runs:create",
-    )
-    if not usage.allowed:
-        raise HTTPException(status_code=403, detail=usage.reason)
-    scrape_response = await crawler.scrape(req)
+    try:
+        async with admission.admit():
+            usage = account_service.consume_action(
+                raw_key,
+                HostedAction.SCRAPE,
+                required_scope="runs:create",
+            )
+            if not usage.allowed:
+                raise HTTPException(status_code=403, detail=usage.reason)
+            scrape_response = await crawler.scrape(req)
+    except AdmissionRejected as exc:
+        raise _capacity_exception("Hosted worker capacity is full; retry shortly.", exc) from exc
     return HostedScrapeResponse(
         success=scrape_response.success,
         hosted=HostedUsageSummary(
@@ -235,6 +287,7 @@ async def hosted_crawl(
     crawler: ScoutCrawler = Depends(get_crawler),
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+    admission: AdmissionController = Depends(get_hosted_admission_controller),
 ) -> HostedCrawlResponse:
     """Run a hosted crawl after Bearer auth, URL safety, rate, and credit checks."""
     raw_key = _bearer_token(authorization)
@@ -250,9 +303,19 @@ async def hosted_crawl(
     _enforce_standard_credit_preflight(account_service, auth.tenant_id, req.max_pages)
     _enforce_rate_limit(rate_limiter, auth.key_id)
 
-    crawl_response = await crawler.crawl(req)
+    try:
+        async with admission.admit():
+            crawl_response = await crawler.crawl(req)
+    except AdmissionRejected as exc:
+        raise _capacity_exception("Hosted worker capacity is full; retry shortly.", exc) from exc
     pages_charged = _hosted_crawl_pages_charged(crawl_response, req.max_pages)
-    _debit_standard_credits(account_service, auth.tenant_id, pages_charged)
+    _debit_standard_credits(
+        account_service,
+        tenant_id=auth.tenant_id,
+        key_id=auth.key_id,
+        action=HostedAction.CRAWL_PAGE,
+        credits=pages_charged,
+    )
     return HostedCrawlResponse(
         success=crawl_response.success,
         hosted=HostedUsageSummary(
@@ -272,6 +335,7 @@ async def hosted_products(
     crawler: ScoutCrawler = Depends(get_crawler),
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+    admission: AdmissionController = Depends(get_hosted_admission_controller),
 ) -> HostedProductsResponse:
     """Run hosted product extraction after auth, URL safety, rate, and credit checks."""
     raw_key = _bearer_token(authorization)
@@ -288,9 +352,19 @@ async def hosted_products(
     _enforce_standard_credit_preflight(account_service, auth.tenant_id, req.max_products)
     _enforce_rate_limit(rate_limiter, auth.key_id)
 
-    products_response = await crawler.products(req)
+    try:
+        async with admission.admit():
+            products_response = await crawler.products(req)
+    except AdmissionRejected as exc:
+        raise _capacity_exception("Hosted worker capacity is full; retry shortly.", exc) from exc
     records_charged = _hosted_product_records_charged(products_response, req.max_products)
-    _debit_standard_credits(account_service, auth.tenant_id, records_charged)
+    _debit_standard_credits(
+        account_service,
+        tenant_id=auth.tenant_id,
+        key_id=auth.key_id,
+        action=HostedAction.CRAWL_PAGE,
+        credits=records_charged,
+    )
     return HostedProductsResponse(
         success=products_response.success,
         hosted=HostedUsageSummary(
@@ -311,6 +385,7 @@ async def hosted_run(
     crawler: ScoutCrawler | None = Depends(get_crawler_optional),
     account_service: HostedAccountService = Depends(get_hosted_account_service),
     rate_limiter: HostedRateLimiter = Depends(get_hosted_rate_limiter),
+    admission: AdmissionController = Depends(get_hosted_admission_controller),
 ) -> HostedRunResponse:
     """Run a hosted high-level Scout use case after hosted admission checks."""
     raw_key = _bearer_token(authorization)
@@ -337,11 +412,21 @@ async def hosted_run(
             ),
         }
     )
-    run_response = await run_use_case(hosted_req, crawler)
+    try:
+        async with admission.admit():
+            run_response = await run_use_case(hosted_req, crawler)
+    except AdmissionRejected as exc:
+        raise _capacity_exception("Hosted worker capacity is full; retry shortly.", exc) from exc
     if run_response.manifest is not None:
         await remember_run(run_response.manifest, tenant_id=auth.tenant_id, key_id=auth.key_id)
     records_charged = _hosted_run_records_charged(run_response, req.max_records)
-    _debit_standard_credits(account_service, auth.tenant_id, records_charged)
+    _debit_standard_credits(
+        account_service,
+        tenant_id=auth.tenant_id,
+        key_id=auth.key_id,
+        action=HostedAction.CRAWL_PAGE,
+        credits=records_charged,
+    )
     return HostedRunResponse(
         success=run_response.success,
         hosted=HostedUsageSummary(
@@ -559,6 +644,15 @@ def _enforce_rate_limit(rate_limiter: HostedRateLimiter, key_id: str) -> None:
     )
 
 
+def _capacity_exception(detail: str, exc: AdmissionRejected) -> HTTPException:
+    """Return a retryable overload response for expensive hosted work."""
+    return HTTPException(
+        status_code=429,
+        detail=detail,
+        headers={"Retry-After": str(exc.retry_after_seconds)},
+    )
+
+
 def _enforce_crawl_page_limit(max_pages: int, limits: HostedPlanLimits) -> None:
     """Reject hosted crawls that exceed plan page limits."""
     if max_pages < 1:
@@ -645,15 +739,18 @@ def _hosted_run_records_charged(response: RunResponse, requested_max_records: in
 
 def _debit_standard_credits(
     account_service: HostedAccountService,
+    *,
     tenant_id: str,
+    key_id: str,
+    action: HostedAction,
     credits: int,
 ) -> None:
     """Debit standard credits after hosted crawl work is complete."""
     if credits <= 0:
         return
-    balance = account_service.get_balance(tenant_id)
-    account_service.set_balance(
-        tenant_id,
-        standard_credits=balance.standard_credits_remaining - credits,
-        browser_credits=balance.browser_credits_remaining,
+    account_service.debit_standard_credits(
+        tenant_id=tenant_id,
+        key_id=key_id,
+        action=action,
+        credits=credits,
     )

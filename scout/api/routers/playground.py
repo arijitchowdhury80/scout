@@ -11,8 +11,9 @@ from typing import Any, Literal
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from scout.api.deps import get_crawler
+from scout.api.deps import get_crawler, get_playground_admission_controller
 from scout.core.crawler import ScoutCrawler
+from scout.core.platform.admission import AdmissionController, AdmissionRejected
 from scout.core.platform.run import run_use_case
 from scout.core.platform.url_safety import validate_hosted_url_with_dns
 from scout.core.platform.types import RunRequest
@@ -212,6 +213,7 @@ async def playground_run(
     req: PlaygroundRunRequest,
     request: Request,
     crawler: ScoutCrawler = Depends(get_crawler),
+    admission: AdmissionController = Depends(get_playground_admission_controller),
 ) -> PlaygroundRunResponse:
     """Run a capped public demo without requiring a hosted API key."""
     req = req.model_copy(
@@ -226,20 +228,28 @@ async def playground_run(
         )
     _enforce_playground_rate_limit(_client_key(request))
     _enforce_playground_url_safety(req.url)
-    if req.workflow == "products":
-        return await _run_products_playground(req, crawler)
-    if req.workflow == "crawl":
-        return await _run_crawl_playground(req, crawler)
-    if req.workflow == "scrape":
-        return await _run_scrape_playground(req, crawler)
-    if req.workflow == "map":
-        return await _run_map_playground(req, crawler)
-    if req.workflow == "extract":
-        return await _run_extract_playground(req, crawler)
-    if req.workflow == "screenshot":
-        return await _run_screenshot_playground(req, crawler)
-    if req.workflow in _INTELLIGENCE_CAPABILITIES:
-        return await _run_intelligence_playground(req, crawler)
+    try:
+        async with admission.admit():
+            if req.workflow == "products":
+                return await _run_products_playground(req, crawler)
+            if req.workflow == "crawl":
+                return await _run_crawl_playground(req, crawler)
+            if req.workflow == "scrape":
+                return await _run_scrape_playground(req, crawler)
+            if req.workflow == "map":
+                return await _run_map_playground(req, crawler)
+            if req.workflow == "extract":
+                return await _run_extract_playground(req, crawler)
+            if req.workflow == "screenshot":
+                return await _run_screenshot_playground(req, crawler)
+            if req.workflow in _INTELLIGENCE_CAPABILITIES:
+                return await _run_intelligence_playground(req, crawler)
+    except AdmissionRejected as exc:
+        raise HTTPException(
+            status_code=429,
+            detail="Playground capacity is full; retry shortly.",
+            headers={"Retry-After": str(exc.retry_after_seconds)},
+        ) from exc
     raise HTTPException(status_code=400, detail=f"Unsupported playground workflow: {req.workflow}")
 
 

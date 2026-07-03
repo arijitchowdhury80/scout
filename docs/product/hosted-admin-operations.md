@@ -7,11 +7,12 @@ Status: private beta operations
 
 Scout hosted beta has API-key based access, not a login system.
 
-- Users can generate one hosted API key through `POST /v1/hosted/beta-key` when `HOSTED_BETA_SIGNUP_ENABLED=true`.
-- Operators can provision a key directly on the VPS with `scout hosted-provision`.
-- Hosted tenants, API-key metadata, and credit balances are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
-- Raw API keys are returned once. Scout stores only a hash.
+- Users can register for one hosted API key through `POST /v1/hosted/beta-key` when `HOSTED_BETA_SIGNUP_ENABLED=true` and SMTP key delivery is configured.
+- Operators can provision a key from the Mac with `scripts/scout-hosted-admin provision-key`, which wraps the VPS `scout hosted-provision` command.
+- Hosted tenants, API-key metadata, credit balances, and credit usage ledger entries are stored in SQLite at `/data/hosted_accounts.sqlite` in the running Scout container.
+- Self-service signup emails the raw API key and never returns it in the HTTP response. Operator CLI provisioning still prints the raw key once. Scout stores only a hash.
 - Hosted calls use `Authorization: Bearer scout_live_...`.
+- Users can inspect their current hosted account and recent usage with `/v1/hosted/me` and `/v1/hosted/usage`.
 
 ## What Does Not Exist Yet
 
@@ -19,7 +20,7 @@ Scout hosted beta has API-key based access, not a login system.
 - No user dashboard.
 - No self-serve password reset.
 - No Stripe-backed public purchase flow enabled for production.
-- No invoice ledger or revenue dashboard.
+- No invoice ledger, revenue dashboard, or cost-of-goods dashboard.
 - No formal pay-as-you-go pricing package approved.
 
 Stripe checkout, webhook, and key-delivery scaffolding exists in code and tests, but the paid production loop is not the current beta access path.
@@ -35,14 +36,26 @@ cd /Users/arijitchowdhury/Dropbox/AI-Development/Scout
 ### Enable Or Disable Email-Based Beta Signup
 
 Set `HOSTED_BETA_SIGNUP_ENABLED=true` in `/opt/prism/scout/.env` only when
-the launch operator is ready for public key generation. Set it back to `false`
-to stop new keys without disabling existing Bearer keys.
+SMTP delivery is configured and the launch operator is ready for public key
+generation. Set it back to `false` to stop new keys without disabling existing
+Bearer keys.
+
+Required delivery settings:
+
+```bash
+HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com
+HOSTED_KEY_DELIVERY_SMTP_PORT=587
+HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"
+HOSTED_KEY_DELIVERY_SMTP_USERNAME=...
+HOSTED_KEY_DELIVERY_SMTP_PASSWORD=...
+```
 
 ### Provision A Hosted API Key Directly
 
 ```bash
-scripts/scout-vps-provision-hosted-key \
+scripts/scout-hosted-admin provision-key \
   --email tester@example.com \
+  --name "Tester Name" \
   --key-name "PRISM beta key" \
   --plan hosted_beta_pass
 ```
@@ -52,16 +65,31 @@ The command prints `raw_api_key` once. Store it immediately in the consuming app
 ### List Hosted Tenants And Balances
 
 ```bash
-scripts/scout-vps-list-hosted-accounts
+scripts/scout-hosted-admin list-accounts
 ```
 
 JSON output:
 
 ```bash
-scripts/scout-vps-list-hosted-accounts --format json --limit 100
+scripts/scout-hosted-admin list-accounts --format json --limit 100
 ```
 
 This shows email, tenant, key metadata, and remaining credits. It does not print raw keys or stored key hashes.
+
+### Generate A Strong Password Or Secret
+
+For beta invite passwords, admin tokens, SMTP app secrets, or temporary shared
+operator secrets, generate a strong local value and paste it into the target
+environment file manually:
+
+```bash
+scripts/scout-hosted-admin generate-secret --label HOSTED_ADMIN_TOKEN
+scripts/scout-hosted-admin generate-secret --label HOSTED_BETA_INVITE_PASSWORD
+```
+
+Current hosted self-service key generation does not require an invite password.
+If an invite-password gate is reintroduced later, store that password only in
+the VPS environment, not in Git.
 
 ## Current Credit Model
 
@@ -96,9 +124,12 @@ These are engineering limits, not final public pricing.
 Today, Scout can answer:
 
 - who generated or received a key, based on tenant email,
+- the name supplied during self-service or admin provisioning,
 - which key belongs to which tenant,
 - the plan attached to each tenant,
 - current standard/browser credit balances,
+- recent per-tenant usage through `/v1/hosted/usage`,
+- every successful hosted credit debit in the `hosted_credit_ledger` table,
 - hosted run ownership through stored `tenant_id` and `key_id`,
 - per-response `credits_charged` for hosted API calls.
 
@@ -107,21 +138,23 @@ Scout cannot yet answer, as a polished product feature:
 - total spend by customer,
 - invoice history,
 - cost of goods sold by run,
-- detailed per-customer usage analytics,
+- margin by customer or plan,
+- packaged per-customer usage analytics,
 - conversion funnel from playground to paid account.
 
-Those require a billing/usage ledger and Stripe integration phase.
+Those require a billing ledger, cost model, analytics dashboard, and Stripe integration phase.
 
 ## Pricing And Billing Gap
 
 Pay-as-you-go pricing is not finalized. A production model should add:
 
-- a `credit_ledger` table with every debit/credit adjustment,
 - Stripe customer and checkout-session records,
 - package definitions such as `$10`, `$25`, `$100` credit bundles,
+- a paid-credit purchase ledger separate from the usage ledger,
 - hard monthly/user rate limits,
 - low-balance alerts,
 - refund/manual adjustment operations,
+- unit-economics inputs: host cost, LLM cost, browser minutes, storage, bandwidth, support, maintenance, and target gross margin,
 - admin usage exports.
 
 Until that exists, Scout is a private hosted beta with manually controlled access, not a fully self-serve paid SaaS.

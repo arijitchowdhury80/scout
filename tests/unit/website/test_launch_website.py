@@ -310,7 +310,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Open playground",
             "Call the live Scout API.",
             "Generate a hosted beta key.",
-            "Enter your email to create your own hosted Scout key.",
+            "Register for your hosted beta API key.",
             "/v1/hosted/beta-key",
             'id="hostedKeyForm"',
             'id="hostedKeyResult"',
@@ -453,7 +453,7 @@ def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
     assert "Do not use localhost for hosted calls." in html
 
 
-def test_docs_key_generation_form_is_email_based_and_copyable() -> None:
+def test_docs_key_generation_form_is_email_delivery_based() -> None:
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
     js = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(encoding="utf-8")
     css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
@@ -461,11 +461,15 @@ def test_docs_key_generation_form_is_email_based_and_copyable() -> None:
     assert '<form id="hostedKeyForm"' in html
     assert 'name="invite_password"' not in html
     assert 'type="password"' not in html
+    assert 'name="name"' in html
     assert 'name="email"' in html
-    assert 'id="copyHostedKey"' in html
+    assert 'id="copyHostedKey"' not in html
+    assert "Register for your hosted beta API key." in html
+    assert "Scout will email the key to you." in html
     assert "/v1/hosted/beta-key" in js
-    assert "navigator.clipboard.writeText" in js
-    assert "raw_api_key" in js
+    assert "navigator.clipboard.writeText" not in js
+    assert "raw_api_key" not in js
+    assert "Check your email" in js
     assert "invite_password" not in js
     assert ".hosted-key-card" in css
     assert ".hosted-key-result" in css
