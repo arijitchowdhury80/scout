@@ -375,8 +375,8 @@ scripts/scout-hosted-admin readiness --json
 ```
 
 The underlying `GET /v1/billing/stripe/status` response is also operator
-actionable. In addition to backward-compatible booleans such as
-`ready_for_beta_checkout` and `ready_for_paid_key_delivery`, it returns:
+actionable. In addition to booleans such as `ready_for_beta_key_delivery`,
+`ready_for_beta_checkout`, and `ready_for_paid_key_delivery`, it returns:
 
 - `public_self_service_path`: currently
   `email_beta_registration_with_checkout_hook`; beta testers should start at
