@@ -508,9 +508,12 @@ allowance still make sense:
 scripts/scout-hosted-admin economics --format table
 ```
 
-The helper is local and non-secret. It reads Scout's canonical package model
-from `scout.core.platform.pricing` and prints the same package economics that
-`GET /v1/billing/packages` exposes to the website:
+The helper is non-secret. On a local development machine it reads Scout's
+canonical package model from `scout.core.platform.pricing`. On the VPS, where
+the host Python may not have Scout dependencies installed, it automatically
+delegates the same calculation into the running `scout` Docker container. It
+prints the same package economics that `GET /v1/billing/packages` exposes to
+the website:
 
 - `$10 for 1,000 standard credits`;
 - package rows for `beta_trial`, `standard_1000`, `standard_3000`,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import os
 from pathlib import Path
 
 
@@ -591,6 +592,47 @@ def test_hosted_admin_economics_command_prints_package_margin_without_secrets() 
     assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" not in output
     assert "sk_live_" not in output
     assert "sk_test_" not in output
+
+
+def test_hosted_economics_command_can_delegate_to_dockerized_production(
+    tmp_path: Path,
+) -> None:
+    """The VPS host may not have Scout deps; production should run inside Docker."""
+    fake_docker = tmp_path / "docker"
+    fake_docker.write_text(
+        "\n".join(
+            [
+                "#!/bin/sh",
+                'echo "$@" > "$SCOUT_FAKE_DOCKER_ARGS"',
+                "echo 'Scout hosted package economics'",
+                "echo 'No secrets are read or printed.'",
+                "echo '$10 for 1,000 standard credits'",
+                "echo 'standard_1000\t$10\t1000\t0\t74.1%\t17 packs/month'",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    fake_docker.chmod(0o755)
+    args_file = tmp_path / "args.txt"
+    script = REPO_ROOT / "scripts" / "scout-hosted-admin"
+
+    result = subprocess.run(
+        [str(script), "economics", "--format", "table"],
+        check=True,
+        capture_output=True,
+        env={
+            **dict(os.environ),
+            "PATH": f"{tmp_path}:{os.environ['PATH']}",
+            "SCOUT_HOSTED_ECONOMICS_FORCE_DOCKER": "1",
+            "SCOUT_HOSTED_ECONOMICS_DOCKER_BIN": "docker",
+            "SCOUT_FAKE_DOCKER_ARGS": str(args_file),
+        },
+        text=True,
+    )
+
+    assert "$10 for 1,000 standard credits" in result.stdout
+    assert "standard_1000" in result.stdout
+    assert "exec scout" in args_file.read_text(encoding="utf-8")
 
 
 def test_hosted_setup_report_groups_missing_operator_work_without_secret_values(
