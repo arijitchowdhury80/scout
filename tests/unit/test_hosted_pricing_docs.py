@@ -31,6 +31,33 @@ def test_unit_economics_doc_records_pay_as_you_go_candidate() -> None:
     assert "email-first API-key registration while hosted beta is invite-controlled" not in doc
 
 
+def test_founder_decision_approves_current_pay_as_you_go_model() -> None:
+    decision = _read("docs/product/founder-decision-record-SCOUT-DEC-20260629-02.md")
+
+    expected = [
+        "Status: Approved",
+        "$0 card-backed beta trial",
+        "$10 for 1,000 standard credits",
+        "$25 for 3,000 standard credits",
+        "$100 for 15,000 standard credits",
+        "Estimated loaded cost for 1,000 standard credits is $2.59",
+        "Estimated gross margin is 74.1%",
+        "break-even is 17 packs/month",
+        "Stripe and SMTP configuration remains a separate operational gate",
+        "Public launch allowed by this decision? No",
+    ]
+
+    for marker in expected:
+        assert marker in decision
+    stale_markers = [
+        "Public self-serve paid pricing is not approved yet",
+        "manual/invite-only hosted API keys",
+        "Keep website pricing copy metered and invite-only",
+    ]
+    for marker in stale_markers:
+        assert marker not in decision
+
+
 def test_hosted_admin_doc_points_to_usage_and_pricing_model() -> None:
     doc = _read("docs/product/hosted-admin-operations.md")
     normalized_doc = " ".join(doc.split())

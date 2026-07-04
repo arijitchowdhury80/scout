@@ -205,7 +205,7 @@ Developer CTA:
 
 - PyPI availability.
 - GHCR or Docker Hub image availability.
-- Broad public hosted signup beyond the capped beta pool.
+- Production hosted SaaS without Stripe/SMTP smoke.
 - Unlimited hosted crawling.
 - Certified legacy `/app` UI.
 - Guaranteed hard-site bypass.

@@ -205,7 +205,7 @@ def test_private_beta_launch_plan_reflects_current_evidence_and_boundaries() -> 
     prohibited_claims = [
         "PyPI availability",
         "GHCR or Docker Hub image availability",
-        "Public self-serve hosted signup",
+        "Production hosted SaaS without Stripe/SMTP smoke",
         "Unlimited hosted crawling",
         "Certified legacy `/app` UI",
         "Guaranteed hard-site bypass",
@@ -251,7 +251,7 @@ def test_release_checklist_blocks_public_launch_until_decisions_are_closed() -> 
     assert "docs/product/launch-decision-request-2026-06-29.md" in checklist
 
 
-def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> None:
+def test_hosted_economics_and_usage_limits_record_approved_beta_pricing() -> None:
     economics = _read("docs/product/hosted-economics-and-usage-limits.md")
     checklist = _read("docs/product/release-checklist.md")
     pricing_refresh = _read(
@@ -261,6 +261,7 @@ def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> 
 
     assert "Hosted Economics And Usage Limits" in economics
     assert "unapproved\nplaceholder pricing" in economics
+    assert "Current pay-as-you-go pricing approved for beta" in economics
     assert "unit-economics-and-pricing-model-2026-06-29.md" in economics
     assert "No unlimited hosted crawling" in economics
     assert "Browser render | browser | 5" in economics
@@ -269,7 +270,9 @@ def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> 
     assert "Browserbase" in economics
     assert "market-pricing-refresh-2026-06-29.md" in economics
     assert "mature crawler, browser, search, and extraction products meter" in economics
-    assert "pay-as-you-go or prepaid credits are the preferred hypothesis" in economics
+    assert "$10 for 1,000" in economics
+    assert "$25 for 3,000" in economics
+    assert "$100 for 15,000" in economics
     assert "- [x] Public launch pricing and hosted usage limits approved" in checklist
     assert (
         "- [x] Hosted economics and usage limits documented against finite hosted usage"
@@ -282,8 +285,8 @@ def test_hosted_economics_and_usage_limits_are_documented_without_approval() -> 
     assert "Browserbase" in pricing_refresh
     assert "ScrapingBee" in pricing_refresh
     assert "Zyte" in pricing_refresh
-    assert "Do not approve public pricing yet." in pricing_refresh
-    assert "Do not approve public pricing yet." in pricing_refresh
+    assert "approve Scout's current beta pay-as-you-go model" in pricing_refresh
+    assert "Do not approve public pricing yet." not in pricing_refresh
     assert "market-pricing-refresh-2026-06-29.md" in source_index
 
 
@@ -470,7 +473,7 @@ def test_distribution_package_plan_reflects_verified_beta_paths_and_blocks_regis
     prohibited_claims = [
         "PyPI availability",
         "GHCR or Docker Hub image availability",
-        "Public self-serve hosted signup",
+        "Production hosted SaaS without Stripe/SMTP smoke",
         "Public launch readiness",
         "Security-clean dependency audit",
         "Certified legacy `/app` UI",
@@ -575,7 +578,9 @@ def test_hosted_operating_contract_documents_private_beta_boundary() -> None:
     assert "docs/product/hosted-operating-contract-2026-06-29.md" in checklist
     assert "Hosted operating contract documented for private beta" in checklist
     assert "docs/product/hosted-operating-contract-2026-06-29.md" in evidence
-    assert "This does not approve public self-serve hosted Scout." in evidence
+    assert (
+        "This does not close production SaaS readiness without Stripe/SMTP live smoke." in evidence
+    )
 
 
 def test_scalability_security_audit_separates_private_beta_from_public_hosted_launch() -> None:
@@ -586,7 +591,8 @@ def test_scalability_security_audit_separates_private_beta_from_public_hosted_la
     assert "Scout Scalability And Security Launch Audit" in audit
     assert "Private-beta scale/security audit" in audit
     assert "credible for private beta because the user owns compute" in audit
-    assert "credible only for controlled private beta with finite" in audit
+    assert "credible only for controlled private beta with" in audit
+    assert "self-service registration, finite credits" in audit
     assert "blocked until production storage" in audit
     assert "Async queue, worker pools, cancellation, timeouts" in audit
     assert "Object storage with tenant prefixes, signed URLs, retention jobs" in audit
@@ -604,7 +610,7 @@ def test_scalability_security_audit_separates_private_beta_from_public_hosted_la
     assert "docs/product/scalability-security-audit-2026-06-29.md" in checklist
     assert "Scalability and security launch audit documented" in checklist
     assert "docs/product/scalability-security-audit-2026-06-29.md" in evidence
-    assert "Public self-serve hosted API remains deferred." in evidence
+    assert "Hosted SaaS production readiness remains blocked until Stripe/SMTP" in evidence
 
 
 def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> None:
@@ -619,10 +625,10 @@ def test_stripe_test_mode_readiness_keeps_live_gate_open_until_real_smoke() -> N
     assert "mode=setup" in readiness
     assert "STRIPE_WEBHOOK_SECRET" in readiness
     assert "checkout.session.completed" in readiness
-    assert "scripts/stripe_test_mode_smoke.py" in readiness
+    assert "scripts/scout-hosted-admin stripe-smoke" in readiness
     assert "It does not" in readiness
     assert "complete the card payment" in readiness
-    assert "scripts/stripe_test_mode_smoke.py" in distribution
+    assert "scripts/scout-hosted-admin stripe-smoke" in distribution
     assert "Complete the test payment in Stripe Checkout" in distribution
     assert "This gate is **not approved for public launch** yet." in readiness
     assert "- [x] Stripe checkout and webhook tested in Stripe test mode." in checklist
@@ -735,11 +741,8 @@ def test_launch_decision_dashboard_lists_current_open_gates_and_next_decisions()
 
     assert "Scout Launch Decision Dashboard" in dashboard
     assert "docs/product/launch-decision-request-2026-06-29.md" in dashboard
-    assert (
-        "Current beta release ready with limits; future public self-serve gates deferred."
-        in dashboard
-    )
-    assert "Current blockers: 0" in dashboard
+    assert "Current beta release ready with limits; broad public SaaS gates deferred." in dashboard
+    assert "Current blockers for the bounded beta surface: 0" in dashboard
     assert "Scout is ready for the current controlled beta release." in dashboard
     assert "Open Decisions" in dashboard
     assert "Open Verification Gates" in dashboard
@@ -748,7 +751,7 @@ def test_launch_decision_dashboard_lists_current_open_gates_and_next_decisions()
     assert "Approve Apache-2.0 for Scout local/core" in dashboard
     assert "Crawl4AI/lxml blocker" in dashboard
     assert "Stripe test-mode credentials" in dashboard
-    assert "scripts/stripe_test_mode_smoke.py --create-checkout" in dashboard
+    assert "scripts/scout-hosted-admin stripe-smoke --create-checkout" in dashboard
     assert "scripts/release_artifact_smoke.py --dist-dir" in dashboard
     assert "Published Docker image smoke-tested" in dashboard
     assert "Approve one artifact-only private beta tag" in dashboard
@@ -759,7 +762,7 @@ def test_launch_decision_dashboard_lists_current_open_gates_and_next_decisions()
     assert "License: Apache-2.0 approved for Scout local/core." in request
     assert "Crawl4AI/lxml: limited private-beta exception approved" in request
     assert (
-        "Hosted beta: keep hosted usage metered; approve pricing only after the unit-economics model is filled."
+        "Hosted beta: use self-service name/email registration, $0 card-backed beta setup"
         in request
     )
     assert "Release tag: approve one artifact-only private-beta v* tag" in request
@@ -773,8 +776,8 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
 
     assert "Scout Launch Gate Burndown" in burndown
     assert "docs/product/launch-decision-request-2026-06-29.md" in burndown
-    assert "Current beta release ready; future public self-serve gates deferred" in burndown
-    assert "Current blockers: 0" in burndown
+    assert "Current beta release ready; future broad public SaaS gates deferred" in burndown
+    assert "Current blockers for the bounded beta surface: 0" in burndown
     assert "Gate Burndown" in burndown
     assert "Blocker type" in burndown
     assert "Owner" in burndown
@@ -786,7 +789,7 @@ def test_launch_gate_burndown_classifies_open_work_by_owner_and_blocker() -> Non
     assert "GitHub release workflow on real `v*` tag" in burndown
     assert "scripts/release_artifact_smoke.py --dist-dir" in burndown
     assert "Stripe real test-mode smoke" in burndown
-    assert "scripts/stripe_test_mode_smoke.py --create-checkout" in burndown
+    assert "scripts/scout-hosted-admin stripe-smoke --create-checkout" in burndown
     assert "Paid checkout deferred" in burndown or "Paid checkout" in burndown
     assert "Crawl4AI/lxml risk decision" in burndown
     assert "founder-decision-record-SCOUT-DEC-20260629-05.md" in burndown
@@ -897,7 +900,7 @@ def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> 
         "docs/product/product-export-generalization-verification-2026-06-29.md",
         "docs/product/hosted-economics-and-usage-limits.md",
         "docs/product/stripe-test-mode-readiness-2026-06-29.md",
-        "scripts/stripe_test_mode_smoke.py",
+        "scripts/scout-hosted-admin stripe-smoke",
         "scripts/release_artifact_smoke.py",
         "scripts/docker_image_smoke.py",
         "docs/legal/scout-license-distribution-decision-brief-2026-06-29.md",
@@ -916,8 +919,8 @@ def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> 
         "Does not certify the legacy `/app` UI",
         "This is a branch/private-beta install path, not PyPI.",
         "Image publishing to GHCR/Docker Hub is not approved.",
-        "Hosted beta remains approved-testers-only.",
-        "Paid self-serve checkout is out of current beta scope and must reopen before use.",
+        "Hosted beta starts with self-service name/email registration",
+        "Paid self-serve checkout remains blocked until Stripe/SMTP live smoke passes.",
         "Real `v0.1.0-beta.1` tag produced GitHub Release artifacts",
         "No published image is approved yet.",
         "Pricing posture, artifact-only registry policy, Docker publishing deferral",
@@ -927,7 +930,6 @@ def test_launch_evidence_index_maps_claims_to_proof_and_preserves_blockers() -> 
         assert boundary in evidence
 
     open_gates = [
-        "Public pricing and hosted usage limits",
         "Registry publishing policy",
         "Crawl4AI/lxml risk",
         "Stripe real test-mode smoke",

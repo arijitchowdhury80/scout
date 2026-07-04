@@ -212,7 +212,7 @@ MCP should come after the local API contract is stable and documented.
 
 - PyPI availability.
 - GHCR or Docker Hub image availability.
-- Public self-serve hosted signup.
+- Production hosted SaaS without Stripe/SMTP smoke.
 - Public launch readiness.
 - Security-clean dependency audit.
 - Certified legacy `/app` UI.

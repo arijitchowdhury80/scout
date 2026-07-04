@@ -1,8 +1,8 @@
 # Hosted Economics And Usage Limits
 
 Date: 2026-06-28
-Updated: 2026-06-29
-Status: Superseded pricing placeholder; final commercial approval still pending
+Updated: 2026-07-03
+Status: Current pay-as-you-go pricing approved for beta; live provider configuration still pending
 
 ## 2026-06-29 Founder Update
 
@@ -23,17 +23,20 @@ Recommended launch candidate as of 2026-07-03:
   Stripe Checkout setup mode when configured, and SMTP API-key delivery after
   signed webhook provisioning.
 
-Until unit economics are filled in and approved, Scout's pricing posture is:
+Scout's current approved pricing posture is:
 
 - local Scout remains free during beta;
 - hosted Scout beta uses self-service card-backed setup when ready, falls back
   to an email-only request queue when Stripe or SMTP is blocked, and remains
   metered;
-- pay-as-you-go or prepaid credits are the preferred hypothesis;
+- pay-as-you-go/prepaid standard credits are approved for the current beta
+  pricing page: `$10 for 1,000`, `$25 for 3,000`, and `$100 for 15,000`
+  standard credits;
 - subscriptions are deferred until usage telemetry shows predictable recurring
   value;
-- browser, LLM, storage, security, support, and maintenance costs must be
-  included before approving any hosted price.
+- browser, LLM, storage, security, support, and maintenance costs remain the
+  required inputs before expanding into browser credits, subscriptions, or
+  enterprise pricing.
 
 ## Decision Summary
 
@@ -130,7 +133,7 @@ Current action costs:
 | Browser minute | browser | 10 |
 
 These values are implemented in `scout.core.platform.hosted` and covered by
-unit tests. They are beta policy defaults, not final public pricing.
+unit tests. They are beta policy defaults for hosted access.
 
 ## Hosted Product Boundary
 
@@ -197,5 +200,7 @@ Hosted economics and usage limits documented against finite hosted usage and
 subscription/pay-as-you-go alternatives.
 ```
 
-It does **not** approve final public launch pricing. That remains a separate
-business decision.
+It approves the current beta pay-as-you-go pricing posture. It does **not**
+approve unlimited hosted access, public browser-credit pricing, subscriptions,
+enterprise pricing, or a production SaaS launch without Stripe/SMTP smoke
+verification.

@@ -123,7 +123,7 @@ Required inputs:
 Expected evidence:
 
 - checkout status ready,
-- `scripts/stripe_test_mode_smoke.py --create-checkout` passes readiness and
+- `scripts/scout-hosted-admin stripe-smoke --create-checkout` passes readiness and
   Checkout Session creation,
 - checkout URL created,
 - test payment completed,

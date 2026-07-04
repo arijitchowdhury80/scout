@@ -219,9 +219,14 @@ Max pages per run: 100.
 Max concurrent hosted runs: 1.
 ```
 
-Do not approve public pricing yet.
+2026-07-03 update: approve Scout's current beta pay-as-you-go model, not the
+old placeholder beta pass. The approved public pricing posture is local free,
+`$0` card-backed beta setup when Stripe/SMTP are configured, `$10 for 1,000
+standard credits`, `$25 for 3,000 standard credits`, and `$100 for 15,000
+standard credits`. Keep browser-heavy work separately metered and keep
+unlimited hosted crawling rejected.
 
-Before public hosted launch, choose one of:
+Before expanding beyond current beta pricing, choose one of:
 
 1. **Credit-pack model:** one-time credit packs that expire or have retention
    limits.
@@ -232,7 +237,7 @@ Before public hosted launch, choose one of:
 
 Recommended next step:
 
-- Keep `$22` as a private beta pass only.
+- Configure Stripe/SMTP for the approved pay-as-you-go model.
 - Collect real hosted run cost/usage data.
 - Do not market a permanent one-time hosted plan.
 - Do not add subscription copy until Stripe test-mode checkout/webhook and

@@ -78,7 +78,7 @@ These can be done immediately after the named dependency is satisfied:
 
 2. **After Stripe test credentials are available**
    - start Scout locally with Stripe test settings,
-   - run `scripts/stripe_test_mode_smoke.py --create-checkout`,
+   - run `scripts/scout-hosted-admin stripe-smoke --create-checkout`,
    - complete test payment,
    - deliver webhook,
    - prove hosted key delivery and no secret leakage.
@@ -91,7 +91,7 @@ These can be done immediately after the named dependency is satisfied:
 ## Recommended Decision Order
 
 1. Choose private-beta posture for the Crawl4AI/lxml blocker.
-2. Fill and approve the unit-economics model before restoring hosted checkout or public pricing claims.
+2. Configure Stripe/SMTP and run live smoke before claiming hosted checkout or API-key email delivery is production-complete.
 3. Approve or defer artifact-only private-beta release tags.
 4. Provide Stripe test-mode setup when payment gate is ready to close.
 

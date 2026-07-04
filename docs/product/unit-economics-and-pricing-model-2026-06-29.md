@@ -1,7 +1,7 @@
 # Scout Unit Economics And Pricing Model
 
 Date: 2026-06-29
-Status: Launch candidate model defined; final paid launch still requires founder approval and Stripe verification
+Status: Pay-as-you-go pricing approved for current hosted beta; live checkout still requires Stripe and SMTP verification
 
 ## Recommended Launch Candidate As Of 2026-07-03
 
@@ -50,9 +50,9 @@ billing model. The response includes both the package economics and the
 assumptions behind them: fixed monthly cost, standard-credit cost,
 browser-credit cost, allocated support cost, payment percent fee, payment fixed
 fee, target gross margin, and the `hosted_plan` attached to each package. It is
-a launch candidate, not an irrevocable public price. If hosting, LLM, browser,
-firewall, storage, support, or payment costs change, change the package before
-enabling paid checkout.
+the approved current beta pricing posture, not an irrevocable public price. If
+hosting, LLM, browser, firewall, storage, support, or payment costs change,
+change the package before scaling paid checkout.
 
 Current package-to-plan mapping:
 
@@ -71,12 +71,13 @@ model, but Arijit rejected them as arbitrary. Scout pricing now has to be
 derived from unit economics before the website, checkout, or launch plan can
 claim a specific hosted price.
 
-The current recommended direction is:
+The current approved direction is:
 
 - local Scout remains free for users who bring their own compute, browser,
   storage, and keys;
 - hosted Scout starts with a small free allowance through name/email beta registration or queued name/email requests while SMTP delivery is incomplete;
-- paid hosted Scout should be pay-as-you-go or prepaid credits first;
+- paid hosted Scout starts with the approved `$10/$25/$100` pay-as-you-go
+  standard-credit packages;
 - subscriptions should come later only if usage telemetry proves predictable
   recurring value;
 - browser/rendered/LLM-heavy work must be priced separately from simple page
@@ -162,9 +163,9 @@ Target margin should be explicit. For a hosted developer API, a reasonable early
 target is usually 60-80 percent gross margin after variable infrastructure and
 payment fees, with a separate allowance for support and maintenance.
 
-## First Pricing Hypothesis
+## First Pricing Model
 
-This is the pricing structure to test, not final pricing:
+This is the approved current beta pricing structure:
 
 | Tier | Purpose | Pricing posture | Guardrails |
 |---|---|---|---|
@@ -207,21 +208,23 @@ Credits should map to cost, not marketing fantasy:
 
 ## Website Copy Rule
 
-Until this model is filled with real costs and founder-approved pricing, the
-public website must not show `$22`, `$9/month`, or any other arbitrary hosted
-price. It can say:
+The public website must not show `$22`, `$9/month`, unlimited hosted crawling,
+or unmetered browser work. It can show the approved pay-as-you-go packages
+while making provider readiness explicit:
 
 ```text
 Local Scout is free during beta. Hosted Scout is metered. Beta access should
 use $0 card-backed setup once Stripe and SMTP are configured; before that,
 `/beta` records email-only fallback requests for queued API-key delivery.
-Pricing is based on actual compute, browser, LLM, storage, security, and
-support costs.
+$10 buys 1,000 standard credits under the current cost model. Pricing is based
+on actual compute, browser, LLM, storage, security, and support costs.
 ```
 
 ## Launch Checklist Impact
 
-The public pricing gate remains open. Closure requires:
+The public pricing gate is closed for the current beta pricing posture. Hosted
+SaaS checkout remains blocked by provider configuration. Future price changes
+require:
 
 1. cost inputs populated;
 2. usage assumptions documented;
