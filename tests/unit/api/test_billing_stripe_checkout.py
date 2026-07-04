@@ -164,8 +164,11 @@ def test_stripe_checkout_route_blocks_when_key_delivery_is_not_configured(
     assert service.requests == []
 
 
-def test_stripe_checkout_route_blocks_beta_trial_when_beta_signup_disabled() -> None:
+def test_stripe_checkout_route_blocks_beta_trial_when_signup_kill_switch_disabled(
+    monkeypatch,
+) -> None:
     service = RecordingStripeCheckoutService(StripeCheckoutResult(success=True))
+    monkeypatch.setattr(settings, "hosted_beta_signup_enabled", False)
     client = _client(service)
 
     response = client.post(
@@ -261,18 +264,16 @@ def test_stripe_status_returns_non_secret_readiness_flags() -> None:
     _assert_status_subset(
         response.json(),
         {
-            "beta_signup_enabled": False,
+            "beta_signup_enabled": True,
             "checkout_configured": True,
             "webhook_configured": True,
             "key_delivery_configured": True,
-            "ready_for_beta_key_delivery": False,
-            "ready_for_beta_checkout": False,
+            "ready_for_beta_key_delivery": True,
+            "ready_for_beta_checkout": True,
             "ready_for_paid_key_delivery": True,
-            "missing_configuration": ["hosted_beta_signup"],
-            "blocking_reasons": ["Hosted beta signup is disabled."],
-            "operator_next_actions": [
-                "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open."
-            ],
+            "missing_configuration": [],
+            "blocking_reasons": [],
+            "operator_next_actions": [],
         },
     )
     assert "whsec_test" not in response.text
@@ -303,7 +304,7 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
     _assert_status_subset(
         data,
         {
-            "beta_signup_enabled": False,
+            "beta_signup_enabled": True,
             "checkout_configured": False,
             "customer_portal_configured": False,
             "webhook_configured": False,
@@ -312,21 +313,18 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
             "ready_for_beta_checkout": False,
             "ready_for_paid_key_delivery": False,
             "missing_configuration": [
-                "hosted_beta_signup",
                 "stripe_checkout",
                 "stripe_customer_portal",
                 "stripe_webhook_secret",
                 "hosted_key_delivery_smtp",
             ],
             "blocking_reasons": [
-                "Hosted beta signup is disabled.",
                 "Stripe Checkout is not configured.",
                 "Stripe Customer Portal is not configured.",
                 "Stripe webhook secret is not configured.",
                 "Hosted API-key email delivery is not configured.",
             ],
             "operator_next_actions": [
-                "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open.",
                 "Configure Stripe secret key, price IDs, success URL, and cancel URL.",
                 "Configure STRIPE_PORTAL_RETURN_URL for customer billing management.",
                 "Configure STRIPE_WEBHOOK_SECRET from the signed Stripe endpoint.",
@@ -336,6 +334,38 @@ def test_stripe_status_reports_missing_checkout_and_delivery_configuration() -> 
     )
     assert "sk_" not in response.text
     assert "whsec_" not in response.text
+
+
+def test_stripe_status_keeps_self_service_beta_signup_open_by_default() -> None:
+    service = RecordingStripeCheckoutService(
+        StripeCheckoutResult(success=False),
+        enabled=False,
+        paid_packages_configured=False,
+    )
+    delivery = RecordingDeliveryService(enabled=False)
+    app.dependency_overrides[get_stripe_checkout_service] = lambda: service
+    app.dependency_overrides[get_stripe_customer_portal_service] = lambda: (
+        RecordingStripeCustomerPortalService(
+            StripeCustomerPortalResult(success=False), enabled=False
+        )
+    )
+    app.dependency_overrides[get_stripe_webhook_secret] = lambda: ""
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    client = TestClient(app)
+
+    response = client.get("/v1/billing/stripe/status")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["beta_signup_enabled"] is True
+    assert "hosted_beta_signup" not in data["missing_configuration"]
+    assert "HOSTED_BETA_SIGNUP_ENABLED" not in data["missing_environment_keys"]
+    assert "Hosted beta signup is disabled." not in data["blocking_reasons"]
+    assert (
+        "Remove HOSTED_BETA_SIGNUP_ENABLED=false or set it true when beta signup should reopen."
+        not in data["operator_next_actions"]
+    )
+    assert data["ready_for_beta_key_delivery"] is False
 
 
 def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(

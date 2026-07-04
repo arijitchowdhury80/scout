@@ -17,8 +17,8 @@ TEMPLATE = """# Scout hosted production secrets template.
 # This file intentionally contains no real SMTP password, Stripe key, webhook
 # secret, API key, or generated Scout hosted key.
 
-# Hosted beta email registration. Set true only when SMTP delivery is real.
-HOSTED_BETA_SIGNUP_ENABLED=true
+# Hosted beta email registration is open by default. Uncomment to pause new signup.
+# HOSTED_BETA_SIGNUP_ENABLED=false
 HOSTED_BETA_SIGNUP_RATE_LIMIT_MAX_REQUESTS=3
 HOSTED_BETA_SIGNUP_RATE_LIMIT_WINDOW_SECONDS=3600
 
@@ -51,7 +51,7 @@ def build_parser() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
 epilog="""Template includes:
-  HOSTED_BETA_SIGNUP_ENABLED=true
+  # HOSTED_BETA_SIGNUP_ENABLED=false
   HOSTED_KEY_DELIVERY_SMTP_HOST=
   HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"
   STRIPE_SECRET_KEY=

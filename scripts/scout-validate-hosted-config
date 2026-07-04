@@ -10,7 +10,6 @@ from pathlib import Path
 
 
 BETA_REQUIRED_KEYS = [
-    "HOSTED_BETA_SIGNUP_ENABLED",
     "HOSTED_KEY_DELIVERY_SMTP_HOST",
     "HOSTED_KEY_DELIVERY_SMTP_PORT",
     "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL",
@@ -80,8 +79,9 @@ def validate_config(values: dict[str, str], requirement: str) -> tuple[list[str]
     missing = [key for key in required if values.get(key, "").strip() == ""]
     warnings: list[str] = []
 
-    if values.get("HOSTED_BETA_SIGNUP_ENABLED", "").casefold() not in {"true", "1", "yes"}:
-        missing.append("HOSTED_BETA_SIGNUP_ENABLED=true")
+    signup_enabled = values.get("HOSTED_BETA_SIGNUP_ENABLED", "")
+    if signup_enabled and signup_enabled.casefold() not in {"true", "false", "1", "0", "yes", "no"}:
+        warnings.append("HOSTED_BETA_SIGNUP_ENABLED should be true or false.")
 
     smtp_port = values.get("HOSTED_KEY_DELIVERY_SMTP_PORT", "")
     if smtp_port and not smtp_port.isdigit():
@@ -134,8 +134,8 @@ def build_parser() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""Required key groups:
-  beta: HOSTED_BETA_SIGNUP_ENABLED, HOSTED_KEY_DELIVERY_SMTP_HOST,
-        HOSTED_KEY_DELIVERY_SMTP_PORT, HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL,
+  beta: HOSTED_KEY_DELIVERY_SMTP_HOST, HOSTED_KEY_DELIVERY_SMTP_PORT,
+        HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL,
         HOSTED_KEY_DELIVERY_SMTP_USERNAME, HOSTED_KEY_DELIVERY_SMTP_PASSWORD
   paid: beta keys plus STRIPE_SECRET_KEY, STRIPE_STANDARD_1000_PRICE_ID,
         STRIPE_STANDARD_3000_PRICE_ID, STRIPE_STANDARD_15000_PRICE_ID,

@@ -132,6 +132,35 @@ def test_hosted_beta_key_generation_is_disabled_when_signup_disabled(monkeypatch
     assert resp.json()["detail"] == "Hosted beta key generation is disabled."
 
 
+def test_hosted_beta_key_generation_is_open_by_default_for_self_service_email() -> None:
+    account_service, _raw_key, _tenant_id = _account_service_with_key()
+    delivery = FakeDeliveryService()
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    try:
+        client = TestClient(app)
+        resp = client.post(
+            "/v1/hosted/beta-key",
+            json={
+                "name": "Default Self Service",
+                "email": "default-self-service@example.com",
+                "key_name": "Default self-service beta key",
+            },
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["email"] == "default-self-service@example.com"
+    assert data["delivery_status"] == "delivered"
+    assert (
+        account_service.store.find_tenant_by_email("default-self-service@example.com") is not None
+    )
+    assert delivery.requests[0].email == "default-self-service@example.com"
+    assert "scout_live_" not in resp.text
+
+
 def test_hosted_beta_key_generation_records_request_without_card_setup_bypass(
     monkeypatch,
 ) -> None:

@@ -105,7 +105,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "Write a Scout hosted SMTP and Stripe env template",
             "--output",
             "--force",
-            "HOSTED_BETA_SIGNUP_ENABLED=true",
+            "HOSTED_BETA_SIGNUP_ENABLED=false",
             "HOSTED_KEY_DELIVERY_SMTP_HOST=",
             "STRIPE_SECRET_KEY=",
             "STRIPE_WEBHOOK_SECRET=",
@@ -751,7 +751,7 @@ def test_write_hosted_config_template_creates_non_secret_template(tmp_path: Path
 
     text = output.read_text(encoding="utf-8")
     assert "Wrote hosted config template" in result.stdout
-    assert "HOSTED_BETA_SIGNUP_ENABLED=true" in text
+    assert "# HOSTED_BETA_SIGNUP_ENABLED=false" in text
     assert "HOSTED_BETA_SIGNUP_RATE_LIMIT_MAX_REQUESTS=3" in text
     assert "HOSTED_BETA_SIGNUP_RATE_LIMIT_WINDOW_SECONDS=3600" in text
     assert "HOSTED_KEY_DELIVERY_SMTP_HOST=" in text

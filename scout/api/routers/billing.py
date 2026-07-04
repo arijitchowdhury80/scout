@@ -536,7 +536,7 @@ def _stripe_status_diagnostics(
         missing_configuration.append("hosted_beta_signup")
         blocking_reasons.append("Hosted beta signup is disabled.")
         operator_next_actions.append(
-            "Set HOSTED_BETA_SIGNUP_ENABLED=true when beta signup should be open."
+            "Remove HOSTED_BETA_SIGNUP_ENABLED=false or set it true when beta signup should reopen."
         )
     if not checkout_configured:
         missing_environment_keys.extend(_missing_stripe_checkout_environment_keys())

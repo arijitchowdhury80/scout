@@ -13,7 +13,6 @@ from pathlib import Path
 SECRET_MARKERS = ("sk_test_", "sk_live_", "whsec_", "smtp-secret", "scout_live_")
 
 BETA_EMAIL_KEYS = [
-    "HOSTED_BETA_SIGNUP_ENABLED",
     "HOSTED_KEY_DELIVERY_SMTP_HOST",
     "HOSTED_KEY_DELIVERY_SMTP_PORT",
     "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL",
@@ -170,9 +169,9 @@ def _capability(
     """Build one capability block."""
     missing = [key for key in keys if values.get(key, "").strip() == ""]
     warnings: list[str] = []
-    signup_enabled = values.get("HOSTED_BETA_SIGNUP_ENABLED", "").casefold()
-    if signup_enabled not in {"true", "1", "yes"}:
-        missing.append("HOSTED_BETA_SIGNUP_ENABLED=true")
+    signup_enabled = values.get("HOSTED_BETA_SIGNUP_ENABLED", "")
+    if signup_enabled and signup_enabled.casefold() not in {"true", "false", "1", "0", "yes", "no"}:
+        warnings.append("HOSTED_BETA_SIGNUP_ENABLED should be true or false.")
     smtp_port = values.get("HOSTED_KEY_DELIVERY_SMTP_PORT", "")
     if smtp_port and not smtp_port.isdigit():
         warnings.append("HOSTED_KEY_DELIVERY_SMTP_PORT should be an integer.")

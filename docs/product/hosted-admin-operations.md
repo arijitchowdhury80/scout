@@ -124,12 +124,12 @@ Run these from the Scout repo on the Mac:
 cd /Users/arijitchowdhury/Dropbox/AI-Development/Scout
 ```
 
-### Enable Or Disable Beta Signup
+### Pause Or Resume Beta Signup
 
-Set `HOSTED_BETA_SIGNUP_ENABLED=true` to allow public beta email registration.
-Set beta signup to `false` to stop new beta setup without disabling existing
-Bearer keys. The public beta flow should not be considered ready until this
-flag and SMTP key delivery are present.
+Public beta email registration is open by default. Set
+`HOSTED_BETA_SIGNUP_ENABLED=false` only when you need to pause new beta setup
+without disabling existing Bearer keys. The public beta flow should not be
+considered fully ready until SMTP key delivery is present.
 
 Required delivery settings, stored in an ignored local file such as
 `secrets/scout-production.env` before pushing to the VPS:
@@ -195,7 +195,8 @@ username, and password are all present. This keeps local preflight aligned with
 the hosted SaaS readiness gate.
 
 ```bash
-HOSTED_BETA_SIGNUP_ENABLED=true
+# Optional kill switch. Omit or set true for normal self-service beta signup.
+# HOSTED_BETA_SIGNUP_ENABLED=false
 HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com
 HOSTED_KEY_DELIVERY_SMTP_PORT=587
 HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL="Arijit Chowdhury <scout@chowmes.com>"

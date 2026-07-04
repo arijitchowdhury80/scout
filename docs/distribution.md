@@ -114,7 +114,8 @@ signup never returns raw API keys in the browser.
 Hosted beta setup requires:
 
 ```text
-HOSTED_BETA_SIGNUP_ENABLED=true
+# Optional kill switch. Omit or set true for normal self-service beta signup.
+# HOSTED_BETA_SIGNUP_ENABLED=false
 HOSTED_BETA_SIGNUP_RATE_LIMIT_MAX_REQUESTS=3
 HOSTED_BETA_SIGNUP_RATE_LIMIT_WINDOW_SECONDS=3600
 HOSTED_KEY_DELIVERY_SMTP_HOST=smtp.example.com

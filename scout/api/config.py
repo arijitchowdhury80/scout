@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     hosted_async_first: bool = False
     playground_max_active_requests: int = 4
     capacity_retry_after_seconds: int = 5
-    hosted_beta_signup_enabled: bool = False
+    hosted_beta_signup_enabled: bool = True
     hosted_llm_mode: str = "disabled"
     hosted_llm_provider_allowlist: str = ""
     scout_public_hosted_only: bool = False
