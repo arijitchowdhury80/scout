@@ -15,8 +15,9 @@ Use these files together:
 
 This plan is not a broad public-launch approval. It defines the bounded hosted
 beta path that can be offered while the remaining launch gates are still open:
-self-service name/email registration, finite metered credits, email delivery of
-API keys, and optional $0 Stripe setup when payment infrastructure is ready.
+$0 card-backed beta setup when payment infrastructure is ready, finite metered
+credits, email delivery of API keys, and email-only fallback requests when
+Stripe or SMTP is blocked.
 
 ## Launch Principle
 
@@ -105,10 +106,10 @@ Candidate users:
 
 Tester entry paths:
 
-1. Hosted API key requested by the tester through `/beta#beta-key`, backed by
-   `POST /v1/hosted/beta-key`.
-2. Optional $0 card-backed beta setup through Stripe Checkout when
+1. Recommended `$0` card-backed beta setup through Stripe Checkout when
    `ready_for_beta_checkout` is true.
+2. Email-only fallback requested by the tester through `/beta#beta-key`, backed
+   by `POST /v1/hosted/beta-key`, when Stripe setup is blocked.
 3. Claude/Codex skill instructions for agent-driven usage.
 
 Operator-only verification surfaces:

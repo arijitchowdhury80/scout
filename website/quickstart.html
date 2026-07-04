@@ -124,8 +124,10 @@
           </div>
           <p>
             Hosted HTTP beta starts through `/beta` and is always metered. When
-            the hosted stack is ready, the beta form registers name/email and
-            emails the API key after hosted account provisioning. Do not use localhost for hosted calls.
+            the hosted stack is ready, the beta form starts with $0 card-backed
+            setup so Stripe Checkout and webhook provisioning are exercised.
+            Email-only registration remains available as a fallback request
+            queue. Do not use localhost for hosted calls.
             Hosted credits are capped while unit economics are validated; Scout
             does not offer unlimited hosted crawling.
           </p>
@@ -144,17 +146,17 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               <p class="wi-label wi-label--accent">Private beta access</p>
               <h3 id="hosted-key-title">Register for your beta tester API key.</h3>
               <p>
-                Beta testers enter name and email on the beta page. Scout
-                records the tester, provisions a finite-credit beta account,
-                and emails the API key. Public signup never shows raw keys in
-                the browser.
+                Beta testers start with $0 card-backed setup when available.
+                Scout records the tester, provisions a finite-credit beta
+                account after signed checkout completion, and emails the API
+                key. Public signup never shows raw keys in the browser.
               </p>
             </div>
             <a class="wi-btn" href="/beta#beta-key">Get beta tester API key</a>
             <div id="hostedKeyResult" class="hosted-key-result" aria-live="polite">
               <p>
-                Use the hosted beta form for email key delivery. Existing keys
-                still work with the hosted API examples below.
+                Use the hosted beta form for $0 setup or email-only fallback.
+                Existing keys still work with the hosted API examples below.
               </p>
             </div>
           </div>
@@ -174,7 +176,7 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
             </article>
             <article>
               <h3>Keys</h3>
-              <p>Beta registration starts at `/v1/hosted/beta-key` with your name and email. Scout emails the API key; never paste hosted API keys into frontend code, public repos, screenshots, tickets, or shared logs.</p>
+              <p>Recommended beta onboarding starts at `/v1/billing/stripe/checkout-session` with package `beta_trial`, your name, and your email. The fallback request queue uses `/v1/hosted/beta-key`. Scout emails the API key; never paste hosted API keys into frontend code, public repos, screenshots, tickets, or shared logs.</p>
             </article>
           </div>
         </section>

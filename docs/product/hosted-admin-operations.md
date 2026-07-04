@@ -7,22 +7,21 @@ Status: private beta operations
 
 Scout hosted beta has API-key based access, not a login system.
 
-- Public beta testers start access on `/beta`, which posts name and email to
-  `POST /v1/hosted/beta-key`. When hosted beta signup and SMTP delivery are
+- Public beta testers start access on `/beta`. The recommended path is the `$0`
+  card-backed beta setup form, which posts `package_id=beta_trial` to
+  `POST /v1/billing/stripe/checkout-session`, uses Stripe Checkout setup mode
+  with `customer_creation=always`, charges $0, and relies on the signed Stripe
+  webhook plus SMTP delivery to provision and email the beta API key.
+- `/beta` reads `/v1/billing/stripe/status` before signup and checkout actions
+  and surfaces non-secret readiness blockers plus operator next actions.
+  Card-backed `$0` setup stays disabled until Stripe, webhook, and SMTP
+  readiness gates pass.
+- `/beta` also exposes an email-only fallback form, which posts name and email
+  to `POST /v1/hosted/beta-key`. When hosted beta signup and SMTP delivery are
   configured, the public route provisions a finite-credit beta tenant, emails
   the one-time API key, and records the signup event. When SMTP delivery is not
   configured, it records a pending tester request. Public signup never shows
   the raw key in the browser.
-- `/beta` reads `/v1/billing/stripe/status` before signup and checkout actions
-  and surfaces non-secret readiness blockers plus operator next actions. Email
-  registration can remain open to record requests while saying SMTP key delivery
-  is not configured; card-backed `$0` setup stays disabled until Stripe,
-  webhook, and SMTP readiness gates pass.
-- `/beta` also exposes a secondary card-backed beta setup path. It posts
-  `package_id=beta_trial` to `POST /v1/billing/stripe/checkout-session`, uses
-  Stripe Checkout setup mode with `customer_creation=always`, charges $0, and
-  relies on the signed Stripe webhook plus SMTP delivery to provision and email
-  the beta API key.
 - Paid hosted credit packages start from `/pricing`, which posts to
   `POST /v1/billing/stripe/checkout-session`. Stripe remains the paid purchase
   path for hosted credit packages.

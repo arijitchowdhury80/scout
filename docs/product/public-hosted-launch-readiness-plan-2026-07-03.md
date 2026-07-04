@@ -191,14 +191,16 @@ The launch requirement says most users will run hosted, log in, create their own
 Current reality:
 
 - Full login/account UI is not implemented.
-- The public `/beta` page is the beta self-service entrypoint. It uses
-  email-first registration through `POST /v1/hosted/beta-key`.
+- The public `/beta` page is the beta self-service entrypoint. It should use
+  `$0` card-backed setup through `POST /v1/billing/stripe/checkout-session`
+  with `package_id=beta_trial` when Stripe and SMTP are configured.
 - Raw hosted API keys are never returned in the browser. They are emailed once
   when SMTP key delivery is configured and the account/key is provisioned.
-- `/v1/billing/stripe/checkout-session` is the paid hosted-credit checkout path
-  for paid packages and remains a separate future beta-verification hook.
-- `/beta` email registration is live-ready only when hosted beta signup and
-  SMTP delivery are configured and smoke-tested.
+- `/v1/hosted/beta-key` remains an email-only fallback request queue when
+  card-backed setup is blocked.
+- `/beta` is live-ready only when hosted beta signup, Stripe setup-mode
+  Checkout, signed webhook delivery, and SMTP key delivery are configured and
+  smoke-tested.
 
 Tomorrow options:
 

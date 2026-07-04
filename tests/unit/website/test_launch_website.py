@@ -244,6 +244,22 @@ def test_beta_page_uses_email_registration_and_optional_card_setup_without_passw
     assert 'name="invite_password"' not in html
 
 
+def test_beta_page_makes_card_backed_setup_the_primary_self_service_path() -> None:
+    """Beta UX should verify the Stripe path first, with email signup as fallback."""
+    html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
+    normalized_html = " ".join(html.split())
+
+    assert "Recommended beta path" in normalized_html
+    assert "Use this first when available" in normalized_html
+    assert "Email-only fallback" in normalized_html
+    assert "records your request without collecting a card" in normalized_html
+    assert html.index('id="hostedBetaCheckoutForm"') < html.index('id="hostedKeyForm"')
+    assert 'id="hostedBetaCheckoutForm"' in html
+    assert 'class="beta-form beta-form--primary"' in html
+    assert 'id="hostedKeyForm"' in html
+    assert 'class="beta-form beta-form--secondary"' in html
+
+
 def test_launch_website_uses_flux_not_warm_industrial() -> None:
     for page in _WEBSITE_DIR.glob("*.html"):
         html = page.read_text(encoding="utf-8")
@@ -394,8 +410,9 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "SCOUT_HOSTED_API_KEY",
             "/v1/hosted/me",
             "/v1/hosted/scrape",
-            "beta form registers name/email",
-            "emails the API key after hosted account provisioning",
+            "beta form starts with $0 card-backed setup",
+            "Email-only registration remains available as a fallback request queue",
+            "Scout emails the API key",
             "Examples",
             "Page to markdown",
             "Product category to records",
@@ -411,7 +428,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Operator local verification",
             "Beta trial",
             "Hosted beta tester key",
-            "Beta access starts with name/email registration",
+            "Beta access starts with $0 card-backed setup",
             "$10",
             "1,000 standard credits",
             "Pay-as-you-go candidate",
@@ -522,7 +539,7 @@ def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
     assert "not use localhost for hosted calls." in html
 
 
-def test_docs_beta_access_is_email_registration_without_password() -> None:
+def test_docs_beta_access_is_card_backed_first_without_password() -> None:
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
     css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
@@ -535,7 +552,9 @@ def test_docs_beta_access_is_email_registration_without_password() -> None:
     assert "Register for your beta tester API key." in normalized_html
     assert "provisions a finite-credit beta account" in normalized_html
     assert 'href="/beta#beta-key"' in html
-    assert "/v1/billing/stripe/checkout-session" not in html
+    assert "/v1/billing/stripe/checkout-session" in html
+    assert "package `beta_trial`" in normalized_html
+    assert "fallback request queue uses `/v1/hosted/beta-key`" in normalized_html
     assert ".hosted-key-card" in css
     assert ".hosted-key-result" in css
     assert "Only after `scout serve` is running on your own machine" in html
@@ -561,7 +580,7 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
         "Beta trial",
         "30 days",
         "100 standard credits",
-        "Beta access starts with name/email registration",
+        "Beta access starts with $0 card-backed setup",
     ]
 
     for expected in expected_strings:

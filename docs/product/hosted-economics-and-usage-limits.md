@@ -19,13 +19,15 @@ Recommended launch candidate as of 2026-07-03:
 - estimated loaded cost for 1,000 standard credits: `$2.59`;
 - estimated gross margin: `74.1%`;
 - break-even: `17 packs/month` under the current fixed-cost assumption;
-- beta trial: 30 days, 100 standard credits, name/email registration, and SMTP
-  API-key delivery when configured.
+- beta trial: 30 days, 100 standard credits, `$0` card-backed setup through
+  Stripe Checkout setup mode when configured, and SMTP API-key delivery after
+  signed webhook provisioning.
 
 Until unit economics are filled in and approved, Scout's pricing posture is:
 
 - local Scout remains free during beta;
-- hosted Scout beta uses self-service name/email registration and remains
+- hosted Scout beta uses self-service card-backed setup when ready, falls back
+  to an email-only request queue when Stripe or SMTP is blocked, and remains
   metered;
 - pay-as-you-go or prepaid credits are the preferred hypothesis;
 - subscriptions are deferred until usage telemetry shows predictable recurring
