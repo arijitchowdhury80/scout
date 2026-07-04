@@ -499,6 +499,34 @@ password values, API-key hashes, or raw hosted API keys. It may return
 environment variable names such as `HOSTED_KEY_DELIVERY_SMTP_PASSWORD` so an
 operator can configure the missing secret without exposing the secret itself.
 
+### Inspect Credit Package Economics
+
+Use the economics helper when deciding whether the public price and credit
+allowance still make sense:
+
+```bash
+scripts/scout-hosted-admin economics --format table
+```
+
+The helper is local and non-secret. It reads Scout's canonical package model
+from `scout.core.platform.pricing` and prints the same package economics that
+`GET /v1/billing/packages` exposes to the website:
+
+- `$10 for 1,000 standard credits`;
+- package rows for `beta_trial`, `standard_1000`, `standard_3000`,
+  `standard_15000`, and private browser-credit packages;
+- `gross_margin_percent`;
+- `break_even_packages_per_month`;
+- the credit policy for scrape, crawl page, screenshot, browser render, and
+  browser minute actions.
+
+The command does not read Stripe secrets, SMTP passwords, raw hosted API keys,
+or key hashes. JSON output is available for audits:
+
+```bash
+scripts/scout-hosted-admin economics --format json
+```
+
 ### Provision A Hosted API Key Directly
 
 Shortest command:

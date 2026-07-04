@@ -13,6 +13,7 @@ SCRIPT_NAMES = [
     "scout-validate-hosted-config",
     "scout-write-hosted-config-template",
     "scout-hosted-setup-report",
+    "scout-hosted-economics",
     "scout-hosted-overview",
     "scout-generate-api-key",
     "scout-vps-provision-hosted-key",
@@ -67,6 +68,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "validate-config",
             "write-config-template",
             "setup-report",
+            "economics",
             "bootstrap-stripe-prices",
             "stripe-smoke",
             "configure-production-env",
@@ -118,6 +120,14 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "scout-hosted-admin configure-production-env",
             "scout-hosted-admin send-test-email",
             "hosted_beta_signup_smoke.py",
+        ],
+        "scout-hosted-economics": [
+            "Show Scout hosted credit packages and unit economics",
+            "$10 for 1,000 standard credits",
+            "standard_1000",
+            "gross_margin_percent",
+            "break_even_packages_per_month",
+            "No secrets are read",
         ],
         "scout-hosted-overview": [
             "Show Scout hosted readiness and live metrics",
@@ -559,6 +569,28 @@ def test_hosted_admin_setup_report_command_wraps_setup_report() -> None:
     assert "--base-url" in output
     assert "--json" in output
     assert "scout-hosted-setup-report" in script_text
+
+
+def test_hosted_admin_economics_command_prints_package_margin_without_secrets() -> None:
+    script = REPO_ROOT / "scripts" / "scout-hosted-admin"
+    result = subprocess.run(
+        [str(script), "economics", "--format", "table"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+    script_text = script.read_text(encoding="utf-8")
+
+    assert "$10 for 1,000 standard credits" in output
+    assert "standard_1000" in output
+    assert "74.1%" in output
+    assert "17 packs/month" in output
+    assert "scout-hosted-economics" in script_text
+    assert "STRIPE_SECRET_KEY" not in output
+    assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" not in output
+    assert "sk_live_" not in output
+    assert "sk_test_" not in output
 
 
 def test_hosted_setup_report_groups_missing_operator_work_without_secret_values(

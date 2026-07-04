@@ -18,6 +18,7 @@ Commands:
   list-signups      List beta API-key signup requests and delivery outcomes.
   metrics           Show hosted billing/admin metrics from the protected API.
   overview          Show hosted readiness plus live protected metrics.
+  economics         Show hosted credit packages and unit economics.
   send-test-email   Send a hosted API-key delivery smoke-test email.
   beta-signup-smoke Run public beta signup and status smoke without printing keys.
   process-pending-signups
@@ -48,6 +49,7 @@ Examples:
   scripts/scout-hosted-admin list-signups --format table --limit 100
   scripts/scout-hosted-admin metrics --format table
   scripts/scout-hosted-admin overview
+  scripts/scout-hosted-admin economics --format table
   scripts/scout-hosted-admin send-test-email --email arijit@example.com --name Arijit
   scripts/scout-hosted-admin beta-signup-smoke --email tester@example.com --name "Beta Tester"
   scripts/scout-hosted-admin process-pending-signups --dry-run
@@ -94,6 +96,10 @@ metrics() {
 
 overview() {
   exec "$SCRIPT_DIR/scout-hosted-overview" "$@"
+}
+
+economics() {
+  exec "$SCRIPT_DIR/scout-hosted-economics" "$@"
 }
 
 send_test_email() {
@@ -189,6 +195,10 @@ case "$1" in
   overview)
     shift
     overview "$@"
+    ;;
+  economics)
+    shift
+    economics "$@"
     ;;
   send-test-email)
     shift
