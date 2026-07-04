@@ -16,6 +16,7 @@ Commands:
   list-usage        List hosted credit usage ledger entries.
   list-purchases    List Stripe checkout/package purchase records.
   list-signups      List beta API-key signup requests and delivery outcomes.
+  metrics           Show hosted billing/admin metrics from the protected API.
   send-test-email   Send a hosted API-key delivery smoke-test email.
   beta-signup-smoke Run public beta signup and status smoke without printing keys.
   process-pending-signups
@@ -41,6 +42,7 @@ Examples:
   scripts/scout-hosted-admin list-usage --summary
   scripts/scout-hosted-admin list-purchases --format table
   scripts/scout-hosted-admin list-signups --format table --limit 100
+  scripts/scout-hosted-admin metrics --format table
   scripts/scout-hosted-admin send-test-email --email arijit@example.com --name Arijit
   scripts/scout-hosted-admin beta-signup-smoke --email tester@example.com --name "Beta Tester"
   scripts/scout-hosted-admin process-pending-signups --dry-run
@@ -75,6 +77,10 @@ list_purchases() {
 
 list_signups() {
   exec "$SCRIPT_DIR/scout-vps-list-hosted-signups" "$@"
+}
+
+metrics() {
+  exec "$SCRIPT_DIR/scout-vps-hosted-metrics" "$@"
 }
 
 send_test_email() {
@@ -154,6 +160,10 @@ case "$1" in
   list-signups)
     shift
     list_signups "$@"
+    ;;
+  metrics)
+    shift
+    metrics "$@"
     ;;
   send-test-email)
     shift

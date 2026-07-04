@@ -1,0 +1,122 @@
+#!/bin/sh
+set -eu
+
+HELPER_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/scripts/chowmes-ssh-helper"
+ENV_DEFAULT="/Users/arijitchowdhury/Dropbox/AI-Development/Personal/ChowMes/.env.local"
+
+usage() {
+  cat <<EOF
+usage: scout-vps-hosted-metrics [--format table|json] [--env PATH] [--helper PATH]
+
+Show Scout hosted billing/admin metrics from the protected API endpoint:
+  /v1/billing/admin/metrics
+
+The request runs inside the scout container and reads SCOUT_API_KEY from the
+container environment. The key is sent as X-API-Key only to localhost inside
+the container and is never printed by this helper.
+
+Options:
+  --format FORMAT  table or json. Default: table
+  --env PATH       SSH env file for the ChowMes SSH helper. Default: $ENV_DEFAULT
+  --helper PATH    SSH helper path. Default: $HELPER_DEFAULT
+  -h, --help       Show this help.
+
+Secret safety:
+  This script does not print SCOUT_API_KEY, hosted raw API keys, or stored
+  API-key hashes.
+EOF
+}
+
+helper="$HELPER_DEFAULT"
+env_file="$ENV_DEFAULT"
+format="table"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --format)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      format="$2"
+      shift 2
+      ;;
+    --env)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      env_file="$2"
+      shift 2
+      ;;
+    --helper)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      helper="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+case "$format" in
+  table|json) ;;
+  *)
+    echo "Unsupported --format: $format" >&2
+    exit 2
+    ;;
+esac
+
+if [ ! -x "$helper" ]; then
+  echo "SSH helper is not executable: $helper" >&2
+  exit 1
+fi
+
+"$helper" --env "$env_file" "sudo docker exec scout python3 - '$format' <<'PY'
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+
+output_format = sys.argv[1]
+api_key = os.environ.get('SCOUT_API_KEY', '').strip()
+if not api_key:
+    raise SystemExit('SCOUT_API_KEY is not set inside the scout container.')
+
+request = urllib.request.Request(
+    'http://127.0.0.1:8421/v1/billing/admin/metrics',
+    headers={'Accept': 'application/json', 'X-API-Key': api_key},
+)
+
+try:
+    with urllib.request.urlopen(request, timeout=15) as response:
+        payload = json.loads(response.read().decode('utf-8'))
+except urllib.error.HTTPError as exc:
+    detail = exc.read().decode('utf-8', errors='replace')
+    raise SystemExit(f'Admin metrics request failed with HTTP {exc.code}: {detail}')
+
+if output_format == 'json':
+    print(json.dumps(payload, indent=2, sort_keys=True))
+else:
+    totals = payload.get('totals') or {}
+    print('metric\\tvalue')
+    for key in sorted(totals):
+        print(f'{key}\\t{totals[key]}')
+    print()
+    print('recent_counts\\tvalue')
+    for key in ('recent_accounts', 'recent_signup_events', 'recent_usage', 'recent_purchases'):
+        values = payload.get(key)
+        count = len(values) if isinstance(values, list) else 0
+        print(f'{key}\\t{count}')
+PY"

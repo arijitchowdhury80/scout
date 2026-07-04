@@ -19,6 +19,7 @@ SCRIPT_NAMES = [
     "scout-vps-list-hosted-usage",
     "scout-vps-list-hosted-purchases",
     "scout-vps-list-hosted-signups",
+    "scout-vps-hosted-metrics",
     "scout-vps-process-pending-beta-signups",
     "scout-vps-send-hosted-test-email",
     "scout-vps-disable-hosted-access",
@@ -51,6 +52,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "list-usage",
             "list-purchases",
             "list-signups",
+            "metrics",
             "send-test-email",
             "beta-signup-smoke",
             "process-pending-signups",
@@ -163,6 +165,14 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "--status",
             "--email",
             "/data/hosted_accounts.sqlite",
+        ],
+        "scout-vps-hosted-metrics": [
+            "Scout hosted billing/admin metrics",
+            "/v1/billing/admin/metrics",
+            "X-API-Key",
+            "--format",
+            "table",
+            "json",
         ],
         "scout-vps-process-pending-beta-signups": [
             "Process queued Scout beta signup requests",
@@ -297,6 +307,21 @@ def test_list_signups_script_never_prints_raw_keys_or_key_hashes() -> None:
     assert "email_beta_registration" in script_text
     assert "key_hash" not in script_text
     assert "raw_api_key" not in script_text
+
+
+def test_metrics_script_uses_protected_endpoint_without_printing_service_key() -> None:
+    script_text = (REPO_ROOT / "scripts" / "scout-vps-hosted-metrics").read_text(encoding="utf-8")
+
+    assert "docker exec scout" in script_text
+    assert "/v1/billing/admin/metrics" in script_text
+    assert "SCOUT_API_KEY" in script_text
+    assert "X-API-Key" in script_text
+    assert "--format" in script_text
+    assert "totals" in script_text
+    assert "key_hash" not in script_text
+    assert "raw_api_key" not in script_text
+    assert "scout_live_" not in script_text
+    assert 'echo "$SCOUT_API_KEY' not in script_text
 
 
 def test_send_test_email_script_uses_smoke_mode_and_never_prints_secret_values() -> None:

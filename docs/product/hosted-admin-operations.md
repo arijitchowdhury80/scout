@@ -591,6 +591,17 @@ curl https://scout.chowmes.com/v1/billing/admin/metrics \
   -H "X-API-Key: $SCOUT_SERVICE_API_KEY"
 ```
 
+Equivalent admin command from the Mac:
+
+```bash
+scripts/scout-hosted-admin metrics --format table
+scripts/scout-hosted-admin metrics --format json
+```
+
+The helper calls the protected endpoint from inside the running Scout
+container, uses the container's `SCOUT_API_KEY` only as a localhost `X-API-Key`
+header, and never prints the service key.
+
 The endpoint is protected by the service API key and remains protected in
 `SCOUT_PUBLIC_HOSTED_ONLY=true` mode. It returns signup/account counts, active
 and disabled tenant counts, beta signup delivery/failed/duplicate counts,
