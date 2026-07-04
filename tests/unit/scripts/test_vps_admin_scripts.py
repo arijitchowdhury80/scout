@@ -28,6 +28,7 @@ SCRIPT_NAMES = [
     "scout-vps-configure-hosted-env",
     "scout-hosted-load-test",
     "scout-stripe-bootstrap-prices",
+    "stripe_test_mode_smoke.py",
     "hosted_beta_signup_smoke.py",
     "hosted_production_smoke.py",
 ]
@@ -67,7 +68,16 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "write-config-template",
             "setup-report",
             "bootstrap-stripe-prices",
+            "stripe-smoke",
             "configure-production-env",
+        ],
+        "stripe_test_mode_smoke.py": [
+            "Verify Scout Stripe test-mode readiness",
+            "--base-url",
+            "--package-id",
+            "--create-checkout",
+            "beta_trial",
+            "standard_1000",
         ],
         "hosted_production_smoke.py": [
             "Operator smoke gate",

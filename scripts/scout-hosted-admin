@@ -34,6 +34,7 @@ Commands:
                     beta Stripe setup, and paid checkout.
   bootstrap-stripe-prices
                     Create Stripe one-time price IDs for Scout paid packages.
+  stripe-smoke      Verify Stripe readiness and optionally create Checkout.
   configure-production-env
                     Install allowlisted SMTP/Stripe settings on the VPS.
 
@@ -61,6 +62,8 @@ Examples:
   scripts/scout-hosted-admin setup-report --secrets-file secrets/scout-production.env
   scripts/scout-hosted-admin bootstrap-stripe-prices --secrets-file secrets/scout-production.env --dry-run
   scripts/scout-hosted-admin bootstrap-stripe-prices --secrets-file secrets/scout-production.env --yes --write-env
+  scripts/scout-hosted-admin stripe-smoke --base-url https://scout.chowmes.com --package-id beta_trial
+  scripts/scout-hosted-admin stripe-smoke --base-url https://scout.chowmes.com --package-id standard_1000 --create-checkout
   scripts/scout-hosted-admin configure-production-env --secrets-file secrets/scout-production.env --restart
 EOF
 }
@@ -135,6 +138,10 @@ setup_report() {
 
 bootstrap_stripe_prices() {
   exec "$SCRIPT_DIR/scout-stripe-bootstrap-prices" "$@"
+}
+
+stripe_smoke() {
+  exec python3 "$SCRIPT_DIR/stripe_test_mode_smoke.py" "$@"
 }
 
 configure_production_env() {
@@ -226,6 +233,10 @@ case "$1" in
   bootstrap-stripe-prices)
     shift
     bootstrap_stripe_prices "$@"
+    ;;
+  stripe-smoke)
+    shift
+    stripe_smoke "$@"
     ;;
   configure-production-env)
     shift

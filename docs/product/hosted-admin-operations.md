@@ -226,6 +226,25 @@ only: `standard_1000`, `standard_3000`, and `standard_15000`. It excludes
 prints price IDs and env key names only; it refuses to print Stripe secret
 keys.
 
+Smoke-test Stripe readiness from the same admin command surface:
+
+```bash
+scripts/scout-hosted-admin stripe-smoke \
+  --base-url https://scout.chowmes.com \
+  --package-id beta_trial
+
+scripts/scout-hosted-admin stripe-smoke \
+  --base-url https://scout.chowmes.com \
+  --package-id standard_1000 \
+  --create-checkout
+```
+
+The smoke command verifies non-secret readiness flags first. With
+`--create-checkout`, it creates a real Stripe Checkout Session and prints the
+Checkout URL. Complete the Stripe test payment or setup flow, deliver the
+signed webhook to `/v1/billing/stripe/webhook`, then confirm the hosted API-key
+email arrives and the delivered key works against `/v1/hosted/me`.
+
 Customer billing management uses Stripe Customer Portal through
 `POST /v1/billing/stripe/customer-portal-session`. The endpoint is protected by
 the hosted Bearer API key and returns only a short-lived Stripe portal URL for

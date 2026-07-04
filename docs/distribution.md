@@ -259,7 +259,7 @@ For a real Stripe test-mode smoke, start Scout with the Stripe and SMTP
 settings above, then run:
 
 ```bash
-python3 scripts/stripe_test_mode_smoke.py \
+scripts/scout-hosted-admin stripe-smoke \
   --base-url http://127.0.0.1:8421 \
   --email scout-beta-test@example.com \
   --name "Scout Beta Tester" \
@@ -271,6 +271,17 @@ The helper verifies non-secret paid-readiness flags, creates a Checkout
 Session, and prints the Checkout URL. Complete the test payment in Stripe Checkout,
 deliver the webhook to `/v1/billing/stripe/webhook`, then confirm the delivered
 hosted key works against `/v1/hosted/me`.
+
+For the $0 beta setup path, run:
+
+```bash
+scripts/scout-hosted-admin stripe-smoke \
+  --base-url http://127.0.0.1:8421 \
+  --email scout-beta-test@example.com \
+  --name "Scout Beta Tester" \
+  --package-id beta_trial \
+  --create-checkout
+```
 
 To verify the beta email-registration path instead:
 
