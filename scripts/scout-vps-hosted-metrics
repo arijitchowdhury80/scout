@@ -11,6 +11,8 @@ usage: scout-vps-hosted-metrics [--format table|json] [--env PATH] [--helper PAT
 Show Scout hosted billing/admin metrics from the protected API endpoint:
   /v1/billing/admin/metrics
 
+Table output includes totals, funnel, economics, and recent row counts.
+
 The request runs inside the scout container and reads SCOUT_API_KEY from the
 container environment. The key is sent as X-API-Key only to localhost inside
 the container and is never printed by this helper.
@@ -113,6 +115,16 @@ else:
     print('metric\\tvalue')
     for key in sorted(totals):
         print(f'{key}\\t{totals[key]}')
+    print()
+    print('funnel\\tvalue')
+    funnel = payload.get('funnel') or {}
+    for key in sorted(funnel):
+        print(f'{key}\\t{funnel[key]}')
+    print()
+    print('economics\\tvalue')
+    economics = payload.get('economics') or {}
+    for key in sorted(economics):
+        print(f'{key}\\t{economics[key]}')
     print()
     print('recent_counts\\tvalue')
     for key in ('recent_accounts', 'recent_signup_events', 'recent_usage', 'recent_purchases'):

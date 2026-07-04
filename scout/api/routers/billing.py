@@ -138,6 +138,8 @@ class HostedBillingAdminMetricsResponse(BaseModel):
 
     success: bool = True
     totals: dict[str, int]
+    funnel: dict[str, int | float]
+    economics: dict[str, int | float]
     recent_accounts: list[HostedAccountSnapshot]
     recent_signup_events: list[HostedSignupEvent]
     recent_usage: list[HostedUsageLedgerEntry]
@@ -207,6 +209,7 @@ async def billing_admin_metrics(
     signup_events = account_service.list_signup_events(limit=100)
     usage = account_service.list_all_usage(limit=500)
     purchases = payment_service.payment_store.list_checkouts(limit=100)
+    purchase_rows = [purchase.model_dump(mode="json") for purchase in purchases]
     totals = {
         "accounts": len(accounts),
         "active_accounts": sum(1 for account in accounts if account.account_status == "active"),
@@ -236,11 +239,108 @@ async def billing_admin_metrics(
     }
     return HostedBillingAdminMetricsResponse(
         totals=totals,
+        funnel=_admin_funnel_summary(accounts, signup_events, purchase_rows),
+        economics=_admin_economics_summary(totals, purchase_rows),
         recent_accounts=accounts,
         recent_signup_events=signup_events,
         recent_usage=usage[:100],
-        recent_purchases=[purchase.model_dump(mode="json") for purchase in purchases],
+        recent_purchases=purchase_rows,
     )
+
+
+def _admin_funnel_summary(
+    accounts: list[HostedAccountSnapshot],
+    signup_events: list[HostedSignupEvent],
+    purchases: list[dict[str, object]],
+) -> dict[str, int | float]:
+    """Return derived beta and paid conversion metrics for operators."""
+    beta_registration_events = [
+        event for event in signup_events if event.source == "email_beta_registration"
+    ]
+    paid_purchases = [
+        purchase for purchase in purchases if _purchase_int(purchase, "amount_total_cents") > 0
+    ]
+    beta_trial_checkouts = [
+        purchase for purchase in purchases if _purchase_str(purchase, "package_id") == "beta_trial"
+    ]
+    paid_customers = {
+        _purchase_str(purchase, "email").lower()
+        for purchase in paid_purchases
+        if _purchase_str(purchase, "email").strip()
+    }
+    return {
+        "beta_registration_events": len(beta_registration_events),
+        "beta_delivered_keys": sum(1 for event in signup_events if event.status == "delivered"),
+        "beta_pending_delivery": sum(
+            1 for event in signup_events if event.status == "pending_delivery"
+        ),
+        "beta_failed_delivery": sum(1 for event in signup_events if event.status == "failed"),
+        "beta_reissued_keys": sum(1 for event in signup_events if event.status == "reissued"),
+        "active_accounts": sum(1 for account in accounts if account.account_status == "active"),
+        "beta_trial_checkouts": len(beta_trial_checkouts),
+        "paid_purchases": len(paid_purchases),
+        "paid_customers": len(paid_customers),
+        "signup_delivery_rate_percent": _rate_percent(
+            sum(1 for event in beta_registration_events if event.status == "delivered"),
+            len(beta_registration_events),
+        ),
+        "paid_account_conversion_percent": _rate_percent(len(paid_customers), len(accounts)),
+    }
+
+
+def _admin_economics_summary(
+    totals: dict[str, int],
+    purchases: list[dict[str, object]],
+) -> dict[str, int | float]:
+    """Return derived revenue and package-margin metrics for operators."""
+    loaded_cost = 0
+    for purchase in purchases:
+        package_id = _purchase_str(purchase, "package_id")
+        if not package_id:
+            continue
+        loaded_cost += package_unit_economics(package_id).loaded_cost_cents
+    revenue = totals["revenue_cents"]
+    gross_profit = revenue - loaded_cost
+    standard_1000 = package_unit_economics("standard_1000")
+    return {
+        "revenue_cents": revenue,
+        "estimated_package_loaded_cost_cents": loaded_cost,
+        "estimated_package_gross_profit_cents": gross_profit,
+        "estimated_package_gross_margin_percent": _rate_percent(gross_profit, revenue),
+        "standard_credits_used": totals["standard_credits_used"],
+        "browser_credits_used": totals["browser_credits_used"],
+        "standard_1000_break_even_packages_per_month": (
+            standard_1000.break_even_packages_per_month
+        ),
+        "target_gross_margin_percent": DEFAULT_UNIT_ECONOMICS.target_gross_margin_percent,
+    }
+
+
+def _rate_percent(numerator: int, denominator: int) -> float:
+    """Return one-decimal percentage for admin funnel/economics reporting."""
+    if denominator <= 0:
+        return 0.0
+    return round(numerator / denominator * 100, 1)
+
+
+def _purchase_int(purchase: dict[str, object], field: str) -> int:
+    """Return an integer field from a non-secret purchase row."""
+    value = purchase.get(field, 0)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str) and value.strip():
+        return int(value)
+    return 0
+
+
+def _purchase_str(purchase: dict[str, object], field: str) -> str:
+    """Return a string field from a non-secret purchase row."""
+    value = purchase.get(field, "")
+    if isinstance(value, str):
+        return value
+    return str(value)
 
 
 @router.post(

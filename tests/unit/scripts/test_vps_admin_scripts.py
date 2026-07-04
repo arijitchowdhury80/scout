@@ -204,6 +204,8 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "--format",
             "table",
             "json",
+            "funnel",
+            "economics",
         ],
         "scout-vps-process-pending-beta-signups": [
             "Process queued Scout beta signup requests",
@@ -360,6 +362,8 @@ def test_metrics_script_uses_protected_endpoint_without_printing_service_key() -
     assert "X-API-Key" in script_text
     assert "--format" in script_text
     assert "totals" in script_text
+    assert "funnel" in script_text
+    assert "economics" in script_text
     assert "key_hash" not in script_text
     assert "raw_api_key" not in script_text
     assert "scout_live_" not in script_text

@@ -76,6 +76,29 @@ def test_billing_admin_metrics_returns_non_secret_metering_summary(tmp_path: Pat
     assert data["totals"]["browser_credits_used"] == 0
     assert data["totals"]["purchases"] == 2
     assert data["totals"]["revenue_cents"] == 1000
+    assert data["funnel"] == {
+        "beta_registration_events": 3,
+        "beta_delivered_keys": 1,
+        "beta_pending_delivery": 1,
+        "beta_failed_delivery": 1,
+        "beta_reissued_keys": 1,
+        "active_accounts": 2,
+        "beta_trial_checkouts": 1,
+        "paid_purchases": 1,
+        "paid_customers": 1,
+        "signup_delivery_rate_percent": 33.3,
+        "paid_account_conversion_percent": 50.0,
+    }
+    assert data["economics"] == {
+        "revenue_cents": 1000,
+        "estimated_package_loaded_cost_cents": 324,
+        "estimated_package_gross_profit_cents": 676,
+        "estimated_package_gross_margin_percent": 67.6,
+        "standard_credits_used": 2,
+        "browser_credits_used": 0,
+        "standard_1000_break_even_packages_per_month": 17,
+        "target_gross_margin_percent": 70.0,
+    }
     assert data["recent_accounts"][0]["email"] in {
         "first@example.com",
         "second@example.com",

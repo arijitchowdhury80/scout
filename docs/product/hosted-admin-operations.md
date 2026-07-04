@@ -175,9 +175,20 @@ scripts/scout-hosted-admin overview
 
 The overview prints `/health`, package, beta signup, Stripe, missing env, and
 next-action readiness first, then prints the protected admin metrics table for
-accounts, pending beta delivery, failed signups, usage, purchases, and revenue.
+accounts, pending beta delivery, failed signups, usage, purchases, revenue,
+funnel health, and estimated package economics.
 It delegates metrics access to `scout-vps-hosted-metrics`, so the service key is
 read inside the container and never printed.
+
+The protected metrics payload includes derived `funnel` and `economics`
+sections:
+
+- `funnel`: beta registrations, delivered keys, pending delivery, failed
+  delivery, reissued keys, beta setup checkouts, paid purchases, paid customers,
+  signup delivery rate, and paid-account conversion rate.
+- `economics`: total revenue, estimated package loaded cost, estimated package
+  gross profit, estimated package gross margin, standard/browser credits used,
+  the `standard_1000` break-even pack count, and the target gross margin.
 
 Hosted beta delivery requires authenticated SMTP configuration in production.
 `validate-config --require beta` fails unless host, port, from address,
@@ -693,7 +704,11 @@ The endpoint is protected by the service API key and remains protected in
 and disabled tenant counts, beta signup delivery/failed/duplicate counts,
 remaining credit totals, usage event totals, standard/browser credits spent,
 purchase count, revenue cents, and recent signup, account, usage, and purchase
-records.
+records. It also returns derived `funnel` and `economics` sections. The
+admin-command table output prints `metric`, `funnel`, `economics`, and
+`recent_counts` sections so the operator can see beta signup health, paid
+conversion, revenue, estimated gross profit, and credit usage without opening
+the SQLite database.
 
 It does not return raw hosted API keys, key hashes, Stripe secrets, SMTP
 secrets, or customer payment details.
