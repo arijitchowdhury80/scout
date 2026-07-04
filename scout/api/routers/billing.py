@@ -60,6 +60,14 @@ from scout.core.platform.stripe_checkout import (
 router = APIRouter(prefix="/v1/billing", tags=["billing"])
 
 STRIPE_SIGNATURE_TOLERANCE_SECONDS = 300
+ADMIN_METRICS_ACCOUNTS_LIMIT = 100
+ADMIN_METRICS_SIGNUP_EVENTS_LIMIT = 100
+ADMIN_METRICS_USAGE_LIMIT = 500
+ADMIN_METRICS_PURCHASES_LIMIT = 100
+ADMIN_METRICS_TOTALS_NOTE = (
+    "Totals, funnel, and economics are calculated from recent bounded rows, "
+    "not full lifetime aggregates."
+)
 
 
 class StripeWebhookResponse(BaseModel):
@@ -140,6 +148,7 @@ class HostedBillingAdminMetricsResponse(BaseModel):
     totals: dict[str, int]
     funnel: dict[str, int | float]
     economics: dict[str, int | float]
+    metric_scope: dict[str, str | int | bool]
     recent_accounts: list[HostedAccountSnapshot]
     recent_signup_events: list[HostedSignupEvent]
     recent_usage: list[HostedUsageLedgerEntry]
@@ -205,10 +214,10 @@ async def billing_admin_metrics(
     ),
 ) -> HostedBillingAdminMetricsResponse:
     """Return non-secret hosted signup, purchase, and usage telemetry for operators."""
-    accounts = account_service.list_accounts(limit=100)
-    signup_events = account_service.list_signup_events(limit=100)
-    usage = account_service.list_all_usage(limit=500)
-    purchases = payment_service.payment_store.list_checkouts(limit=100)
+    accounts = account_service.list_accounts(limit=ADMIN_METRICS_ACCOUNTS_LIMIT)
+    signup_events = account_service.list_signup_events(limit=ADMIN_METRICS_SIGNUP_EVENTS_LIMIT)
+    usage = account_service.list_all_usage(limit=ADMIN_METRICS_USAGE_LIMIT)
+    purchases = payment_service.payment_store.list_checkouts(limit=ADMIN_METRICS_PURCHASES_LIMIT)
     purchase_rows = [purchase.model_dump(mode="json") for purchase in purchases]
     totals = {
         "accounts": len(accounts),
@@ -241,11 +250,46 @@ async def billing_admin_metrics(
         totals=totals,
         funnel=_admin_funnel_summary(accounts, signup_events, purchase_rows),
         economics=_admin_economics_summary(totals, purchase_rows),
+        metric_scope=_admin_metric_scope(
+            accounts_returned=len(accounts),
+            signup_events_returned=len(signup_events),
+            usage_returned=len(usage),
+            purchases_returned=len(purchases),
+        ),
         recent_accounts=accounts,
         recent_signup_events=signup_events,
         recent_usage=usage[:100],
         recent_purchases=purchase_rows,
     )
+
+
+def _admin_metric_scope(
+    *,
+    accounts_returned: int,
+    signup_events_returned: int,
+    usage_returned: int,
+    purchases_returned: int,
+) -> dict[str, str | int | bool]:
+    """Describe the bounded sample window used by hosted admin metrics."""
+    return {
+        "scope": "recent_window",
+        "totals_are_complete": False,
+        "totals_note": ADMIN_METRICS_TOTALS_NOTE,
+        "accounts_limit": ADMIN_METRICS_ACCOUNTS_LIMIT,
+        "accounts_returned": accounts_returned,
+        "accounts_may_be_truncated": accounts_returned >= ADMIN_METRICS_ACCOUNTS_LIMIT,
+        "signup_events_limit": ADMIN_METRICS_SIGNUP_EVENTS_LIMIT,
+        "signup_events_returned": signup_events_returned,
+        "signup_events_may_be_truncated": (
+            signup_events_returned >= ADMIN_METRICS_SIGNUP_EVENTS_LIMIT
+        ),
+        "usage_limit": ADMIN_METRICS_USAGE_LIMIT,
+        "usage_returned": usage_returned,
+        "usage_may_be_truncated": usage_returned >= ADMIN_METRICS_USAGE_LIMIT,
+        "purchases_limit": ADMIN_METRICS_PURCHASES_LIMIT,
+        "purchases_returned": purchases_returned,
+        "purchases_may_be_truncated": purchases_returned >= ADMIN_METRICS_PURCHASES_LIMIT,
+    }
 
 
 def _admin_funnel_summary(

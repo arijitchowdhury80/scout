@@ -99,6 +99,26 @@ def test_billing_admin_metrics_returns_non_secret_metering_summary(tmp_path: Pat
         "standard_1000_break_even_packages_per_month": 17,
         "target_gross_margin_percent": 70.0,
     }
+    assert data["metric_scope"] == {
+        "scope": "recent_window",
+        "totals_are_complete": False,
+        "totals_note": (
+            "Totals, funnel, and economics are calculated from recent bounded rows, "
+            "not full lifetime aggregates."
+        ),
+        "accounts_limit": 100,
+        "accounts_returned": 2,
+        "accounts_may_be_truncated": False,
+        "signup_events_limit": 100,
+        "signup_events_returned": 4,
+        "signup_events_may_be_truncated": False,
+        "usage_limit": 500,
+        "usage_returned": 1,
+        "usage_may_be_truncated": False,
+        "purchases_limit": 100,
+        "purchases_returned": 2,
+        "purchases_may_be_truncated": False,
+    }
     assert data["recent_accounts"][0]["email"] in {
         "first@example.com",
         "second@example.com",

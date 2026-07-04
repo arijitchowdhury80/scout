@@ -206,6 +206,8 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "json",
             "funnel",
             "economics",
+            "metric_scope",
+            "recent-window",
         ],
         "scout-vps-process-pending-beta-signups": [
             "Process queued Scout beta signup requests",

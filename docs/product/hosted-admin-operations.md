@@ -703,11 +703,18 @@ The endpoint is protected by the service API key and remains protected in
 and disabled tenant counts, beta signup delivery/failed/duplicate counts,
 remaining credit totals, usage event totals, standard/browser credits spent,
 purchase count, revenue cents, and recent signup, account, usage, and purchase
-records. It also returns derived `funnel` and `economics` sections. The
-admin-command table output prints `metric`, `funnel`, `economics`, and
-`recent_counts` sections so the operator can see beta signup health, paid
-conversion, revenue, estimated gross profit, and credit usage without opening
-the SQLite database.
+records. It also returns derived `funnel` and `economics` sections plus a
+`metric_scope` section. The admin-command table output prints `metric`,
+`funnel`, `economics`, `metric_scope`, and `recent_counts` sections so the
+operator can see beta signup health, paid conversion, revenue, estimated gross
+profit, credit usage, and the query window without opening the SQLite database.
+
+`metric_scope` is important: current hosted admin metrics are recent-window
+monitoring, not lifetime aggregate accounting. The endpoint reports the row
+limits and returned row counts for accounts, signup events, usage events, and
+purchases, and marks totals as incomplete by design. If any returned count
+matches its limit, treat that section as possibly truncated and inspect the
+database/export layer before making business decisions from the totals.
 
 It does not return raw hosted API keys, key hashes, Stripe secrets, SMTP
 secrets, or customer payment details.
@@ -984,3 +991,9 @@ SSH. This is deliberate. SSH heredoc quoting previously made the operator
 command fail silently even though `/v1/billing/admin/metrics` was healthy. Keep
 future VPS admin helpers on explicit command arguments or checked-in scripts,
 not ad hoc heredocs, when the command is part of the production runbook.
+
+The protected metrics endpoint is also intentionally honest about scope. Its
+`metric_scope` response section and table output state that totals are computed
+from bounded recent rows. This keeps the operator dashboard useful for live beta
+monitoring while avoiding false lifetime-accounting claims before a dedicated
+aggregate metrics store exists.
