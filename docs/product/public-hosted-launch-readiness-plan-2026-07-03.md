@@ -150,8 +150,8 @@ The current hosted limits are not safe enough for 200 public testers.
 
 Current risks:
 
-- `HOSTED_BETA_PASS` now grants 100 standard credits and 0 browser credits per account.
-- 250 testers at 100 credits each creates a 25,000 standard-credit exposure before considering concurrency or abuse.
+- `HOSTED_BETA_PASS` now grants 1,000 standard credits and 100 browser credits per account.
+- 250 testers at 1,000 standard credits each creates a 250,000 standard-credit exposure (plus 25,000 browser credits) before considering concurrency or abuse.
 - The hosted rate limiter is in-memory and per-process, not Redis/distributed.
 - Credit debit is not atomic under concurrency.
 - `max_concurrent_runs` exists in plan limits but is not enforced.

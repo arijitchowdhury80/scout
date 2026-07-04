@@ -823,7 +823,7 @@ Current plan balances:
 
 | Plan | Standard Credits | Browser Credits | Retention | Max Pages/Records Per Run |
 |---|---:|---:|---:|---:|
-| `hosted_beta_pass` | 100 | 0 | 7 days | 25 |
+| `hosted_beta_pass` | 1,000 | 100 | 7 days | 25 |
 | `hosted_starter` | 5,000 | 250 | 14 days | 250 |
 | `hosted_pro` | 25,000 | 1,500 | 30 days | 1,000 |
 
@@ -831,7 +831,7 @@ Current paid package mapping:
 
 | Package | Price | Credits | Hosted Plan |
 |---|---:|---:|---|
-| `beta_trial` | $0 setup | 100 standard / 0 browser | `hosted_beta_pass` |
+| `beta_trial` | $0 setup | 1,000 standard / 100 browser | `hosted_beta_pass` |
 | `standard_1000` | $10 | 1,000 standard / 0 browser | `hosted_starter` |
 | `standard_3000` | $25 | 3,000 standard / 0 browser | `hosted_starter` |
 | `standard_15000` | $100 | 15,000 standard / 0 browser | `hosted_pro` |

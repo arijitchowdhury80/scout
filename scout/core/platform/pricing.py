@@ -71,14 +71,14 @@ _PACKAGES = {
         name="Hosted Beta Trial",
         hosted_plan=HostedPlan.HOSTED_BETA_PASS,
         amount_cents=0,
-        standard_credits=100,
-        browser_credits=0,
+        standard_credits=1000,
+        browser_credits=100,
         trial_days=30,
         requires_payment_method=True,
         is_public_purchase=False,
         customer_summary=(
-            "30-day beta trial with 100 standard credits for registered beta testers. "
-            "Browser-heavy work is excluded until the paid browser-cost model is validated."
+            "30-day beta trial with 1,000 standard credits and 100 browser credits for "
+            "registered beta testers — enough to exercise every Scout feature end to end."
         ),
     ),
     "standard_1000": HostedCreditPackage(

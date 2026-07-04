@@ -59,11 +59,16 @@ def test_sqlite_store_persists_admission_credit_debit(tmp_path: Path) -> None:
     entries = third_account_service.list_usage(provisioned.tenant.tenant_id)
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
 
-    assert decision.allowed is False
-    assert decision.reason == "Insufficient browser credits: need 5, have 0."
+    assert decision.allowed is True
     assert balance.standard_credits_remaining == limits.standard_credits
-    assert balance.browser_credits_remaining == limits.browser_credits
-    assert entries == []
+    assert (
+        balance.browser_credits_remaining
+        == limits.browser_credits - HostedAction.BROWSER_RENDER.credit_cost
+    )
+    assert len(entries) == 1
+    assert entries[0].action == HostedAction.BROWSER_RENDER.value
+    assert entries[0].credit_type == "browser"
+    assert entries[0].credits == HostedAction.BROWSER_RENDER.credit_cost
 
 
 def test_sqlite_store_persists_credit_ledger_entries(tmp_path: Path) -> None:

@@ -86,7 +86,7 @@ Current private-beta plan defaults:
 
 | Plan | Standard credits | Browser credits | Retention | Max pages/records | Concurrency |
 |---|---:|---:|---:|---:|---:|
-| `hosted_beta_pass` | 100 | 0 | 7 days | 25 | 1 |
+| `hosted_beta_pass` | 1000 | 100 | 7 days | 25 | 1 |
 | `hosted_starter` | 5,000 | 250 | 14 days | 250 | 2 |
 | `hosted_pro` | 25,000 | 1,500 | 30 days | 1,000 | 5 |
 

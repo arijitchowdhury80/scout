@@ -63,6 +63,10 @@ from scout.core.types import (
 
 router = APIRouter(prefix="/v1/hosted", tags=["hosted"])
 
+# Beta trial length in days. Credits are sourced from plan_limits(HOSTED_BETA_PASS)
+# so the granted balance and the email copy can never drift apart.
+_BETA_TRIAL_DAYS = 30
+
 _HOSTED_ARTIFACT_FIELDS = {
     "manifest",
     "records_json",
@@ -453,6 +457,9 @@ async def hosted_beta_key(
         scopes=["runs:create"],
         key_name=req.key_name,
     )
+    # Email figures are derived from the granted plan limits so the copy can
+    # never drift from the credits actually provisioned above.
+    beta_limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
     delivery = delivery_service.deliver(
         HostedApiKeyDeliveryRequest(
             email=provisioned.tenant.email,
@@ -461,9 +468,9 @@ async def hosted_beta_key(
             key_id=provisioned.api_key.key_id,
             plan=provisioned.tenant.plan,
             package_id="beta_trial",
-            standard_credits=100,
-            browser_credits=0,
-            trial_days=30,
+            standard_credits=beta_limits.standard_credits,
+            browser_credits=beta_limits.browser_credits,
+            trial_days=_BETA_TRIAL_DAYS,
             raw_api_key=provisioned.raw_api_key,
             checkout_session_id="beta_email_registration",
         )

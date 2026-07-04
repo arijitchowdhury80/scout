@@ -8,13 +8,13 @@ Status: Pay-as-you-go pricing approved for current hosted beta; live checkout st
 Recommended launch candidate as of 2026-07-03:
 
 - Local Scout remains free.
-- Beta trial: 30 days, 100 standard credits, `$0` card-backed setup through Stripe Checkout setup mode when configured, and SMTP API-key delivery after signed webhook provisioning. Until Stripe/SMTP are configured, `/beta` records email-only fallback requests for queued delivery.
+- Beta trial: 30 days, 1,000 standard credits and 100 browser credits, `$0` card-backed setup through Stripe Checkout setup mode when configured, and SMTP API-key delivery after signed webhook provisioning. Until Stripe/SMTP are configured, `/beta` records email-only fallback requests for queued delivery.
 - First pay-as-you-go package: $10 for 1,000 standard credits.
 - The $10 / 1,000-credit package provisions or upgrades the account to
   `hosted_starter` limits. The $100 / 15,000-credit package provisions or
   upgrades the account to `hosted_pro` limits.
 - Browser-heavy work is not included in the first public pay-as-you-go package.
-- Browser credits remain private/controlled until browser-worker cost is measured.
+- Browser credits remain private/controlled until browser-worker cost is measured, except for the beta trial's included browser-credit grant.
 - Subscriptions remain deferred until usage telemetry proves recurring demand.
 
 What the first $10 package gives the customer:
@@ -58,7 +58,7 @@ Current package-to-plan mapping:
 
 | Package | Price | Credits | Hosted Plan |
 |---|---:|---:|---|
-| `beta_trial` | $0 | 100 standard / 0 browser | `hosted_beta_pass` |
+| `beta_trial` | $0 | 1,000 standard / 100 browser | `hosted_beta_pass` |
 | `standard_1000` | $10 | 1,000 standard / 0 browser | `hosted_starter` |
 | `standard_3000` | $25 | 3,000 standard / 0 browser | `hosted_starter` |
 | `standard_15000` | $100 | 15,000 standard / 0 browser | `hosted_pro` |

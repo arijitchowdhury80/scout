@@ -157,6 +157,52 @@ class SQLiteHostedAccountStore:
         with self._connect() as conn:
             self._set_balance(conn, tenant_id, balance)
 
+    def try_debit_action(
+        self, tenant_id: str, credit_type: str, cost: int
+    ) -> HostedUsageBalance | None:
+        """Atomically check-and-decrement credits in a single write transaction.
+
+        Uses ``BEGIN IMMEDIATE`` to take the SQLite write lock up front and a
+        conditional ``UPDATE ... WHERE remaining >= cost`` so two concurrent
+        debits can never both succeed past the balance (no double-spend, never
+        negative). Returns the new balance, or ``None`` if credits are short.
+        """
+        # `column` is chosen from a fixed literal set, never from caller input,
+        # so interpolating it into SQL is safe; `cost`/`tenant_id` are bound.
+        column = (
+            "browser_credits_remaining"
+            if credit_type == "browser"
+            else "standard_credits_remaining"
+        )
+        conn = self._connect()
+        conn.isolation_level = None  # manual transaction control
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            cursor = conn.execute(
+                f"UPDATE hosted_credit_balances "  # noqa: S608 - column is a fixed literal
+                f"SET {column} = {column} - ? "
+                f"WHERE tenant_id = ? AND {column} >= ?",
+                (cost, tenant_id, cost),
+            )
+            if cursor.rowcount != 1:
+                conn.execute("ROLLBACK")
+                return None
+            row = conn.execute(
+                """
+                SELECT standard_credits_remaining, browser_credits_remaining
+                FROM hosted_credit_balances
+                WHERE tenant_id = ?
+                """,
+                (tenant_id,),
+            ).fetchone()
+            conn.execute("COMMIT")
+        finally:
+            conn.close()
+        return HostedUsageBalance(
+            standard_credits_remaining=row["standard_credits_remaining"],
+            browser_credits_remaining=row["browser_credits_remaining"],
+        )
+
     def record_usage(self, entry: HostedUsageLedgerEntry) -> None:
         """Persist a hosted usage ledger entry."""
         with self._connect() as conn:
@@ -309,8 +355,11 @@ class SQLiteHostedAccountStore:
 
     def _connect(self) -> sqlite3.Connection:
         """Open a configured SQLite connection."""
-        conn = sqlite3.connect(self.path)
+        conn = sqlite3.connect(self.path, timeout=30.0)
         conn.row_factory = sqlite3.Row
+        # Wait (up to 30s) for the write lock instead of raising "database is
+        # locked" when concurrent debits contend under load.
+        conn.execute("PRAGMA busy_timeout = 30000")
         return conn
 
     def _init_schema(self) -> None:

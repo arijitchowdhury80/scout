@@ -65,20 +65,25 @@ def test_smtp_delivery_service_sends_one_time_key_email() -> None:
     assert message["Subject"] == "Your Scout beta tester API key is ready"
     assert "Hi Builder Person," in body
     assert "I'm glad to have you testing Scout." in body
-    assert "Your beta trial includes 100 standard credits for 30 days." in body
+    assert "Your beta trial includes 1,000 standard credits for 30 days." in body
     assert "This is not unlimited hosted crawling." in body
     assert (
         "1 scrape, 1 returned crawl page, or 1 product/intelligence record = 1 standard credit."
         in body
     )
-    assert "Hosted browser work is separately metered" in body
+    assert "Your beta trial also includes 100 hosted browser credits." in body
+    assert "Hosted browser work draws from the separate browser-credit balance." in body
     assert "Use this key as a Bearer token" in body
     assert "First hosted scrape:" in body
     assert "https://scout.chowmes.com/v1/hosted/scrape" in body
     assert '"url":"https://example.com"' in body
     assert "Account and balance:" in body
+    assert "https://scout.chowmes.com/account" in body
     assert "Usage ledger:" in body
+    assert "https://scout.chowmes.com/v1/hosted/usage" in body
     assert "Purchase history:" in body
+    assert "https://scout.chowmes.com/v1/hosted/purchases" in body
+    assert "Stripe billing portal:" in body
     assert "https://scout.chowmes.com/docs" in body
     assert "https://scout.chowmes.com/pricing" in body
     assert "scout_live_test_key" in body
@@ -142,6 +147,7 @@ def test_smtp_delivery_service_sends_paid_credit_email_without_beta_trial_claims
         _delivery_request(
             package_id="standard_1000",
             standard_credits=1000,
+            browser_credits=0,
             trial_days=0,
             checkout_session_id="cs_paid_1000",
         )
@@ -240,8 +246,8 @@ def _delivery_request(
     *,
     smoke_test: bool = False,
     package_id: str = "beta_trial",
-    standard_credits: int = 100,
-    browser_credits: int = 0,
+    standard_credits: int = 1000,
+    browser_credits: int = 100,
     trial_days: int = 30,
     checkout_session_id: str | None = None,
 ) -> HostedApiKeyDeliveryRequest:

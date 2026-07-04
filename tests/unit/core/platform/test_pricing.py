@@ -30,8 +30,8 @@ def test_beta_trial_package_is_free_limited_and_timeboxed() -> None:
 
     assert package.hosted_plan is HostedPlan.HOSTED_BETA_PASS
     assert package.amount_cents == 0
-    assert package.standard_credits == 100
-    assert package.browser_credits == 0
+    assert package.standard_credits == 1000
+    assert package.browser_credits == 100
     assert package.trial_days == 30
     assert package.requires_payment_method is True
     assert package.is_public_purchase is False

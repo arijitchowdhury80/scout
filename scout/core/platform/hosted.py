@@ -89,8 +89,8 @@ def plan_limits(plan: HostedPlan) -> HostedPlanLimits:
         HostedPlan.HOSTED_BETA_PASS: HostedPlanLimits(
             plan=plan,
             hosted_enabled=True,
-            standard_credits=100,
-            browser_credits=0,
+            standard_credits=1000,
+            browser_credits=100,
             artifact_retention_days=7,
             max_pages_per_run=25,
             max_concurrent_runs=1,

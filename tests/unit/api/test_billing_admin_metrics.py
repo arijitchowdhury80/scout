@@ -91,9 +91,9 @@ def test_billing_admin_metrics_returns_non_secret_metering_summary(tmp_path: Pat
     }
     assert data["economics"] == {
         "revenue_cents": 1000,
-        "estimated_package_loaded_cost_cents": 324,
-        "estimated_package_gross_profit_cents": 676,
-        "estimated_package_gross_margin_percent": 67.6,
+        "estimated_package_loaded_cost_cents": 659,
+        "estimated_package_gross_profit_cents": 341,
+        "estimated_package_gross_margin_percent": 34.1,
         "standard_credits_used": 2,
         "browser_credits_used": 0,
         "standard_1000_break_even_packages_per_month": 17,

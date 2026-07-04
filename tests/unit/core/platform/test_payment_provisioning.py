@@ -44,8 +44,8 @@ def test_process_checkout_beta_trial_setup_provisions_trial_credits(tmp_path: Pa
     assert result.raw_api_key.startswith("scout_live_")
     assert result.plan is HostedPlan.HOSTED_BETA_PASS
     assert auth.allowed is True
-    assert balance.standard_credits_remaining == 100
-    assert balance.browser_credits_remaining == 0
+    assert balance.standard_credits_remaining == 1000
+    assert balance.browser_credits_remaining == 100
     assert stored_event is not None
     assert stored_event.package_id == "beta_trial"
     assert stored_event.amount_total_cents == 0

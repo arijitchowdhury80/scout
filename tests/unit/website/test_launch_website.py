@@ -481,7 +481,8 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Register and receive your API key by email.",
             "Scout provisions a finite-credit hosted beta key",
             "Register for Beta API Key",
-            "100 standard credits",
+            "1,000 standard credits and 100",
+            "browser credits",
             "/v1/hosted/beta-key",
             "Private beta is hosted HTTP first",
             "Run the launch readiness checker.",
@@ -579,7 +580,7 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
         "Break-even: 17 packs/month",
         "Beta trial",
         "30 days",
-        "100 standard credits",
+        "1,000 standard credits and 100 browser credits",
         "Beta access starts with $0 card-backed setup",
     ]
 
@@ -636,7 +637,8 @@ def test_beta_signup_uses_email_registration_without_password_or_browser_key_dis
     assert "Register and receive your API key by email" in normalized_html
     assert "card-backed" in normalized_html.lower()
     assert "Scout provisions a finite-credit hosted beta key" in normalized_html
-    assert "100 standard credits" in normalized_html
+    assert "1,000 standard credits and 100" in normalized_html
+    assert "browser credits" in normalized_html
     assert "/v1/billing/stripe/status" in html
     assert 'id="pricingCheckoutForm"' not in html
     assert 'data-ready-flag="ready_for_beta_checkout"' in html

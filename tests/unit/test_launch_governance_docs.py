@@ -564,7 +564,7 @@ def test_hosted_operating_contract_documents_private_beta_boundary() -> None:
     assert "POST /v1/hosted/products" in contract
     assert "POST /v1/hosted/run/{use_case}" in contract
     assert "GET /v1/hosted/runs/{run_id}/artifacts" in contract
-    assert "`hosted_beta_pass` | 100 | 0 | 7 days | 25 | 1" in contract
+    assert "`hosted_beta_pass` | 1000 | 100 | 7 days | 25 | 1" in contract
     assert "browser render | browser | 5" in contract
     assert "browser minute | browser | 10" in contract
     assert "server `SCOUT_WORKDIR`" in contract

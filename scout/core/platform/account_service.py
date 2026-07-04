@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 from datetime import UTC, datetime
 from enum import Enum
 from typing import Protocol
@@ -132,6 +133,17 @@ class HostedAccountStore(Protocol):
 
     def set_balance(self, tenant_id: str, balance: HostedUsageBalance) -> None: ...
 
+    def try_debit_action(
+        self, tenant_id: str, credit_type: str, cost: int
+    ) -> HostedUsageBalance | None:
+        """Atomically debit ``cost`` credits of ``credit_type`` from a tenant.
+
+        Returns the new balance on success, or ``None`` when the tenant lacks
+        sufficient credits. Implementations MUST perform the check-and-decrement
+        as a single atomic operation so concurrent callers cannot double-spend.
+        """
+        ...
+
     def record_usage(self, entry: HostedUsageLedgerEntry) -> None: ...
 
     def list_usage(self, tenant_id: str, limit: int = 100) -> list[HostedUsageLedgerEntry]: ...
@@ -160,6 +172,7 @@ class InMemoryHostedAccountStore:
         self.balances: dict[str, HostedUsageBalance] = {}
         self.usage_entries: list[HostedUsageLedgerEntry] = []
         self.signup_events: list[HostedSignupEvent] = []
+        self._debit_lock = threading.Lock()
 
     def save_account(
         self,
@@ -207,6 +220,29 @@ class InMemoryHostedAccountStore:
     def set_balance(self, tenant_id: str, balance: HostedUsageBalance) -> None:
         """Replace tenant credit balance."""
         self.balances[tenant_id] = balance
+
+    def try_debit_action(
+        self, tenant_id: str, credit_type: str, cost: int
+    ) -> HostedUsageBalance | None:
+        """Atomically check-and-decrement a tenant's credits under a lock."""
+        with self._debit_lock:
+            balance = self.balances[tenant_id]
+            if credit_type == "browser":
+                remaining = balance.browser_credits_remaining
+            else:
+                remaining = balance.standard_credits_remaining
+            if remaining < cost:
+                return None
+            if credit_type == "browser":
+                next_balance = balance.model_copy(
+                    update={"browser_credits_remaining": remaining - cost}
+                )
+            else:
+                next_balance = balance.model_copy(
+                    update={"standard_credits_remaining": remaining - cost}
+                )
+            self.balances[tenant_id] = next_balance
+            return next_balance
 
     def record_usage(self, entry: HostedUsageLedgerEntry) -> None:
         """Store a hosted usage ledger entry."""
@@ -374,15 +410,22 @@ class HostedAccountService:
         if not auth.allowed:
             return auth
 
-        balance = self.store.get_balance(auth.tenant_id)
-        usage = check_hosted_usage(balance, action)
-        if not usage.allowed:
+        next_balance = self.store.try_debit_action(
+            auth.tenant_id, action.credit_type, action.credit_cost
+        )
+        if next_balance is None:
+            # Insufficient credits — re-read the (unmutated) balance to build an
+            # accurate reason. The atomic debit above did not modify anything.
+            usage = check_hosted_usage(self.store.get_balance(auth.tenant_id), action)
             return auth.model_copy(
                 update={"allowed": False, "reason": usage.reason, "usage": usage}
             )
 
-        next_balance = _debit_balance(balance, action)
-        self.store.set_balance(auth.tenant_id, next_balance)
+        usage = HostedUsageDecision(
+            allowed=True,
+            credit_type=action.credit_type,
+            cost=action.credit_cost,
+        )
         self.store.record_usage(
             _usage_entry(
                 tenant_id=auth.tenant_id,
@@ -506,18 +549,30 @@ class HostedAccountService:
         credits: int,
         metadata: dict[str, str] | None = None,
     ) -> HostedUsageBalance:
-        """Debit a variable number of standard credits and record the usage event."""
-        balance = self.store.get_balance(tenant_id)
-        next_balance = balance.model_copy(
-            update={"standard_credits_remaining": balance.standard_credits_remaining - credits}
-        )
-        self.store.set_balance(tenant_id, next_balance)
+        """Atomically debit a variable number of standard credits and record it.
+
+        Uses the store's atomic conditional decrement so concurrent debits can
+        never drive the balance negative. If the full amount would overdraw
+        (e.g. a race after preflight), it clamps to the remaining balance so the
+        floor is exactly zero and the ledger records what was actually charged.
+        """
+        next_balance = self.store.try_debit_action(tenant_id, "standard", credits)
+        charged = credits
+        if next_balance is None:
+            remaining = self.store.get_balance(tenant_id).standard_credits_remaining
+            charged = max(0, remaining)
+            next_balance = (
+                self.store.try_debit_action(tenant_id, "standard", charged) if charged > 0 else None
+            )
+            if next_balance is None:
+                next_balance = self.store.get_balance(tenant_id)
+                charged = 0
         self.store.record_usage(
             _usage_entry(
                 tenant_id=tenant_id,
                 key_id=key_id,
                 action=action,
-                credits=credits,
+                credits=charged,
                 balance=next_balance,
                 metadata=metadata or {},
             )
@@ -581,21 +636,6 @@ class HostedAccountService:
     def list_accounts(self, limit: int = 100) -> list[HostedAccountSnapshot]:
         """Return non-secret account snapshots for operator monitoring."""
         return self.store.list_accounts(limit)
-
-
-def _debit_balance(balance: HostedUsageBalance, action: HostedAction) -> HostedUsageBalance:
-    """Return a new balance after debiting an action."""
-    if action.credit_type == "browser":
-        return balance.model_copy(
-            update={
-                "browser_credits_remaining": balance.browser_credits_remaining - action.credit_cost
-            }
-        )
-    return balance.model_copy(
-        update={
-            "standard_credits_remaining": balance.standard_credits_remaining - action.credit_cost
-        }
-    )
 
 
 def _higher_plan(current: HostedPlan, candidate: HostedPlan) -> HostedPlan:

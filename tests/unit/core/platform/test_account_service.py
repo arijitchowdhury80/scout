@@ -118,9 +118,7 @@ def test_disable_account_disables_tenant_and_key_authentication() -> None:
     assert store.api_keys[result.api_key.key_id].status is ApiKeyStatus.DISABLED
 
 
-def test_consume_action_debits_standard_and_denies_browser_when_beta_has_no_browser_credits() -> (
-    None
-):
+def test_consume_action_debits_standard_and_browser_when_beta_has_browser_credits() -> None:
     service = HostedAccountService(InMemoryHostedAccountStore())
     result = service.provision_account(
         email="builder@example.com",
@@ -142,21 +140,31 @@ def test_consume_action_debits_standard_and_denies_browser_when_beta_has_no_brow
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
 
     assert standard.allowed is True
-    assert browser.allowed is False
-    assert browser.reason == "Insufficient browser credits: need 5, have 0."
+    assert browser.allowed is True
     assert (
         balance.standard_credits_remaining
         == limits.standard_credits - HostedAction.SCRAPE.credit_cost
     )
-    assert balance.browser_credits_remaining == limits.browser_credits
+    assert (
+        balance.browser_credits_remaining
+        == limits.browser_credits - HostedAction.BROWSER_RENDER.credit_cost
+    )
     entries = service.list_usage(result.tenant.tenant_id)
-    assert len(entries) == 1
-    assert entries[0].action == HostedAction.SCRAPE.value
-    assert entries[0].key_id == result.api_key.key_id
-    assert entries[0].credit_type == "standard"
-    assert entries[0].credits == 1
+    assert len(entries) == 2
+    assert entries[1].action == HostedAction.SCRAPE.value
+    assert entries[1].key_id == result.api_key.key_id
+    assert entries[1].credit_type == "standard"
+    assert entries[1].credits == 1
+    assert entries[1].standard_balance_after == limits.standard_credits - 1
+    assert entries[1].browser_balance_after == limits.browser_credits
+    assert entries[0].action == HostedAction.BROWSER_RENDER.value
+    assert entries[0].credit_type == "browser"
+    assert entries[0].credits == HostedAction.BROWSER_RENDER.credit_cost
     assert entries[0].standard_balance_after == limits.standard_credits - 1
-    assert entries[0].browser_balance_after == limits.browser_credits
+    assert (
+        entries[0].browser_balance_after
+        == limits.browser_credits - HostedAction.BROWSER_RENDER.credit_cost
+    )
 
 
 def test_consume_action_denies_without_mutating_when_credits_insufficient() -> None:

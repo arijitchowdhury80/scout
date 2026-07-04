@@ -23,7 +23,7 @@ def test_unit_economics_doc_records_pay_as_you_go_candidate() -> None:
         "Estimated cost for 1,000 standard credits: $2.59",
         "Estimated gross margin: 74.1%",
         "Break-even: 17 packs/month",
-        "Beta trial: 30 days, 100 standard credits",
+        "Beta trial: 30 days, 1,000 standard credits and 100 browser credits",
     ]
 
     for marker in expected:
