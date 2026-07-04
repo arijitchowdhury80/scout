@@ -356,7 +356,8 @@ def test_list_signups_script_never_prints_raw_keys_or_key_hashes() -> None:
 def test_metrics_script_uses_protected_endpoint_without_printing_service_key() -> None:
     script_text = (REPO_ROOT / "scripts" / "scout-vps-hosted-metrics").read_text(encoding="utf-8")
 
-    assert "docker exec -i scout" in script_text
+    assert "docker exec" in script_text
+    assert " scout python3 -c" in script_text
     assert "/v1/billing/admin/metrics" in script_text
     assert "SCOUT_API_KEY" in script_text
     assert "X-API-Key" in script_text
@@ -368,6 +369,14 @@ def test_metrics_script_uses_protected_endpoint_without_printing_service_key() -
     assert "raw_api_key" not in script_text
     assert "scout_live_" not in script_text
     assert 'echo "$SCOUT_API_KEY' not in script_text
+
+
+def test_metrics_script_avoids_ssh_heredoc_for_reliable_vps_output() -> None:
+    script_text = (REPO_ROOT / "scripts" / "scout-vps-hosted-metrics").read_text(encoding="utf-8")
+
+    assert "<<'PY'" not in script_text
+    assert "python3 -c" in script_text
+    assert "SCOUT_ADMIN_METRICS_FORMAT" in script_text
 
 
 def test_overview_script_combines_readiness_and_metrics_without_secret_values() -> None:

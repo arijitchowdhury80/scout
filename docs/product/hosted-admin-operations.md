@@ -968,3 +968,20 @@ This keeps the production operator loop explicit: if SMTP or Stripe is missing,
 the command should show the missing non-secret variable names and the exact
 setup categories to complete. It must never print Stripe secrets, webhook
 secrets, SMTP passwords, raw hosted API keys, or key hashes.
+
+## Admin Metrics Reliability Note
+
+The protected metrics endpoint is the source of truth for hosted accounts,
+signup delivery, usage, purchases, revenue, funnel health, and package
+economics:
+
+```bash
+scripts/scout-hosted-admin metrics --format table
+```
+
+The helper intentionally calls Python inside the running `scout` container with
+`python3 -c` and `SCOUT_ADMIN_METRICS_FORMAT`; it does not pipe a heredoc over
+SSH. This is deliberate. SSH heredoc quoting previously made the operator
+command fail silently even though `/v1/billing/admin/metrics` was healthy. Keep
+future VPS admin helpers on explicit command arguments or checked-in scripts,
+not ad hoc heredocs, when the command is part of the production runbook.

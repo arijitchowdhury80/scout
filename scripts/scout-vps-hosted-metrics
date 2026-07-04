@@ -84,51 +84,50 @@ if [ ! -x "$helper" ]; then
   exit 1
 fi
 
-"$helper" --env "$env_file" "sudo docker exec -i scout python3 - '$format' <<'PY'
+"$helper" --env "$env_file" "sudo docker exec -e SCOUT_ADMIN_METRICS_FORMAT=$format scout python3 -c '
 import json
 import os
-import sys
 import urllib.error
 import urllib.request
 
-output_format = sys.argv[1]
-api_key = os.environ.get('SCOUT_API_KEY', '').strip()
+output_format = os.environ.get(\"SCOUT_ADMIN_METRICS_FORMAT\", \"table\")
+api_key = os.environ.get(\"SCOUT_API_KEY\", \"\").strip()
 if not api_key:
-    raise SystemExit('SCOUT_API_KEY is not set inside the scout container.')
+    raise SystemExit(\"SCOUT_API_KEY is not set inside the scout container.\")
 
 request = urllib.request.Request(
-    'http://127.0.0.1:8421/v1/billing/admin/metrics',
-    headers={'Accept': 'application/json', 'X-API-Key': api_key},
+    \"http://127.0.0.1:8421/v1/billing/admin/metrics\",
+    headers={\"Accept\": \"application/json\", \"X-API-Key\": api_key},
 )
 
 try:
     with urllib.request.urlopen(request, timeout=15) as response:
-        payload = json.loads(response.read().decode('utf-8'))
+        payload = json.loads(response.read().decode(\"utf-8\"))
 except urllib.error.HTTPError as exc:
-    detail = exc.read().decode('utf-8', errors='replace')
-    raise SystemExit(f'Admin metrics request failed with HTTP {exc.code}: {detail}')
+    detail = exc.read().decode(\"utf-8\", errors=\"replace\")
+    raise SystemExit(\"Admin metrics request failed with HTTP {}: {}\".format(exc.code, detail))
 
-if output_format == 'json':
+if output_format == \"json\":
     print(json.dumps(payload, indent=2, sort_keys=True))
 else:
-    totals = payload.get('totals') or {}
-    print('metric\\tvalue')
+    totals = payload.get(\"totals\") or {}
+    print(\"metric\\tvalue\")
     for key in sorted(totals):
-        print(f'{key}\\t{totals[key]}')
+        print(\"{}\\t{}\".format(key, totals[key]))
     print()
-    print('funnel\\tvalue')
-    funnel = payload.get('funnel') or {}
+    print(\"funnel\\tvalue\")
+    funnel = payload.get(\"funnel\") or {}
     for key in sorted(funnel):
-        print(f'{key}\\t{funnel[key]}')
+        print(\"{}\\t{}\".format(key, funnel[key]))
     print()
-    print('economics\\tvalue')
-    economics = payload.get('economics') or {}
+    print(\"economics\\tvalue\")
+    economics = payload.get(\"economics\") or {}
     for key in sorted(economics):
-        print(f'{key}\\t{economics[key]}')
+        print(\"{}\\t{}\".format(key, economics[key]))
     print()
-    print('recent_counts\\tvalue')
-    for key in ('recent_accounts', 'recent_signup_events', 'recent_usage', 'recent_purchases'):
+    print(\"recent_counts\\tvalue\")
+    for key in (\"recent_accounts\", \"recent_signup_events\", \"recent_usage\", \"recent_purchases\"):
         values = payload.get(key)
         count = len(values) if isinstance(values, list) else 0
-        print(f'{key}\\t{count}')
-PY"
+        print(\"{}\\t{}\".format(key, count))
+'"
