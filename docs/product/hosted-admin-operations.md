@@ -13,6 +13,11 @@ Scout hosted beta has API-key based access, not a login system.
   the one-time API key, and records the signup event. When SMTP delivery is not
   configured, it records a pending tester request. Public signup never shows
   the raw key in the browser.
+- `/beta` reads `/v1/billing/stripe/status` before signup and checkout actions
+  and surfaces non-secret readiness blockers plus operator next actions. Email
+  registration can remain open to record requests while saying SMTP key delivery
+  is not configured; card-backed `$0` setup stays disabled until Stripe,
+  webhook, and SMTP readiness gates pass.
 - `/beta` also exposes a secondary card-backed beta setup path. It posts
   `package_id=beta_trial` to `POST /v1/billing/stripe/checkout-session`, uses
   Stripe Checkout setup mode with `customer_creation=always`, charges $0, and

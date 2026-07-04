@@ -53,7 +53,10 @@
     try {
       const readiness = await fetchRegistrationReadiness();
       if (readiness && readiness.beta_signup_enabled !== true) {
-        throw new Error("Hosted beta registration is not open yet. Existing keys still work.");
+        throw new Error(
+          readinessDetailsMessage(readiness) ||
+            "Hosted beta registration is not open yet. Existing keys still work.",
+        );
       }
 
       setStatus("Registering beta tester and preparing API-key email delivery...", "running");
@@ -160,7 +163,8 @@
       const readiness = await fetchRegistrationReadiness();
       if (readiness && readiness[checkoutReadyFlag] !== true) {
         throw new Error(
-          "Card-backed beta setup is not ready yet. Use email beta registration or try again after Stripe is configured.",
+          readinessDetailsMessage(readiness) ||
+            "Card-backed beta setup is not ready yet. Use email beta registration or try again after Stripe is configured.",
         );
       }
       const response = await fetch(checkoutEndpoint, {
@@ -194,15 +198,24 @@
       const status = await response.json();
       if (form && statusEl && status.beta_signup_enabled === true) {
         if (submitButton) submitButton.disabled = false;
-        setStatus(
-          "Hosted beta registration is open. Register and Scout will email your API key when delivery is configured.",
-          "success",
-        );
+        if (status.ready_for_beta_key_delivery === true) {
+          setStatus(
+            "Hosted beta registration and email delivery are ready. Register and Scout will email your API key.",
+            "success",
+          );
+        } else {
+          setStatus(
+            readinessDetailsMessage(status) ||
+              "Hosted beta registration is open, but email delivery is not configured. Scout will record your request for follow-up.",
+            "error",
+          );
+        }
       }
       if (form && statusEl && status.beta_signup_enabled !== true) {
         if (submitButton) submitButton.disabled = true;
         setStatus(
-          "Hosted beta registration is not open yet. Existing keys still work.",
+          readinessDetailsMessage(status) ||
+            "Hosted beta registration is not open yet. Existing keys still work.",
           "error",
         );
       }
@@ -216,7 +229,8 @@
       if (checkoutForm && checkoutStatusEl && status[checkoutReadyFlag] !== true) {
         if (checkoutButton) checkoutButton.disabled = true;
         setCheckoutStatus(
-          "Card-backed beta setup is not ready yet. Email beta registration can still record your request.",
+          readinessDetailsMessage(status) ||
+            "Card-backed beta setup is not ready yet. Email beta registration can still record your request.",
           "error",
         );
       }
@@ -233,6 +247,25 @@
     } catch {
       return null;
     }
+  }
+
+  function readinessDetailsMessage(status) {
+    const blocking_reasons = Array.isArray(status.blocking_reasons)
+      ? status.blocking_reasons
+      : [];
+    const operator_next_actions = Array.isArray(status.operator_next_actions)
+      ? status.operator_next_actions
+      : [];
+    const reasons = blocking_reasons.filter(Boolean).join(" ");
+    const actions = operator_next_actions.filter(Boolean).join(" ");
+
+    if (!reasons && !actions) {
+      return "";
+    }
+    if (reasons && actions) {
+      return `${reasons} Next: ${actions}`;
+    }
+    return reasons || `Next: ${actions}`;
   }
 
   async function submitEmailRegistration({ name, email, keyName }) {

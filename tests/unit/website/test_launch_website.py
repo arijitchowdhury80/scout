@@ -235,6 +235,9 @@ def test_beta_page_uses_email_registration_and_optional_card_setup_without_passw
     assert "submitEmailRegistration" in hosted_keygen
     assert "Checking beta registration readiness" in hosted_keygen
     assert "Card-backed beta setup" in hosted_keygen
+    assert "blocking_reasons" in hosted_keygen
+    assert "operator_next_actions" in hosted_keygen
+    assert "readinessDetailsMessage" in hosted_keygen
     assert "form?.dataset.endpoint" in hosted_keygen
     assert "form.dataset.endpoint" not in hosted_keygen
     assert 'type="password"' not in html
@@ -639,7 +642,9 @@ def test_beta_signup_uses_email_registration_without_password_or_browser_key_dis
     assert "/v1/hosted/beta-key/reissue" in hosted_keygen_js
     assert "Requesting a replacement API key" in hosted_keygen_js
     assert "beta_signup_enabled" in hosted_keygen_js
+    assert "ready_for_beta_key_delivery" in hosted_keygen_js
     assert "ready_for_beta_checkout" in hosted_keygen_js
+    assert "operator_next_actions" in hosted_keygen_js
     assert "window.location.assign" in hosted_keygen_js
     assert "Hosted beta key registration is paused" not in hosted_keygen_js
     assert 'type="password"' not in html
