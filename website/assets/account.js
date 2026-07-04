@@ -126,7 +126,7 @@
     if (!usageLedger) return;
     const rows = Array.isArray(payload.usage) ? payload.usage : [];
     usageLedger.innerHTML = rows.length
-      ? rows.map((row) => ledgerRow(row.action, `${row.credits} ${row.credit_type}`, row.created_at)).join("")
+      ? rows.map((row) => usageLedgerRow(row)).join("")
       : "No usage events yet.";
   }
 
@@ -164,6 +164,18 @@
         <small>${escapeHtml(date || "")}</small>
       </div>
     `;
+  }
+
+  function usageLedgerRow(row) {
+    const creditType = String(row.credit_type || "credit");
+    const credits = Number(row.credits || 0).toLocaleString();
+    const standardRemaining = Number(row.standard_balance_after || 0).toLocaleString();
+    const browserRemaining = Number(row.browser_balance_after || 0).toLocaleString();
+    const remaining =
+      creditType === "browser"
+        ? `${browserRemaining} browser credits remaining after`
+        : `${standardRemaining} standard credits remaining after`;
+    return ledgerRow(row.action, `${credits} ${creditType} charged; ${remaining}`, row.created_at);
   }
 
   function setStatus(message, state) {

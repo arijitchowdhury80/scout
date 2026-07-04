@@ -59,6 +59,10 @@ Scout hosted beta has API-key based access, not a login system.
 - Users can inspect their current hosted account with `/v1/hosted/me`, which
   returns balances, limits, usage totals, purchase totals, and links to deeper
   `/v1/hosted/usage` and `/v1/hosted/purchases` records.
+- The public `/account` page uses `/v1/hosted/me`, `/v1/hosted/usage`, and
+  `/v1/hosted/purchases` with the user's Bearer key. It shows each recent
+  usage event's action, credits charged, credit type, and remaining balance
+  after the debit without storing the key in local or session storage.
 - Public pricing and credit metadata is available through
   `/v1/billing/packages`; it contains no Stripe secrets. The response includes
   `credit_policy`, a structured metering table with action, credit bucket,

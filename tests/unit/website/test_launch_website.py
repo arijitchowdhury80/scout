@@ -690,6 +690,9 @@ def test_account_page_lets_hosted_users_inspect_usage_without_login() -> None:
     assert "/v1/hosted/purchases" in account_js
     assert "Authorization" in account_js
     assert "Bearer" in account_js
+    assert "standard_balance_after" in account_js
+    assert "browser_balance_after" in account_js
+    assert "remaining after" in account_js
     assert "localStorage" not in account_js
     assert "sessionStorage" not in account_js
     assert "sk_live_" not in html

@@ -153,6 +153,51 @@ def test_hosted_me_returns_usage_and_purchase_monitoring_summary(tmp_path: Path)
     assert provisioned.raw_api_key not in response.text
 
 
+def test_hosted_usage_history_returns_charge_and_balance_after_for_customer_metering(
+    tmp_path: Path,
+) -> None:
+    db_path = tmp_path / "hosted.sqlite"
+    account_service = HostedAccountService(SQLiteHostedAccountStore(db_path))
+    payment_service = HostedPaymentProvisioningService(
+        account_service,
+        SQLiteHostedPaymentStore(db_path),
+    )
+    provisioned = payment_service.process_checkout(
+        _checkout(
+            checkout_session_id="cs_usage_metering",
+            email="usage@example.com",
+            package_id="standard_1000",
+            amount_total_cents=1000,
+        )
+    )
+    account_service.debit_standard_credits(
+        tenant_id=provisioned.tenant_id,
+        key_id=provisioned.key_id,
+        action=HostedAction.SCRAPE,
+        credits=3,
+        metadata={"target_url": "https://example.com"},
+    )
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    client = TestClient(app)
+
+    response = client.get(
+        "/v1/hosted/usage",
+        headers={"Authorization": f"Bearer {provisioned.raw_api_key}"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == 1
+    usage = data["usage"][0]
+    assert usage["action"] == "scrape"
+    assert usage["credit_type"] == "standard"
+    assert usage["credits"] == 3
+    assert usage["standard_balance_after"] == 997
+    assert usage["browser_balance_after"] == 0
+    assert usage["metadata"] == {"target_url": "https://example.com"}
+    assert provisioned.raw_api_key not in response.text
+
+
 def _checkout(
     *,
     checkout_session_id: str,

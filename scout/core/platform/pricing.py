@@ -77,7 +77,7 @@ _PACKAGES = {
         requires_payment_method=True,
         is_public_purchase=False,
         customer_summary=(
-            "30-day beta trial with 100 standard credits for approved testers. "
+            "30-day beta trial with 100 standard credits for registered beta testers. "
             "Browser-heavy work is excluded until the paid browser-cost model is validated."
         ),
     ),
