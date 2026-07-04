@@ -82,7 +82,7 @@ if [ ! -x "$helper" ]; then
   exit 1
 fi
 
-"$helper" --env "$env_file" "sudo docker exec scout python3 - '$format' <<'PY'
+"$helper" --env "$env_file" "sudo docker exec -i scout python3 - '$format' <<'PY'
 import json
 import os
 import sys
