@@ -13,6 +13,7 @@ SCRIPT_NAMES = [
     "scout-validate-hosted-config",
     "scout-write-hosted-config-template",
     "scout-hosted-setup-report",
+    "scout-hosted-overview",
     "scout-generate-api-key",
     "scout-vps-provision-hosted-key",
     "scout-vps-list-hosted-accounts",
@@ -53,6 +54,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "list-purchases",
             "list-signups",
             "metrics",
+            "overview",
             "send-test-email",
             "beta-signup-smoke",
             "process-pending-signups",
@@ -104,6 +106,12 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "scout-hosted-admin configure-production-env",
             "scout-hosted-admin send-test-email",
             "hosted_beta_signup_smoke.py",
+        ],
+        "scout-hosted-overview": [
+            "Show Scout hosted readiness and live metrics",
+            "--base-url",
+            "hosted_readiness_check.py",
+            "scout-vps-hosted-metrics",
         ],
         "scout-validate-hosted-config": [
             "Validate Scout hosted SMTP and Stripe config",
@@ -322,6 +330,22 @@ def test_metrics_script_uses_protected_endpoint_without_printing_service_key() -
     assert "raw_api_key" not in script_text
     assert "scout_live_" not in script_text
     assert 'echo "$SCOUT_API_KEY' not in script_text
+
+
+def test_overview_script_combines_readiness_and_metrics_without_secret_values() -> None:
+    script_text = (REPO_ROOT / "scripts" / "scout-hosted-overview").read_text(encoding="utf-8")
+    admin_text = (REPO_ROOT / "scripts" / "scout-hosted-admin").read_text(encoding="utf-8")
+
+    assert "hosted_readiness_check.py" in script_text
+    assert "scout-vps-hosted-metrics" in script_text
+    assert "Hosted readiness" in script_text
+    assert "Hosted metrics" in script_text
+    assert "overview)" in admin_text
+    assert "scout-hosted-overview" in admin_text
+    assert "SCOUT_API_KEY" not in script_text
+    assert "key_hash" not in script_text
+    assert "raw_api_key" not in script_text
+    assert "scout_live_" not in script_text
 
 
 def test_send_test_email_script_uses_smoke_mode_and_never_prints_secret_values() -> None:

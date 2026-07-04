@@ -1,0 +1,85 @@
+#!/bin/sh
+set -eu
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+
+usage() {
+  cat <<EOF
+usage: scout-hosted-overview [--base-url URL] [--env PATH] [--helper PATH]
+
+Show Scout hosted readiness and live metrics in one operator view.
+
+Sections:
+  Hosted readiness: public health, package, beta signup, Stripe, and blocker state
+    from hosted_readiness_check.py.
+  Hosted metrics: protected signup, account, usage, purchase, and revenue metrics
+    from scout-vps-hosted-metrics.
+
+Options:
+  --base-url URL  Hosted Scout base URL. Default: https://scout.chowmes.com
+  --env PATH      SSH env file passed to scout-vps-hosted-metrics.
+  --helper PATH   SSH helper path passed to scout-vps-hosted-metrics.
+  -h, --help      Show this help.
+
+Secret safety:
+  This overview delegates secret-sensitive metrics access to
+  scout-vps-hosted-metrics, which reads the service key inside the container and
+  does not print it.
+EOF
+}
+
+base_url="https://scout.chowmes.com"
+env_file=""
+helper=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --base-url)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      base_url="$2"
+      shift 2
+      ;;
+    --env)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      env_file="$2"
+      shift 2
+      ;;
+    --helper)
+      if [ $# -lt 2 ]; then
+        usage >&2
+        exit 2
+      fi
+      helper="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+echo "== Hosted readiness =="
+python3 "$SCRIPT_DIR/hosted_readiness_check.py" --base-url "$base_url" || true
+echo
+echo "== Hosted metrics =="
+if [ -n "$env_file" ] && [ -n "$helper" ]; then
+  "$SCRIPT_DIR/scout-vps-hosted-metrics" --format table --env "$env_file" --helper "$helper"
+elif [ -n "$env_file" ]; then
+  "$SCRIPT_DIR/scout-vps-hosted-metrics" --format table --env "$env_file"
+elif [ -n "$helper" ]; then
+  "$SCRIPT_DIR/scout-vps-hosted-metrics" --format table --helper "$helper"
+else
+  "$SCRIPT_DIR/scout-vps-hosted-metrics" --format table
+fi

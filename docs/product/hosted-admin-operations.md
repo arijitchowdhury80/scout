@@ -166,6 +166,19 @@ The report groups readiness into three operator capabilities:
 Use `--json` when this needs to be consumed by deployment logs or a release
 checklist.
 
+For the fastest live operator view after deployment, combine public readiness
+with protected hosted metrics:
+
+```bash
+scripts/scout-hosted-admin overview
+```
+
+The overview prints `/health`, package, beta signup, Stripe, missing env, and
+next-action readiness first, then prints the protected admin metrics table for
+accounts, pending beta delivery, failed signups, usage, purchases, and revenue.
+It delegates metrics access to `scout-vps-hosted-metrics`, so the service key is
+read inside the container and never printed.
+
 Hosted beta delivery requires authenticated SMTP configuration in production.
 `validate-config --require beta` fails unless host, port, from address,
 username, and password are all present. This keeps local preflight aligned with
