@@ -559,6 +559,25 @@ class HostedAccountService:
                 break
         return pending
 
+    def failed_signup_requests(self, limit: int = 100) -> list[HostedSignupEvent]:
+        """Return newest failed beta signup deliveries that can be retried."""
+        latest_by_email: dict[str, HostedSignupEvent] = {}
+        for event in self.store.list_signup_events(limit=10_000):
+            normalized = str(event.email).strip().lower()
+            if normalized not in latest_by_email:
+                latest_by_email[normalized] = event
+
+        failed: list[HostedSignupEvent] = []
+        for normalized, event in latest_by_email.items():
+            if event.status != "failed":
+                continue
+            if self.store.find_tenant_by_email(normalized) is not None:
+                continue
+            failed.append(event)
+            if len(failed) >= limit:
+                break
+        return failed
+
     def list_accounts(self, limit: int = 100) -> list[HostedAccountSnapshot]:
         """Return non-secret account snapshots for operator monitoring."""
         return self.store.list_accounts(limit)

@@ -130,6 +130,44 @@ def test_billing_admin_delivers_pending_beta_signups_without_exposing_raw_keys(
     assert latest_events[0].source == "admin_pending_beta_delivery"
 
 
+def test_billing_admin_retries_failed_beta_signups_without_exposing_raw_keys(
+    tmp_path: Path,
+) -> None:
+    account_service, payment_service, _raw_key = _seed_services(tmp_path)
+    delivery = FakeDeliveryService()
+    app.dependency_overrides[get_hosted_account_service] = lambda: account_service
+    app.dependency_overrides[get_hosted_payment_provisioning_service] = lambda: payment_service
+    app.dependency_overrides[get_hosted_key_delivery_service] = lambda: delivery
+    client = TestClient(app)
+
+    response = client.post(
+        "/v1/billing/admin/retry-failed-beta-keys",
+        headers={"X-API-Key": settings.scout_api_key},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["attempted"] == 1
+    assert data["delivered"] == 1
+    assert data["failed"] == 0
+    assert data["remaining_failed"] == 0
+    assert data["results"][0]["email"] == "failed@example.com"
+    assert data["results"][0]["status"] == "delivered"
+    assert data["results"][0]["tenant_id"].startswith("tenant_")
+    assert data["results"][0]["key_id"].startswith("key_")
+    assert "raw_api_key" not in data["results"][0]
+    assert delivery.requests[0].email == "failed@example.com"
+    assert delivery.requests[0].name == "Failed Tester"
+    assert delivery.requests[0].raw_api_key not in response.text
+    assert "scout_live_" not in response.text
+    assert account_service.find_tenant_by_email("failed@example.com") is not None
+    latest_events = account_service.list_signup_events(limit=10)
+    assert latest_events[0].email == "failed@example.com"
+    assert latest_events[0].status == "delivered"
+    assert latest_events[0].source == "admin_failed_beta_delivery_retry"
+
+
 def test_billing_admin_pending_beta_delivery_requires_email_delivery(
     tmp_path: Path,
 ) -> None:

@@ -22,6 +22,7 @@ SCRIPT_NAMES = [
     "scout-vps-list-hosted-signups",
     "scout-vps-hosted-metrics",
     "scout-vps-process-pending-beta-signups",
+    "scout-vps-retry-failed-beta-signups",
     "scout-vps-send-hosted-test-email",
     "scout-vps-disable-hosted-access",
     "scout-vps-configure-hosted-env",
@@ -58,6 +59,7 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "send-test-email",
             "beta-signup-smoke",
             "process-pending-signups",
+            "retry-failed-signups",
             "disable-access",
             "readiness",
             "production-smoke",
@@ -187,6 +189,17 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
             "--dry-run",
             "--yes",
             "pending_delivery",
+            "SmtpHostedApiKeyDeliveryService",
+            "HOSTED_KEY_DELIVERY_SMTP_USERNAME",
+            "HOSTED_KEY_DELIVERY_SMTP_PASSWORD",
+            "/data/hosted_accounts.sqlite",
+        ],
+        "scout-vps-retry-failed-beta-signups": [
+            "Retry failed Scout beta signup deliveries",
+            "--dry-run",
+            "--yes",
+            "failed_signup_requests",
+            "admin_failed_beta_delivery_retry",
             "SmtpHostedApiKeyDeliveryService",
             "HOSTED_KEY_DELIVERY_SMTP_USERNAME",
             "HOSTED_KEY_DELIVERY_SMTP_PASSWORD",
@@ -385,6 +398,33 @@ def test_process_pending_beta_signups_script_is_confirmed_and_never_prints_secre
     assert "--dry-run" in script_text
     assert "--yes" in script_text
     assert "Refusing to process queued beta signups without --yes or --dry-run." in script_text
+    assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" in script_text
+    assert "key_hash" not in script_text
+    assert "raw_api_key" not in script_text
+    assert "scout_live_" not in script_text
+    assert 'echo "$encoded' not in script_text
+
+
+def test_retry_failed_beta_signups_script_is_confirmed_and_never_prints_secret_values() -> None:
+    script_text = (REPO_ROOT / "scripts" / "scout-vps-retry-failed-beta-signups").read_text(
+        encoding="utf-8"
+    )
+    admin_text = (REPO_ROOT / "scripts" / "scout-hosted-admin").read_text(encoding="utf-8")
+
+    assert "docker exec -i scout" in script_text
+    assert "failed_signup_requests" in script_text
+    assert "admin_failed_beta_delivery_retry" in script_text
+    assert "SmtpHostedApiKeyDeliveryService" in script_text
+    assert (
+        "requires HOSTED_KEY_DELIVERY_SMTP_HOST, HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL,"
+        in script_text
+    )
+    assert "HOSTED_KEY_DELIVERY_SMTP_USERNAME, and HOSTED_KEY_DELIVERY_SMTP_PASSWORD" in script_text
+    assert "--dry-run" in script_text
+    assert "--yes" in script_text
+    assert "Refusing to retry failed beta signups without --yes or --dry-run." in script_text
+    assert "retry-failed-signups)" in admin_text
+    assert "scout-vps-retry-failed-beta-signups" in admin_text
     assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" in script_text
     assert "key_hash" not in script_text
     assert "raw_api_key" not in script_text

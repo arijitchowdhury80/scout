@@ -301,3 +301,91 @@ def test_pending_signup_requests_excludes_delivered_failed_duplicate_and_existin
     pending = service.pending_signup_requests()
 
     assert [str(event.email) for event in pending] == ["queued@example.com"]
+
+
+def test_failed_signup_requests_returns_newest_retryable_failed_request_per_email() -> None:
+    service = HostedAccountService(InMemoryHostedAccountStore())
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="retry@example.com",
+            name="Old Retry",
+            status="failed",
+            source="pending_beta_delivery",
+            delivery_status="failed",
+            reason="SMTP timeout",
+            created_at="2026-07-03T10:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="RETRY@example.com",
+            name="New Retry",
+            status="failed",
+            source="admin_pending_beta_delivery",
+            delivery_status="failed",
+            reason="SMTP auth failed",
+            created_at="2026-07-03T11:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="later-pending@example.com",
+            name="Later Pending",
+            status="failed",
+            source="pending_beta_delivery",
+            delivery_status="failed",
+            created_at="2026-07-03T10:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="later-pending@example.com",
+            name="Later Pending",
+            status="pending_delivery",
+            source="email_beta_registration",
+            delivery_status="pending_delivery",
+            created_at="2026-07-03T11:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="delivered@example.com",
+            name="Delivered",
+            status="failed",
+            source="pending_beta_delivery",
+            delivery_status="failed",
+            created_at="2026-07-03T10:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="delivered@example.com",
+            name="Delivered",
+            status="delivered",
+            source="failed_beta_delivery_retry",
+            delivery_status="delivered",
+            created_at="2026-07-03T11:00:00+00:00",
+        )
+    )
+    service.record_signup_event(
+        HostedSignupEvent(
+            email="existing@example.com",
+            name="Existing",
+            status="failed",
+            source="pending_beta_delivery",
+            delivery_status="failed",
+            created_at="2026-07-03T11:00:00+00:00",
+        )
+    )
+    service.provision_account(
+        email="existing@example.com",
+        name="Existing",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        scopes=["runs:create"],
+    )
+
+    failed = service.failed_signup_requests()
+
+    assert len(failed) == 1
+    assert str(failed[0].email) == "RETRY@example.com"
+    assert failed[0].name == "New Retry"

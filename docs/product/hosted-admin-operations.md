@@ -303,6 +303,29 @@ and deletes the account plus records `failed` if delivery fails. It refuses to
 mutate anything unless `--yes` or `--dry-run` is provided, and it never prints
 raw API keys, key hashes, or SMTP passwords.
 
+### Retry Failed Beta Signup Deliveries
+
+If SMTP was configured but a delivery attempt failed, Scout records a `failed`
+signup event and removes the provisional account so the same email can be
+retried safely after the SMTP issue is fixed. Inspect retryable failures first:
+
+```bash
+scripts/scout-hosted-admin retry-failed-signups --dry-run
+```
+
+Then retry failed deliveries:
+
+```bash
+scripts/scout-hosted-admin retry-failed-signups --yes
+```
+
+The retry command selects the newest failed event per email, skips emails that
+already have a hosted tenant, provisions a fresh beta account, emails the API
+key, and records `admin_failed_beta_delivery_retry` as the recovery source. It
+uses the same confirmation and secret-safety rules as pending delivery: no
+mutation without `--yes`, no raw API keys, no key hashes, and no SMTP secrets in
+terminal output.
+
 ### Run The Hosted Production Smoke Gate
 
 Use the production smoke gate when checking whether the hosted SaaS path is
@@ -644,6 +667,33 @@ This endpoint:
 - provisions each pending beta tester as a hosted account;
 - emails the raw API key exactly once;
 - records a new `admin_pending_beta_delivery` signup event;
+- returns only email, status, tenant ID, key ID, delivery status, reason, and
+  batch counts.
+
+It does not return raw hosted API keys, key hashes, SMTP secrets, Stripe
+secrets, or customer payment details.
+
+### Retry Failed Beta Key Deliveries
+
+If a queued or self-service beta delivery failed after an account was
+provisioned, Scout deletes the provisional account and records a failed signup
+event. After SMTP is fixed, retry those failures through the protected admin
+API:
+
+```bash
+curl -X POST "https://scout.chowmes.com/v1/billing/admin/retry-failed-beta-keys?limit=25" \
+  -H "X-API-Key: $SCOUT_SERVICE_API_KEY"
+```
+
+This endpoint:
+
+- requires the service API key;
+- fails closed with `503` when hosted key delivery is not configured;
+- selects the newest retryable `failed` signup event per email;
+- skips emails that already have a hosted account;
+- provisions a fresh hosted beta account;
+- emails the raw API key exactly once;
+- records a new `admin_failed_beta_delivery_retry` signup event;
 - returns only email, status, tenant ID, key ID, delivery status, reason, and
   batch counts.
 

@@ -167,6 +167,17 @@ class PendingBetaKeyDeliveryResponse(BaseModel):
     results: list[PendingBetaKeyDeliveryResult]
 
 
+class FailedBetaKeyRetryResponse(BaseModel):
+    """Admin response for retrying failed beta signup key deliveries."""
+
+    success: bool = True
+    attempted: int
+    delivered: int
+    failed: int
+    remaining_failed: int
+    results: list[PendingBetaKeyDeliveryResult]
+
+
 @router.get("/packages", response_model=HostedBillingPackagesResponse)
 async def billing_packages() -> HostedBillingPackagesResponse:
     """Return public hosted credit packages, credit meanings, and economics."""
@@ -257,6 +268,42 @@ async def deliver_pending_beta_keys(
         delivered=delivered,
         failed=failed,
         remaining_pending=remaining_pending,
+        results=results,
+    )
+
+
+@router.post(
+    "/admin/retry-failed-beta-keys",
+    response_model=FailedBetaKeyRetryResponse,
+)
+async def retry_failed_beta_keys(
+    limit: int = Query(default=25, ge=1, le=100),
+    account_service: HostedAccountService = Depends(get_hosted_account_service),
+    delivery_service: HostedApiKeyDeliveryService = Depends(get_hosted_key_delivery_service),
+) -> FailedBetaKeyRetryResponse:
+    """Provision and email API keys for failed beta signups after SMTP is fixed."""
+    if not delivery_service.enabled:
+        raise HTTPException(status_code=503, detail="Hosted API key delivery is not configured.")
+
+    results: list[PendingBetaKeyDeliveryResult] = []
+    for event in account_service.failed_signup_requests(limit=limit):
+        results.append(
+            _deliver_pending_beta_key(
+                account_service,
+                delivery_service,
+                event,
+                delivery_source="admin_failed_beta_delivery_retry",
+            )
+        )
+
+    delivered = sum(1 for result in results if result.status == "delivered")
+    failed = sum(1 for result in results if result.status != "delivered")
+    remaining_failed = len(account_service.failed_signup_requests(limit=10_000))
+    return FailedBetaKeyRetryResponse(
+        attempted=len(results),
+        delivered=delivered,
+        failed=failed,
+        remaining_failed=remaining_failed,
         results=results,
     )
 
@@ -456,6 +503,8 @@ def _deliver_pending_beta_key(
     account_service: HostedAccountService,
     delivery_service: HostedApiKeyDeliveryService,
     event: HostedSignupEvent,
+    *,
+    delivery_source: str = "admin_pending_beta_delivery",
 ) -> PendingBetaKeyDeliveryResult:
     """Provision one pending beta signup and email its one-time raw API key."""
     normalized_email = str(event.email).strip().lower()
@@ -473,7 +522,7 @@ def _deliver_pending_beta_key(
                 email=normalized_email,
                 name=event.name,
                 status="duplicate",
-                source="admin_pending_beta_delivery",
+                source=delivery_source,
                 reason=str(exc),
             )
         )
@@ -492,7 +541,7 @@ def _deliver_pending_beta_key(
             key_id=provisioned.api_key.key_id,
             plan=provisioned.tenant.plan,
             raw_api_key=provisioned.raw_api_key,
-            checkout_session_id="admin_pending_beta_delivery",
+            checkout_session_id=delivery_source,
         )
     )
     if not delivery.delivered:
@@ -501,7 +550,7 @@ def _deliver_pending_beta_key(
                 email=normalized_email,
                 name=event.name,
                 status="failed",
-                source="admin_pending_beta_delivery",
+                source=delivery_source,
                 tenant_id=provisioned.tenant.tenant_id,
                 key_id=provisioned.api_key.key_id,
                 delivery_status=delivery.delivery_status,
@@ -524,7 +573,7 @@ def _deliver_pending_beta_key(
             email=normalized_email,
             name=event.name,
             status="delivered",
-            source="admin_pending_beta_delivery",
+            source=delivery_source,
             tenant_id=provisioned.tenant.tenant_id,
             key_id=provisioned.api_key.key_id,
             delivery_status=delivery.delivery_status,
