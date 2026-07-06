@@ -226,7 +226,7 @@ def test_beta_page_uses_email_registration_and_optional_card_setup_without_passw
     assert 'id="pricingCheckoutForm"' not in html
     assert "Register for Beta API Key" in html
     assert "Start $0 Beta Checkout" in html
-    assert "Register with your name and email" in html
+    assert "Enter your name and email" in html
     assert "card-backed" in html.lower()
     assert 'src="./assets/pricing.js"' not in html
     assert "window.location.assign" in hosted_keygen
@@ -244,20 +244,24 @@ def test_beta_page_uses_email_registration_and_optional_card_setup_without_passw
     assert 'name="invite_password"' not in html
 
 
-def test_beta_page_makes_card_backed_setup_the_primary_self_service_path() -> None:
-    """Beta UX should verify the Stripe path first, with email signup as fallback."""
+def test_beta_page_makes_email_registration_the_primary_self_service_path() -> None:
+    """Launch UX is email-first: the email register is the visible path; the card-backed
+    Stripe form is present but hidden until Stripe is configured post-launch."""
     html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
-    assert "Recommended beta path" in normalized_html
-    assert "Use this first when available" in normalized_html
-    assert "Email-only fallback" in normalized_html
-    assert "records your request without collecting a card" in normalized_html
-    assert html.index('id="hostedBetaCheckoutForm"') < html.index('id="hostedKeyForm"')
-    assert 'id="hostedBetaCheckoutForm"' in html
-    assert 'class="beta-form beta-form--primary"' in html
+    # Email registration is the primary, visible self-service path.
+    assert "Register for your Beta Tester API Key" in normalized_html
     assert 'id="hostedKeyForm"' in html
-    assert 'class="beta-form beta-form--secondary"' in html
+    assert 'data-endpoint="/v1/hosted/beta-key"' in html
+
+    # The card-backed Stripe form is retained but hidden (no scary Stripe copy shown).
+    assert 'id="hostedBetaCheckoutForm"' in html
+    checkout_form_open = html.index('id="hostedBetaCheckoutForm"')
+    checkout_form_tag_end = html.index(">", checkout_form_open)
+    assert "hidden" in html[checkout_form_open:checkout_form_tag_end]
+    # No credit card is required to register for the beta.
+    assert "No credit card required" in normalized_html
 
 
 def test_launch_website_uses_flux_not_warm_industrial() -> None:
@@ -478,8 +482,8 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Tester handoff packet",
             "docs/product/private-beta-tester-handoff.md",
             "Hosted beta registration",
-            "Register and receive your API key by email.",
-            "Scout provisions a finite-credit hosted beta key",
+            "No credit card required",
+            "Scout provisions your hosted beta account and emails your API key",
             "Register for Beta API Key",
             "1,000 standard credits and 100",
             "browser credits",
@@ -634,9 +638,9 @@ def test_beta_signup_uses_email_registration_without_password_or_browser_key_dis
     assert 'data-status-endpoint="/v1/billing/stripe/status"' in html
     assert 'name="package_id" type="hidden" value="beta_trial"' in html
     assert "Register for your beta tester API key." in normalized_html
-    assert "Register and receive your API key by email" in normalized_html
+    assert "No credit card required" in normalized_html
     assert "card-backed" in normalized_html.lower()
-    assert "Scout provisions a finite-credit hosted beta key" in normalized_html
+    assert "Scout provisions your hosted beta account and emails your API key" in normalized_html
     assert "1,000 standard credits and 100" in normalized_html
     assert "browser credits" in normalized_html
     assert "/v1/billing/stripe/status" in html

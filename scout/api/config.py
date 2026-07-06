@@ -56,7 +56,13 @@ class Settings(BaseSettings):
             return self.hosted_account_db_path
         return str(__import__("pathlib").Path(self.scout_workdir) / "hosted_accounts.sqlite")
 
-    model_config = {"env_file": (".env", ".env.local"), "env_file_encoding": "utf-8"}
+    # Ignore unknown env vars so an unrelated key in a shared .env (e.g. RESEND_API_KEY)
+    # can never crash Scout on startup. Only Scout's declared settings are read.
+    model_config = {
+        "env_file": (".env", ".env.local"),
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
 
 
 settings = Settings()

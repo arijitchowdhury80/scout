@@ -96,23 +96,23 @@ scout launch-readiness --require-public</code></pre>
         <section class="section beta" id="beta-key">
           <div>
             <p class="wi-label wi-label--accent">Hosted beta registration</p>
-            <h2>Start card-backed beta setup, or request email fallback.</h2>
+            <h2>Register — get your Beta Tester API Key.</h2>
             <p>
-              The recommended beta path verifies the real payment pipeline with
-              a $0 Stripe setup-mode checkout. Scout collects a payment method,
-              charges nothing, provisions a finite-credit hosted beta key after
-              the signed webhook, and emails the API key to the address you
-              provide. If Stripe or email delivery is not configured yet, the
-              email-only fallback records your request for follow-up.
+              Enter your name and email and Scout emails you a hosted beta API
+              key with 1,000 standard credits and 100 browser credits for a
+              30-day trial. No credit card required. Keys are delivered by email
+              after account provisioning — Scout never shows a raw key in the browser.
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted beta API key registration">
+            <!-- Card-backed Stripe path hidden until Stripe is configured post-launch. -->
             <form
               id="hostedBetaCheckoutForm"
               class="beta-form beta-form--primary"
               data-checkout-endpoint="/v1/billing/stripe/checkout-session"
               data-status-endpoint="/v1/billing/stripe/status"
               data-ready-flag="ready_for_beta_checkout"
+              hidden
             >
               <h3>Recommended beta path</h3>
               <p>
@@ -160,13 +160,12 @@ scout launch-readiness --require-public</code></pre>
               data-endpoint="/v1/hosted/beta-key"
               data-status-endpoint="/v1/billing/stripe/status"
             >
-              <h3>Email-only fallback</h3>
+              <h3>Register for your Beta Tester API Key</h3>
               <p>
-                Register with your name and email. Register and receive your
-                API key by email. Scout provisions a finite-credit hosted beta
-                key for the tester when delivery is configured. If Stripe setup
-                is blocked, this records your request without collecting a card
-                so the operator can follow up.
+                Enter your name and email — Scout provisions your hosted beta
+                account and emails your API key. Your key includes 1,000 standard
+                credits and 100 browser credits for a 30-day trial. No credit
+                card required.
               </p>
               <label for="hostedKeyName">Name or app name</label>
               <input
