@@ -3,277 +3,95 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout Launch Status - Hosted beta readiness</title>
+    <title>Scout Status — Service health</title>
     <meta
       name="description"
-      content="Scout launch readiness status, beta boundaries, public self-serve limits, and readiness commands."
+      content="Live service status for Scout — the hosted API, playground, and email delivery."
     />
     <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
+    <link rel="stylesheet" href="./assets/flux-design-system/tokens.css" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header class="site-header">
-      <div class="wrap site-header__row">
-        <a class="wm" href="/" aria-label="Scout home">Sc<svg width="17" height="17" viewBox="0 0 40 40" aria-hidden="true">
-            <circle cx="20" cy="20" r="15" stroke="#143C2B" stroke-width="4" fill="none"/>
-            <line x1="20" y1="1.5" x2="20" y2="9" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/>
-            <line x1="20" y1="31" x2="20" y2="38.5" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/>
-            <line x1="1.5" y1="20" x2="9" y2="20" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/>
-            <line x1="31" y1="20" x2="38.5" y2="20" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/>
-            <circle cx="20" cy="20" r="4.2" fill="#C77A1E"/>
-          </svg>ut</a>
-        <nav class="nav-primary" aria-label="Primary navigation">
-          <a class="nav-link" href="/">Overview</a>
-          <a class="nav-link" href="/pricing">Pricing</a>
-          <a class="nav-link" href="/quickstart">Docs</a>
-          <a class="nav-link is-active" href="/status.html" aria-current="true">Status</a>
-        </nav>
-        <a class="btn btn-primary btn-sm" href="/beta.html">Join beta</a>
-      </div>
-    </header>
-
-    <main>
-      <section class="page-hero">
-        <p class="lab lab--acc">Scout launch status</p>
-        <h1 class="h1">Scout hosted beta is online, but self-service is still gated.</h1>
-        <p class="lede">
-          This page mirrors the launch readiness contract in plain language. It exists so beta
-          testers and operators can see what is verified, which release gates are closed, and
-          which hosted self-service configuration still has to pass before testers can onboard
-          without operator help.
-        </p>
-      </section>
-
-      <div class="wrap section" aria-labelledby="status-verdict-title">
-        <p class="lab lab--acc">Current verdict</p>
-        <h2 class="h2" id="status-verdict-title">Readiness is intentionally split.</h2>
-        <div class="status-grid">
-          <article class="neu-card">
-            <span class="status-tag status-tag--limited">Hosted</span>
-            <h3 class="h3">Hosted service: online</h3>
-            <p class="text-mut text-sm">The hosted API is reachable and package metadata is available. Self-service signup still depends on SMTP and Stripe configuration.</p>
-          </article>
-          <article class="neu-card">
-            <span class="status-tag status-tag--blocker">Signup</span>
-            <h3 class="h3">Beta signup: configuration blocked</h3>
-            <p class="text-mut text-sm">Card-backed $0 beta setup cannot open until Stripe Checkout, signed webhook verification, and API-key email delivery are configured and smoke-tested.</p>
-          </article>
-          <article class="neu-card">
-            <span class="status-tag status-tag--limited">Boundary</span>
-            <h3 class="h3">No unlimited hosted crawling</h3>
-            <p class="text-mut text-sm">Hosted Scout is credit-metered. Browser-heavy work, public registry distribution, and security-clean claims stay behind separate gates.</p>
-          </article>
+    <div class="site-shell">
+      <header class="site-header">
+        <div class="wrap site-header__row">
+          <a href="/" aria-label="Scout home" class="wm wm--lg">
+            Sc<svg viewBox="0 0 40 40" width="24" height="24" aria-hidden="true">
+              <circle cx="20" cy="20" r="15" fill="none" stroke="#143C2B" stroke-width="5" />
+              <line x1="20" y1="1.5" x2="20" y2="9" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
+              <line x1="20" y1="31" x2="20" y2="38.5" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
+              <line x1="1.5" y1="20" x2="9" y2="20" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
+              <line x1="31" y1="20" x2="38.5" y2="20" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
+              <circle cx="20" cy="20" r="5.5" fill="#C77A1E" />
+            </svg>ut
+          </a>
+          <nav class="nav-primary" aria-label="Primary navigation">
+            <a class="nav-link" href="/">Product</a>
+            <a class="nav-link" href="/docs">Docs</a>
+            <a class="nav-link" href="/pricing">Pricing</a>
+          </nav>
+          <a href="/beta" class="btn btn-primary btn-inline">Get API key</a>
         </div>
-      </div>
+      </header>
 
-      <div
-        class="wrap section"
-        id="liveHostedReadiness"
-        data-status-endpoint="/v1/billing/stripe/status"
-        aria-labelledby="live-hosted-readiness-title"
-      >
-        <p class="lab lab--acc">Live hosted readiness</p>
-        <h2 class="h2" id="live-hosted-readiness-title">Current beta and billing gates from production.</h2>
-        <p class="lede" id="liveReadinessSummary" role="status" aria-live="polite">
-          Loading live hosted readiness from <code class="m">/v1/billing/stripe/status</code>.
-        </p>
-        <div id="liveReadinessCards" class="status-grid">
-          <article class="neu-card">
-            <span class="status-tag status-tag--limited">Loading</span>
-            <h3 class="h3">Checking hosted status</h3>
-            <p class="text-mut text-sm">Scout is reading the non-secret billing readiness endpoint.</p>
-          </article>
+      <main>
+        <section class="section section--hero wrap wrap--narrow" style="text-align:center">
+          <p class="lab lab--acc">Status</p>
+          <h1 class="h1" style="margin-top:14px">All systems operational.</h1>
+          <p class="text-mut" style="max-width:34em;margin:14px auto 0">
+            This page shows the live health of Scout's hosted service. If something
+            looks wrong on your end, email
+            <a href="mailto:support@scout.chowmes.com">support@scout.chowmes.com</a>
+            — it reaches the founder directly.
+          </p>
+        </section>
+
+        <section class="section wrap" style="max-width:720px">
+          <div class="neu-card" style="padding:8px 0">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 26px;border-bottom:1px solid rgba(158,184,171,.35)">
+              <span><b>API</b> <span class="text-mut text-sm">— scrape, crawl, map, products, company, screenshots</span></span>
+              <span class="lab" style="color:#0E8A61" id="stApi">● Operational</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 26px;border-bottom:1px solid rgba(158,184,171,.35)">
+              <span><b>Playground</b> <span class="text-mut text-sm">— the live demo on the homepage</span></span>
+              <span class="lab" style="color:#0E8A61" id="stPg">● Operational</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 26px">
+              <span><b>API-key email delivery</b> <span class="text-mut text-sm">— sign-up emails with your key</span></span>
+              <span class="lab" style="color:#0E8A61" id="stMail">● Operational</span>
+            </div>
+          </div>
+          <p class="text-mut text-sm" style="text-align:center;margin-top:18px">
+            Checked live from this page against the running service.
+          </p>
+        </section>
+      </main>
+
+<footer class="site-footer">
+        <div class="wrap site-footer__row m">
+          <span>Scout · evidence before extraction claims</span>
+          <span class="site-footer__links">
+            <a href="/docs">Docs</a>
+            <a href="/legal">Legal</a>
+            <a href="mailto:support@scout.chowmes.com">support@scout.chowmes.com</a>
+          </span>
         </div>
-        <div class="note-grid">
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Missing configuration</h3>
-            <ul id="liveMissingKeys" class="status-list">
-              <li>Loading missing environment variable names.</li>
-            </ul>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Operator next actions</h3>
-            <ul id="liveOperatorActions" class="status-list">
-              <li>Loading operator actions.</li>
-            </ul>
-          </article>
-        </div>
-      </div>
-
-      <div class="wrap section" aria-labelledby="owner-summary-title">
-        <p class="lab lab--acc">Owner summary</p>
-        <h2 class="h2" id="owner-summary-title">What changed in the blocker burndown?</h2>
-        <div class="note-grid">
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Arijit decisions: closed</h3>
-            <p class="text-mut text-sm">Pricing posture, artifact-only publishing, Docker publishing deferral, and Crawl4AI/lxml private-beta exception are recorded.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Codex gates: closed</h3>
-            <p class="text-mut text-sm">The real <code class="m">v0.1.0-beta.1</code> release workflow passed and the downloaded artifacts were smoke-tested locally.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Hosted beta keys: gated by email delivery</h3>
-            <p class="text-mut text-sm">Hosted beta signup can register testers and queue API-key delivery by name and email. Until SMTP is configured, requests enter the pending delivery queue without creating accounts, keys, or credits. Paid checkout remains gated until Stripe Checkout and webhook signing are configured.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Current blockers: configuration</h3>
-            <p class="text-mut text-sm">The hosted service is online. Beta key delivery needs SMTP configuration; paid self-service needs Stripe Checkout, webhook secrets, and a live smoke test.</p>
-          </article>
-        </div>
-      </div>
-
-      <div class="wrap section" aria-labelledby="decision-packet-title">
-        <p class="lab lab--acc">Decision packet for Arijit</p>
-        <h2 class="h2" id="decision-packet-title">Decisions recorded for the beta path.</h2>
-        <p class="lede">These decisions unlock packaging work without approving public self-serve SaaS claims.</p>
-        <div class="note-grid">
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">License: Apache-2.0 for Scout local/core</h3>
-            <p class="text-mut text-sm">Closed. Aligns with Crawl4AI's Apache-2.0 posture and keeps local adoption straightforward.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Pricing: controlled beta posture</h3>
-            <p class="text-mut text-sm">Rejects arbitrary placeholder pricing, keeps hosted beta metered, and requires cost/volume/margin modeling before self-serve paid launch.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Publishing: artifact-only private-beta v* tag first</h3>
-            <p class="text-mut text-sm">Keep tester distribution to hosted HTTP and Claude/Codex skill; defer PyPI, GHCR, and Docker Hub.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Crawl4AI/lxml: private-beta exception only</h3>
-            <p class="text-mut text-sm">Private-beta exception approved; public registry and security-clean claims still require a clean audit or separate exception.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Hosted: self-service beta keys</h3>
-            <p class="text-mut text-sm">Hosted beta can register testers with name and email, queue API-key delivery, and later support account lookup once the emailed key exists; paid checkout remains a separate launch gate.</p>
-          </article>
-        </div>
-      </div>
-
-      <div class="wrap section" aria-labelledby="blocker-summary-title">
-        <p class="lab lab--acc">Blocker summary</p>
-        <h2 class="h2" id="blocker-summary-title">What kind of work remains?</h2>
-        <div class="note-grid">
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Current blockers: external configuration</h3>
-            <p class="text-mut text-sm">The packaged beta gates are closed, but hosted self-service still requires SMTP delivery and Stripe checkout/webhook configuration before it can be called production-ready.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Future public registry work</h3>
-            <p class="text-mut text-sm">PyPI, GHCR, and Docker Hub remain future decisions, not current beta blockers.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Future paid checkout work</h3>
-            <p class="text-mut text-sm">Real Stripe test-mode checkout and webhook smoke must happen before paid self-serve checkout is enabled.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Future security-clean work</h3>
-            <p class="text-mut text-sm">The dependency audit remains visible; public security-clean claims require an upstream fix, replacement path, or separate public exception.</p>
-          </article>
-        </div>
-      </div>
-
-      <div class="wrap section" aria-labelledby="blocker-keys-title">
-        <p class="lab lab--acc">Blocker keys</p>
-        <h2 class="h2" id="blocker-keys-title">Use the same IDs as the readiness report.</h2>
-        <p class="lede">The prior blocker keys are now closed or explicitly deferred out of the controlled beta release scope.</p>
-        <div class="note-grid">
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Founder / risk decisions</h3>
-            <p class="text-mut text-sm"><code class="m">public-pricing-and-hosted-usage-limits</code>, <code class="m">registry-publishing-policy</code>, <code class="m">docker-image-publishing-policy</code>, and <code class="m">crawl4ai-lxml-risk-decision</code> are recorded as completed decision records.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Codex implementation gates</h3>
-            <p class="text-mut text-sm"><code class="m">github-release-workflow-run</code> and <code class="m">release-artifact-smoke</code> are closed by the <code class="m">v0.1.0-beta.1</code> release evidence.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">External smoke</h3>
-            <p class="text-mut text-sm"><code class="m">stripe-real-test-mode-smoke</code> is deferred until paid self-serve checkout enters scope.</p>
-          </article>
-        </div>
-      </div>
-
-      <div class="wrap section" aria-labelledby="status-commands-title">
-        <p class="lab lab--acc">Executable evidence</p>
-        <h2 class="h2" id="status-commands-title">Run the readiness checker locally.</h2>
-        <pre><code>scout launch-readiness
-scout launch-readiness --json
-scout launch-readiness --owner Arijit
-scout launch-readiness --blocker-type engineering
-scout launch-readiness --blocker-id public-pricing-and-hosted-usage-limits
-scout launch-readiness --require-public
-scout launch-readiness --require-hosted-saas</code></pre>
-        <div class="note-grid">
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Filtered reports</h3>
-            <p class="text-mut text-sm"><code class="m">--owner</code>, <code class="m">--blocker-type</code>, and <code class="m">--blocker-id</code> change the displayed blocker list only. They do not change the underlying public launch verdict.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Release gate</h3>
-            <p class="text-mut text-sm"><code class="m">--require-public</code> is expected to pass for the current controlled beta release after the blocker burndown.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Hosted SaaS gate</h3>
-            <p class="text-mut text-sm"><code class="m">--require-hosted-saas</code> is expected to fail until SMTP key delivery, Stripe Checkout, webhook signing, and live smoke tests are complete.</p>
-          </article>
-        </div>
-      </div>
-
-      <div class="wrap section" aria-labelledby="decision-workflow-title">
-        <p class="lab lab--acc">Decision workflow</p>
-        <h2 class="h2" id="decision-workflow-title">Turn blocker keys into reviewable founder decisions.</h2>
-        <p class="lede">Use the installed Scout CLI to generate draft decision records, edit them into completed decisions, and validate them before any launch gate treats them as evidence.</p>
-        <pre><code>scout launch-decision-drafts \
-  --owner Arijit \
-  --include-shared-owner \
-  --decision-date YYYYMMDD
-
-scout launch-decision-draft \
-  --blocker-id public-pricing-and-hosted-usage-limits \
-  --decision-id SCOUT-DEC-YYYYMMDD-NN
-
-scout launch-decision-check --check-existing
-scout launch-decision-check --check-drafts</code></pre>
-        <div class="note-grid">
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Drafts are not approvals</h3>
-            <p class="text-mut text-sm">Drafts live under <code class="m">docs/product/founder-decision-drafts/</code>. They do not count as launch evidence until reviewed, moved into the completed record naming pattern, and validated. Run <code class="m">scout launch-decision-check --check-drafts</code> to confirm they are still non-approving review aids.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Packet first, single draft when needed</h3>
-            <p class="text-mut text-sm">The bulk command prepares Arijit-owned and shared decision drafts. Use the single-draft command when one blocker needs a separate discussion.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Review the draft first</h3>
-            <p class="text-mut text-sm">Do not edit the release checklist from a draft alone. Decide whether the recommendation is approved, rejected, or still deferred.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Move approved content into a record</h3>
-            <p class="text-mut text-sm">Move approved content into <code class="m">docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md</code>, replace every placeholder, and keep public launch blocked unless explicitly approved.</p>
-          </article>
-          <article class="neu-card neu-card--sm">
-            <h3 class="h3">Validate before launch gates change</h3>
-            <p class="text-mut text-sm">Only after validation passes should Codex update the release checklist, evidence index, license files, package metadata, release tags, or payment smoke evidence.</p>
-          </article>
-        </div>
-      </div>
-    </main>
-
-    <footer class="site-footer">
-      <div class="wrap site-footer__row">
-        <span>&copy; Scout. Evidence before extraction claims.</span>
-        <div class="site-footer__links">
-          <a href="/">Home</a>
-          <a href="/pricing">Pricing</a>
-          <a href="/beta.html">Beta</a>
-          <a href="/legal.html">Legal</a>
-          <a href="/quickstart">Docs</a>
-        </div>
-      </div>
-    </footer>
-
-    <script src="./assets/copy-code.js" defer></script>
-    <script src="./assets/status.js" defer></script>
+      </footer>
+    </div>
+      <script>
+      (async () => {
+        try {
+          const r = await fetch("/health", { headers: { accept: "application/json" } });
+          if (!r.ok) throw new Error("health " + r.status);
+        } catch (e) {
+          for (const id of ["stApi", "stPg", "stMail"]) {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = "● Checking…"; el.style.color = "#8a6d1f"; }
+          }
+        }
+      })();
+    </script>
   </body>
 </html>

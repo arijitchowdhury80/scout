@@ -42,6 +42,17 @@ All code / JSON / records / tables render on a **crisp dark screen** (`#141D18`)
 via `--ind` framing — "soft ceramic device, sharp display." Neumorphism never touches the data itself;
 it only wraps it. This is what keeps a soft aesthetic legible for a dev tool.
 
+## Voice — speak human (Arijit's rule, 2026-07-06)
+Public copy talks to PEOPLE, not engineers. Every sentence must survive: "would a smart person who
+doesn't live in this jargon get it in one read?"
+- Say what it does FOR them, not what it is technically. "Clean, usable data" not "typed data";
+  "shows you where every piece came from, so you can trust it" not "source, hash, and proof attached".
+- Banned in headlines/subheads: hash, typed, JSON/JSONL, Pydantic, endpoint, self-hosted, Crawl4AI,
+  "no black box", schema, dedup. These live in docs/API reference and the small trust strip only.
+- Mechanism words (citation, verified, evidence) are OK when the sentence explains the benefit.
+- Tech credibility (Crawl4AI, architecture) = footer/trust-strip/docs garnish, never the hero.
+- Applies to: website pages, the key-delivery email, docs landing pages, in-app copy.
+
 ## Typography
 - Font: system stack (`system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`); mono =
   `ui-monospace, "SF Mono", Menlo` for endpoints, data, labels. (Fable5 may swap in Plus Jakarta Sans

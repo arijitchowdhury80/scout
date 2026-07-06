@@ -33,64 +33,7 @@
     </header>
 
     <main id="top">
-      <section class="page-hero">
-        <p class="lab lab--acc">Scout docs</p>
-        <h1 class="h1">Technical documentation for Scout.</h1>
-        <p class="lede">
-          Install Scout, call the hosted API, inspect endpoint shapes, and understand the
-          artifact contract. The interactive playground lives on the homepage; these docs
-          stay focused on how to implement and verify Scout.
-        </p>
-      </section>
-
-      <div class="wrap section">
-        <div class="docs-layout">
-          <aside class="docs-sidebar" aria-label="Scout docs table of contents">
-            <p class="lab">On this page</p>
-            <nav>
-              <a href="#docs-index-title">Documentation map</a>
-              <a href="#playground-link-title">Playground link</a>
-              <a href="#hosted-api-title">Hosted API</a>
-              <a href="#api-reference-title">API reference</a>
-              <a href="#skill-title">Claude/Codex skill</a>
-              <a href="#examples-title">Examples</a>
-              <a href="#artifact-contract-title">Artifact contract</a>
-              <a href="#readiness-title">Readiness check</a>
-            </nav>
-            <div class="docs-sidebar__callout">
-              <strong>Want to try it first?</strong>
-              <p>Run a capped hosted demo before wiring an API call.</p>
-              <a class="btn btn-secondary btn-sm" href="/#playground">Open playground</a>
-            </div>
-          </aside>
-
-          <div class="docs-content">
-            <section aria-labelledby="docs-index-title">
-              <p class="lab lab--acc">Documentation map</p>
-              <h2 class="h2" id="docs-index-title">Start with the path you need.</h2>
-              <div class="endpoint-table" role="table" aria-label="Scout documentation sections">
-                <div class="endpoint-row" role="row">
-                  <strong role="cell"><a href="#hosted-api-title">Hosted API</a></strong>
-                  <span role="cell">Use <code class="m">https://scout.chowmes.com</code> with a delivered beta API key.</span>
-                </div>
-                <div class="endpoint-row" role="row">
-                  <strong role="cell"><a href="#api-reference-title">API reference</a></strong>
-                  <span role="cell">Review the hosted endpoints beta testers need.</span>
-                </div>
-                <div class="endpoint-row" role="row">
-                  <strong role="cell"><a href="#skill-title">Claude/Codex skill</a></strong>
-                  <span role="cell">Use Scout through an agent while hosted HTTP does the acquisition work.</span>
-                </div>
-                <div class="endpoint-row" role="row">
-                  <strong role="cell"><a href="#examples-title">Examples</a></strong>
-                  <span role="cell">Run small scrape, product, and company workflows before larger runs.</span>
-                </div>
-                <div class="endpoint-row" role="row">
-                  <strong role="cell"><a href="#artifact-contract-title">Artifacts</a></strong>
-                  <span role="cell">Understand the evidence files every useful run should leave behind.</span>
-                </div>
-              </div>
-            </section>
+      
 
             <section class="section--tight" aria-labelledby="playground-link-title">
               <p class="lab lab--acc">Interactive demo</p>
@@ -203,34 +146,7 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
               </div>
             </section>
 
-            <section class="section--tight" aria-labelledby="python-install-title">
-              <p class="lab lab--acc">Operator verification</p>
-              <h2 class="h2" id="python-install-title">Local package is not the tester beta path.</h2>
-              <p class="lede">
-                Operators can still verify the package locally. Beta testers should use hosted
-                HTTP or the Claude/Codex skill.
-              </p>
-              <pre><code>python3 -m venv .venv
-source .venv/bin/activate
-pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-saas-prod-ready"
-playwright install chromium
-export SCOUT_WORKDIR="$PWD/scout-runs"
-scout serve</code></pre>
-              <div class="note-grid">
-                <article class="neu-card neu-card--sm">
-                  <h3 class="h3">Workdir</h3>
-                  <p class="text-mut text-sm"><code class="m">SCOUT_WORKDIR</code> is where local Scout writes records, source pages, blocked pages, validation, reports, raw evidence, and screenshots.</p>
-                </article>
-                <article class="neu-card neu-card--sm">
-                  <h3 class="h3">Local-only health check</h3>
-                  <p class="text-mut text-sm">Only after <code class="m">scout serve</code> is running on your own machine, open <code class="m">http://localhost:8421/health</code> from that same machine.</p>
-                </article>
-                <article class="neu-card neu-card--sm">
-                  <h3 class="h3">Package release</h3>
-                  <p class="text-mut text-sm"><code class="m">pip install scout-web</code> comes after registry publishing gates close. Until then, package installs remain operator verification only.</p>
-                </article>
-              </div>
-            </section>
+            
 
             <section class="section--tight" aria-labelledby="skill-title">
               <p class="lab lab--acc">Path 03 &middot; Claude/Codex skill</p>
@@ -301,33 +217,7 @@ scout scrape https://example.com \
               </div>
             </section>
 
-            <section class="section--tight" aria-labelledby="readiness-title">
-              <p class="lab lab--acc">Readiness check</p>
-              <h2 class="h2" id="readiness-title">Verify the same launch gate CI runs.</h2>
-              <p class="lede">
-                The readiness checker summarizes the current truth: the controlled beta
-                release is ready with limits. Public self-serve SaaS, paid checkout, public
-                registries, and security-clean claims remain future gates.
-              </p>
-              <pre><code>scout launch-readiness
-scout launch-readiness --json
-scout launch-readiness --require-public
-scout launch-readiness --require-hosted-saas</code></pre>
-              <div class="note-grid">
-                <article class="neu-card neu-card--sm">
-                  <h3 class="h3">Beta gate</h3>
-                  <p class="text-mut text-sm">The default command should report <code class="m">Private beta: ready_with_limits</code> when the repo evidence is intact.</p>
-                </article>
-                <article class="neu-card neu-card--sm">
-                  <h3 class="h3">Release gate</h3>
-                  <p class="text-mut text-sm"><code class="m">--require-public</code> should pass for the current controlled beta release.</p>
-                </article>
-                <article class="neu-card neu-card--sm">
-                  <h3 class="h3">Hosted SaaS gate</h3>
-                  <p class="text-mut text-sm"><code class="m">--require-hosted-saas</code> should fail until SMTP delivery and Stripe checkout/webhook smoke are complete.</p>
-                </article>
-              </div>
-            </section>
+            
           </div>
         </div>
       </div>
