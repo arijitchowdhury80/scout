@@ -83,7 +83,7 @@ def test_beta_trial_package_is_free_limited_and_timeboxed() -> None:
 
     assert package.hosted_plan is HostedPlan.HOSTED_BETA_PASS
     assert package.amount_cents == 0
-    assert package.standard_credits == 10000
+    assert package.standard_credits == 5000
     assert package.browser_credits == 100
     assert package.trial_days == 30
     assert package.requires_payment_method is True
@@ -165,3 +165,17 @@ def test_unit_economics_marks_low_margin_when_costs_are_too_high() -> None:
 
     assert economics.target_margin_met is False
     assert economics.gross_margin_percent < DEFAULT_UNIT_ECONOMICS.target_gross_margin_percent
+
+
+def test_beta_grant_and_plan_limits_never_drift_apart() -> None:
+    """Anti-drift guard (Arijit, 2026-07-06): the free/beta credit number lives in
+    the package definition and the plan limits — they must always agree, so no
+    public surface can advertise a number the backend doesn't grant."""
+    from scout.core.platform.hosted import plan_limits
+
+    package = get_credit_package("beta_trial")
+    limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
+
+    assert package.standard_credits == limits.standard_credits
+    assert package.browser_credits == limits.browser_credits
+    assert package.standard_credits == 5000

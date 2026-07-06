@@ -192,7 +192,7 @@ def test_hosted_beta_key_generation_records_request_without_card_setup_bypass(
     assert delivery.requests[0].email == "email-registration@example.com"
     assert delivery.requests[0].name == "Email Tester"
     assert delivery.requests[0].package_id == "beta_trial"
-    assert delivery.requests[0].standard_credits == 10000
+    assert delivery.requests[0].standard_credits == 5000
     assert delivery.requests[0].browser_credits == 100
     assert delivery.requests[0].trial_days == 30
     signup_events = account_service.list_signup_events()
@@ -264,7 +264,7 @@ def test_hosted_beta_key_generation_requires_name_email_and_records_pending_requ
     assert data["scopes"] == ["runs:create"]
     assert data["delivery_status"] == "delivered"
     assert "raw_api_key" not in data
-    assert data["standard_credits_remaining"] == 10000
+    assert data["standard_credits_remaining"] == 5000
     assert data["browser_credits_remaining"] == 100
     assert account_service.store.find_tenant_by_email("new-tester@example.com") is not None
     signup_events = account_service.list_signup_events()

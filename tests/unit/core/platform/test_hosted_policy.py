@@ -36,7 +36,7 @@ def test_plan_limits_beta_pass_has_finite_credits_and_retention() -> None:
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
 
     assert limits.hosted_enabled is True
-    assert limits.standard_credits == 10000
+    assert limits.standard_credits == 5000
     assert limits.browser_credits == 100
     assert limits.artifact_retention_days == 7
     assert limits.max_pages_per_run == 25
