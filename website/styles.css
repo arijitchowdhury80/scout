@@ -1037,3 +1037,19 @@ textarea:focus-visible {
 .tab--locked.is-active { opacity: 1; }
 .code-comment { color: #869488; }
 .code-accent { color: #7bd4ac; font-weight: 600; }
+
+/* Docs breathing room (premium rhythm, 2026-07-06) */
+.docs-content { max-width: 640px; }
+.docs-content section { padding: 0 0 96px; }
+.docs-content section:last-child { padding-bottom: 40px; }
+.docs-content .h2 { margin: 0 0 40px; padding-top: 8px; }
+.docs-content .h3 { margin: 44px 0 12px; }
+.docs-content p { line-height: 1.75; margin: 0 0 18px; }
+.docs-content .lede { margin-bottom: 36px; }
+.docs-content pre { margin: 24px 0 32px; padding: 26px 28px; line-height: 1.9; }
+.docs-endpoint { padding: 26px 0; border-bottom: 1px solid rgba(158,184,171,.35); }
+.docs-endpoint:last-of-type { border-bottom: none; }
+.docs-endpoint .h3 { margin: 0 0 10px; }
+.docs-endpoint p { margin: 0; }
+.docs-layout { padding-top: 34px; padding-bottom: 60px; gap: 72px; }
+.docs-sidebar nav a { display: block; padding: 9px 0; color: inherit; }
