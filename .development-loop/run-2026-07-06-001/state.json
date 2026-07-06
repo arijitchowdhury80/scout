@@ -1,0 +1,11 @@
+{
+  "run": "run-2026-07-06-001",
+  "feature": "$12/mo unlimited subscription (50k credits/mo, monthly reset)",
+  "scope": "FULL",
+  "stage": "6-build",
+  "artifacts": ["01-intake.md", "03-spec.md"],
+  "v1_decisions": ["reset SETs to 50000 not add", "no rollover", "no one-time stacking for subs", "hard-stop at 0"],
+  "rollback": "env-gated on STRIPE_UNLIMITED_PRICE_ID; unset+redeploy or git revert + scout-deploy.sh",
+  "gates_remaining": ["build-verify (self, independent)", "security review", "show-before-prod (Arijit)", "create Stripe recurring price + set env", "deploy"],
+  "notes": "Build dispatched to Opus subagent TDD. Stripe API price creation + VPS deploy done by main thread AFTER independent verification."
+}
