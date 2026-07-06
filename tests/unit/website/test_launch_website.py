@@ -257,7 +257,7 @@ def test_beta_page_is_single_email_signup_with_support_contact() -> None:
 def test_rebuilt_pages_use_reticle_wordmark_not_legacy_marks() -> None:
     """Pages rebuilt in the neumorphic language carry the reticle lockup, not
     the retired warm-industrial or flux visual system."""
-    rebuilt_pages = ["index.html", "pricing.html", "beta.html", "quickstart.html", "status.html", "legal.html"]
+    rebuilt_pages = ["index.html", "pricing.html", "beta.html", "quickstart.html", "legal.html"]
     for page_name in rebuilt_pages:
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
         assert "warm-industrial-design-system" not in html
@@ -268,7 +268,7 @@ def test_rebuilt_pages_use_reticle_wordmark_not_legacy_marks() -> None:
 def test_rebuilt_pages_share_site_header_and_beta_cta() -> None:
     """Pages rebuilt to the neumorphic language share the site-header /
     nav-primary shell and route the primary CTA to /beta."""
-    rebuilt_pages = ["index.html", "pricing.html", "beta.html", "quickstart.html", "status.html", "legal.html"]
+    rebuilt_pages = ["index.html", "pricing.html", "beta.html", "quickstart.html", "legal.html"]
     for page_name in rebuilt_pages:
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
         assert '<header class="site-header">' in html
@@ -330,14 +330,13 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         "quickstart.html": [
             "Scout Docs",
             "Technical documentation for Scout.",
-            "Try Scout in the homepage playground.",
-            "Open playground",
-            "Call the live Scout API.",
-            "The endpoints testers actually need.",
-            "POST /v1/hosted/beta-key",
-            "https://scout.chowmes.com",
-            "/v1/hosted/me",
+            "Getting started",
+            "Endpoints",
+            "Credits",
+            "Your account",
+            "support@scout.chowmes.com",
             "/v1/hosted/scrape",
+            "https://scout.chowmes.com",
         ],
         "pricing.html": [
             "Scout Pricing",
@@ -354,10 +353,6 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "$100",
             "150k",
             "Never expire.",
-        ],
-        "status.html": [
-            "All systems operational.",
-            "support@scout.chowmes.com",
         ],
         "beta.html": [
             "Get your Scout API key.",
@@ -414,18 +409,17 @@ def test_quickstart_is_hosted_only_no_localhost_paths() -> None:
     assert "http://127.0.0.1:8421" not in html
 
 
-def test_docs_beta_access_is_card_backed_first_without_password() -> None:
+def test_docs_send_testers_to_email_signup_without_password() -> None:
+    """Lean docs (2026-07-06): chapter 1 sends testers to /beta email signup;
+    no password fields, no card language, no operator install content."""
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
-    assert '<form id="hostedKeyForm"' not in html
     assert 'name="invite_password"' not in html
     assert 'type="password"' not in html
-    assert 'id="copyHostedKey"' not in html
-    assert "Register for your beta tester API key." in normalized_html
-    assert "provisions a finite-credit beta account" in normalized_html
-    assert 'href="/beta.html#beta-key"' in html
-    assert "http://127.0.0.1:8421" not in html
+    assert 'href="/beta"' in html
+    assert "Sign up with your email" in normalized_html
+    assert "5,000 free credits" in normalized_html
     assert 'src="./assets/copy-code.js"' in html
 
 
@@ -465,7 +459,6 @@ def test_public_website_describes_self_service_beta_not_invite_only() -> None:
         "beta.html",
         "pricing.html",
         "quickstart.html",
-        "status.html",
     ]
     banned_phrases = [
         "invite-only",
@@ -611,14 +604,18 @@ def test_homepage_console_company_and_screenshot_stay_sample_only() -> None:
     assert "Get your free API key" in html
 
 
-def test_docs_page_links_to_playground_without_embedding_controls() -> None:
+def test_docs_page_has_chapter_sidebar_without_embedded_playground() -> None:
+    """Lean docs: chaptered sidebar navigation; the playground stays on the
+    homepage — docs never embed live controls."""
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
 
     assert "Technical documentation for Scout." in html
-    assert "Try Scout in the homepage playground." in html
-    assert 'href="/#playground"' in html
+    assert 'class="docs-layout' in html
+    assert 'class="docs-sidebar' in html
+    assert 'class="docs-content' in html
+    for anchor in ("#start", "#endpoints", "#credits", "#account", "#help"):
+        assert f'href="{anchor}"' in html
     assert 'id="playgroundForm"' not in html
-    assert 'id="playgroundWorkflow"' not in html
     assert 'src="./assets/playground.js"' not in html
 
 
@@ -631,7 +628,6 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/guide": "Scout Docs",
         "/pricing": "Scout Pricing",
         "/examples": "Scout Docs",
-        "/status": "Scout Status",
         "/beta": "Get your Scout API key.",
         "/account": "Scout Hosted Account",
         "/legal": "Scout Legal And Third-Party Notices",
@@ -642,7 +638,6 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/guide.html": "Scout Docs",
         "/pricing.html": "Scout Pricing",
         "/examples.html": "Scout Docs",
-        "/status.html": "Scout Status",
         "/beta.html": "Get your Scout API key.",
         "/account.html": "Scout Hosted Account",
         "/legal.html": "Scout Legal And Third-Party Notices",

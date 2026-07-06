@@ -135,7 +135,7 @@ def smoke_installed_server(scout: Path, port: int) -> None:
 
 def public_server_smoke_routes() -> list[str]:
     """Return public routes that release artifact server smoke must verify."""
-    return ["/", "/styles.css", "/quickstart", "/status"]
+    return ["/", "/styles.css", "/quickstart", "/pricing"]
 
 
 def wait_for_route(url: str, timeout_seconds: float = 30.0) -> None:
