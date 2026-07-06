@@ -70,8 +70,8 @@ Run 1 executed 2026-07-06 against snapshot 20260706-2302. Open rows: A9, A11–A
 |---|---|---|
 | E1 | PRISM + Hermes healthy after each deploy | ✅ PRISM 200 after deploy 2302 (per-deploy) |
 | E2 | Rollback image exists (previous snapshot) | ✅ 20260706-2253 retained (per-deploy) |
-| E3 | Container resource caps intact (docker inspect) | ⬜ |
-| E4 | Nightly backup includes hosted_accounts.sqlite | ⬜ |
+| E3 | Container resource caps intact (docker inspect) | ✅ 1.5cpu / 5GB / 512 pids (2026-07-06) |
+| E4 | Nightly backup includes hosted_accounts.sqlite | ✅ ran 2026-07-06 03:30, scout dir present, log 'run complete' |
 
 Execution notes: API checks via curl from local; click-throughs via the Chrome extension on the live
 site; authed checks need one real key (from the A8 signup email — Arijit holds it). Update statuses
