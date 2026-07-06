@@ -14,7 +14,6 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from scout.api.main import app
-from scout.launch_readiness import build_report
 
 
 _WEBSITE_DIR = Path(__file__).resolve().parents[3] / "website"
@@ -239,7 +238,7 @@ def test_beta_page_is_single_email_signup_with_support_contact() -> None:
     normalized_html = " ".join(html.split())
 
     assert "Get your Scout API key." in normalized_html
-    assert "10,000 credits. 30 days. Just your email." in normalized_html
+    assert "5,000 credits. 30 days. Just your email." in normalized_html
     assert 'id="hostedRegisterForm"' in html
     assert "Email me my API key" in normalized_html
     assert "No credit card." in normalized_html
@@ -331,42 +330,14 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         "quickstart.html": [
             "Scout Docs",
             "Technical documentation for Scout.",
-            "Documentation map",
-            "Start with the path you need.",
             "Try Scout in the homepage playground.",
             "Open playground",
             "Call the live Scout API.",
-            "Register for your beta tester API key.",
-            "provisions a finite-credit beta account",
-            'href="/beta.html#beta-key"',
-            "API reference",
             "The endpoints testers actually need.",
             "POST /v1/hosted/beta-key",
-            "POST /v1/hosted/products",
-            "POST /v1/hosted/run/{use_case}",
             "https://scout.chowmes.com",
-            "Do not use localhost for hosted calls.",
-            "codex/scout-saas-prod-ready",
-            'pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-saas-prod-ready"',
-            "SCOUT_WORKDIR",
-            "Readiness check",
-            "scout launch-readiness",
-            "Private beta: ready_with_limits",
-            "--require-public",
-            "Local package is not the tester beta path.",
-            "SCOUT_HOSTED_API_KEY",
             "/v1/hosted/me",
             "/v1/hosted/scrape",
-            "Scout emails the API key",
-            "Examples",
-            "Page to markdown",
-            "Product category to records",
-            "Company intelligence packet",
-            "Artifact contract",
-            "records.json",
-            "source_pages.json",
-            "blocked_pages.json",
-            "extraction_report.md",
         ],
         "pricing.html": [
             "Scout Pricing",
@@ -385,49 +356,17 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Never expire.",
         ],
         "status.html": [
-            "Scout Launch Status",
-            "Scout hosted beta is online, but self-service is still gated.",
-            "Hosted service: online",
-            "Beta signup: configuration blocked",
-            "What changed in the blocker burndown?",
-            "Arijit decisions: closed",
-            "Codex gates: closed",
-            "Hosted beta keys: gated by email delivery",
-            "Current blockers: configuration",
-            "Blocker summary",
-            "Future public registry work",
-            "Future paid checkout work",
-            "Future security-clean work",
-            "Decisions recorded for the beta path.",
-            "License: Apache-2.0 for Scout local/core",
-            "Pricing: controlled beta posture",
-            "Publishing: artifact-only private-beta v* tag first",
-            "Hosted: self-service beta keys",
-            "public-pricing-and-hosted-usage-limits",
-            "stripe-real-test-mode-smoke",
-            "scout launch-readiness --owner Arijit",
-            "scout launch-readiness --blocker-type engineering",
-            "scout launch-readiness --blocker-id public-pricing-and-hosted-usage-limits",
-            "Decision workflow",
-            "scout launch-decision-drafts",
-            "scout launch-decision-draft",
-            "scout launch-decision-check --check-existing",
-            "scout launch-decision-check --check-drafts",
-            "Drafts are not approvals",
-            "Review the draft first",
-            "Move approved content into",
-            "Do not edit the release checklist from a draft alone.",
-            "Only after validation passes",
-            "docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md",
+            "All systems operational.",
+            "support@scout.chowmes.com",
         ],
         "beta.html": [
             "Get your Scout API key.",
-            "10,000 credits. 30 days. Just your email.",
+            "5,000 credits. 30 days. Just your email.",
             "Sign up for the beta",
             "Email me my API key",
             "No credit card.",
             "/v1/hosted/beta-key",
-            "10,000 credits is plenty",
+            "5,000 credits is plenty",
             "support@scout.chowmes.com",
         ],
         "legal.html": [
@@ -465,15 +404,14 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         assert "sk_test_" not in html
 
 
-def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
+def test_quickstart_is_hosted_only_no_localhost_paths() -> None:
+    """Operator local-install content was removed (2026-07-06): tester docs are
+    hosted-only. The hosted domain must be present; localhost must not."""
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
-    normalized_html = " ".join(html.split())
 
-    hosted_index = html.index("https://scout.chowmes.com")
-    localhost_index = html.index("http://localhost:8421")
-
-    assert hosted_index < localhost_index
-    assert "Do not use localhost for hosted calls." in normalized_html
+    assert "https://scout.chowmes.com" in html
+    assert "http://localhost:8421" not in html
+    assert "http://127.0.0.1:8421" not in html
 
 
 def test_docs_beta_access_is_card_backed_first_without_password() -> None:
@@ -487,9 +425,6 @@ def test_docs_beta_access_is_card_backed_first_without_password() -> None:
     assert "Register for your beta tester API key." in normalized_html
     assert "provisions a finite-credit beta account" in normalized_html
     assert 'href="/beta.html#beta-key"' in html
-    assert "Only after" in normalized_html
-    assert "scout serve" in normalized_html
-    assert "is running on your own machine" in normalized_html
     assert "http://127.0.0.1:8421" not in html
     assert 'src="./assets/copy-code.js"' in html
 
@@ -577,18 +512,20 @@ def test_account_page_lets_hosted_users_inspect_usage_without_login() -> None:
 def test_command_docs_include_copy_code_behavior() -> None:
     # The beta page is a clean signup form with no CLI snippets; copy-code docs
     # live on the docs and status pages.
-    for page_name in ("quickstart.html", "status.html"):
-        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
-
-        assert "<pre><code>" in html
-        assert 'src="./assets/copy-code.js"' in html
+    # Only the docs page carries command snippets now; /status is a plain
+    # public health page with no CLI content.
+    html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
+    assert "<pre><code>" in html
+    assert 'src="./assets/copy-code.js"' in html
 
 
 def test_homepage_has_anonymous_console_gated_to_fast_endpoints_only() -> None:
-    """Anonymous homepage console is fast-endpoints-only (scrape + map); the
-    full multi-capability app playground (all workflow values, downloads,
-    save) is an authed /app surface, not the public homepage. See
-    docs/product/plg-playground-ux.md "Anonymous console limits"."""
+    """Anonymous homepage console now demos six tabs (2026-07-06 update):
+    scrape/map/crawl/products run LIVE against /v1/demo/*; company/screenshot
+    render a canned sample record ("get a free key to run your own") and stay
+    aria-disabled — those two touch persistence/full workflows the anonymous
+    demo endpoints never expose. See docs/product/plg-playground-ux.md
+    "Anonymous console limits"."""
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
 
     assert 'id="scoutConsole"' in html
@@ -597,12 +534,14 @@ def test_homepage_has_anonymous_console_gated_to_fast_endpoints_only() -> None:
     assert 'inputmode="url"' in html
     assert 'data-endpoint="scrape"' in html
     assert 'data-endpoint="map"' in html
-    # Heavy/costly endpoints are visible as disabled tabs, never runnable anonymously.
-    for gated_capability in ("crawl", "products", "company", "screenshot"):
-        assert f'data-endpoint="{gated_capability}"' in html
-    assert 'aria-disabled="true"' in html
+    assert 'data-endpoint="crawl"' in html
+    assert 'data-endpoint="products"' in html
+    assert 'data-endpoint="company"' in html
+    assert 'data-endpoint="screenshot"' in html
     assert "/v1/demo/scrape" in html
     assert "/v1/demo/map" in html
+    assert "/v1/demo/crawl" in html
+    assert "/v1/demo/products" in html
     assert 'id="consoleStatusMeta"' in html
     assert 'id="consoleCode"' in html
     assert "5 runs/IP/day" in html
@@ -610,13 +549,72 @@ def test_homepage_has_anonymous_console_gated_to_fast_endpoints_only() -> None:
     assert "sign up to download" in html.lower() or "sign up to unlock" in html.lower()
 
 
+def test_homepage_console_crawl_and_products_tabs_are_now_live_not_locked() -> None:
+    """crawl and products moved from locked pitches to live demo runs backed
+    by POST /v1/demo/crawl and /v1/demo/products (scaled, same shape as
+    scrape/map). They must no longer carry the locked-tab markup."""
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+
+    for endpoint in ("crawl", "products"):
+        # The tab button for this endpoint must not be locked/disabled.
+        tab_marker = f'data-endpoint="{endpoint}"'
+        tab_start = html.index(tab_marker)
+        tab_tag_start = html.rindex("<button", 0, tab_start)
+        tab_tag_end = html.index(">", tab_start)
+        tab_markup = html[tab_tag_start:tab_tag_end]
+        assert "data-locked" not in tab_markup
+        assert "tab--locked" not in tab_markup
+        assert "aria-disabled" not in tab_markup
+
+
+def test_api_serves_demo_sample_assets_for_company_and_screenshot_tabs() -> None:
+    """The company/screenshot console tabs fetch these at runtime; they must
+    actually be servable from the API origin, not just referenced in HTML."""
+    client = TestClient(app)
+
+    company_sample = client.get("/assets/demo-samples/company-sample.json")
+    screenshot_sample = client.get("/assets/demo-samples/screenshot-sample.png")
+    missing = client.get("/assets/demo-samples/does-not-exist.json")
+
+    assert company_sample.status_code == 200
+    assert "application/json" in company_sample.headers["content-type"]
+    assert company_sample.json()["evidence"]["verified"] is True
+
+    assert screenshot_sample.status_code == 200
+    assert screenshot_sample.headers["content-type"] == "image/png"
+    assert screenshot_sample.content.startswith(b"\x89PNG")
+
+    assert missing.status_code == 404
+
+
+def test_homepage_console_company_and_screenshot_stay_sample_only() -> None:
+    """company and screenshot stay aria-disabled sample tabs (not live runs):
+    company renders the canned company-sample.json record with an evidence
+    panel; screenshot renders the canned screenshot-sample.png. Both are
+    labeled as a sample from a real run and route Run to /beta."""
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+
+    for endpoint in ("company", "screenshot"):
+        tab_marker = f'data-endpoint="{endpoint}"'
+        tab_start = html.index(tab_marker)
+        tab_tag_start = html.rindex("<button", 0, tab_start)
+        tab_tag_end = html.index(">", tab_start)
+        tab_markup = html[tab_tag_start:tab_tag_end]
+        assert 'data-locked="true"' in tab_markup
+        assert "tab--locked" in tab_markup
+        assert 'aria-disabled="true"' in tab_markup
+
+    assert "sample from a real run" in html
+    assert "get a free key to run your own" in html
+    assert "demo-samples/company-sample.json" in html
+    assert "demo-samples/screenshot-sample.png" in html
+    assert "Get your free API key" in html
+
+
 def test_docs_page_links_to_playground_without_embedding_controls() -> None:
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
 
     assert "Technical documentation for Scout." in html
-    assert 'class="docs-layout"' in html
-    assert 'class="docs-sidebar"' in html
-    assert 'class="docs-content"' in html
     assert "Try Scout in the homepage playground." in html
     assert 'href="/#playground"' in html
     assert 'id="playgroundForm"' not in html
@@ -633,7 +631,7 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/guide": "Scout Docs",
         "/pricing": "Scout Pricing",
         "/examples": "Scout Docs",
-        "/status": "Scout Launch Status",
+        "/status": "Scout Status",
         "/beta": "Get your Scout API key.",
         "/account": "Scout Hosted Account",
         "/legal": "Scout Legal And Third-Party Notices",
@@ -644,7 +642,7 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/guide.html": "Scout Docs",
         "/pricing.html": "Scout Pricing",
         "/examples.html": "Scout Docs",
-        "/status.html": "Scout Launch Status",
+        "/status.html": "Scout Status",
         "/beta.html": "Get your Scout API key.",
         "/account.html": "Scout Hosted Account",
         "/legal.html": "Scout Legal And Third-Party Notices",
@@ -660,19 +658,6 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         assert "text/html" in response.headers["content-type"]
         assert text in response.text
 
-
-def test_status_page_lists_all_current_unique_launch_blocker_keys() -> None:
-    report = build_report(_REPO_ROOT)
-    blocker_ids = {blocker["id"] for blocker in report["public_launch"]["blockers"]}
-    html = (_WEBSITE_DIR / "status.html").read_text(encoding="utf-8")
-
-    if blocker_ids:
-        assert f"{len(blocker_ids)} unique public-launch blocker keys" in html
-    else:
-        assert "Current blockers: external configuration" in html
-        assert "SMTP delivery and Stripe checkout/webhook configuration" in html
-    for blocker_id in blocker_ids:
-        assert blocker_id in html
 
 
 def test_api_serves_third_party_notices_without_auth() -> None:

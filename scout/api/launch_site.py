@@ -40,6 +40,23 @@ async def launch_site_design_system_asset(asset_name: str) -> FileResponse:
     )
 
 
+@router.get("/assets/demo-samples/{asset_name}")
+async def launch_site_demo_sample_asset(asset_name: str) -> FileResponse:
+    """Serve the canned homepage-console sample records (company/screenshot tabs).
+
+    These are static, hand-picked sample artifacts — never live crawl output —
+    shown for endpoints the anonymous demo does not run live. See
+    docs/product/plg-playground-ux.md and website/index.html's console script.
+    """
+    allowed_assets = {"company-sample.json", "screenshot-sample.png"}
+    if asset_name not in allowed_assets:
+        raise HTTPException(status_code=404, detail="Launch site asset not found.")
+    return _launch_site_asset_response(
+        _WEBSITE_DIR / "assets" / "demo-samples" / asset_name,
+        asset_name,
+    )
+
+
 @router.get("/assets/{asset_name}")
 async def launch_site_asset(asset_name: str) -> FileResponse:
     """Serve allowlisted launch-site media assets."""
@@ -71,6 +88,10 @@ def _asset_media_type(asset_name: str) -> str:
         return "image/gif"
     if asset_name.endswith(".svg"):
         return "image/svg+xml"
+    if asset_name.endswith(".json"):
+        return "application/json"
+    if asset_name.endswith(".png"):
+        return "image/png"
     return "text/plain"
 
 

@@ -74,6 +74,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/assets/flux-design-system/"):
             return await call_next(request)  # type: ignore[misc]
+        if request.url.path.startswith("/assets/demo-samples/"):
+            return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/v1/hosted/"):
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/v1/playground/"):

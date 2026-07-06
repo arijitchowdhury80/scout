@@ -35,10 +35,7 @@
             <h1 class="h1" style="margin-top: 16px;">
               Point Scout at any URL.<br />Watch it return a citable record.
             </h1>
-            <p class="lede" style="max-width: 38em; margin-left: auto; margin-right: auto;">
-              Typed data with the source, hash, and proof attached — try it right here,
-              live, before you sign up. Built on Crawl4AI, self-hosted, no black box.
-            </p>
+            <p class="lede" style="max-width: 38em; margin-left: auto; margin-right: auto;">Give Scout a web page — get back neat, structured data you can drop into a spreadsheet, an app, or an AI agent. And it shows you exactly where every piece came from, so you can trust it. Try it right now — no signup.</p>
           </div>
         </section>
 
@@ -51,8 +48,8 @@
               <div class="tab-row" role="tablist" aria-label="Scout endpoint">
                 <button type="button" class="tab is-active" data-endpoint="scrape" role="tab" aria-selected="true">scrape</button>
                 <button type="button" class="tab" data-endpoint="map" role="tab" aria-selected="false">map</button>
-                <button type="button" class="tab tab--locked" data-endpoint="crawl" data-locked="true" role="tab" aria-selected="false" aria-disabled="true">crawl</button>
-                <button type="button" class="tab tab--locked" data-endpoint="products" data-locked="true" role="tab" aria-selected="false" aria-disabled="true">products</button>
+                <button type="button" class="tab" data-endpoint="crawl" role="tab" aria-selected="false">crawl</button>
+                <button type="button" class="tab" data-endpoint="products" role="tab" aria-selected="false">products</button>
                 <button type="button" class="tab tab--locked" data-endpoint="company" data-locked="true" role="tab" aria-selected="false" aria-disabled="true">company</button>
                 <button type="button" class="tab tab--locked" data-endpoint="screenshot" data-locked="true" role="tab" aria-selected="false" aria-disabled="true">screenshot</button>
               </div>
@@ -77,7 +74,7 @@
               <div class="screen-frame" style="margin-top: 18px;">
                 <div class="screen" id="consoleScreen">
                   <div class="screen__bar screen__bar--top">
-                    <span class="screen__meta" id="consoleStatusMeta">Ready · scrape + map only · 5 runs/IP/day</span>
+                    <span class="screen__meta" id="consoleStatusMeta">Ready · scrape, map, crawl, products live · 5 runs/IP/day</span>
                     <span class="screen__meta">Preview · JSON · Markdown · cURL</span>
                   </div>
                   <div class="screen__body" id="consoleBody">
@@ -100,7 +97,7 @@
               </div>
 
               <p class="watermark-note" style="margin-top: 16px;">
-                <span class="status-dot">●</span> anonymous demo: scrape + map · 5 runs/IP/day · built on Crawl4AI · no card
+                <span class="status-dot">●</span> anonymous demo: scrape, map, crawl, products · 5 runs/IP/day · built on Crawl4AI · no card
               </p>
             </div>
 
@@ -147,18 +144,18 @@
             <div class="grid-3">
               <div class="neu-card neu-card--sm">
                 <span class="m lab lab--acc">RECORDS</span>
-                <h3 class="h3" style="margin: 7px 0 5px;">Typed, not text</h3>
-                <p class="text-mut text-sm">Structured JSON for products, companies, docs, and research — never a wall of unstructured HTML.</p>
+                <h3 class="h3" style="margin: 7px 0 5px;">Data you can use right away</h3>
+                <p class="text-mut text-sm">Product lists, company info, docs, and research come back as clean, organized data — ready for your spreadsheet, your app, or your AI agent. Never a wall of messy HTML.</p>
               </div>
               <div class="neu-card neu-card--sm">
                 <span class="m lab lab--acc">PROOF</span>
-                <h3 class="h3" style="margin: 7px 0 5px;">Evidence attached</h3>
-                <p class="text-mut text-sm">Citations, hashes, screenshots, and honest blocked-page notes — every record, every time.</p>
+                <h3 class="h3" style="margin: 7px 0 5px;">See where everything came from</h3>
+                <p class="text-mut text-sm">Every piece of data links back to the exact page it was found on. And when Scout can’t reach a page, it says so honestly — it never fills the gap with guesses.</p>
               </div>
               <div class="neu-card neu-card--sm">
                 <span class="m lab lab--acc">EXPORTS</span>
-                <h3 class="h3" style="margin: 7px 0 5px;">Pipeline-ready</h3>
-                <p class="text-mut text-sm">Download JSON, JSONL, CSV, or Markdown, or push straight to your search index, warehouse, or webhook.</p>
+                <h3 class="h3" style="margin: 7px 0 5px;">Send it anywhere</h3>
+                <p class="text-mut text-sm">Download as a file or spreadsheet, or push results straight into your search, your database, or whatever tool you already use.</p>
               </div>
             </div>
           </div>
@@ -241,7 +238,24 @@
         const DEMO_ENDPOINTS = {
           scrape: "/v1/demo/scrape",
           map: "/v1/demo/map",
+          crawl: "/v1/demo/crawl",
+          products: "/v1/demo/products",
         };
+
+        // Sample-only tabs: never call the live API. Rendered straight from a
+        // canned sample the moment the tab is selected. Run routes to /beta.
+        const SAMPLE_ENDPOINTS = {
+          company: {
+            source: "./assets/demo-samples/company-sample.json",
+            kind: "json",
+          },
+          screenshot: {
+            source: "./assets/demo-samples/screenshot-sample.png",
+            kind: "image",
+          },
+        };
+
+        const SAMPLE_LABEL = "// sample from a real run — get a free key to run your own";
 
         const STATIC_FALLBACK = {
           scrape: {
@@ -265,6 +279,41 @@
               start_url: "https://acme.com",
               urls: ["acme.com/pricing", "acme.com/about", "acme.com/careers"],
               total_discovered: 3,
+            },
+            evidence: {
+              source: "acme.com",
+              content_hash: "—",
+              verified: true,
+              blocked: false,
+            },
+          },
+          crawl: {
+            record: {
+              record_type: "crawl_preview",
+              start_url: "https://acme.com",
+              pages: [
+                { url: "https://acme.com", title: "Acme — Home", success: true },
+                { url: "https://acme.com/pricing", title: "Acme pricing", success: true },
+                { url: "https://acme.com/about", title: "About Acme", success: true },
+              ],
+              total_pages: 3,
+            },
+            evidence: {
+              source: "acme.com",
+              content_hash: "—",
+              verified: true,
+              blocked: false,
+            },
+          },
+          products: {
+            record: {
+              record_type: "products_preview",
+              start_url: "https://acme.com/shop",
+              records: [
+                { name: "Acme Widget Pro", price: 49, currency: "USD" },
+                { name: "Acme Widget Mini", price: 19, currency: "USD" },
+              ],
+              total_records: 2,
             },
             evidence: {
               source: "acme.com",
@@ -301,33 +350,78 @@
           activeEndpoint = endpoint;
         }
 
-        const LOCKED_PITCH = {
-          crawl: "Crawl walks a whole site and returns every page as a typed record.",
-          products: "Products turns a catalog into deduped, typed product records.",
-          company: "Company builds a full intelligence dossier — careers, investors, news.",
-          screenshot: "Screenshot captures the full page and keeps it as evidence.",
-        };
+        // Cache fetched sample JSON per-endpoint so repeat tab clicks don't refetch.
+        const _sampleCache = {};
 
-        function renderLocked(endpoint) {
-          const pitch = LOCKED_PITCH[endpoint] || "This endpoint runs real acquisition work.";
+        function renderSampleRecord(data) {
+          const json = JSON.stringify(data, null, 2);
+          const highlighted = escapeHtml(json).replace(
+            /"([a-zA-Z0-9_]+)":/g,
+            '<span class="syn">"$1"</span>:'
+          );
           codeEl.innerHTML =
-            '<span class="code-comment">// ' + escapeHtml(endpoint) + " is part of the free plan</span>\n\n" +
-            escapeHtml(pitch) + "\n\n" +
-            "Heavy runs cost real compute, so they need a (free) API key.\n" +
-            '<span class="code-accent">Sign up with just your email — 10,000 credits, no card.</span>';
-          statusMeta.textContent = "locked in the anonymous demo";
-          if (evSource) evSource.textContent = "—";
-          if (evHash) evHash.textContent = "—";
-          if (evVerified) evVerified.textContent = "—";
-          if (evBlocked) evBlocked.textContent = "—";
+            '<code><span class="cmt">' + escapeHtml(SAMPLE_LABEL) + "</span>\n\n" + highlighted + "</code>";
+        }
+
+        function renderSampleImage(src) {
+          codeEl.innerHTML = "";
+          const comment = document.createElement("div");
+          comment.className = "cmt";
+          comment.style.marginBottom = "12px";
+          comment.textContent = SAMPLE_LABEL;
+          const img = document.createElement("img");
+          img.src = src;
+          img.alt = "Sample Scout screenshot capture";
+          img.style.maxWidth = "100%";
+          codeEl.appendChild(comment);
+          codeEl.appendChild(img);
+        }
+
+        async function renderSample(endpoint) {
+          const sample = SAMPLE_ENDPOINTS[endpoint];
+          if (!sample) return;
+
           runBtn.textContent = "Get your free API key";
+          statusMeta.textContent = "sample record · not a live run";
+
+          if (sample.kind === "image") {
+            renderSampleImage(sample.source);
+            renderEvidence({
+              source: "anthropic.com",
+              content_hash: "—",
+              verified: true,
+              blocked: false,
+            });
+            return;
+          }
+
+          try {
+            let data = _sampleCache[endpoint];
+            if (!data) {
+              const resp = await fetch(sample.source);
+              data = await resp.json();
+              _sampleCache[endpoint] = data;
+            }
+            renderSampleRecord(data);
+            renderEvidence({
+              source: (data.evidence && data.evidence.source) || data.source || "—",
+              content_hash: (data.evidence && data.evidence.hash) || "—",
+              verified: Boolean(data.evidence && data.evidence.verified),
+              blocked: false,
+            });
+          } catch (err) {
+            codeEl.innerHTML =
+              '<span class="cmt">' + escapeHtml(SAMPLE_LABEL) + "</span>\n\n" +
+              "Couldn't load the sample record.\n" +
+              '<span class="code-accent">Sign up with just your email — 5,000 credits, no card.</span>';
+          }
         }
 
         tabs.forEach((tab) => {
           tab.addEventListener("click", () => {
             setActiveTab(tab.dataset.endpoint);
             if (tab.dataset.locked === "true") {
-              renderLocked(tab.dataset.endpoint);
+              renderSample(tab.dataset.endpoint);
             } else {
               runBtn.textContent = "Run \u25B8";
               statusMeta.textContent = "ready";

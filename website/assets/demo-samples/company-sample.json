@@ -1,0 +1,16 @@
+{
+  "company": "Anthropic",
+  "source": "anthropic.com",
+  "pages_discovered": 10,
+  "sample_titles": [
+    "Home \\ Anthropic",
+    "About Anthropic Interviewer \\ Anthropic",
+    "Anthropic\u2019s AI for Science Program \\ Anthropic",
+    "Guidance on Candidates' AI Usage \\ Anthropic"
+  ],
+  "evidence": {
+    "source": "https://www.anthropic.com",
+    "hash": "52a5c3e49f3013c026ddefac35f171347ced6548e0e3b997eb3ef1c55e2a2aeb",
+    "verified": true
+  }
+}
