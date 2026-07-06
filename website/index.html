@@ -51,10 +51,10 @@
               <div class="tab-row" role="tablist" aria-label="Scout endpoint">
                 <button type="button" class="tab is-active" data-endpoint="scrape" role="tab" aria-selected="true">scrape</button>
                 <button type="button" class="tab" data-endpoint="map" role="tab" aria-selected="false">map</button>
-                <button type="button" class="tab" data-endpoint="crawl" role="tab" aria-selected="false" disabled aria-disabled="true">crawl</button>
-                <button type="button" class="tab" data-endpoint="products" role="tab" aria-selected="false" disabled aria-disabled="true">products</button>
-                <button type="button" class="tab" data-endpoint="company" role="tab" aria-selected="false" disabled aria-disabled="true">company</button>
-                <button type="button" class="tab" data-endpoint="screenshot" role="tab" aria-selected="false" disabled aria-disabled="true">screenshot</button>
+                <button type="button" class="tab tab--locked" data-endpoint="crawl" data-locked="true" role="tab" aria-selected="false" aria-disabled="true">crawl</button>
+                <button type="button" class="tab tab--locked" data-endpoint="products" data-locked="true" role="tab" aria-selected="false" aria-disabled="true">products</button>
+                <button type="button" class="tab tab--locked" data-endpoint="company" data-locked="true" role="tab" aria-selected="false" aria-disabled="true">company</button>
+                <button type="button" class="tab tab--locked" data-endpoint="screenshot" data-locked="true" role="tab" aria-selected="false" aria-disabled="true">screenshot</button>
               </div>
 
               <form class="url-bar" id="consoleForm" style="margin-top: 16px;">
@@ -301,9 +301,38 @@
           activeEndpoint = endpoint;
         }
 
+        const LOCKED_PITCH = {
+          crawl: "Crawl walks a whole site and returns every page as a typed record.",
+          products: "Products turns a catalog into deduped, typed product records.",
+          company: "Company builds a full intelligence dossier — careers, investors, news.",
+          screenshot: "Screenshot captures the full page and keeps it as evidence.",
+        };
+
+        function renderLocked(endpoint) {
+          const pitch = LOCKED_PITCH[endpoint] || "This endpoint runs real acquisition work.";
+          codeEl.innerHTML =
+            '<span class="code-comment">// ' + escapeHtml(endpoint) + " is part of the free plan</span>\n\n" +
+            escapeHtml(pitch) + "\n\n" +
+            "Heavy runs cost real compute, so they need a (free) API key.\n" +
+            '<span class="code-accent">Sign up with just your email — 10,000 credits, no card.</span>';
+          statusMeta.textContent = "locked in the anonymous demo";
+          if (evSource) evSource.textContent = "—";
+          if (evHash) evHash.textContent = "—";
+          if (evVerified) evVerified.textContent = "—";
+          if (evBlocked) evBlocked.textContent = "—";
+          runBtn.textContent = "Get your free API key";
+        }
+
         tabs.forEach((tab) => {
-          if (tab.disabled) return;
-          tab.addEventListener("click", () => setActiveTab(tab.dataset.endpoint));
+          tab.addEventListener("click", () => {
+            setActiveTab(tab.dataset.endpoint);
+            if (tab.dataset.locked === "true") {
+              renderLocked(tab.dataset.endpoint);
+            } else {
+              runBtn.textContent = "Run \u25B8";
+              statusMeta.textContent = "ready";
+            }
+          });
         });
 
         function escapeHtml(value) {
@@ -350,6 +379,10 @@
         if (!form) return;
 
         form.addEventListener("submit", async (event) => {
+          if (!(activeEndpoint in DEMO_ENDPOINTS)) {
+            window.location.href = "/beta";
+            return;
+          }
           event.preventDefault();
           const url = urlInput.value.trim();
           if (!url) return;

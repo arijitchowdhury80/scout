@@ -1030,3 +1030,10 @@ textarea:focus-visible {
   .form-row { flex-direction: column; }
   .tab-row { overflow-x: auto; flex-wrap: nowrap; }
 }
+
+/* Locked demo tabs + console pitch styling (anonymous-demo upsell) */
+.tab--locked { opacity: 0.62; }
+.tab--locked::after { content: " ↗"; font-size: 0.85em; }
+.tab--locked.is-active { opacity: 1; }
+.code-comment { color: #869488; }
+.code-accent { color: #7bd4ac; font-weight: 600; }
