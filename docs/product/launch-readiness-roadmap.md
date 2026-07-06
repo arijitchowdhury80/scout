@@ -28,8 +28,8 @@ Destinations). Reference (not adopted): Poster Modernist, grey/violet neumorphis
 | **2 · Content & copy** ⛳ | Homepage copy — per-element HITL review | 🟡 started (mock) | Claude ↔ Arijit |
 | | All screens' copy (Product, Pricing, Playground, About, Changelog…) | ⬜ pending | Claude ↔ Arijit |
 | | How-to guides, success stories, customer/social proof | ⬜ pending | Claude ↔ Arijit |
-| **3 · Enablement (Track A)** ⛳ | Branded key-delivery email (HTML + text) | ⬜ pending | Claude → Arijit approves |
-| | support@scout.chowmes.com → Gmail + support process | ⬜ pending | Claude builds / Arijit does DNS |
+| **3 · Enablement (Track A)** ⛳ | Branded key-delivery email (HTML + text) | 🟡 template approved; wiring into sender now | Claude |
+| | support@scout.chowmes.com → Gmail + support process | ✅ **LIVE** 2026-07-06 — ImprovMX catch-all verified, test email landed in Gmail | done |
 | **4 · Site build** ⛳ | Full multi-screen site in chosen system | ⬜ pending | **Fable5** (or Claude — see gate) |
 | | Mintlify docs at docs.scout.chowmes.com + llms.txt | ⬜ pending | Fable5 / Arijit account |
 | | Playground surfaced as demo-hero | ⬜ pending | Fable5 |

@@ -1,0 +1,76 @@
+---
+title: Products
+description: Extract Algolia-ready product records from a catalog or category page.
+---
+
+`POST /v1/hosted/products` — costs **1 standard credit per record returned** (capped by `max_products` and your plan limit).
+
+## Request
+
+Fields on `ProductCrawlRequest` (partial — the ones most callers need):
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `start_url` | string | `""` | catalog or category URL to start from |
+| `site` | string | `""` | alternative to `start_url` — a bare domain |
+| `query` | string | `""` | optional product search query |
+| `limit_per_category` | int | `10` | |
+| `max_categories` | int | `10` | |
+| `max_products` | int | `100` | hard cap on records returned |
+| `use_js` | bool | `true` | render with a browser |
+| `browser_fallback` | bool | `true` | fall back to full browser rendering if plain HTTP fails |
+
+```bash
+curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/products" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"start_url":"https://shop.example.com/products","max_products":10}'
+```
+
+## Response
+
+`ProductCrawlResponse`, wrapped in hosted usage metadata. Each record is an `AlgoliaProductRecord` — already shaped for a search index:
+
+```json
+{
+  "success": true,
+  "hosted": {
+    "tenant_id": "tn_...",
+    "key_id": "key_...",
+    "credits_charged": 10,
+    "credit_type": "standard"
+  },
+  "products": {
+    "success": true,
+    "start_url": "https://shop.example.com/products",
+    "records": [
+      {
+        "objectID": "sku-123",
+        "name": "Example running shoe",
+        "url": "https://shop.example.com/products/example-running-shoe",
+        "brand": "Example Co",
+        "price": 89.99,
+        "currency": "USD",
+        "categories": ["Footwear", "Running"],
+        "in_stock": true,
+        "_source": {
+          "url": "https://shop.example.com/products/example-running-shoe",
+          "extractor": "css_schema"
+        },
+        "citations": [
+          {"field": "price", "selector": ".product-price", "confidence": 0.98}
+        ],
+        "completeness_score": 0.91
+      }
+    ],
+    "total_records": 1,
+    "blocked_pages": [],
+    "total_blocked_pages": 0,
+    "duration_ms": 9820
+  }
+}
+```
+
+`objectID` is ready to push straight into Algolia. `_source` and `citations` are the evidence trail — where each record (and, where available, each field) came from. `completeness_score` flags records worth a second look before they go live in a search index.
+
+See [Destinations](/destinations) to push these records directly to Algolia or a webhook.

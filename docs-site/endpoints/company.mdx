@@ -1,0 +1,64 @@
+---
+title: Company intelligence
+description: Run a structured intelligence workflow — company, careers, investor, news, and more — against a query or URL.
+---
+
+`POST /v1/hosted/run/{use_case}` — costs **1 standard credit per record returned** (capped by `max_records` and your plan limit).
+
+This is Scout's high-level "run a whole workflow" endpoint. `{use_case}` selects which vertical intelligence workflow runs. Supported values: `company`, `products`, `careers`, `prism`, `investor`, `research`, `docs`, `news`, `social`, `locations`.
+
+## Request
+
+Fields on `RunRequest`:
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `query` | string | `""` | company/topic name, e.g. `"Adobe"` |
+| `mode` | string | `"auto"` | let Scout choose fetch strategy, or pin one |
+| `url` | string | `""` | direct URL instead of a query |
+| `targets` | list | `[]` | multiple URLs/queries to run |
+| `max_targets` | int | `25` | |
+| `max_records` | int | `250` | hard cap on records returned |
+
+```bash
+curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/run/company" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Adobe","mode":"auto","max_records":25}'
+```
+
+## Response
+
+`RunResponse`, wrapped in hosted usage metadata:
+
+```json
+{
+  "success": true,
+  "hosted": {
+    "tenant_id": "tn_...",
+    "key_id": "key_...",
+    "credits_charged": 25,
+    "credit_type": "standard"
+  },
+  "run": {
+    "success": true,
+    "use_case": "company",
+    "output_dir": "/data/runs/hosted-tn_.../company",
+    "total_records": 25
+  }
+}
+```
+
+A completed run is persisted and shows up in your run history:
+
+```bash
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/runs" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/runs/$RUN_ID/records" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+```
+
+A company run is representative of what the pricing model calls a "dossier" — roughly 200 credits for a full company crawl, though the exact record count varies by site size.
+
+See [Destinations](/destinations) to export or push the resulting records.

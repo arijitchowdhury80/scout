@@ -1,0 +1,89 @@
+---
+title: Destinations
+description: Export runs as JSON, JSONL, CSV, or Markdown, or push records straight to your search index, warehouse, or webhook.
+---
+
+Every hosted run leaves structured records you can either download directly or push to a connected destination.
+
+## Downloads
+
+Run artifacts are available per run via:
+
+```bash
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/runs/$RUN_ID/artifacts" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+```
+
+This returns download URLs for whichever artifacts the run produced — `records_json`, `records_jsonl`, `source_pages_json`, `blocked_pages_json`, `validation_json`, and `report_md`. Fetch any of them directly:
+
+```bash
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/runs/$RUN_ID/artifacts/records_json/download" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -o records.json
+```
+
+Or list all records for a run in one call:
+
+```bash
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/runs/$RUN_ID/records" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+```
+
+## Push to a destination
+
+`POST /v1/hosted/destinations/send` pushes records — either inline or loaded from an owned `run_id` — to a named connector: **your search index, warehouse, or webhook.**
+
+```bash
+curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/destinations/send" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "destination": "algolia",
+    "run_id": "'"$RUN_ID"'",
+    "config": {
+      "app_id": "YOUR_ALGOLIA_APP_ID",
+      "api_key": "YOUR_ALGOLIA_ADMIN_KEY",
+      "index_name": "products"
+    }
+  }'
+```
+
+Or push to any HTTP endpoint you control:
+
+```bash
+curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/destinations/send" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "destination": "webhook",
+    "records": [{"objectID": "sku-123", "name": "Example product"}],
+    "config": {"url": "https://your-app.example.com/hooks/scout"}
+  }'
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "hosted": {
+    "tenant_id": "tn_...",
+    "key_id": "key_...",
+    "credits_charged": 1,
+    "credit_type": "standard"
+  },
+  "result": {
+    "success": true
+  }
+}
+```
+
+Pushing to a destination costs 1 standard credit per record — the same rate as any other record-producing action.
+
+## Available connectors
+
+```bash
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/destinations/"
+```
+
+Returns the list of registered connector names. Algolia and webhook ship today; the destination abstraction is built to add more (Elasticsearch, S3, BigQuery) without changing this API shape.

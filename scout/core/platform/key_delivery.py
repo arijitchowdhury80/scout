@@ -10,7 +10,10 @@ from typing import Any, Protocol
 
 from pydantic import BaseModel, EmailStr, Field
 
+from scout.core.platform.email_templates import build_beta_key_email
 from scout.core.platform.hosted import HostedPlan
+
+_SUPPORT_EMAIL = "support@scout.chowmes.com"
 
 
 class HostedApiKeyDeliveryRequest(BaseModel):
@@ -182,8 +185,15 @@ def _delivery_message(sender: str, request: HostedApiKeyDeliveryRequest) -> Emai
     if request.smoke_test:
         message["Subject"] = "Scout hosted key delivery smoke test"
         message.set_content(_smoke_test_body(request))
+        return message
+
+    message["Reply-To"] = _SUPPORT_EMAIL
+    message["Subject"] = _delivery_subject(request)
+    if request.package_id == "beta_trial":
+        _subject, text_body, html_body = build_beta_key_email(request)
+        message.set_content(text_body)
+        message.add_alternative(html_body, subtype="html")
     else:
-        message["Subject"] = _delivery_subject(request)
         message.set_content(_delivery_body(request))
     return message
 

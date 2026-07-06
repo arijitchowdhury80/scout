@@ -61,40 +61,19 @@ def test_smtp_delivery_service_sends_one_time_key_email() -> None:
     assert sent.recipients == ["builder@example.com"]
     message = message_from_string(sent.message, policy=default)
     assert isinstance(message, EmailMessage)
-    body = str(message.get_content())
+    assert message.get_content_type() == "multipart/alternative"
+    text_part = message.get_body(preferencelist=("plain",))
+    assert text_part is not None
+    body = str(text_part.get_content())
     assert message["Subject"] == "Your Scout beta tester API key is ready"
+    assert message["Reply-To"] == "support@scout.chowmes.com"
     assert "Hi Builder Person," in body
-    assert "I'm glad to have you testing Scout." in body
-    assert "Your beta trial includes 1,000 standard credits for 30 days." in body
-    assert "This is not unlimited hosted crawling." in body
-    assert (
-        "1 scrape, 1 returned crawl page, or 1 product/intelligence record = 1 standard credit."
-        in body
-    )
-    assert "Your beta trial also includes 100 hosted browser credits." in body
-    assert "Hosted browser work draws from the separate browser-credit balance." in body
-    assert "Use this key as a Bearer token" in body
-    assert "First hosted scrape:" in body
-    assert "https://scout.chowmes.com/v1/hosted/scrape" in body
-    assert '"url":"https://example.com"' in body
-    assert "Account and balance:" in body
-    assert "https://scout.chowmes.com/account" in body
-    assert "Usage ledger:" in body
-    assert "https://scout.chowmes.com/v1/hosted/usage" in body
-    assert "Purchase history:" in body
-    assert "https://scout.chowmes.com/v1/hosted/purchases" in body
-    assert "Stripe billing portal:" in body
-    assert "https://scout.chowmes.com/docs" in body
-    assert "https://scout.chowmes.com/pricing" in body
+    assert "1,000 credits" in body
     assert "scout_live_test_key" in body
-    assert "tenant_123" in body
-    assert "key_123" in body
-    assert (
-        "Do not paste this key into frontend code, screenshots, tickets, or public repos." in body
-    )
-    assert "Reply to this email with your use case, target site, and any failing run ID." in body
-    assert "Founder, Chowmes" in body
-    assert "Arijit Chowdhury" in body
+    assert "https://scout.chowmes.com/docs" in body
+    assert "https://scout.chowmes.com/#playground" in body
+    assert "support@scout.chowmes.com" in body
+    assert "— Arijit, Scout" in body
 
 
 def test_beta_key_email_uses_actual_credit_and_trial_values() -> None:
@@ -121,12 +100,15 @@ def test_beta_key_email_uses_actual_credit_and_trial_values() -> None:
     sent = smtp_factory.client.messages[0]
     message = message_from_string(sent.message, policy=default)
     assert isinstance(message, EmailMessage)
-    body = str(message.get_content())
+    text_part = message.get_body(preferencelist=("plain",))
+    assert text_part is not None
+    body = str(text_part.get_content())
 
     assert result.delivered is True
-    assert "Your beta trial includes 250 standard credits for 14 days." in body
-    assert "Your beta trial also includes 3 hosted browser credits." in body
-    assert "100 standard credits for 30 days" not in body
+    assert "250 credits" in body
+    assert "14 days" in body
+    assert "1,000 credits" not in body
+    assert "30 days" not in body
 
 
 def test_smtp_delivery_service_sends_paid_credit_email_without_beta_trial_claims() -> None:
@@ -201,6 +183,85 @@ def test_smtp_delivery_service_sends_smoke_test_email_without_real_key_claims() 
     assert "scout_live_test_key" not in body
     assert "Arijit Chowdhury" in body
     assert "Founder, Chowmes" in body
+
+
+def test_beta_delivery_email_is_multipart_alternative_with_html() -> None:
+    smtp_factory = FakeSmtpFactory()
+    service = SmtpHostedApiKeyDeliveryService(
+        config=SmtpHostedApiKeyDeliveryConfig(
+            host="smtp.example.com",
+            port=587,
+            from_email="scout@example.com",
+            username="scout-user",
+            password="smtp-secret",
+            use_tls=True,
+        ),
+        smtp_factory=smtp_factory,
+    )
+
+    result = service.deliver(
+        _delivery_request(standard_credits=10000, browser_credits=100, trial_days=30)
+    )
+    sent = smtp_factory.client.messages[0]
+    message = message_from_string(sent.message, policy=default)
+    assert isinstance(message, EmailMessage)
+
+    assert result.delivered is True
+    assert message.get_content_type() == "multipart/alternative"
+
+    text_part = message.get_body(preferencelist=("plain",))
+    html_part = message.get_body(preferencelist=("html",))
+    assert text_part is not None
+    assert html_part is not None
+
+    text_body = str(text_part.get_content())
+    html_body = str(html_part.get_content())
+
+    # Raw key present in both parts, exactly once in HTML.
+    assert "scout_live_test_key" in text_body
+    assert html_body.count("scout_live_test_key") == 1
+
+    # No literal placeholder key text leaks into output.
+    assert "sk_live_" not in html_body
+    assert "sk_live_" not in text_body
+
+    # Support line with reply-to language.
+    assert "support@scout.chowmes.com" in html_body
+
+    # Docs + playground links present.
+    assert "https://scout.chowmes.com/docs" in html_body
+    assert "https://scout.chowmes.com/#playground" in html_body
+
+    # Credits/trial copy derived from request fields with thousands separators.
+    assert "10,000" in html_body
+    assert "100" in html_body
+    assert "30" in html_body
+
+    # Reply-To header set on delivery emails.
+    assert message["Reply-To"] == "support@scout.chowmes.com"
+
+
+def test_smoke_test_email_remains_plaintext_only() -> None:
+    smtp_factory = FakeSmtpFactory()
+    service = SmtpHostedApiKeyDeliveryService(
+        config=SmtpHostedApiKeyDeliveryConfig(
+            host="smtp.example.com",
+            port=587,
+            from_email="scout@example.com",
+            username="scout-user",
+            password="smtp-secret",
+            use_tls=True,
+        ),
+        smtp_factory=smtp_factory,
+    )
+
+    result = service.deliver(_delivery_request(smoke_test=True))
+    sent = smtp_factory.client.messages[0]
+    message = message_from_string(sent.message, policy=default)
+    assert isinstance(message, EmailMessage)
+
+    assert result.delivered is True
+    assert message.get_content_type() == "text/plain"
 
 
 def test_smtp_delivery_service_returns_failure_when_send_fails() -> None:

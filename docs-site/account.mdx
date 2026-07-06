@@ -1,0 +1,74 @@
+---
+title: Account
+description: Check your plan, usage history, and purchase history — and keep your key safe.
+---
+
+Three read endpoints cover account visibility. All require your Bearer key and return no secret material.
+
+## Account summary — `GET /v1/hosted/me`
+
+```bash
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+```
+
+Returns:
+
+```json
+{
+  "tenant_id": "tn_...",
+  "key_id": "key_...",
+  "plan": "hosted_monthly",
+  "account_status": "active",
+  "balance": {
+    "standard_credits_remaining": 48210,
+    "browser_credits_remaining": 950
+  },
+  "limits": {
+    "max_pages_per_run": 200
+  },
+  "usage_summary": {
+    "total_events": 34,
+    "standard_credits_used": 1790,
+    "browser_credits_used": 50,
+    "usage_url": "/v1/hosted/usage"
+  },
+  "purchase_summary": {
+    "total_purchases": 0,
+    "total_amount_cents": 0,
+    "currency": "",
+    "purchases_url": "/v1/hosted/purchases"
+  },
+  "links": {
+    "usage": "/v1/hosted/usage",
+    "purchases": "/v1/hosted/purchases",
+    "billing_portal": "/v1/billing/stripe/customer-portal-session",
+    "docs": "https://scout.chowmes.com/docs",
+    "pricing": "https://scout.chowmes.com/pricing"
+  }
+}
+```
+
+## Usage ledger — `GET /v1/hosted/usage`
+
+```bash
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/usage?limit=100" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+```
+
+Returns recent credit-ledger entries: which action ran, how many credits it cost, and the balance after.
+
+## Purchase history — `GET /v1/hosted/purchases`
+
+```bash
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/purchases?limit=100" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+```
+
+Returns checkout/package purchase records for pay-go credit packs.
+
+## Key safety
+
+- Your key only ever arrives once, by email, in plaintext. Scout stores only a hash of it server-side — it cannot be retrieved again.
+- Never paste a hosted API key into frontend code, public repos, screenshots, support tickets, or shared logs.
+- Lost your key? There is no self-serve reissue button. Email [support@scout.chowmes.com](mailto:support@scout.chowmes.com) — the old key is disabled and a replacement is emailed to the same address. See [Support](/support).

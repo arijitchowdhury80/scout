@@ -1,0 +1,53 @@
+---
+title: Map
+description: Discover the URLs on a site without fetching page content.
+---
+
+`POST /v1/hosted/map` — costs **1 standard credit per URL discovered** (capped by `max_pages` and your plan limit). This is the cheapest way to see what's on a domain before committing to a crawl.
+
+## Request
+
+Fields on `MapRequest`:
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `url` | string | — | required |
+| `max_pages` | int | `100` | cap on URLs returned |
+| `url_pattern` | string | `""` | restrict to matching URLs |
+| `include_external` | bool | `false` | include off-domain URLs |
+| `stealth` | bool | `false` | enable stealth fetch mode |
+
+```bash
+curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/map" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.wikimedia.org/","max_pages":5}'
+```
+
+## Response
+
+`MapResponse`, wrapped in hosted usage metadata:
+
+```json
+{
+  "success": true,
+  "hosted": {
+    "tenant_id": "tn_...",
+    "key_id": "key_...",
+    "credits_charged": 5,
+    "credit_type": "standard"
+  },
+  "map": {
+    "success": true,
+    "start_url": "https://www.wikimedia.org/",
+    "urls": [
+      "https://www.wikimedia.org/",
+      "https://www.wikimedia.org/about"
+    ],
+    "total": 5,
+    "duration_ms": 640
+  }
+}
+```
+
+This is one of the two endpoints available in the anonymous homepage playground (the other is scrape) — it's fast and cheap enough to demo live.

@@ -1,0 +1,107 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Scout",
+  "colors": {
+    "primary": "#0E8A61",
+    "light": "#47DBA0",
+    "dark": "#143C2B"
+  },
+  "favicon": "/logo/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "index",
+              "quickstart",
+              "credits"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "endpoints/scrape",
+              "endpoints/crawl",
+              "endpoints/map",
+              "endpoints/screenshot",
+              "endpoints/products",
+              "endpoints/company"
+            ]
+          },
+          {
+            "group": "Account and destinations",
+            "pages": [
+              "destinations",
+              "account"
+            ]
+          },
+          {
+            "group": "Help",
+            "pages": [
+              "support"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Endpoints",
+            "pages": [
+              "endpoints/scrape",
+              "endpoints/crawl",
+              "endpoints/map",
+              "endpoints/screenshot",
+              "endpoints/products",
+              "endpoints/company"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/reticle.svg",
+    "dark": "/logo/reticle.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@scout.chowmes.com"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get API key",
+      "href": "https://scout.chowmes.com/beta"
+    }
+  },
+  "footer": {
+    "socials": {},
+    "links": [
+      {
+        "header": "Scout",
+        "items": [
+          {
+            "label": "Home",
+            "href": "https://scout.chowmes.com"
+          },
+          {
+            "label": "Playground",
+            "href": "https://scout.chowmes.com/#playground"
+          },
+          {
+            "label": "Support",
+            "href": "mailto:support@scout.chowmes.com"
+          }
+        ]
+      }
+    ]
+  }
+}

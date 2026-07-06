@@ -1,0 +1,84 @@
+---
+title: Quickstart
+description: Get an API key by email and make your first hosted call in under a minute.
+---
+
+## 1. Sign up
+
+Register at [scout.chowmes.com/beta](https://scout.chowmes.com/beta) with your name and email. Scout provisions a hosted account and emails you a one-time API key. There is no self-serve dashboard signup for the key itself — the key only ever arrives by email, and it is shown in plaintext exactly once (in that email).
+
+Under the hood this hits:
+
+```bash
+POST /v1/hosted/beta-key
+Content-Type: application/json
+
+{"name": "Ada Lovelace", "email": "ada@example.com"}
+```
+
+<Note>
+If an account already exists for that email, Scout returns the existing account status instead of a new key — it will not silently double-provision. Lost your key? See [Support](/support).
+</Note>
+
+## 2. Store your key
+
+```bash
+export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
+export SCOUT_HOSTED_API_KEY="scout_live_paste_the_delivered_key"
+```
+
+Never commit this key, log it, or paste it into frontend code. Treat it like a database password.
+
+## 3. Check your account
+
+```bash
+curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
+```
+
+Returns your plan, remaining standard and browser credits, and per-plan limits — no raw key in the response.
+
+## 4. Make your first call
+
+Scrape a single public page and get back markdown plus evidence:
+
+```bash
+curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
+  -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","formats":["markdown"],"timeout_ms":30000}'
+```
+
+## 5. Read the evidence block
+
+The response wraps the scrape result in hosted usage metadata:
+
+```json
+{
+  "success": true,
+  "hosted": {
+    "tenant_id": "tn_...",
+    "key_id": "key_...",
+    "credits_charged": 1,
+    "credit_type": "standard"
+  },
+  "scrape": {
+    "success": true,
+    "url": "https://example.com",
+    "markdown": "# Example Domain\n...",
+    "metadata": {
+      "url": "https://example.com",
+      "crawled_at": "2026-07-06T18:00:00Z",
+      "title": "Example Domain",
+      "word_count": 28
+    },
+    "content_hash": "sha256:...",
+    "quality_score": 0.94,
+    "duration_ms": 812
+  }
+}
+```
+
+`hosted.credits_charged` tells you exactly what this call cost. `scrape.metadata` and `scrape.content_hash` are your evidence — the source, the timestamp, and a hash you can use to detect drift on repeat runs.
+
+From here, see [Endpoints](/endpoints/scrape) for crawl, map, screenshot, products, and company runs, or [Credits](/credits) for how usage adds up against your plan.

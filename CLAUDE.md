@@ -7,7 +7,10 @@ Scout is a self-hosted web intelligence platform built on Crawl4AI. It replaces 
 ## Resume Context
 
 - **SESSION.md** — current task, exact resume action, all decisions, remaining work
-- **Memory** — `~/.claude/projects/-Users-arijitchowdhury-AI-Development-Scout/memory/`
+- **Memory** — `~/.claude/projects/-Users-arijitchowdhury-Dropbox-AI-Development-Scout/memory/`
+- **Hosted SaaS is LIVE** (scout.chowmes.com) — LOCKED specs, read before touching design/pricing/UX:
+  `docs/product/design-system.md` · `docs/product/pricing-model-2026-07-06.md` ·
+  `docs/product/plg-playground-ux.md` · `docs/product/launch-readiness-roadmap.md`
 - **Plan** — `~/.claude/plans/hidden-jumping-crayon.md` — 9-phase code-complete plan (approved 2026-06-22)
 - **Workspace** — `docs/workspace/scout-core/` — PRD (with acceptance criteria), pre-mortem, strategy
 
