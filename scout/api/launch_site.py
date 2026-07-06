@@ -149,7 +149,6 @@ async def launch_site_examples() -> FileResponse:
     return _launch_site_page("quickstart.html")
 
 
-
 @router.get("/beta")
 @router.get("/beta.html")
 async def launch_site_beta() -> FileResponse:

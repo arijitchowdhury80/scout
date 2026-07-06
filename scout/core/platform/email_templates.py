@@ -12,20 +12,6 @@ _DOCS_URL = "https://scout.chowmes.com/docs"
 _PLAYGROUND_URL = "https://scout.chowmes.com/#playground"
 _SUPPORT_EMAIL = "support@scout.chowmes.com"
 
-_RETICLE_SVG = (
-    '<svg viewBox="0 0 40 40" width="26" height="26">'
-    '<circle cx="20" cy="20" r="15" fill="none" stroke="#143C2B" stroke-width="4"/>'
-    '<line x1="20" y1="1.5" x2="20" y2="9" stroke="#143C2B" stroke-width="4" '
-    'stroke-linecap="round"/>'
-    '<line x1="20" y1="31" x2="20" y2="38.5" stroke="#143C2B" stroke-width="4" '
-    'stroke-linecap="round"/>'
-    '<line x1="1.5" y1="20" x2="9" y2="20" stroke="#143C2B" stroke-width="4" '
-    'stroke-linecap="round"/>'
-    '<line x1="31" y1="20" x2="38.5" y2="20" stroke="#143C2B" stroke-width="4" '
-    'stroke-linecap="round"/>'
-    '<circle cx="20" cy="20" r="4.2" fill="#C77A1E"/></svg>'
-)
-
 
 def build_beta_key_email(request: "HostedApiKeyDeliveryRequest") -> tuple[str, str, str]:
     """Build (subject, text_body, html_body) for the branded beta key email."""
@@ -70,7 +56,7 @@ def _html_body(
   <tr><td style="padding:40px 44px 0">
     <table role="presentation" cellpadding="0" cellspacing="0"><tr>
       <td style="vertical-align:middle;padding-right:10px">
-        {_RETICLE_SVG}
+        <img src="https://scout.chowmes.com/assets/reticle-52.png" width="26" height="26" alt="Scout" style="display:block;border:0" />
       </td>
       <td style="vertical-align:middle;font-weight:800;font-size:19px;letter-spacing:-.02em;color:#143C2B">Scout</td>
     </tr></table>
