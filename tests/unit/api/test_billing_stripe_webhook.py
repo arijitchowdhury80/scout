@@ -333,6 +333,103 @@ def test_stripe_webhook_beta_trial_for_existing_account_does_not_add_free_credit
     assert "scout_live_" not in response.text
 
 
+def test_stripe_webhook_invoice_paid_resets_subscriber_credits(tmp_path: Path) -> None:
+    account_store = InMemoryHostedAccountStore()
+    account_service = HostedAccountService(account_store)
+    payment_store = SQLiteHostedPaymentStore(tmp_path / "hosted.sqlite")
+    service = HostedPaymentProvisioningService(account_service, payment_store)
+    # Seed an active unlimited subscriber via a completed subscription checkout.
+    checkout_payload = _unlimited_subscription_checkout_event_payload()
+    delivery_service = RecordingKeyDeliveryService()
+    client = _client(service, delivery_service)
+    client.post(
+        "/v1/billing/stripe/webhook",
+        content=checkout_payload,
+        headers={
+            "content-type": "application/json",
+            "Stripe-Signature": _signature_header(checkout_payload),
+        },
+    )
+    seeded = _stored_checkout(payment_store, checkout_session_id="cs_sub_int_001")
+    assert seeded is not None
+    tenant_id = seeded.tenant_id
+    account_service.set_balance(tenant_id, standard_credits=12345, browser_credits=0)
+
+    invoice_payload = _invoice_paid_event_payload()
+    response = client.post(
+        "/v1/billing/stripe/webhook",
+        content=invoice_payload,
+        headers={
+            "content-type": "application/json",
+            "Stripe-Signature": _signature_header(invoice_payload),
+        },
+    )
+    balance = account_service.get_balance(tenant_id)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["ignored"] is False
+    assert balance.standard_credits_remaining == 50000
+    assert "scout_live_" not in response.text
+
+
+def test_stripe_webhook_subscription_deleted_revokes_subscriber(tmp_path: Path) -> None:
+    account_store = InMemoryHostedAccountStore()
+    account_service = HostedAccountService(account_store)
+    payment_store = SQLiteHostedPaymentStore(tmp_path / "hosted.sqlite")
+    service = HostedPaymentProvisioningService(account_service, payment_store)
+    checkout_payload = _unlimited_subscription_checkout_event_payload()
+    client = _client(service, RecordingKeyDeliveryService())
+    client.post(
+        "/v1/billing/stripe/webhook",
+        content=checkout_payload,
+        headers={
+            "content-type": "application/json",
+            "Stripe-Signature": _signature_header(checkout_payload),
+        },
+    )
+    seeded = _stored_checkout(payment_store, checkout_session_id="cs_sub_int_001")
+    assert seeded is not None
+    tenant_id = seeded.tenant_id
+
+    deleted_payload = _subscription_deleted_event_payload()
+    response = client.post(
+        "/v1/billing/stripe/webhook",
+        content=deleted_payload,
+        headers={
+            "content-type": "application/json",
+            "Stripe-Signature": _signature_header(deleted_payload),
+        },
+    )
+    balance = account_service.get_balance(tenant_id)
+    tenant = account_service.get_tenant(tenant_id)
+
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+    assert balance.standard_credits_remaining == 0
+    assert tenant is not None
+    assert tenant.plan is not HostedPlan.HOSTED_UNLIMITED
+
+
+def test_stripe_webhook_invoice_paid_rejects_bad_signature(tmp_path: Path) -> None:
+    payment_store = SQLiteHostedPaymentStore(tmp_path / "hosted.sqlite")
+    service = _payment_service(payment_store)
+    client = _client(service, RecordingKeyDeliveryService())
+
+    response = client.post(
+        "/v1/billing/stripe/webhook",
+        content=_invoice_paid_event_payload(),
+        headers={
+            "content-type": "application/json",
+            "Stripe-Signature": "t=123,v1=wrong",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid Stripe webhook signature."
+
+
 def test_stripe_webhook_ignores_irrelevant_event_type(tmp_path: Path) -> None:
     payment_store = SQLiteHostedPaymentStore(tmp_path / "hosted.sqlite")
     service = _payment_service(payment_store)
@@ -439,6 +536,69 @@ def _standard_1000_checkout_event_payload() -> bytes:
                         "email": "scout-beta-test@example.com",
                         "name": "Builder Person",
                     },
+                }
+            },
+        }
+    )
+
+
+def _unlimited_subscription_checkout_event_payload() -> bytes:
+    """Return an unlimited-subscription checkout.session.completed event payload."""
+    return _event_payload(
+        {
+            "id": "evt_sub_checkout_001",
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_sub_int_001",
+                    "mode": "subscription",
+                    "customer": "cus_sub_int_001",
+                    "subscription": "sub_int_001",
+                    "amount_total": 1200,
+                    "currency": "usd",
+                    "payment_status": "paid",
+                    "metadata": {
+                        "package_id": "unlimited_monthly",
+                        "plan": "hosted_unlimited",
+                        "name": "Builder Person",
+                    },
+                    "customer_details": {
+                        "email": "scout-beta-test@example.com",
+                        "name": "Builder Person",
+                    },
+                }
+            },
+        }
+    )
+
+
+def _invoice_paid_event_payload() -> bytes:
+    """Return a Stripe invoice.paid event payload for the seeded subscriber."""
+    return _event_payload(
+        {
+            "id": "evt_invoice_paid_001",
+            "type": "invoice.paid",
+            "data": {
+                "object": {
+                    "id": "in_int_001",
+                    "customer": "cus_sub_int_001",
+                    "subscription": "sub_int_001",
+                }
+            },
+        }
+    )
+
+
+def _subscription_deleted_event_payload() -> bytes:
+    """Return a Stripe customer.subscription.deleted event payload."""
+    return _event_payload(
+        {
+            "id": "evt_sub_deleted_001",
+            "type": "customer.subscription.deleted",
+            "data": {
+                "object": {
+                    "id": "sub_int_001",
+                    "customer": "cus_sub_int_001",
                 }
             },
         }

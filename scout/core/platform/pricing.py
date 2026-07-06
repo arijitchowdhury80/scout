@@ -22,6 +22,7 @@ class HostedCreditPackage(BaseModel):
     trial_days: int = Field(ge=0)
     requires_payment_method: bool
     is_public_purchase: bool
+    is_subscription: bool = False
     customer_summary: str
 
 
@@ -71,13 +72,13 @@ _PACKAGES = {
         name="Hosted Beta Trial",
         hosted_plan=HostedPlan.HOSTED_BETA_PASS,
         amount_cents=0,
-        standard_credits=1000,
+        standard_credits=10000,
         browser_credits=100,
         trial_days=30,
         requires_payment_method=True,
         is_public_purchase=False,
         customer_summary=(
-            "30-day beta trial with 1,000 standard credits and 100 browser credits for "
+            "30-day beta trial with 10,000 standard credits and 100 browser credits for "
             "registered beta testers — enough to exercise every Scout feature end to end."
         ),
     ),
@@ -119,6 +120,22 @@ _PACKAGES = {
         requires_payment_method=True,
         is_public_purchase=True,
         customer_summary="15,000 standard credits for heavier teams once support and abuse controls are proven.",
+    ),
+    "unlimited_monthly": HostedCreditPackage(
+        package_id="unlimited_monthly",
+        name="Unlimited Monthly",
+        hosted_plan=HostedPlan.HOSTED_UNLIMITED,
+        amount_cents=1200,
+        standard_credits=50000,
+        browser_credits=0,
+        trial_days=0,
+        requires_payment_method=True,
+        is_public_purchase=True,
+        is_subscription=True,
+        customer_summary=(
+            "$12/month unlimited: 25,000 page operations (scrape, crawl, map, screenshot) "
+            "+ 10,000 products + 50 company dossiers every month."
+        ),
     ),
     "browser_100": HostedCreditPackage(
         package_id="browser_100",

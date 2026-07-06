@@ -36,6 +36,8 @@ from scout.core.platform.payment_provisioning import (
     HostedCheckoutProvisioningResult,
     HostedPaymentProvider,
     HostedPaymentProvisioningService,
+    HostedSubscriptionDeletedRequest,
+    HostedSubscriptionInvoiceRequest,
 )
 from scout.core.platform.pricing import (
     DEFAULT_UNIT_ECONOMICS,
@@ -808,7 +810,16 @@ async def stripe_webhook(
     payload = await request.body()
     _verify_stripe_signature(payload, stripe_signature, webhook_secret)
     event = _parse_event(payload)
-    if event.get("type") != "checkout.session.completed":
+    event_type = event.get("type")
+    if event_type == "invoice.paid":
+        return _subscription_result_response(
+            payment_service.process_invoice_paid(_invoice_paid_request(event))
+        )
+    if event_type == "customer.subscription.deleted":
+        return _subscription_result_response(
+            payment_service.process_subscription_deleted(_subscription_deleted_request(event))
+        )
+    if event_type != "checkout.session.completed":
         return StripeWebhookResponse(success=True, ignored=True)
     checkout = _checkout_request(event)
     if not delivery_service.enabled:
@@ -823,6 +834,53 @@ async def stripe_webhook(
         reason=result.reason,
         delivery_status=delivery_status,
     )
+
+
+def _subscription_result_response(
+    result: HostedCheckoutProvisioningResult,
+) -> StripeWebhookResponse:
+    """Translate a subscription lifecycle result to the non-secret webhook shape."""
+    return StripeWebhookResponse(
+        success=result.success,
+        already_processed=result.already_processed,
+        tenant_id=result.tenant_id,
+        reason=result.reason,
+        delivery_status="not_required",
+    )
+
+
+def _invoice_paid_request(event: dict[str, object]) -> HostedSubscriptionInvoiceRequest:
+    """Translate a Stripe invoice.paid event to the hosted domain request."""
+    invoice = _subscription_object(event)
+    return HostedSubscriptionInvoiceRequest(
+        provider=HostedPaymentProvider.STRIPE,
+        invoice_id=str(invoice.get("id", "")),
+        customer_id=str(invoice.get("customer", "")),
+        subscription_id=str(invoice.get("subscription", "")),
+    )
+
+
+def _subscription_deleted_request(
+    event: dict[str, object],
+) -> HostedSubscriptionDeletedRequest:
+    """Translate a Stripe customer.subscription.deleted event to a domain request."""
+    subscription = _subscription_object(event)
+    return HostedSubscriptionDeletedRequest(
+        provider=HostedPaymentProvider.STRIPE,
+        customer_id=str(subscription.get("customer", "")),
+        subscription_id=str(subscription.get("id", "")),
+    )
+
+
+def _subscription_object(event: dict[str, object]) -> dict[str, object]:
+    """Return the ``data.object`` payload from a Stripe subscription-lifecycle event."""
+    data = event.get("data")
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=400, detail="Invalid Stripe subscription event.")
+    obj = data.get("object")
+    if not isinstance(obj, dict):
+        raise HTTPException(status_code=400, detail="Invalid Stripe subscription event.")
+    return obj
 
 
 def _checkout_session_response(
@@ -965,6 +1023,7 @@ def _checkout_request(event: dict[str, object]) -> HostedCheckoutProvisioningReq
         provider=HostedPaymentProvider.STRIPE,
         checkout_session_id=str(session.get("id", "")),
         customer_id=str(session.get("customer", "")),
+        subscription_id=str(session.get("subscription", "")),
         payment_intent_id=_checkout_payment_reference(session),
         email=_checkout_email(session),
         name=_checkout_name(session),

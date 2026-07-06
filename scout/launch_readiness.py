@@ -385,9 +385,11 @@ def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
         "unit economics",
         "unlimited",
     ]
+    # The beta page is a clean self-service signup surface; the hosted pricing
+    # posture (metered / unit economics / unlimited) lives on the pricing and
+    # quickstart pages, not on the signup form.
     website_pages = [
         "website/pricing.html",
-        "website/beta.html",
         "website/quickstart.html",
     ]
 

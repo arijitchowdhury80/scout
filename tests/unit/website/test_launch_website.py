@@ -214,55 +214,51 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert "operator_next_actions" in status_js.text
 
 
-def test_beta_page_uses_email_registration_and_optional_card_setup_without_password() -> None:
-    """The public beta page should support email registration plus optional $0 setup."""
+def test_beta_page_uses_email_registration_without_card_or_password() -> None:
+    """The public beta page is a simple email-only signup — no card, no password."""
     html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
     hosted_keygen = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(encoding="utf-8")
 
-    assert 'id="hostedKeyForm"' in html
+    assert 'id="hostedRegisterForm"' in html
     assert 'data-endpoint="/v1/hosted/beta-key"' in html
-    assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' in html
-    assert 'data-ready-flag="ready_for_beta_checkout"' in html
-    assert 'id="pricingCheckoutForm"' not in html
-    assert "Register for Beta API Key" in html
-    assert "Start $0 Beta Checkout" in html
-    assert "Enter your name and email" in html
-    assert "card-backed" in html.lower()
-    assert 'src="./assets/pricing.js"' not in html
-    assert "window.location.assign" in hosted_keygen
-    assert "checkout_url" in hosted_keygen
-    assert "submitEmailFallback" not in hosted_keygen
-    assert "submitEmailRegistration" in hosted_keygen
-    assert "Checking beta registration readiness" in hosted_keygen
-    assert "Card-backed beta setup" in hosted_keygen
-    assert "blocking_reasons" in hosted_keygen
-    assert "operator_next_actions" in hosted_keygen
-    assert "readinessDetailsMessage" in hosted_keygen
-    assert "form?.dataset.endpoint" in hosted_keygen
-    assert "form.dataset.endpoint" not in hosted_keygen
+    assert 'id="hostedRegEmailBtn"' in html
+    assert "Email me my API key" in html
+    assert "Sign up for the beta" in html
+    # Simple page: no card-backed checkout, no package selection, no password.
+    assert "Start $0 Beta Checkout" not in html
+    assert "data-checkout-endpoint" not in html
+    assert "/v1/billing/stripe/checkout-session" not in html
+    assert 'name="package_id"' not in html
     assert 'type="password"' not in html
     assert 'name="invite_password"' not in html
+    assert 'src="./assets/pricing.js"' not in html
+    # Key delivery is by email only; the browser never shows a raw key.
+    assert "submitEmailRegistration" in hosted_keygen
+    assert "payload.raw_api_key" not in html
+    assert "form?.dataset.endpoint" in hosted_keygen
+    assert "form.dataset.endpoint" not in hosted_keygen
 
 
-def test_beta_page_offers_both_card_backed_and_email_registration() -> None:
-    """Launch UX offers two paths: the recommended $0 card-backed Stripe setup and an
-    email-only register with no card. Neither is hidden once Stripe is configured."""
+def test_beta_page_is_single_email_signup_with_demoted_reissue() -> None:
+    """Launch UX is one primary action — email me my key — plus a demoted reissue row."""
     html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
-    # Card-backed $0 setup is present and NOT hidden.
-    assert 'id="hostedBetaCheckoutForm"' in html
-    checkout_form_open = html.index('id="hostedBetaCheckoutForm"')
-    checkout_form_tag_end = html.index(">", checkout_form_open)
-    assert "hidden" not in html[checkout_form_open:checkout_form_tag_end]
-    assert "Recommended beta path" in normalized_html
-    assert "Start $0 Beta Checkout" in normalized_html
+    assert "Get your Scout API key." in normalized_html
+    assert "10,000 credits. 30 days. Just your email." in normalized_html
+    assert 'id="hostedRegisterForm"' in html
+    assert "Email me my API key" in normalized_html
+    assert "No credit card." in normalized_html
 
-    # Email-only register is also present as the no-card path.
-    assert "Register for your Beta Tester API Key" in normalized_html
-    assert 'id="hostedKeyForm"' in html
-    assert 'data-endpoint="/v1/hosted/beta-key"' in html
-    assert "no credit card required" in normalized_html.lower()
+    # No card path is present.
+    assert "Recommended beta path" not in normalized_html
+    assert "Start $0 Beta Checkout" not in normalized_html
+    assert 'id="hostedBetaCheckoutForm"' not in html
+
+    # Demoted reissue row is present.
+    assert 'id="hostedKeyReissueForm"' in html
+    assert "Lost your API key?" in normalized_html
+    assert "Email replacement key" in normalized_html
 
 
 def test_launch_website_uses_flux_not_warm_industrial() -> None:
@@ -433,7 +429,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Operator local verification",
             "Beta trial",
             "Hosted beta tester key",
-            "Beta access starts with $0 card-backed setup",
+            "Beta access is a simple email signup",
             "$10",
             "1,000 standard credits",
             "Pay-as-you-go candidate",
@@ -478,27 +474,15 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "docs/product/founder-decision-record-SCOUT-DEC-YYYYMMDD-NN.md",
         ],
         "beta.html": [
-            "Scout Private Beta",
-            "Register for your beta tester API key",
-            "Tester handoff packet",
-            "docs/product/private-beta-tester-handoff.md",
-            "Hosted beta registration",
-            "No credit card required",
-            "Scout provisions your hosted beta account and emails your API key",
-            "Register for Beta API Key",
-            "1,000 standard credits and 100",
-            "browser credits",
+            "Get your Scout API key.",
+            "10,000 credits. 30 days. Just your email.",
+            "Sign up for the beta",
+            "Email me my API key",
+            "No credit card.",
             "/v1/hosted/beta-key",
-            "Private beta is hosted HTTP first",
-            "Run the launch readiness checker.",
-            "scout launch-readiness",
-            "ready_with_limits",
-            "--require-public",
-            "Beta support is evidence-first.",
-            "private beta bug template",
-            "private beta feature template",
-            "Keep secrets out",
-            "Security reports should not be filed as public issues.",
+            "10,000 credits is plenty",
+            "Lost your API key?",
+            "Email replacement key",
         ],
         "legal.html": [
             "Scout Legal And Third-Party Notices",
@@ -585,8 +569,13 @@ def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
         "Break-even: 17 packs/month",
         "Beta trial",
         "30 days",
-        "1,000 standard credits and 100 browser credits",
-        "Beta access starts with $0 card-backed setup",
+        "10,000 standard credits and 100 browser credits",
+        "Beta access is a simple email signup",
+        "$12/mo",
+        "25,000 page operations",
+        "10,000 products",
+        "50 company dossiers",
+        "unlimited_monthly",
     ]
 
     for expected in expected_strings:
@@ -629,49 +618,39 @@ def test_beta_signup_uses_email_registration_without_password_or_browser_key_dis
     pricing_js = (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
-    assert 'id="hostedKeyForm"' in html
+    assert 'id="hostedRegisterForm"' in html
     assert 'data-endpoint="/v1/hosted/beta-key"' in html
-    assert 'data-checkout-endpoint="/v1/billing/stripe/checkout-session"' in html
-    assert "Register for Beta API Key" in normalized_html
-    assert "Start $0 Beta Checkout" in normalized_html
+    assert 'data-status-endpoint="/v1/billing/stripe/status"' in html
+    assert 'id="hostedRegEmailBtn"' in html
+    assert "Email me my API key" in normalized_html
     assert 'name="name"' in html
     assert 'name="email"' in html
-    assert 'data-status-endpoint="/v1/billing/stripe/status"' in html
-    assert 'name="package_id" type="hidden" value="beta_trial"' in html
-    assert "Register for your beta tester API key." in normalized_html
-    assert "No credit card required" in normalized_html
-    assert "card-backed" in normalized_html.lower()
-    assert "Scout provisions your hosted beta account and emails your API key" in normalized_html
-    assert "1,000 standard credits and 100" in normalized_html
-    assert "browser credits" in normalized_html
-    assert "/v1/billing/stripe/status" in html
-    assert 'id="pricingCheckoutForm"' not in html
-    assert 'data-ready-flag="ready_for_beta_checkout"' in html
-    assert "/v1/billing/stripe/checkout-session" in html
+    assert 'name="key_name" type="hidden"' in html
+    assert "10,000 credits. 30 days. Just your email." in normalized_html
+    assert "No credit card." in normalized_html
+    # Simple page: no card checkout, no package selection, no password, no raw key in browser.
+    assert 'id="hostedBetaCheckoutForm"' not in html
+    assert "Start $0 Beta Checkout" not in normalized_html
+    assert 'name="package_id"' not in html
     assert 'src="./assets/pricing.js"' not in html
     assert "payload.raw_api_key" not in html
     assert "payload.raw_api_key" not in hosted_keygen_js
-    assert "submitEmailFallback" not in hosted_keygen_js
-    assert "submitEmailRegistration" in hosted_keygen_js
-    assert "Checking beta registration readiness" in hosted_keygen_js
-    assert "Card-backed beta setup" in hosted_keygen_js
-    assert "Use the email beta key path" not in pricing_js
+    assert 'type="password"' not in html
+    assert 'name="invite_password"' not in html
     # Status-check form removed (delivery is instant; the reissue form remains).
     assert 'id="hostedKeyStatusForm"' not in html
     assert 'id="hostedKeyReissueForm"' in html
     assert 'data-reissue-endpoint="/v1/hosted/beta-key/reissue"' in html
     assert "Lost your API key?" in normalized_html
     assert "Email replacement key" in normalized_html
+    # JS wires email registration + reissue.
+    assert "submitEmailFallback" not in hosted_keygen_js
+    assert "submitEmailRegistration" in hosted_keygen_js
     assert "/v1/hosted/beta-key/reissue" in hosted_keygen_js
     assert "Requesting a replacement API key" in hosted_keygen_js
-    assert "beta_signup_enabled" in hosted_keygen_js
-    assert "ready_for_beta_key_delivery" in hosted_keygen_js
-    assert "ready_for_beta_checkout" in hosted_keygen_js
-    assert "operator_next_actions" in hosted_keygen_js
-    assert "window.location.assign" in hosted_keygen_js
-    assert "Hosted beta key registration is paused" not in hosted_keygen_js
-    assert 'type="password"' not in html
-    assert 'name="invite_password"' not in html
+    assert "form?.dataset.endpoint" in hosted_keygen_js
+    assert "form.dataset.endpoint" not in hosted_keygen_js
+    assert "Use the email beta key path" not in pricing_js
 
 
 def test_public_website_describes_self_service_beta_not_invite_only() -> None:
@@ -728,7 +707,9 @@ def test_account_page_lets_hosted_users_inspect_usage_without_login() -> None:
 
 
 def test_command_docs_include_copy_code_behavior() -> None:
-    for page_name in ("quickstart.html", "status.html", "beta.html"):
+    # The beta page is a clean signup form with no CLI snippets; copy-code docs
+    # live on the docs and status pages.
+    for page_name in ("quickstart.html", "status.html"):
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
 
         assert "<pre><code>" in html
@@ -822,7 +803,7 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/pricing": "Scout Pricing",
         "/examples": "Scout Docs",
         "/status": "Scout Launch Status",
-        "/beta": "Scout Private Beta",
+        "/beta": "Get your Scout API key.",
         "/account": "Scout Hosted Account",
         "/legal": "Scout Legal And Third-Party Notices",
         "/terms": "Scout Beta Terms Placeholder",
@@ -833,7 +814,7 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/pricing.html": "Scout Pricing",
         "/examples.html": "Scout Docs",
         "/status.html": "Scout Launch Status",
-        "/beta.html": "Scout Private Beta",
+        "/beta.html": "Get your Scout API key.",
         "/account.html": "Scout Hosted Account",
         "/legal.html": "Scout Legal And Third-Party Notices",
         "/terms.html": "Scout Beta Terms Placeholder",

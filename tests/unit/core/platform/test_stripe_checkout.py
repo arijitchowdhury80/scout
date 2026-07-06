@@ -127,6 +127,62 @@ def test_stripe_checkout_creates_standard_credit_payment_session() -> None:
     }
 
 
+def test_stripe_checkout_creates_unlimited_subscription_session() -> None:
+    transport = RecordingStripeCheckoutTransport()
+    service = StripeCheckoutService(
+        StripeCheckoutConfig(
+            secret_key="sk_test_secret",
+            unlimited_price_id="price_unlimited_monthly",
+            success_url="https://scout.example/success",
+            cancel_url="https://scout.example/cancel",
+        ),
+        transport=transport,
+    )
+
+    result = service.create_checkout_session(
+        StripeCheckoutRequest(
+            email="builder@example.com",
+            name="Builder Person",
+            package_id="unlimited_monthly",
+        )
+    )
+
+    assert result.success is True
+    assert transport.calls[0]["data"] == {
+        "mode": "subscription",
+        "customer_creation": "always",
+        "line_items[0][price]": "price_unlimited_monthly",
+        "line_items[0][quantity]": "1",
+        "success_url": "https://scout.example/success",
+        "cancel_url": "https://scout.example/cancel",
+        "customer_email": "builder@example.com",
+        "metadata[name]": "Builder Person",
+        "metadata[package_id]": "unlimited_monthly",
+        "metadata[plan]": "hosted_unlimited",
+        "metadata[product]": "scout_hosted",
+    }
+
+
+def test_stripe_checkout_rejects_unlimited_subscription_without_price_id() -> None:
+    transport = RecordingStripeCheckoutTransport()
+    service = StripeCheckoutService(
+        StripeCheckoutConfig(
+            secret_key="sk_test_secret",
+            success_url="https://scout.example/success",
+            cancel_url="https://scout.example/cancel",
+        ),
+        transport=transport,
+    )
+
+    result = service.create_checkout_session(
+        StripeCheckoutRequest(email="builder@example.com", package_id="unlimited_monthly")
+    )
+
+    assert result.success is False
+    assert result.reason == "Stripe price is not configured for package unlimited_monthly."
+    assert transport.calls == []
+
+
 def test_stripe_checkout_rejects_paid_package_without_price_id() -> None:
     transport = RecordingStripeCheckoutTransport()
     service = StripeCheckoutService(

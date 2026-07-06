@@ -29,11 +29,16 @@ PRICE_ENV_KEYS = {
 
 
 def public_paid_packages() -> list[HostedCreditPackage]:
-    """Return hosted packages that need public Stripe price IDs."""
+    """Return hosted packages that need one-time Stripe price IDs.
+
+    Subscriptions (e.g. unlimited_monthly) are intentionally excluded: they need
+    a *recurring* Stripe price created out-of-band via STRIPE_UNLIMITED_PRICE_ID,
+    not the one-time prices this bootstrap creates.
+    """
     return [
         package
         for package in credit_packages()
-        if package.is_public_purchase and package.amount_cents > 0
+        if package.is_public_purchase and package.amount_cents > 0 and not package.is_subscription
     ]
 
 

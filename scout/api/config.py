@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     stripe_standard_3000_price_id: str = ""
     stripe_standard_15000_price_id: str = ""
     stripe_browser_100_price_id: str = ""
+    stripe_unlimited_price_id: str = ""
     stripe_success_url: str = ""
     stripe_cancel_url: str = ""
     stripe_beta_success_url: str = ""

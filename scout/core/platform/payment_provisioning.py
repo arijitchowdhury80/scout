@@ -35,6 +35,7 @@ class HostedCheckoutProvisioningRequest(BaseModel):
     provider: HostedPaymentProvider = HostedPaymentProvider.STRIPE
     checkout_session_id: str = Field(min_length=1)
     customer_id: str = ""
+    subscription_id: str = ""
     payment_intent_id: str = ""
     email: EmailStr
     name: str = ""
@@ -59,8 +60,26 @@ class HostedCheckoutProvisioningRecord(BaseModel):
     amount_total_cents: int
     currency: str
     customer_id: str = ""
+    subscription_id: str = ""
     payment_intent_id: str = ""
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+
+
+class HostedSubscriptionInvoiceRequest(BaseModel):
+    """Stripe invoice.paid data needed to reset a hosted subscription grant."""
+
+    provider: HostedPaymentProvider = HostedPaymentProvider.STRIPE
+    invoice_id: str = Field(min_length=1)
+    customer_id: str = ""
+    subscription_id: str = ""
+
+
+class HostedSubscriptionDeletedRequest(BaseModel):
+    """Stripe customer.subscription.deleted data needed to revoke a hosted grant."""
+
+    provider: HostedPaymentProvider = HostedPaymentProvider.STRIPE
+    customer_id: str = ""
+    subscription_id: str = Field(min_length=1)
 
 
 class HostedCheckoutProvisioningResult(BaseModel):
@@ -92,6 +111,29 @@ class HostedPaymentStore(Protocol):
         tenant_id: str = "",
     ) -> list[HostedCheckoutProvisioningRecord]: ...
 
+    def find_tenant_id_by_customer_or_subscription(
+        self,
+        *,
+        provider: HostedPaymentProvider,
+        customer_id: str = "",
+        subscription_id: str = "",
+    ) -> str: ...
+
+    def mark_event_processed(
+        self,
+        *,
+        provider: HostedPaymentProvider,
+        event_kind: str,
+        event_id: str,
+        tenant_id: str,
+    ) -> bool:
+        """Record a processed subscription event, returning True on first sight.
+
+        Returns False when the (provider, event_kind, event_id) key was already
+        recorded, so callers can suppress replayed side effects idempotently.
+        """
+        ...
+
 
 class SQLiteHostedPaymentStore:
     """SQLite payment event store for hosted checkout idempotency."""
@@ -111,7 +153,8 @@ class SQLiteHostedPaymentStore:
             row = conn.execute(
                 """
                 SELECT provider, checkout_session_id, tenant_id, key_id, email, package_id, plan,
-                       amount_total_cents, currency, customer_id, payment_intent_id, created_at
+                       amount_total_cents, currency, customer_id, subscription_id,
+                       payment_intent_id, created_at
                 FROM hosted_payment_checkouts
                 WHERE provider = ? AND checkout_session_id = ?
                 """,
@@ -128,8 +171,9 @@ class SQLiteHostedPaymentStore:
                 """
                 INSERT INTO hosted_payment_checkouts
                 (provider, checkout_session_id, tenant_id, key_id, email, package_id, plan,
-                 amount_total_cents, currency, customer_id, payment_intent_id, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 amount_total_cents, currency, customer_id, subscription_id,
+                 payment_intent_id, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 _record_values(record),
             )
@@ -153,7 +197,8 @@ class SQLiteHostedPaymentStore:
             rows = conn.execute(
                 f"""
                 SELECT provider, checkout_session_id, tenant_id, key_id, email, package_id, plan,
-                       amount_total_cents, currency, customer_id, payment_intent_id, created_at
+                       amount_total_cents, currency, customer_id, subscription_id,
+                       payment_intent_id, created_at
                 FROM hosted_payment_checkouts
                 {where_clause}
                 ORDER BY created_at DESC, checkout_session_id DESC
@@ -162,6 +207,63 @@ class SQLiteHostedPaymentStore:
                 params,
             ).fetchall()
         return [_record_from_row(row) for row in rows]
+
+    def find_tenant_id_by_customer_or_subscription(
+        self,
+        *,
+        provider: HostedPaymentProvider,
+        customer_id: str = "",
+        subscription_id: str = "",
+    ) -> str:
+        """Return the newest tenant linked to a Stripe customer or subscription."""
+        customer = customer_id.strip()
+        subscription = subscription_id.strip()
+        if not customer and not subscription:
+            return ""
+        with self._connect() as conn:
+            row = conn.execute(
+                """
+                SELECT tenant_id
+                FROM hosted_payment_checkouts
+                WHERE provider = ?
+                  AND (
+                    (? != '' AND subscription_id = ?)
+                    OR (? != '' AND customer_id = ?)
+                  )
+                ORDER BY created_at DESC, checkout_session_id DESC
+                LIMIT 1
+                """,
+                (provider.value, subscription, subscription, customer, customer),
+            ).fetchone()
+        if row is None:
+            return ""
+        return str(row["tenant_id"])
+
+    def mark_event_processed(
+        self,
+        *,
+        provider: HostedPaymentProvider,
+        event_kind: str,
+        event_id: str,
+        tenant_id: str,
+    ) -> bool:
+        """Record a processed subscription event; return True only on first sight."""
+        with self._connect() as conn:
+            cursor = conn.execute(
+                """
+                INSERT OR IGNORE INTO hosted_payment_events
+                (provider, event_kind, event_id, tenant_id, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    provider.value,
+                    event_kind,
+                    event_id,
+                    tenant_id,
+                    datetime.now(UTC).isoformat(),
+                ),
+            )
+        return cursor.rowcount == 1
 
     def _connect(self) -> sqlite3.Connection:
         """Open a configured SQLite connection."""
@@ -191,11 +293,29 @@ class SQLiteHostedPaymentStore:
                 )
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS hosted_payment_events (
+                  provider TEXT NOT NULL,
+                  event_kind TEXT NOT NULL,
+                  event_id TEXT NOT NULL,
+                  tenant_id TEXT NOT NULL,
+                  created_at TEXT NOT NULL,
+                  PRIMARY KEY (provider, event_kind, event_id)
+                )
+                """
+            )
             _ensure_column(
                 conn,
                 table="hosted_payment_checkouts",
                 column="package_id",
                 definition="TEXT NOT NULL DEFAULT 'beta_trial'",
+            )
+            _ensure_column(
+                conn,
+                table="hosted_payment_checkouts",
+                column="subscription_id",
+                definition="TEXT NOT NULL DEFAULT ''",
             )
 
 
@@ -230,7 +350,19 @@ class HostedPaymentProvisioningService:
         effective_plan = package.hosted_plan
         existing_tenant = self.account_service.find_tenant_by_email(str(request.email))
         if existing_tenant is not None:
-            if package.amount_cents > 0:
+            if package.is_subscription:
+                # Subscription checkout SETs the monthly grant (no rollover) and
+                # upgrades onto the recurring plan; it never stacks on prior credits.
+                self.account_service.set_balance(
+                    existing_tenant.tenant_id,
+                    standard_credits=package.standard_credits,
+                    browser_credits=package.browser_credits,
+                )
+                effective_plan = self.account_service.upgrade_tenant_plan(
+                    existing_tenant.tenant_id,
+                    effective_plan,
+                )
+            elif package.amount_cents > 0:
                 self.account_service.add_credits(
                     existing_tenant.tenant_id,
                     standard_credits=package.standard_credits,
@@ -281,6 +413,94 @@ class HostedPaymentProvisioningService:
             key_id=provisioned.api_key.key_id,
             plan=effective_plan,
             raw_api_key=provisioned.raw_api_key,
+        )
+
+    def process_invoice_paid(
+        self,
+        request: HostedSubscriptionInvoiceRequest,
+    ) -> HostedCheckoutProvisioningResult:
+        """Reset a subscriber's monthly grant to the full amount, once per invoice.
+
+        SETs standard credits to the plan grant (no rollover, no add). Idempotent
+        by invoice id so a redelivered ``invoice.paid`` never double-resets.
+        """
+        tenant_id = self.payment_store.find_tenant_id_by_customer_or_subscription(
+            provider=request.provider,
+            customer_id=request.customer_id,
+            subscription_id=request.subscription_id,
+        )
+        if tenant_id == "":
+            return HostedCheckoutProvisioningResult(
+                success=False,
+                reason="No hosted subscriber is linked to this Stripe invoice.",
+            )
+        first_time = self.payment_store.mark_event_processed(
+            provider=request.provider,
+            event_kind="invoice_paid",
+            event_id=request.invoice_id,
+            tenant_id=tenant_id,
+        )
+        if not first_time:
+            return HostedCheckoutProvisioningResult(
+                success=True,
+                already_processed=True,
+                tenant_id=tenant_id,
+                plan=HostedPlan.HOSTED_UNLIMITED,
+            )
+        grant = get_credit_package("unlimited_monthly")
+        self.account_service.set_balance(
+            tenant_id,
+            standard_credits=grant.standard_credits,
+            browser_credits=grant.browser_credits,
+        )
+        return HostedCheckoutProvisioningResult(
+            success=True,
+            tenant_id=tenant_id,
+            plan=HostedPlan.HOSTED_UNLIMITED,
+        )
+
+    def process_subscription_deleted(
+        self,
+        request: HostedSubscriptionDeletedRequest,
+    ) -> HostedCheckoutProvisioningResult:
+        """Revoke a cancelled subscriber: downgrade off UNLIMITED and zero the grant.
+
+        Idempotent by subscription id so a redelivered deletion event never
+        re-zeros a balance an operator may have restored.
+        """
+        tenant_id = self.payment_store.find_tenant_id_by_customer_or_subscription(
+            provider=request.provider,
+            customer_id=request.customer_id,
+            subscription_id=request.subscription_id,
+        )
+        if tenant_id == "":
+            return HostedCheckoutProvisioningResult(
+                success=False,
+                reason="No hosted subscriber is linked to this Stripe subscription.",
+            )
+        first_time = self.payment_store.mark_event_processed(
+            provider=request.provider,
+            event_kind="subscription_deleted",
+            event_id=request.subscription_id,
+            tenant_id=tenant_id,
+        )
+        if not first_time:
+            return HostedCheckoutProvisioningResult(
+                success=True,
+                already_processed=True,
+                tenant_id=tenant_id,
+                plan=HostedPlan.LOCAL_FREE,
+            )
+        self.account_service.set_balance(
+            tenant_id,
+            standard_credits=0,
+            browser_credits=0,
+        )
+        self.account_service.downgrade_tenant_plan(tenant_id, HostedPlan.LOCAL_FREE)
+        return HostedCheckoutProvisioningResult(
+            success=True,
+            tenant_id=tenant_id,
+            plan=HostedPlan.LOCAL_FREE,
         )
 
 
@@ -349,6 +569,7 @@ def _record_from_request(
         amount_total_cents=request.amount_total_cents,
         currency=request.currency.lower(),
         customer_id=request.customer_id,
+        subscription_id=request.subscription_id,
         payment_intent_id=request.payment_intent_id,
     )
 
@@ -366,6 +587,7 @@ def _record_from_row(row: sqlite3.Row) -> HostedCheckoutProvisioningRecord:
         amount_total_cents=row["amount_total_cents"],
         currency=row["currency"],
         customer_id=row["customer_id"],
+        subscription_id=row["subscription_id"],
         payment_intent_id=row["payment_intent_id"],
         created_at=row["created_at"],
     )
@@ -384,6 +606,7 @@ def _record_values(record: HostedCheckoutProvisioningRecord) -> tuple[object, ..
         record.amount_total_cents,
         record.currency,
         record.customer_id,
+        record.subscription_id,
         record.payment_intent_id,
         record.created_at,
     )

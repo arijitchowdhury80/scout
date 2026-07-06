@@ -13,6 +13,7 @@ class HostedPlan(str, Enum):
     LOCAL_FREE = "local_free"
     HOSTED_BETA_PASS = "hosted_beta_pass"
     HOSTED_STARTER = "hosted_starter"
+    HOSTED_UNLIMITED = "hosted_unlimited"
     HOSTED_PRO = "hosted_pro"
 
 
@@ -89,7 +90,7 @@ def plan_limits(plan: HostedPlan) -> HostedPlanLimits:
         HostedPlan.HOSTED_BETA_PASS: HostedPlanLimits(
             plan=plan,
             hosted_enabled=True,
-            standard_credits=1000,
+            standard_credits=10000,
             browser_credits=100,
             artifact_retention_days=7,
             max_pages_per_run=25,
@@ -101,6 +102,15 @@ def plan_limits(plan: HostedPlan) -> HostedPlanLimits:
             standard_credits=5000,
             browser_credits=250,
             artifact_retention_days=14,
+            max_pages_per_run=250,
+            max_concurrent_runs=2,
+        ),
+        HostedPlan.HOSTED_UNLIMITED: HostedPlanLimits(
+            plan=plan,
+            hosted_enabled=True,
+            standard_credits=50000,
+            browser_credits=0,
+            artifact_retention_days=30,
             max_pages_per_run=250,
             max_concurrent_runs=2,
         ),

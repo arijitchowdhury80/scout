@@ -22,6 +22,7 @@ class StripeCheckoutConfig(BaseModel):
     standard_3000_price_id: str = ""
     standard_15000_price_id: str = ""
     browser_100_price_id: str = ""
+    unlimited_price_id: str = ""
     success_url: str = ""
     cancel_url: str = ""
     beta_success_url: str = ""
@@ -47,6 +48,7 @@ class StripeCheckoutConfig(BaseModel):
             "standard_3000": self.standard_3000_price_id,
             "standard_15000": self.standard_15000_price_id,
             "browser_100": self.browser_100_price_id,
+            "unlimited_monthly": self.unlimited_price_id,
         }
         return price_ids.get(package_id, "")
 
@@ -208,7 +210,25 @@ class StripeCheckoutService:
             package = get_credit_package(request.package_id)
         except ValueError as exc:
             return StripeCheckoutResult(success=False, reason=str(exc))
-        if package.amount_cents == 0:
+        if package.is_subscription:
+            price_id = self._config.price_id_for_package(package.package_id)
+            if price_id == "":
+                return StripeCheckoutResult(
+                    success=False,
+                    reason=f"Stripe price is not configured for package {package.package_id}.",
+                )
+            data = {
+                "mode": "subscription",
+                "customer_creation": "always",
+                "line_items[0][price]": price_id,
+                "line_items[0][quantity]": "1",
+                "success_url": self._config.success_url_for_package(package.package_id),
+                "cancel_url": self._config.cancel_url_for_package(package.package_id),
+                "metadata[package_id]": package.package_id,
+                "metadata[plan]": package.hosted_plan.value,
+                "metadata[product]": "scout_hosted",
+            }
+        elif package.amount_cents == 0:
             data = {
                 "mode": "setup",
                 "customer_creation": "always",

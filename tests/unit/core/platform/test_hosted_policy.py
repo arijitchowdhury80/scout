@@ -36,10 +36,21 @@ def test_plan_limits_beta_pass_has_finite_credits_and_retention() -> None:
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
 
     assert limits.hosted_enabled is True
-    assert limits.standard_credits == 1000
+    assert limits.standard_credits == 10000
     assert limits.browser_credits == 100
     assert limits.artifact_retention_days == 7
     assert limits.max_pages_per_run == 25
+
+
+def test_plan_limits_unlimited_grants_fifty_thousand_standard_credits() -> None:
+    limits = plan_limits(HostedPlan.HOSTED_UNLIMITED)
+
+    assert limits.hosted_enabled is True
+    assert limits.standard_credits == 50000
+    assert limits.browser_credits == 0
+    assert limits.artifact_retention_days == 30
+    assert limits.max_pages_per_run == 250
+    assert limits.max_concurrent_runs == 2
 
 
 def test_hosted_action_browser_render_costs_more_than_scrape() -> None:

@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout Private Beta - Hosted HTTP and skill access</title>
+    <title>Scout Beta Tester Signup - Get your API key</title>
     <meta
       name="description"
-      content="Join the Scout private beta through hosted HTTP API key registration and Claude/Codex skill usage."
+      content="Register for a Scout beta tester API key. One form, two ways to finish, delivered by email in minutes."
     />
     <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
@@ -33,143 +33,41 @@
 
       <main>
         <section class="page-hero">
-          <p class="wi-label wi-label--accent">Scout Private Beta</p>
-          <h1>Register for your beta tester API key.</h1>
+          <p class="wi-label wi-label--accent">Scout Beta</p>
+          <h1>Get your Scout API key.</h1>
           <p>
-            Private beta is hosted HTTP first, with Claude/Codex skill support
-            for agent workflows. Keys are finite-credit and metered so testing
-            cannot create an unbounded infrastructure or model bill.
+            Turn messy web pages into clean, citable data over a simple HTTP
+            API — for your agents, pipelines, and research. Sign up for the
+            beta with just your email.
           </p>
-        </section>
-
-        <section class="section local-hosted" aria-labelledby="beta-path-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Beta paths</p>
-            <h2 id="beta-path-title">Hosted HTTP first. Skill when you want agents.</h2>
-          </div>
-          <div class="compare-grid">
-            <article>
-              <h3>Hosted HTTP</h3>
-              <p>Register your name and email, receive the hosted API key by email after account provisioning, call `https://scout.chowmes.com/v1/hosted/*`, and inspect finite credits from `/account`.</p>
-              <a class="wi-btn" href="#beta-key">Get beta tester API key</a>
-            </article>
-            <article>
-              <h3>Claude/Codex skill</h3>
-              <p>Use the skill wrapper from an agent, with hosted HTTP doing the acquisition work and preserving evidence.</p>
-              <p class="beta-note">
-                Limited credits, not unlimited crawling. Hosted beta is capped
-                and metered while unit economics are validated, so tester
-                activity cannot create an unbounded bill.
-              </p>
-              <p>
-                Paid packages and overage rules remain separate from this beta
-                registration path and require founder approval before public launch.
-              </p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section step-section" aria-labelledby="beta-readiness-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Before inviting testers</p>
-            <h2 id="beta-readiness-title">Run the launch readiness checker.</h2>
-          </div>
-          <p>
-            Scout ships readiness checks so operators can distinguish hosted
-            beta readiness from future paid checkout, registry, and enterprise
-            launch claims.
-          </p>
-          <pre><code>scout launch-readiness
-scout launch-readiness --require-public</code></pre>
-          <div class="note-grid">
-            <article>
-              <h3>Private beta</h3>
-              <p>The expected beta result is `ready_with_limits`.</p>
-            </article>
-            <article>
-              <h3>Public launch</h3>
-              <p>The public gate is expected to stay blocked until the open release checklist items close.</p>
-            </article>
-          </div>
         </section>
 
         <section class="section beta" id="beta-key">
           <div>
-            <p class="wi-label wi-label--accent">Hosted beta registration</p>
-            <h2>Register — get your Beta Tester API Key.</h2>
+            <p class="wi-label wi-label--accent">The beta</p>
+            <h2>10,000 credits. 30 days. Just your email.</h2>
             <p>
-              Two ways in. The recommended path is a $0 card-backed setup —
-              Scout collects a payment method, charges nothing, and verifies the
-              same checkout paid users will use. Prefer not to enter a card?
-              Register with email only — no credit card required. Either way your
-              hosted key includes 1,000 standard credits and 100 browser credits
-              for a 30-day trial, delivered by email after account provisioning.
+              Sign up and Scout emails your API key. 10,000 credits is plenty
+              to try every endpoint — scrape, crawl, map, screenshot, products,
+              and company intelligence. No credit card.
+            </p>
+            <p class="beta-note">
+              Use your key over hosted HTTP or the Claude/Codex skill — same
+              key, same credits. Your key arrives by email after sign-up; Scout
+              never shows a raw key in the browser.
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted beta API key registration">
             <form
-              id="hostedBetaCheckoutForm"
-              class="beta-form beta-form--primary"
-              data-checkout-endpoint="/v1/billing/stripe/checkout-session"
-              data-status-endpoint="/v1/billing/stripe/status"
-              data-ready-flag="ready_for_beta_checkout"
-            >
-              <h3>Recommended beta path</h3>
-              <p>
-                Use this first when available. Stripe collects a payment method
-                for the 30-day beta trial, charges $0, and lets Scout verify the
-                same checkout and webhook pipeline paid users will use.
-              </p>
-              <label for="hostedBetaCheckoutName">Name or app name</label>
-              <input
-                id="hostedBetaCheckoutName"
-                name="name"
-                type="text"
-                autocomplete="name"
-                placeholder="Your name or app"
-                required
-              />
-
-              <label for="hostedBetaCheckoutEmail">Email for API key delivery</label>
-              <input
-                id="hostedBetaCheckoutEmail"
-                name="email"
-                type="email"
-                autocomplete="email"
-                placeholder="you@example.com"
-                required
-              />
-              <input name="package_id" type="hidden" value="beta_trial" />
-              <button class="wi-btn" type="submit">
-                Start $0 Beta Checkout
-              </button>
-              <p id="hostedBetaCheckoutStatus" class="beta-status" role="status" aria-live="polite">
-                Card-backed beta setup stays disabled until Stripe Checkout,
-                webhook signing, and email delivery are configured.
-              </p>
-              <p class="beta-note">
-                The beta trial includes 1,000 standard credits and 100
-                browser credits for 30 days.
-                Scout never shows raw API keys in the browser; keys are
-                delivered by email after account provisioning.
-              </p>
-            </form>
-            <form
-              id="hostedKeyForm"
-              class="beta-form beta-form--secondary"
+              id="hostedRegisterForm"
+              class="beta-form"
               data-endpoint="/v1/hosted/beta-key"
               data-status-endpoint="/v1/billing/stripe/status"
             >
-              <h3>Register for your Beta Tester API Key</h3>
-              <p>
-                Enter your name and email — Scout provisions your hosted beta
-                account and emails your API key. Your key includes 1,000 standard
-                credits and 100 browser credits for a 30-day trial. No credit
-                card required.
-              </p>
-              <label for="hostedKeyName">Name or app name</label>
+              <h3>Sign up for the beta</h3>
+              <label for="hostedRegisterName">Name or app name</label>
               <input
-                id="hostedKeyName"
+                id="hostedRegisterName"
                 name="name"
                 type="text"
                 autocomplete="name"
@@ -177,34 +75,26 @@ scout launch-readiness --require-public</code></pre>
                 required
               />
 
-              <label for="hostedKeyEmail">Email for API key delivery</label>
+              <label for="hostedRegisterEmail">Email for API key delivery</label>
               <input
-                id="hostedKeyEmail"
+                id="hostedRegisterEmail"
                 name="email"
                 type="email"
                 autocomplete="email"
                 placeholder="you@example.com"
                 required
               />
-              <input
-                id="hostedKeyNameInput"
-                name="key_name"
-                type="hidden"
-                autocomplete="off"
-                value="Hosted beta key"
-              />
-              <button class="wi-btn wi-btn--secondary" type="submit">
-                Register for Beta API Key
-              </button>
-              <p id="hostedKeyStatus" class="beta-status" role="status" aria-live="polite">
-                Hosted beta registration emails a finite-credit API key when
-                delivery is configured. Until then, Scout records your request
-                for follow-up.
-              </p>
+              <input name="key_name" type="hidden" value="Hosted beta key" />
+              <div class="playground-actions">
+                <button id="hostedRegEmailBtn" class="wi-btn" type="button">
+                  Email me my API key
+                </button>
+              </div>
+              <p id="hostedRegStatus" class="beta-status" role="status" aria-live="polite"></p>
             </form>
             <form
               id="hostedKeyReissueForm"
-              class="beta-form beta-form--secondary"
+              class="beta-form"
               data-reissue-endpoint="/v1/hosted/beta-key/reissue"
             >
               <label for="hostedKeyReissueEmail">Lost your API key?</label>
@@ -217,7 +107,7 @@ scout launch-readiness --require-public</code></pre>
                   placeholder="you@example.com"
                   required
                 />
-                <button class="wi-btn wi-btn--secondary" type="submit">Email replacement key</button>
+                <button class="wi-btn wi-btn--ghost" type="submit">Email replacement key</button>
               </div>
               <p id="hostedKeyReissueStatus" class="beta-status" role="status" aria-live="polite">
                 Scout cannot show an old key again. If an account exists for
@@ -227,45 +117,24 @@ scout launch-readiness --require-public</code></pre>
             </form>
           </div>
         </section>
-
-        <section class="section step-section" aria-labelledby="support-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Support</p>
-            <h2 id="support-title">Beta support is evidence-first.</h2>
-          </div>
-          <div class="note-grid">
-            <article>
-              <h3>Tester handoff packet</h3>
-              <p>
-                Send beta testers the
-                <a href="https://github.com/arijitchowdhury80/scout/blob/codex/scout-saas-prod-ready/docs/product/private-beta-tester-handoff.md">docs/product/private-beta-tester-handoff.md</a>
-                packet before their first run. It explains hosted finite
-                credits, skill usage, artifact inspection, feedback format, and
-                secret-handling boundaries.
-              </p>
-            </article>
-          </div>
-          <div class="check-grid">
-            <article>
-              <h3>Report bugs</h3>
-              <p>Use the private beta bug template with your surface, version, command or endpoint, run ID, and non-sensitive artifact path.</p>
-            </article>
-            <article>
-              <h3>Request workflows</h3>
-              <p>Use the private beta feature template for missing product, company intel, hosted API, skill, or documentation workflows.</p>
-            </article>
-            <article>
-              <h3>Keep secrets out</h3>
-              <p>Do not paste API keys, cookies, private customer data, paid-site content, or screenshots containing secrets into public feedback.</p>
-            </article>
-          </div>
-          <p class="beta-note">
-            Security reports should not be filed as public issues. Follow
-            <a href="/legal">Scout legal and security guidance</a> and report
-            vulnerabilities privately to the maintainer.
-          </p>
-        </section>
       </main>
+
+      <footer class="wi-dark site-footer">
+        <div>
+          <p class="wi-label">Scout</p>
+          <h2>Evidence before extraction claims.</h2>
+        </div>
+        <div class="footer-links">
+          <a href="/docs">Docs</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/legal">Legal</a>
+        </div>
+        <p class="footer-note">
+          Scout uses Crawl4AI internally for parts of acquisition. Crawl4AI is
+          licensed separately by its authors. Do not use Scout to access websites
+          unlawfully or bypass access controls.
+        </p>
+      </footer>
     </div>
     <script src="./assets/copy-code.js" defer></script>
     <script src="./assets/hosted-keygen.js" defer></script>

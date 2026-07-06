@@ -485,6 +485,20 @@ class HostedAccountService:
             self.store.update_tenant_plan(tenant_id, target)
         return target
 
+    def downgrade_tenant_plan(self, tenant_id: str, plan: HostedPlan) -> HostedPlan:
+        """Force a tenant onto a lower plan (e.g. when a subscription is revoked).
+
+        Unlike ``upgrade_tenant_plan`` this does not guard against downgrades — it
+        unconditionally sets the target plan, which is what subscription
+        cancellation requires.
+        """
+        tenant = self.store.get_tenant(tenant_id)
+        if tenant is None:
+            raise KeyError(f"Unknown tenant: {tenant_id}")
+        if plan is not tenant.plan:
+            self.store.update_tenant_plan(tenant_id, plan)
+        return plan
+
     def find_tenant_by_email(self, email: str) -> HostedTenantRecord | None:
         """Return tenant metadata for a normalized email if it exists."""
         return self.store.find_tenant_by_email(email)
@@ -640,11 +654,15 @@ class HostedAccountService:
 
 def _higher_plan(current: HostedPlan, candidate: HostedPlan) -> HostedPlan:
     """Return the higher hosted plan without downgrading existing tenants."""
+    # UNLIMITED ($12/mo recurring) sits above STARTER and below PRO: an
+    # existing PRO tenant is never silently downgraded to the subscription tier,
+    # while a STARTER/BETA tenant upgrading to UNLIMITED is honored.
     rank = {
         HostedPlan.LOCAL_FREE: 0,
         HostedPlan.HOSTED_BETA_PASS: 1,
         HostedPlan.HOSTED_STARTER: 2,
-        HostedPlan.HOSTED_PRO: 3,
+        HostedPlan.HOSTED_UNLIMITED: 3,
+        HostedPlan.HOSTED_PRO: 4,
     }
     if rank[candidate] > rank[current]:
         return candidate

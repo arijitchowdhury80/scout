@@ -30,7 +30,7 @@ def test_beta_trial_package_is_free_limited_and_timeboxed() -> None:
 
     assert package.hosted_plan is HostedPlan.HOSTED_BETA_PASS
     assert package.amount_cents == 0
-    assert package.standard_credits == 1000
+    assert package.standard_credits == 10000
     assert package.browser_credits == 100
     assert package.trial_days == 30
     assert package.requires_payment_method is True
@@ -41,6 +41,30 @@ def test_high_volume_package_maps_to_pro_plan_limits() -> None:
     package = get_credit_package("standard_15000")
 
     assert package.hosted_plan is HostedPlan.HOSTED_PRO
+
+
+def test_paid_packages_default_to_one_time_not_subscription() -> None:
+    package = get_credit_package("standard_1000")
+
+    assert package.is_subscription is False
+
+
+def test_unlimited_monthly_package_is_a_recurring_subscription() -> None:
+    package = get_credit_package("unlimited_monthly")
+
+    assert package.amount_cents == 1200
+    assert package.currency == "usd"
+    assert package.standard_credits == 50000
+    assert package.browser_credits == 0
+    assert package.trial_days == 0
+    assert package.requires_payment_method is True
+    assert package.is_public_purchase is True
+    assert package.is_subscription is True
+    assert package.hosted_plan is HostedPlan.HOSTED_UNLIMITED
+    assert package.customer_summary == (
+        "$12/month unlimited: 25,000 page operations (scrape, crawl, map, screenshot) "
+        "+ 10,000 products + 50 company dossiers every month."
+    )
 
 
 def test_credit_cost_table_explains_what_one_credit_means() -> None:

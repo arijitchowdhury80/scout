@@ -1412,11 +1412,14 @@ ul {
 
 .beta-form label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   font-family: var(--wi-font-mono);
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
+}
+.beta-form > input:not([type="hidden"]) {
+  margin-bottom: 20px;
 }
 
 .beta-form-row {
