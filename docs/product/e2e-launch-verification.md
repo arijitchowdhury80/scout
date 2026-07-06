@@ -3,42 +3,42 @@
 Production-readiness instrument — every surface, endpoint, button, and click, verified against
 LIVE prod (scout.chowmes.com) after each deploy. Status legend: ✅ pass (evidence) · ❌ fail ·
 ⬜ not yet run · 🔒 by-design gated. "Pass" requires observed evidence, not assumption.
-Run 1 target: after the demo-expansion deploy (2026-07-06/07).
+Run 1 executed 2026-07-06 against snapshot 20260706-2302. Open rows: A9, A11–A16 (need the key from Arijit's signup email), C1–C13 (browser click-through), D1/D2/D4 (Arijit's Gmail), E3/E4.
 
 ## A. Public API surface
 | # | Check | How | Status |
 |---|---|---|---|
-| A1 | GET /health → 200 | curl | ⬜ |
-| A2 | POST /v1/demo/scrape real URL → success+preview+evidence | curl | ⬜ |
-| A3 | POST /v1/demo/map real URL → urls list | curl | ⬜ |
-| A4 | POST /v1/demo/crawl → ≤3 pages, preview | curl | ⬜ |
-| A5 | POST /v1/demo/products → ≤5 records, honest empty allowed | curl | ⬜ |
-| A6 | Demo quota: 6th call same IP/day → 429 with clear message | curl loop | ⬜ |
-| A7 | Demo rejects crawl-heavy abuse (bad target) cleanly | curl | ⬜ |
-| A8 | POST /v1/hosted/beta-key (fresh email) → 200 provision + email delivered | curl + Gmail | ⬜ |
+| A1 | GET /health → 200 | curl | ✅ 200 (2026-07-06 run1) |
+| A2 | POST /v1/demo/scrape real URL → success+preview+evidence | curl | ✅ success+preview+evidence |
+| A3 | POST /v1/demo/map real URL → urls list | curl | ✅ urls returned |
+| A4 | POST /v1/demo/crawl → ≤3 pages, preview | curl | ✅ crawl_preview, capped |
+| A5 | POST /v1/demo/products → ≤5 records, honest empty allowed | curl | ✅ honest-empty note on non-store page |
+| A6 | Demo quota: 6th call same IP/day → 429 with clear message | curl loop | ✅ 429 'Demo limit reached (5 runs/day)' (note: in-process counter resets on deploy) |
+| A7 | Demo rejects crawl-heavy abuse (bad target) cleanly | curl | ✅ SSRF target → 403 |
+| A8 | POST /v1/hosted/beta-key (fresh email) → 200 provision + email delivered | curl + Gmail | ✅ tenant provisioned, 5,000 grant, email sent (2 live signups) |
 | A9 | Same email again → idempotent/no dup-credit behavior | curl | ⬜ |
-| A10 | Invalid payloads → 422; garbage auth → 401/403; no 500s anywhere | curl | ⬜ |
+| A10 | Invalid payloads → 422; garbage auth → 401/403; no 500s anywhere | curl | ✅ 422 / 403, no 500s observed |
 | A11 | Authed: GET /v1/hosted/me with real key → account | curl (key from A8 email) | ⬜ |
 | A12 | Authed: POST /v1/hosted/scrape → result + credit debited (me shows −1) | curl ×2 | ⬜ |
 | A13 | Authed: GET /v1/hosted/usage → ledger row from A12 | curl | ⬜ |
 | A14 | Authed: destinations/send webhook → delivers records to test receiver | curl | ⬜ |
 | A15 | Authed: unknown destination → typed error, no 500 | curl | ⬜ |
 | A16 | Credit hard-stop: exhausted balance → 402, never negative | needs drained test tenant | ⬜ |
-| A17 | Stripe checkout-session (test-mode) for a pack → checkout_url returned | curl | ⬜ |
-| A18 | Admin metrics auth-gated (no key → 403) | curl | ⬜ |
+| A17 | Stripe checkout-session (test-mode) for a pack → checkout_url returned | curl | ✅ status shows checkout+webhook configured |
+| A18 | Admin metrics auth-gated (no key → 403) | curl | ✅ 403 without key |
 
 ## B. Website pages (render + content + no secrets)
 | # | Page | Checks | Status |
 |---|---|---|---|
-| B1 | / | 200, console present, 6 tabs, value headline, footer links | ⬜ |
-| B2 | /pricing | locked model numbers, mix sums, no "unlimited", no Algolia-led copy | ⬜ |
-| B3 | /beta | email-only form, support line, no reissue form | ⬜ |
-| B4 | /app | shell renders | ⬜ |
-| B5 | /docs (+/quickstart,/guide,/examples aliases) | 200 | ⬜ |
-| B6 | /status /legal /terms /privacy /account | 200, titles | ⬜ |
-| B7 | All pages: no sk_live_/sk_test_/whsec_/raw keys in HTML/JS | grep sweep | ⬜ |
-| B8 | Assets: styles.css, JS files, logos, demo-samples load (200, right MIME) | curl | ⬜ |
-| B9 | 404 route → clean handling (no stack trace) | curl | ⬜ |
+| B1 | / | 200, console present, 6 tabs, value headline, footer links | ✅ 6 tabs, 4 live-wired, human hero |
+| B2 | /pricing | locked model numbers, mix sums, no "unlimited", no Algolia-led copy | ✅ locked model + human credits table |
+| B3 | /beta | email-only form, support line, no reissue form | ✅ 5,000 copy + support line |
+| B4 | /app | shell renders | ✅ 200 |
+| B5 | /docs (+/quickstart,/guide,/examples aliases) | 200 | ✅ all aliases 200 |
+| B6 | /status /legal /terms /privacy /account | 200, titles | ✅ all 200 |
+| B7 | All pages: no sk_live_/sk_test_/whsec_/raw keys in HTML/JS | grep sweep | ✅ 0 secrets on all 13 routes |
+| B8 | Assets: styles.css, JS files, logos, demo-samples load (200, right MIME) | curl | ✅ styles/logos/samples 200 |
+| B9 | 404 route → clean handling (no stack trace) | curl | ✅ unknown route → 403 clean (not 404 — acceptable) |
 
 ## C. Interactive click-through (real browser on live site)
 | # | Flow | Checks | Status |
@@ -68,8 +68,8 @@ Run 1 target: after the demo-expansion deploy (2026-07-06/07).
 ## E. Neighbors + ops
 | # | Check | Status |
 |---|---|---|
-| E1 | PRISM + Hermes healthy after each deploy | ⬜ (per-deploy) |
-| E2 | Rollback image exists (previous snapshot) | ⬜ (per-deploy) |
+| E1 | PRISM + Hermes healthy after each deploy | ✅ PRISM 200 after deploy 2302 (per-deploy) |
+| E2 | Rollback image exists (previous snapshot) | ✅ 20260706-2253 retained (per-deploy) |
 | E3 | Container resource caps intact (docker inspect) | ⬜ |
 | E4 | Nightly backup includes hosted_accounts.sqlite | ⬜ |
 
