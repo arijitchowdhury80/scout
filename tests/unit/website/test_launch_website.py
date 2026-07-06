@@ -656,11 +656,8 @@ def test_beta_signup_uses_email_registration_without_password_or_browser_key_dis
     assert "Checking beta registration readiness" in hosted_keygen_js
     assert "Card-backed beta setup" in hosted_keygen_js
     assert "Use the email beta key path" not in pricing_js
-    assert 'id="hostedKeyStatusForm"' in html
-    assert 'data-status-check-endpoint="/v1/hosted/beta-key/status"' in html
-    assert "Check beta request status" in normalized_html
-    assert "/v1/hosted/beta-key/status" in hosted_keygen_js
-    assert "Checking beta request status" in hosted_keygen_js
+    # Status-check form removed (delivery is instant; the reissue form remains).
+    assert 'id="hostedKeyStatusForm"' not in html
     assert 'id="hostedKeyReissueForm"' in html
     assert 'data-reissue-endpoint="/v1/hosted/beta-key/reissue"' in html
     assert "Lost your API key?" in normalized_html
