@@ -98,21 +98,21 @@ scout launch-readiness --require-public</code></pre>
             <p class="wi-label wi-label--accent">Hosted beta registration</p>
             <h2>Register — get your Beta Tester API Key.</h2>
             <p>
-              Enter your name and email and Scout emails you a hosted beta API
-              key with 1,000 standard credits and 100 browser credits for a
-              30-day trial. No credit card required. Keys are delivered by email
-              after account provisioning — Scout never shows a raw key in the browser.
+              Two ways in. The recommended path is a $0 card-backed setup —
+              Scout collects a payment method, charges nothing, and verifies the
+              same checkout paid users will use. Prefer not to enter a card?
+              Register with email only — no credit card required. Either way your
+              hosted key includes 1,000 standard credits and 100 browser credits
+              for a 30-day trial, delivered by email after account provisioning.
             </p>
           </div>
           <div class="beta-panel" aria-label="Hosted beta API key registration">
-            <!-- Card-backed Stripe path hidden until Stripe is configured post-launch. -->
             <form
               id="hostedBetaCheckoutForm"
               class="beta-form beta-form--primary"
               data-checkout-endpoint="/v1/billing/stripe/checkout-session"
               data-status-endpoint="/v1/billing/stripe/status"
               data-ready-flag="ready_for_beta_checkout"
-              hidden
             >
               <h3>Recommended beta path</h3>
               <p>

@@ -244,24 +244,25 @@ def test_beta_page_uses_email_registration_and_optional_card_setup_without_passw
     assert 'name="invite_password"' not in html
 
 
-def test_beta_page_makes_email_registration_the_primary_self_service_path() -> None:
-    """Launch UX is email-first: the email register is the visible path; the card-backed
-    Stripe form is present but hidden until Stripe is configured post-launch."""
+def test_beta_page_offers_both_card_backed_and_email_registration() -> None:
+    """Launch UX offers two paths: the recommended $0 card-backed Stripe setup and an
+    email-only register with no card. Neither is hidden once Stripe is configured."""
     html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
-    # Email registration is the primary, visible self-service path.
-    assert "Register for your Beta Tester API Key" in normalized_html
-    assert 'id="hostedKeyForm"' in html
-    assert 'data-endpoint="/v1/hosted/beta-key"' in html
-
-    # The card-backed Stripe form is retained but hidden (no scary Stripe copy shown).
+    # Card-backed $0 setup is present and NOT hidden.
     assert 'id="hostedBetaCheckoutForm"' in html
     checkout_form_open = html.index('id="hostedBetaCheckoutForm"')
     checkout_form_tag_end = html.index(">", checkout_form_open)
-    assert "hidden" in html[checkout_form_open:checkout_form_tag_end]
-    # No credit card is required to register for the beta.
-    assert "No credit card required" in normalized_html
+    assert "hidden" not in html[checkout_form_open:checkout_form_tag_end]
+    assert "Recommended beta path" in normalized_html
+    assert "Start $0 Beta Checkout" in normalized_html
+
+    # Email-only register is also present as the no-card path.
+    assert "Register for your Beta Tester API Key" in normalized_html
+    assert 'id="hostedKeyForm"' in html
+    assert 'data-endpoint="/v1/hosted/beta-key"' in html
+    assert "no credit card required" in normalized_html.lower()
 
 
 def test_launch_website_uses_flux_not_warm_industrial() -> None:
