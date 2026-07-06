@@ -8,6 +8,14 @@ from pydantic import BaseModel, Field
 
 from scout.core.platform.hosted import HostedAction, HostedPlan
 
+COMPANY_DOSSIER_CREDIT_COST = 200
+"""Standard credits for one representative company dossier crawl (~200, varies by site size).
+
+Locked in docs/product/pricing-model-2026-07-06.md, "Credit -> capability": this is the
+single reference figure used across customer summaries and economics helpers so the
+dossier-to-credit conversion never drifts between packages.
+"""
+
 
 class HostedCreditPackage(BaseModel):
     """Commercial package definition for hosted credits."""
@@ -38,10 +46,17 @@ class HostedCreditPolicy(BaseModel):
 
 
 class UnitEconomicsAssumptions(BaseModel):
-    """Editable assumptions used to test whether a package can make money."""
+    """Editable assumptions used to test whether a package can make money.
+
+    ``standard_credit_cost_cents`` is calibrated near-zero per the locked 2026-07-06
+    pricing model: Scout is self-hosted with no per-call LLM cost, so the marginal
+    cost of serving one more standard credit is close to $0 (see
+    docs/product/pricing-model-2026-07-06.md, "Unit economics"). The binding
+    constraint on volume is shared VPS/hardware capacity, not variable dollar cost.
+    """
 
     fixed_monthly_cost_cents: int = Field(default=12_000, ge=0)
-    standard_credit_cost_cents: float = Field(default=0.15, ge=0)
+    standard_credit_cost_cents: float = Field(default=0.01, ge=0)
     browser_credit_cost_cents: float = Field(default=2.0, ge=0)
     allocated_support_cost_cents: int = Field(default=50, ge=0)
     payment_percent_fee: float = Field(default=2.9, ge=0)
@@ -82,19 +97,37 @@ _PACKAGES = {
             "registered beta testers — enough to exercise every Scout feature end to end."
         ),
     ),
+    "free_ga": HostedCreditPackage(
+        package_id="free_ga",
+        name="Free GA",
+        hosted_plan=HostedPlan.LOCAL_FREE,
+        amount_cents=0,
+        standard_credits=5000,
+        browser_credits=0,
+        trial_days=0,
+        requires_payment_method=False,
+        is_public_purchase=True,
+        is_subscription=False,
+        customer_summary=(
+            "5,000 standard credits, free, one-time: roughly 5,000 pages, 25 company "
+            "dossiers at ~200 credits each, or 2 product catalogs. Scout's public GA "
+            "acquisition tier — no subscription required."
+        ),
+    ),
     "standard_1000": HostedCreditPackage(
         package_id="standard_1000",
         name="Standard Credits 1000",
         hosted_plan=HostedPlan.HOSTED_STARTER,
         amount_cents=1000,
-        standard_credits=1000,
+        standard_credits=10000,
         browser_credits=0,
         trial_days=0,
         requires_payment_method=True,
         is_public_purchase=True,
         customer_summary=(
-            "1,000 standard credits: roughly 1,000 scrapes, 1,000 returned crawl pages, "
-            "333 screenshots, or 1,000 product/intelligence records before heavier browser work."
+            "10,000 standard credits for $10: roughly 10,000 scrapes, 10,000 returned crawl "
+            "pages, 3,333 screenshots, 10,000 product/intelligence records, or 50 company "
+            "dossiers before heavier browser work."
         ),
     ),
     "standard_3000": HostedCreditPackage(
@@ -102,28 +135,34 @@ _PACKAGES = {
         name="Standard Credits 3000",
         hosted_plan=HostedPlan.HOSTED_STARTER,
         amount_cents=2500,
-        standard_credits=3000,
+        standard_credits=30000,
         browser_credits=0,
         trial_days=0,
         requires_payment_method=True,
         is_public_purchase=True,
-        customer_summary="3,000 standard credits for recurring API users with a modest volume discount.",
+        customer_summary=(
+            "30,000 standard credits for $25 — a volume discount for recurring API users "
+            "(150 company dossiers at ~200 credits each)."
+        ),
     ),
     "standard_15000": HostedCreditPackage(
         package_id="standard_15000",
         name="Standard Credits 15000",
         hosted_plan=HostedPlan.HOSTED_PRO,
         amount_cents=10000,
-        standard_credits=15000,
+        standard_credits=150000,
         browser_credits=0,
         trial_days=0,
         requires_payment_method=True,
         is_public_purchase=True,
-        customer_summary="15,000 standard credits for heavier teams once support and abuse controls are proven.",
+        customer_summary=(
+            "150,000 standard credits for $100 for heavier teams once support and abuse "
+            "controls are proven (750 company dossiers at ~200 credits each)."
+        ),
     ),
     "unlimited_monthly": HostedCreditPackage(
         package_id="unlimited_monthly",
-        name="Unlimited Monthly",
+        name="Monthly Subscription",
         hosted_plan=HostedPlan.HOSTED_UNLIMITED,
         amount_cents=1200,
         standard_credits=50000,
@@ -133,8 +172,9 @@ _PACKAGES = {
         is_public_purchase=True,
         is_subscription=True,
         customer_summary=(
-            "$12/month unlimited: 25,000 page operations (scrape, crawl, map, screenshot) "
-            "+ 10,000 products + 50 company dossiers every month."
+            "$12/month: 50,000 credits / month — 20,000 page operations (scrape, crawl, "
+            "map, screenshot) + 10,000 products + 100 company dossiers at ~200 credits "
+            "each, resetting every billing cycle."
         ),
     ),
     "browser_100": HostedCreditPackage(
@@ -176,7 +216,14 @@ def credit_cost_table() -> dict[str, str]:
         HostedAction.SCREENSHOT.value: "3 standard credits",
         HostedAction.BROWSER_RENDER.value: "5 browser credits per render",
         HostedAction.BROWSER_MINUTE.value: "10 browser credits per minute",
+        "company_dossier": f"~{COMPANY_DOSSIER_CREDIT_COST} standard credits per dossier",
     }
+
+
+def dossiers_per_package(package_id: str) -> int:
+    """Return how many ~200-credit company dossiers a package's standard credits cover."""
+    package = get_credit_package(package_id)
+    return package.standard_credits // COMPANY_DOSSIER_CREDIT_COST
 
 
 def credit_policy_table() -> list[HostedCreditPolicy]:
@@ -261,7 +308,8 @@ def _credit_policy(
     """Build one structured policy row from the canonical hosted action enum."""
     included_in_standard_1000 = 0
     if action.credit_type == "standard":
-        included_in_standard_1000 = 1000 // action.credit_cost
+        standard_1000_credits = get_credit_package("standard_1000").standard_credits
+        included_in_standard_1000 = standard_1000_credits // action.credit_cost
     return HostedCreditPolicy(
         action=action.value,
         credit_type=action.credit_type,

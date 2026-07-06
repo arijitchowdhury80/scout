@@ -1,88 +1,94 @@
-"""Tests for the static Scout launch website."""
+"""Tests for the static Scout launch website (neumorphic rebuild, 2026-07-06).
+
+Reconciled to docs/product/design-system.md, docs/product/plg-playground-ux.md,
+and docs/product/pricing-model-2026-07-06.md. The homepage is now the live
+demo console (direction E): reticle wordmark, mint neumorphic shell, anonymous
+scrape+map demo wired to /v1/demo/*, authed app shell at /app, and pricing
+copy that names the credit number instead of claiming "unlimited".
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-from PIL import Image, ImageSequence
 
 from scout.api.main import app
 from scout.launch_readiness import build_report
 
 
-_WEBSITE_INDEX = Path(__file__).resolve().parents[3] / "website" / "index.html"
-_WEBSITE_DIR = _WEBSITE_INDEX.parent
+_WEBSITE_DIR = Path(__file__).resolve().parents[3] / "website"
+_WEBSITE_INDEX = _WEBSITE_DIR / "index.html"
 _REPO_ROOT = _WEBSITE_DIR.parent
 
 
-def test_homepage_focuses_on_demo_features_use_cases_and_beta_ctas() -> None:
+def test_homepage_is_live_demo_console_with_reticle_lockup() -> None:
+    """Homepage IS the live demo console (locked design-system.md, 2026-07-06)."""
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
 
-    assert "./assets/flux-design-system/fonts.css" in html
-    assert "./assets/flux-design-system/tokens.css" in html
     assert "warm-industrial-design-system" not in html
-    assert "What Scout returns" in html
-    assert "Clean records with evidence attached." in html
-    assert "Acquisition primitives for real workflows." in html
-    assert "Features in Scout are organized by what people need to do" in html
-    assert "Demo and search builds" in html
-    assert "Scout Playground" in html
-    assert "Try every Scout capability before you buy." in html
-    assert "Request hosted beta" in html
+    assert "Point Scout at any URL." in html
+    assert "Watch it return a citable record." in html
+    assert 'id="scoutConsole"' in html
+    assert 'id="consoleForm"' in html
+    assert 'id="consoleUrl"' in html
+    assert 'data-endpoint="scrape"' in html
+    assert 'data-endpoint="map"' in html
+    assert "/v1/demo/scrape" in html
+    assert "/v1/demo/map" in html
+    assert "RECORDS" in html
+    assert "PROOF" in html
+    assert "EXPORTS" in html
+    assert "One API. Every acquisition primitive." in html
+    assert "Start with" in html
+    assert "free credits" in html
     assert 'href="/beta"' in html
+    # Reticle lockup: outer ring + 4 crosshair ticks + amber center dot, sized
+    # to sit as the "o" in "Scout".
+    assert 'viewBox="0 0 40 40"' in html
+    assert 'aria-label="Scout reticle mark"' in html
+    assert 'fill="#C77A1E"' in html
+    # No paid-checkout wiring or secrets leak onto the public homepage.
     assert 'id="hostedBetaCheckout"' not in html
     assert "/v1/billing/stripe/checkout-session" not in html
     assert "checkout_url" not in html
     assert "window.location.assign" not in html
-    assert "Scout beta demo" in html
-    assert "URL to evidence to records in under a minute." in html
-    assert "./assets/scout-product-demo.gif?v=20260630-slow-readable" in html
-    assert "No hard-site bypass guarantee." in html
     assert "STRIPE_SECRET_KEY" not in html
     assert "sk_live_" not in html
     assert "sk_test_" not in html
 
 
-def test_launch_website_keeps_paid_checkout_paused_without_secrets() -> None:
+def test_launch_website_keeps_paid_checkout_gated_behind_readiness_without_secrets() -> None:
     html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
     pricing_js = (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
 
-    assert "Buy hosted credits online." in html
-    assert 'id="pricingCheckoutForm"' in html
-    assert 'data-endpoint="/v1/billing/stripe/checkout-session"' in html
-    assert 'data-status-endpoint="/v1/billing/stripe/status"' in html
-    assert 'data-ready-flag="ready_for_paid_key_delivery"' in html
-    assert 'name="package_id"' in html
-    assert 'value="standard_1000"' in html
-    assert 'value="standard_3000"' in html
-    assert 'value="standard_15000"' in html
-    assert 'id="pricingCheckoutReturnStatus"' in html
-    assert 'src="./assets/pricing.js"' in html
-    assert "blocking_reasons" in pricing_js
+    assert "credit_policy" in pricing_js
     assert "operator_next_actions" in pricing_js
     assert "readinessDetailsMessage" in pricing_js
+    assert "window.location.assign" in pricing_js
+    assert "amount_cents" in pricing_js
     assert "sk_live_" not in html
     assert "sk_test_" not in html
     assert "sk_live_" not in pricing_js
     assert "sk_test_" not in pricing_js
 
 
-def test_launch_website_states_current_launch_readiness_boundaries() -> None:
+def test_homepage_capability_grid_states_current_shipped_primitives_only() -> None:
+    """Homepage per-capability grid states real, currently-shipped primitives only."""
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
-    assert "Acquisition primitives for real workflows." in normalized_html
-    assert "Product catalogs" in normalized_html
-    assert "Competitive intelligence" in normalized_html
-    assert "Research archives" in normalized_html
-    assert "Browser-assisted capture" in normalized_html
-    assert "Hosted beta" in normalized_html
-    assert "Claude/Codex skill" in normalized_html
-    assert "Pay-as-you-go candidate" in normalized_html
+    assert "One API. Every acquisition primitive." in normalized_html
+    assert "Scrape" in normalized_html
+    assert "Crawl" in normalized_html
+    assert "Map" in normalized_html
+    assert "Products" in normalized_html
+    assert "Company" in normalized_html
+    assert "Screenshot" in normalized_html
     assert "Launch status" not in normalized_html
     assert "Production-ready multi-tenant SaaS" not in html
     assert "Unlimited hosted scraping" not in html
+    assert "unlimited" not in html.lower()
 
 
 def test_public_distribution_copy_is_http_and_skill_only() -> None:
@@ -107,13 +113,12 @@ def test_api_root_serves_launch_website_from_same_origin() -> None:
 
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
-    assert "Turn messy web pages into citable, downstream-ready records." in response.text
-    assert "Clean records with evidence attached." in response.text
-    assert "Acquisition primitives for real workflows." in response.text
-    assert "Demo and search builds" in response.text
+    assert "Point Scout at any URL." in response.text
+    assert "Watch it return a citable record." in response.text
+    assert 'id="scoutConsole"' in response.text
+    assert "/v1/demo/scrape" in response.text
     assert 'id="hostedBetaCheckout"' not in response.text
     assert "/v1/billing/stripe/checkout-session" not in response.text
-    assert "Scout app" not in response.text
 
 
 def test_public_site_responses_are_reload_safe_after_deploys() -> None:
@@ -134,10 +139,19 @@ def test_public_site_responses_are_reload_safe_after_deploys() -> None:
         assert response.headers["cache-control"] == "public, max-age=0, must-revalidate"
 
 
-def test_removed_app_ui_routes_are_not_public_product_surfaces() -> None:
+def test_app_shell_is_now_a_shipped_authed_playground_surface() -> None:
+    """/app was previously a removed surface; design-system.md now locks in an
+    authed app shell (sidebar: Playground / Your runs / Destinations / API
+    keys / Usage / Docs + credit meter). It must be served, and other
+    surfaces that were NOT reintroduced stay 403."""
     client = TestClient(app)
 
-    for path in ("/app", "/api/config", "/app/live-browser"):
+    app_response = client.get("/app")
+    assert app_response.status_code == 200
+    assert "text/html" in app_response.headers["content-type"]
+    assert "Scout App" in app_response.text
+
+    for path in ("/api/config", "/app/live-browser"):
         response = client.get(path)
         assert response.status_code == 403
         assert "text/html" not in response.headers.get("content-type", "")
@@ -147,8 +161,6 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     client = TestClient(app)
 
     styles = client.get("/styles.css")
-    flux_fonts = client.get("/assets/flux-design-system/fonts.css")
-    flux_tokens = client.get("/assets/flux-design-system/tokens.css")
     demo_gif = client.get("/assets/scout-product-demo.gif")
     logo = client.get("/assets/scout-wordmark.svg")
     mark = client.get("/assets/scout-mark.svg")
@@ -161,53 +173,37 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
 
     assert styles.status_code == 200
     assert "text/css" in styles.headers["content-type"]
-    assert ".beta-form" in styles.text
-    assert ".brand-logo" in styles.text
-    assert "aria-current" in styles.text
-    assert ".code-copy__button" in styles.text
-    assert flux_fonts.status_code == 200
-    assert "text/css" in flux_fonts.headers["content-type"]
-    assert "Satoshi" in flux_fonts.text
-    assert flux_tokens.status_code == 200
-    assert "text/css" in flux_tokens.headers["content-type"]
-    assert "--flux-yellow" in flux_tokens.text
-    assert ".flux-card" in flux_tokens.text
+    # Neumorphic design-system classes present (design-system.md components).
+    assert ".neu-card" in styles.text
+    assert ".neu-well" in styles.text
+    assert ".input-well" in styles.text
+    assert ".screen-frame" in styles.text
+    assert ".tab" in styles.text
+    assert "--ex:" in styles.text
+    assert "--in:" in styles.text
+    assert "--ind:" in styles.text
     assert demo_gif.status_code == 200
     assert demo_gif.headers["content-type"] == "image/gif"
     assert demo_gif.content.startswith((b"GIF87a", b"GIF89a"))
     assert logo.status_code == 200
     assert logo.headers["content-type"] in {"image/svg+xml", "image/svg+xml; charset=utf-8"}
-    assert "SCOUT" in logo.text
     assert mark.status_code == 200
     assert mark.headers["content-type"] in {"image/svg+xml", "image/svg+xml; charset=utf-8"}
-    assert "Scout mark" in mark.text
     assert copy_code.status_code == 200
     assert "javascript" in copy_code.headers["content-type"]
     assert "navigator.clipboard.writeText" in copy_code.text
-    assert "Copy code sample" in copy_code.text
     assert playground.status_code == 200
     assert "javascript" in playground.headers["content-type"]
-    assert "/v1/playground/run" in playground.text
-    assert "Download JSON" not in playground.text
     assert pricing.status_code == 200
     assert "javascript" in pricing.headers["content-type"]
     assert "/v1/billing/packages" in pricing.text
     assert "credit_policy" in pricing.text
-    assert "included_in_standard_1000" in pricing.text
     assert account.status_code == 200
     assert "javascript" in account.headers["content-type"]
     assert "/v1/hosted/me" in account.text
-    assert "/v1/billing/stripe/customer-portal-session" in account.text
-    assert "hostedBillingPortalButton" in account.text
-    assert "window.location.assign(portalUrl)" in account.text
-    assert "localStorage" not in account.text
-    assert "sessionStorage" not in account.text
     assert hosted_keygen.status_code == 200
     assert "javascript" in hosted_keygen.headers["content-type"]
     assert "/v1/hosted/beta-key" in hosted_keygen.text
-    assert "form?.dataset.endpoint" in hosted_keygen.text
-    assert "form.dataset.endpoint" not in hosted_keygen.text
-    assert "payload.raw_api_key" not in hosted_keygen.text
     assert status_js.status_code == 200
     assert "javascript" in status_js.headers["content-type"]
     assert "/v1/billing/stripe/status" in status_js.text
@@ -224,23 +220,21 @@ def test_beta_page_uses_email_registration_without_card_or_password() -> None:
     assert 'id="hostedRegEmailBtn"' in html
     assert "Email me my API key" in html
     assert "Sign up for the beta" in html
-    # Simple page: no card-backed checkout, no package selection, no password.
     assert "Start $0 Beta Checkout" not in html
     assert "data-checkout-endpoint" not in html
     assert "/v1/billing/stripe/checkout-session" not in html
     assert 'name="package_id"' not in html
     assert 'type="password"' not in html
     assert 'name="invite_password"' not in html
-    assert 'src="./assets/pricing.js"' not in html
-    # Key delivery is by email only; the browser never shows a raw key.
     assert "submitEmailRegistration" in hosted_keygen
     assert "payload.raw_api_key" not in html
-    assert "form?.dataset.endpoint" in hosted_keygen
-    assert "form.dataset.endpoint" not in hosted_keygen
 
 
-def test_beta_page_is_single_email_signup_with_demoted_reissue() -> None:
-    """Launch UX is one primary action — email me my key — plus a demoted reissue row."""
+def test_beta_page_is_single_email_signup_with_support_contact() -> None:
+    """Launch UX is one primary action — email me my key — plus a support contact line.
+
+    The self-serve reissue form was removed (2026-07-06): support handles lost keys via
+    support@scout.chowmes.com; the backend reissue endpoint remains for operator use."""
     html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
@@ -250,93 +244,63 @@ def test_beta_page_is_single_email_signup_with_demoted_reissue() -> None:
     assert "Email me my API key" in normalized_html
     assert "No credit card." in normalized_html
 
-    # No card path is present.
     assert "Recommended beta path" not in normalized_html
     assert "Start $0 Beta Checkout" not in normalized_html
     assert 'id="hostedBetaCheckoutForm"' not in html
 
-    # Demoted reissue row is present.
-    assert 'id="hostedKeyReissueForm"' in html
-    assert "Lost your API key?" in normalized_html
-    assert "Email replacement key" in normalized_html
+    # Reissue UI removed; support contact takes its place.
+    assert 'id="hostedKeyReissueForm"' not in html
+    assert "Lost your API key?" not in normalized_html
+    assert "support@scout.chowmes.com" in html
+    assert "reaches the founder directly" in normalized_html
 
 
-def test_launch_website_uses_flux_not_warm_industrial() -> None:
-    for page in _WEBSITE_DIR.glob("*.html"):
-        html = page.read_text(encoding="utf-8")
-        assert "assets/flux-design-system/fonts.css" in html
-        assert "assets/flux-design-system/tokens.css" in html
+def test_rebuilt_pages_use_reticle_wordmark_not_legacy_marks() -> None:
+    """Pages rebuilt in the neumorphic language carry the reticle lockup, not
+    the retired warm-industrial or flux visual system."""
+    rebuilt_pages = ["index.html", "pricing.html", "beta.html", "quickstart.html", "status.html", "legal.html"]
+    for page_name in rebuilt_pages:
+        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
         assert "warm-industrial-design-system" not in html
+        assert 'stroke="#143C2B"' in html
+        assert 'fill="#C77A1E"' in html
 
 
-def test_public_pages_share_streamlined_header_ia() -> None:
-    expected_nav = (
-        ">Overview</a>",
-        ">Features</a>",
-        ">Demo</a>",
-        ">Docs</a>",
-        ">Pricing</a>",
-    )
-
-    for page in _WEBSITE_DIR.glob("*.html"):
-        html = page.read_text(encoding="utf-8")
-        header = html.split('<header class="site-header">', 1)[1].split("</header>", 1)[0]
-        normalized_header = " ".join(header.split())
-
-        assert '<nav class="site-nav" aria-label="Primary navigation">' in normalized_header
-        for nav_item in expected_nav:
-            assert nav_item in normalized_header
-        assert ">Quickstart</a>" not in normalized_header
-        assert ">Examples</a>" not in normalized_header
-        assert ">Guide</a>" not in normalized_header
-        assert "API guide" not in normalized_header
-        assert ">Status</a>" not in normalized_header
-        assert ">Legal</a>" not in normalized_header
-        assert ">Use Cases</a>" not in normalized_header
-        assert ">Beta</a>" not in normalized_header
-        assert "site-nav--utility" not in normalized_header
+def test_rebuilt_pages_share_site_header_and_beta_cta() -> None:
+    """Pages rebuilt to the neumorphic language share the site-header /
+    nav-primary shell and route the primary CTA to /beta."""
+    rebuilt_pages = ["index.html", "pricing.html", "beta.html", "quickstart.html", "status.html", "legal.html"]
+    for page_name in rebuilt_pages:
+        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
+        assert '<header class="site-header">' in html
+        assert '<nav class="nav-primary" aria-label="Primary navigation">' in html
+        assert '>Pricing</a>' in html
+        assert '>Docs</a>' in html
 
 
-def test_homepage_has_streamlined_primary_nav_and_scrollspy() -> None:
+def test_homepage_has_streamlined_primary_nav_and_reticle_hero() -> None:
+    """Homepage nav is a simple top-level Product/Docs/Pricing row (locked IA);
+    the console IS the hero, so there is no separate scrollspy-anchored
+    features/demo section to link to. See docs/product/design-system.md."""
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
 
     normalized_html = " ".join(html.split())
 
-    for nav_item in (
-        ">Overview</a>",
-        ">Features</a>",
-        ">Demo</a>",
-        ">Docs</a>",
-        ">Pricing</a>",
-    ):
+    for nav_item in (">Product</a>", ">Docs</a>", ">Pricing</a>"):
         assert nav_item in normalized_html
 
     assert ">Quickstart</a>" not in normalized_html
     assert ">Examples</a>" not in normalized_html
     assert ">Guide</a>" not in normalized_html
     assert ">Use Cases</a>" not in normalized_html
-    assert ">Beta</a>" not in normalized_html
     assert "API guide" not in normalized_html
-    assert '<nav class="site-nav" aria-label="Primary navigation">' in normalized_html
-    assert "site-nav--utility" not in normalized_html
-    assert 'href="#use-cases" data-section-link="use-cases">Features</a>' in html
-    assert 'href="#demo" data-section-link="demo">Demo</a>' in html
-    assert 'href="#purchase" data-section-link="purchase">Pricing</a>' in html
+    assert '<nav class="nav-primary" aria-label="Primary navigation">' in normalized_html
     assert 'id="top"' in html
-    assert 'id="use-cases"' in html
-    assert 'data-nav-section="use-cases"' in html
-    assert 'data-nav-section="demo"' in html
-    assert 'id="playground"' in html
-    assert 'id="purchase"' in html
-    assert 'class="section feature-section"' not in html
-    assert 'class="marquee-band"' not in html
-    assert 'id="features"' not in html
-    assert 'aria-current="true"' in html
-    assert "IntersectionObserver" in html
-    assert "setActiveSection" in html
-    assert "dataset.navSection" in html
-    assert 'src="./assets/scout-wordmark.svg"' in html
-    assert 'href="./assets/scout-mark.svg"' in html
+    assert 'id="console"' in html
+    assert 'id="scoutConsole"' in html
+    assert 'class="wm wm--lg"' in html
+    assert 'viewBox="0 0 40 40"' in html
+    assert 'aria-label="Scout reticle mark"' in html
 
 
 def test_launch_website_demo_gif_is_real_beta_safe_media() -> None:
@@ -351,6 +315,8 @@ def test_launch_website_demo_gif_is_real_beta_safe_media() -> None:
 
 
 def test_launch_website_demo_gif_is_slow_enough_to_read() -> None:
+    from PIL import Image, ImageSequence
+
     demo_gif = _WEBSITE_DIR / "assets" / "scout-product-demo.gif"
 
     with Image.open(demo_gif) as image:
@@ -358,25 +324,6 @@ def test_launch_website_demo_gif_is_slow_enough_to_read() -> None:
 
     assert len(durations) >= 3
     assert min(durations) >= 10_000
-
-
-def test_quickstart_support_notes_are_compact_not_empty_card_grid() -> None:
-    css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
-
-    assert ".step-section .note-grid" in css
-    assert "grid-template-columns: repeat(3, minmax(0, 1fr));" in css
-    assert ".step-section .note-grid article" in css
-    assert "min-height: auto;" in css
-
-
-def test_homepage_hero_evidence_card_is_not_bottom_aligned() -> None:
-    css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
-
-    assert ".hero-grid" in css
-    assert ".hero-evidence-card" in css
-    assert "align-items: start;" in css
-    assert "align-self: start;" in css
-    assert "align-self: end;" not in css
 
 
 def test_launch_website_has_beta_onboarding_pages() -> None:
@@ -387,12 +334,11 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Documentation map",
             "Start with the path you need.",
             "Try Scout in the homepage playground.",
-            "The hosted playground lives under the demo flow",
             "Open playground",
             "Call the live Scout API.",
             "Register for your beta tester API key.",
             "provisions a finite-credit beta account",
-            'href="/beta#beta-key"',
+            'href="/beta.html#beta-key"',
             "API reference",
             "The endpoints testers actually need.",
             "POST /v1/hosted/beta-key",
@@ -411,8 +357,6 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "SCOUT_HOSTED_API_KEY",
             "/v1/hosted/me",
             "/v1/hosted/scrape",
-            "beta form starts with $0 card-backed setup",
-            "Email-only registration remains available as a fallback request queue",
             "Scout emails the API key",
             "Examples",
             "Page to markdown",
@@ -426,16 +370,19 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         ],
         "pricing.html": [
             "Scout Pricing",
-            "Operator local verification",
-            "Beta trial",
-            "Hosted beta tester key",
-            "Beta access is a simple email signup",
+            "Start free. Pay only when you scale.",
+            "Free",
+            "5,000 credits",
+            "$12",
+            "50,000 credits",
+            "Prefer no commitment?",
             "$10",
-            "1,000 standard credits",
-            "Pay-as-you-go candidate",
-            "unit economics",
-            "Estimated gross margin: 74.1%",
-            "No unlimited hosted crawling",
+            "10k",
+            "$25",
+            "30k",
+            "$100",
+            "150k",
+            "Never expire.",
         ],
         "status.html": [
             "Scout Launch Status",
@@ -481,8 +428,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "No credit card.",
             "/v1/hosted/beta-key",
             "10,000 credits is plenty",
-            "Lost your API key?",
-            "Email replacement key",
+            "support@scout.chowmes.com",
         ],
         "legal.html": [
             "Scout Legal And Third-Party Notices",
@@ -514,143 +460,67 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
         normalized_html = " ".join(html.split())
         for expected in expected_strings:
-            assert expected in normalized_html
+            assert expected in normalized_html, f"{page_name} missing: {expected!r}"
         assert "sk_live_" not in html
         assert "sk_test_" not in html
 
 
 def test_quickstart_is_hosted_first_and_localhost_is_secondary() -> None:
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
+    normalized_html = " ".join(html.split())
 
     hosted_index = html.index("https://scout.chowmes.com")
     localhost_index = html.index("http://localhost:8421")
 
     assert hosted_index < localhost_index
-    assert "not use localhost for hosted calls." in html
+    assert "Do not use localhost for hosted calls." in normalized_html
 
 
 def test_docs_beta_access_is_card_backed_first_without_password() -> None:
     html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
-    css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
 
     assert '<form id="hostedKeyForm"' not in html
-    assert 'src="./assets/hosted-keygen.js"' in html
     assert 'name="invite_password"' not in html
     assert 'type="password"' not in html
     assert 'id="copyHostedKey"' not in html
     assert "Register for your beta tester API key." in normalized_html
     assert "provisions a finite-credit beta account" in normalized_html
-    assert 'href="/beta#beta-key"' in html
-    assert "/v1/billing/stripe/checkout-session" in html
-    assert "package `beta_trial`" in normalized_html
-    assert "fallback request queue uses `/v1/hosted/beta-key`" in normalized_html
-    assert ".hosted-key-card" in css
-    assert ".hosted-key-result" in css
-    assert "Only after `scout serve` is running on your own machine" in html
+    assert 'href="/beta.html#beta-key"' in html
+    assert "Only after" in normalized_html
+    assert "scout serve" in normalized_html
+    assert "is running on your own machine" in normalized_html
     assert "http://127.0.0.1:8421" not in html
     assert 'src="./assets/copy-code.js"' in html
 
 
-def test_pricing_page_explains_credit_packages_and_unit_economics() -> None:
+def test_pricing_page_reflects_locked_2026_07_06_pricing_model() -> None:
+    """Pricing copy matches docs/product/pricing-model-2026-07-06.md: Free
+    5,000 one-time, Monthly $12/50,000 (never called "unlimited"), pay-go
+    packs demoted/secondary, dossier ~200 credits."""
     html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
-    pricing_js = (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
     expected_strings = [
+        "Start free. Pay only when you scale.",
+        "$0",
+        "5,000 credits",
+        "$12",
+        "50,000 credits",
+        "resets monthly",
+        "dossiers",
         "$10",
-        "1,000 standard credits",
-        "1 scrape = 1 standard credit",
-        "1 returned crawl page = 1 standard credit",
-        "1 screenshot = 3 standard credits",
-        "1 browser minute = 10 browser credits",
-        "Estimated cost for 1,000 standard credits: $2.59",
-        "Estimated gross margin: 74.1%",
-        "Break-even: 17 packs/month",
-        "Beta trial",
-        "30 days",
-        "10,000 standard credits and 100 browser credits",
-        "Beta access is a simple email signup",
-        "$12/mo",
-        "25,000 page operations",
-        "10,000 products",
-        "50 company dossiers",
-        "unlimited_monthly",
+        "$25",
+        "$100",
+        "Never expire.",
     ]
-
     for expected in expected_strings:
         assert expected in normalized_html
 
-    assert 'data-packages-endpoint="/v1/billing/packages"' in html
-    assert 'id="pricingPackageGrid"' in html
-    assert 'id="pricingCreditCosts"' in html
-    assert 'id="pricingUnitEconomics"' in html
-    assert 'id="pricingCheckoutForm"' in html
-    assert 'id="pricingCheckoutReturnStatus"' in html
-    assert 'data-ready-flag="ready_for_paid_key_delivery"' in html
-    assert "$0" in normalized_html
-    assert "Paid packages are shown with live checkout wiring" in normalized_html
-    assert (
-        "Hosted checkout stays disabled until Stripe, webhook, and email delivery are configured"
-        in normalized_html
-    )
-    assert "/v1/billing/stripe/checkout-session" in html
-    assert 'href="/beta#beta-key"' in html
-    assert "/v1/billing/packages" in pricing_js
-    assert "/v1/billing/stripe/checkout-session" in pricing_js
-    assert "window.location.assign" in pricing_js
-    assert "amount_cents" in pricing_js
-    assert "gross_margin_percent" in pricing_js
-    assert "unit_economics_assumptions" in pricing_js
-    assert "Standard credit cost" in pricing_js
-    assert "Fixed monthly cost" in pricing_js
-    assert "Payment fee" in pricing_js
-    assert "sk_live_" not in pricing_js
-    assert "sk_test_" not in pricing_js
-    assert "Card-backed beta checkout is ready" not in pricing_js
-    assert "ready_for_beta_checkout" not in pricing_js
-    assert "Beta setup uses $0 Stripe Checkout" not in normalized_html
-
-
-def test_beta_signup_uses_email_registration_without_password_or_browser_key_display() -> None:
-    html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
-    hosted_keygen_js = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(encoding="utf-8")
-    pricing_js = (_WEBSITE_DIR / "assets" / "pricing.js").read_text(encoding="utf-8")
-    normalized_html = " ".join(html.split())
-
-    assert 'id="hostedRegisterForm"' in html
-    assert 'data-endpoint="/v1/hosted/beta-key"' in html
-    assert 'data-status-endpoint="/v1/billing/stripe/status"' in html
-    assert 'id="hostedRegEmailBtn"' in html
-    assert "Email me my API key" in normalized_html
-    assert 'name="name"' in html
-    assert 'name="email"' in html
-    assert 'name="key_name" type="hidden"' in html
-    assert "10,000 credits. 30 days. Just your email." in normalized_html
-    assert "No credit card." in normalized_html
-    # Simple page: no card checkout, no package selection, no password, no raw key in browser.
-    assert 'id="hostedBetaCheckoutForm"' not in html
-    assert "Start $0 Beta Checkout" not in normalized_html
-    assert 'name="package_id"' not in html
-    assert 'src="./assets/pricing.js"' not in html
-    assert "payload.raw_api_key" not in html
-    assert "payload.raw_api_key" not in hosted_keygen_js
-    assert 'type="password"' not in html
-    assert 'name="invite_password"' not in html
-    # Status-check form removed (delivery is instant; the reissue form remains).
-    assert 'id="hostedKeyStatusForm"' not in html
-    assert 'id="hostedKeyReissueForm"' in html
-    assert 'data-reissue-endpoint="/v1/hosted/beta-key/reissue"' in html
-    assert "Lost your API key?" in normalized_html
-    assert "Email replacement key" in normalized_html
-    # JS wires email registration + reissue.
-    assert "submitEmailFallback" not in hosted_keygen_js
-    assert "submitEmailRegistration" in hosted_keygen_js
-    assert "/v1/hosted/beta-key/reissue" in hosted_keygen_js
-    assert "Requesting a replacement API key" in hosted_keygen_js
-    assert "form?.dataset.endpoint" in hosted_keygen_js
-    assert "form.dataset.endpoint" not in hosted_keygen_js
-    assert "Use the email beta key path" not in pricing_js
+    # Brand-integrity rule: never say "unlimited" for a capped plan.
+    assert "unlimited" not in normalized_html.lower()
+    assert "sk_live_" not in html
+    assert "sk_test_" not in html
 
 
 def test_public_website_describes_self_service_beta_not_invite_only() -> None:
@@ -691,7 +561,6 @@ def test_account_page_lets_hosted_users_inspect_usage_without_login() -> None:
     assert 'id="hostedAccountSummary"' in html
     assert 'id="hostedUsageLedger"' in html
     assert 'id="hostedPurchaseLedger"' in html
-    assert 'src="./assets/account.js"' in html
     assert "/v1/hosted/me" in account_js
     assert "/v1/hosted/usage" in account_js
     assert "/v1/hosted/purchases" in account_js
@@ -699,7 +568,6 @@ def test_account_page_lets_hosted_users_inspect_usage_without_login() -> None:
     assert "Bearer" in account_js
     assert "standard_balance_after" in account_js
     assert "browser_balance_after" in account_js
-    assert "remaining after" in account_js
     assert "localStorage" not in account_js
     assert "sessionStorage" not in account_js
     assert "sk_live_" not in html
@@ -716,64 +584,30 @@ def test_command_docs_include_copy_code_behavior() -> None:
         assert 'src="./assets/copy-code.js"' in html
 
 
-def test_homepage_has_hosted_playground_controls_under_demo_flow() -> None:
+def test_homepage_has_anonymous_console_gated_to_fast_endpoints_only() -> None:
+    """Anonymous homepage console is fast-endpoints-only (scrape + map); the
+    full multi-capability app playground (all workflow values, downloads,
+    save) is an authed /app surface, not the public homepage. See
+    docs/product/plg-playground-ux.md "Anonymous console limits"."""
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
 
-    assert "Scout Playground" in html
-    assert "Choose a Scout capability" in html
-    assert "Acquire" in html
-    assert "Intelligence" in html
-    assert "Commerce" in html
-    assert "Evidence And Exports" not in html
-    assert "Structured Records" not in html
-    assert 'id="playgroundForm"' in html
-    assert 'name="workflow"' in html
-    for capability in (
-        "scrape",
-        "crawl",
-        "map",
-        "screenshot",
-        "products",
-        "company",
-        "investor",
-        "careers",
-        "news",
-        "social",
-        "locations",
-    ):
-        assert f'value="{capability}"' in html
-    for internal_or_utility in (
-        "extract",
-        "jobs",
-        "prism",
-        "research",
-        "docs",
-        "website-quality",
-    ):
-        assert f'value="{internal_or_utility}"' not in html
-    assert 'id="playgroundUrl"' in html
-    assert (
-        'id="playgroundUrl"\n                      name="url"\n                      type="text"'
-        in html
-    )
+    assert 'id="scoutConsole"' in html
+    assert 'id="consoleForm"' in html
+    assert 'id="consoleUrl"' in html
     assert 'inputmode="url"' in html
-    assert "normalizePublicUrl" in (_WEBSITE_DIR / "assets" / "playground.js").read_text(
-        encoding="utf-8"
-    )
-    assert 'id="playgroundQuery"' in html
-    assert 'name="output_format"' in html
-    assert 'value="json"' in html
-    assert 'value="markdown"' in html
-    assert 'id="playgroundStatus"' in html
-    assert 'id="playgroundResults"' in html
-    assert 'id="playgroundCurl"' in html
-    assert 'data-playground-tab="preview"' in html
-    assert 'data-playground-tab="json"' in html
-    assert 'data-playground-tab="markdown"' in html
-    assert 'data-playground-tab="curl"' in html
-    assert 'id="playgroundDownloadJson"' in html
-    assert 'id="playgroundDownloadMarkdown"' in html
-    assert 'src="./assets/playground.js"' in html
+    assert 'data-endpoint="scrape"' in html
+    assert 'data-endpoint="map"' in html
+    # Heavy/costly endpoints are visible as disabled tabs, never runnable anonymously.
+    for gated_capability in ("crawl", "products", "company", "screenshot"):
+        assert f'data-endpoint="{gated_capability}"' in html
+    assert 'aria-disabled="true"' in html
+    assert "/v1/demo/scrape" in html
+    assert "/v1/demo/map" in html
+    assert 'id="consoleStatusMeta"' in html
+    assert 'id="consoleCode"' in html
+    assert "5 runs/IP/day" in html
+    # No authed-only affordances (download/save) leak onto the anonymous console.
+    assert "sign up to download" in html.lower() or "sign up to unlock" in html.lower()
 
 
 def test_docs_page_links_to_playground_without_embedding_controls() -> None:
@@ -785,9 +619,6 @@ def test_docs_page_links_to_playground_without_embedding_controls() -> None:
     assert 'class="docs-content"' in html
     assert "Try Scout in the homepage playground." in html
     assert 'href="/#playground"' in html
-    assert "API setup" in html
-    assert "Operator verification" in html
-    assert "Artifact contract" in html
     assert 'id="playgroundForm"' not in html
     assert 'id="playgroundWorkflow"' not in html
     assert 'src="./assets/playground.js"' not in html
@@ -819,6 +650,8 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/legal.html": "Scout Legal And Third-Party Notices",
         "/terms.html": "Scout Beta Terms Placeholder",
         "/privacy.html": "Scout Beta Privacy Placeholder",
+        "/app": "Scout App",
+        "/app.html": "Scout App",
     }
 
     for path, text in expected.items():
@@ -882,3 +715,56 @@ def test_crawl4ai_attribution_is_consistent_across_public_docs() -> None:
     assert attribution in " ".join(notice.split())
     assert attribution in " ".join(readme.split())
     assert attribution in normalized_legal
+
+
+def test_no_vendor_locked_destinations_copy_on_public_pages() -> None:
+    """Destinations (Algolia/webhook) is an authed, post-run app surface —
+    never marketed on the public GTM homepage/pricing/beta pages. See
+    docs/product/plg-playground-ux.md "Destinations ... secondary surface,
+    NOT the GTM homepage"."""
+    public_pages = ["index.html", "beta.html", "pricing.html"]
+    for page_name in public_pages:
+        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
+        assert "Push to Algolia" not in html
+
+
+def test_app_shell_has_result_tabs_and_destinations_panel() -> None:
+    """The authed app shell (design-system.md IA: Playground / Your runs /
+    Destinations / API keys / Usage / Docs + credit meter) renders results
+    inline with tabs (Preview/JSON/JSONL/Table-CSV/cURL) and an evidence
+    panel, and Destinations (Algolia/webhook) is only offered here, never on
+    the public homepage."""
+    html = (_WEBSITE_DIR / "app.html").read_text(encoding="utf-8")
+
+    assert "key-gate" in html
+    assert 'id="apiKeyInput"' in html
+    assert 'id="appShell"' in html
+    assert 'class="app-sidebar"' in html
+    assert "Playground" in html
+    assert "Your runs" in html
+    assert "Destinations" in html
+    assert "API keys" in html
+    assert "Usage" in html
+    assert 'class="credit-meter"' in html
+
+    # Result tabs: Preview / JSON / JSONL / Table-CSV / cURL.
+    assert 'data-rtab="preview"' in html
+    assert 'data-rtab="json"' in html
+    assert 'data-rtab="jsonl"' in html
+    assert 'data-rtab="table"' in html
+    assert 'data-rtab="curl"' in html
+
+    # Evidence panel + destination send, authed-only.
+    assert "Evidence" in html
+    assert "Send to a destination" in html
+    assert 'id="destinationSelect"' in html
+    assert "Algolia" in html
+    assert "Webhook" in html
+
+    # Bearer-token session auth, never persisted to disk.
+    assert "sessionStorage" in html
+    assert "localStorage" not in html
+    assert "Authorization" in html
+    assert "Bearer" in html
+    assert "sk_live_" not in html
+    assert "sk_test_" not in html

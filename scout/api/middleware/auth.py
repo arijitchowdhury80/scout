@@ -23,6 +23,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/",
             "/account",
             "/account.html",
+            "/app",
+            "/app.html",
+            "/app/runs",
+            "/app/destinations",
+            "/app/keys",
+            "/app/usage",
             "/assets/account.js",
             "/assets/hosted-keygen.js",
             "/assets/playground.js",
@@ -71,6 +77,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.url.path.startswith("/v1/hosted/"):
             return await call_next(request)  # type: ignore[misc]
         if request.url.path.startswith("/v1/playground/"):
+            return await call_next(request)  # type: ignore[misc]
+        if request.url.path.startswith("/v1/demo/"):
             return await call_next(request)  # type: ignore[misc]
         if request.url.path == "/v1/billing/packages":
             return await call_next(request)  # type: ignore[misc]

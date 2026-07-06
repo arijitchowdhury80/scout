@@ -1,0 +1,162 @@
+[
+  {
+    "url": "https://www.firecrawl.dev/",
+    "ok": true,
+    "words": 2669,
+    "title": "Firecrawl - The context API to search, scrape, and interact with the w",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://www.firecrawl.dev/pricing",
+    "ok": true,
+    "words": 940,
+    "title": "Pricing | Firecrawl",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://www.firecrawl.dev/playground",
+    "ok": true,
+    "words": 126,
+    "title": "Firecrawl - The context API to search, scrape, and interact with the w",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://www.firecrawl.dev/scrape",
+    "ok": true,
+    "words": 694,
+    "title": "Web Scraping API. Any URL to Clean Markdown | Firecrawl",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://www.firecrawl.dev/crawl",
+    "ok": false,
+    "words": 0,
+    "title": "",
+    "quality": 0.0,
+    "err": "Unexpected error in _crawl_web at line 696 in _crawl_web (../../../../../Library"
+  },
+  {
+    "url": "https://www.firecrawl.dev/agent",
+    "ok": false,
+    "words": 0,
+    "title": "",
+    "quality": 0.0,
+    "err": "Unexpected error in _crawl_web at line 696 in _crawl_web (../../../../../Library"
+  },
+  {
+    "url": "https://www.firecrawl.dev/about",
+    "ok": true,
+    "words": 634,
+    "title": "About Firecrawl | The context API to search, scrape, and interact with",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://www.firecrawl.dev/changelog",
+    "ok": true,
+    "words": 7452,
+    "title": "Changelog | Firecrawl",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://www.firecrawl.dev/brand",
+    "ok": true,
+    "words": 262,
+    "title": "Firecrawl - The context API to search, scrape, and interact with the w",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://www.firecrawl.dev/use-cases",
+    "ok": true,
+    "words": 799,
+    "title": "Firecrawl - The context API to search, scrape, and interact with the w",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://www.firecrawl.dev/use-cases/competitive-intelligence",
+    "ok": true,
+    "words": 1079,
+    "title": "Web data for competitive intelligence & market monitoring | Firecrawl",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://www.firecrawl.dev/alternatives/firecrawl-vs-apify",
+    "ok": true,
+    "words": 2188,
+    "title": "Firecrawl vs Apify: Complete Comparison for AI Agents & RAG (2026)",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://docs.firecrawl.dev/",
+    "ok": true,
+    "words": 894,
+    "title": "Introduction | Firecrawl",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://docs.firecrawl.dev/quickstarts/amp",
+    "ok": true,
+    "words": 214,
+    "title": "MCP Web Search & Scrape in Amp - Firecrawl Docs",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://docs.firecrawl.dev/features/ask",
+    "ok": true,
+    "words": 828,
+    "title": "Ask | Firecrawl",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://docs.firecrawl.dev/api-reference/endpoint/activity",
+    "ok": true,
+    "words": 281,
+    "title": "Activity - Firecrawl Docs",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://docs.firecrawl.dev/developer-guides/llm-sdks-and-frameworks/langchain",
+    "ok": true,
+    "words": 545,
+    "title": "LangChain - Firecrawl Docs",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://docs.firecrawl.dev/developer-guides/common-sites/amazon",
+    "ok": true,
+    "words": 441,
+    "title": "Scraping Amazon - Firecrawl Docs",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://docs.firecrawl.dev/developer-guides/mcp-setup-guides/claude-ai",
+    "ok": true,
+    "words": 301,
+    "title": "MCP Web Search & Scrape in Claude.ai - Firecrawl Docs",
+    "quality": 1.0,
+    "err": ""
+  },
+  {
+    "url": "https://docs.firecrawl.dev/use-cases/ai-platforms",
+    "ok": true,
+    "words": 390,
+    "title": "AI Platforms - Firecrawl Docs",
+    "quality": 1.0,
+    "err": ""
+  }
+]

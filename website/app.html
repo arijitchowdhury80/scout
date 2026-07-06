@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scout App - Playground</title>
+    <meta
+      name="description"
+      content="Run Scout endpoints against your hosted account: inline results, evidence, downloads, and destinations."
+    />
+    <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <style>
+      /* Page-specific layout that extends styles.css rather than redefining
+         its tokens/components. Keep this block small — anything reusable
+         belongs in styles.css per the design-system.md rule. */
+      body { background: var(--bg); }
+
+      .app-sidebar__brand .wm { font-size: 19px; }
+
+      .credit-meter__label { display: flex; justify-content: space-between; align-items: baseline; }
+
+      .endpoint-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+
+      .run-bar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .run-bar__url { flex: 1; min-width: 220px; }
+
+      .result-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .result-head__title { display: flex; align-items: center; gap: 12px; }
+      .result-head__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+      .result-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      @media (max-width: 900px) { .result-panels { grid-template-columns: 1fr; } }
+
+      .destination-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+      .destination-actions__row { display: flex; gap: 8px; }
+      .destination-actions__row .btn { flex: 1; }
+
+      .dest-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+
+      .app-status-line {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--mut);
+      }
+      .app-status-line--error { color: var(--amber); }
+
+      .key-gate {
+        max-width: 460px;
+        margin: 10vh auto 0;
+      }
+      .key-gate .field { margin-top: 14px; }
+
+      [hidden] { display: none !important; }
+
+      .screen__code--json { white-space: pre; margin: 0; }
+
+      .curl-block {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 1.7;
+        padding: 18px 20px;
+        color: var(--scrfg);
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin: 0;
+      }
+
+      .rtab-panel { display: none; }
+      .rtab-panel.is-active { display: block; }
+    </style>
+  </head>
+  <body>
+    <!-- API-key gate: hosted auth is Bearer-key based (no cookie session yet),
+         so the app shell asks for a key once and keeps it in this tab's
+         sessionStorage only (never persisted to disk, never sent anywhere
+         except Authorization headers on scout endpoints). -->
+    <section id="keyGate" class="key-gate neu-card">
+      <p class="lab lab--acc">Scout app</p>
+      <h1 class="h3" style="margin-top: 8px">Sign in with your hosted API key.</h1>
+      <p class="text-mut text-sm" style="margin-top: 8px">
+        Paste the key Scout emailed you. It is kept in this browser tab only
+        (sessionStorage) and sent as a Bearer token to your own hosted
+        account — never written to disk or shared with any other page.
+      </p>
+      <div class="field">
+        <label for="apiKeyInput">Hosted API key</label>
+        <input
+          id="apiKeyInput"
+          class="input-well m"
+          type="password"
+          autocomplete="off"
+          placeholder="scout_live_..."
+        />
+      </div>
+      <button id="apiKeySubmit" class="btn btn-primary btn-block" style="margin-top: 14px" type="button">
+        Enter playground
+      </button>
+      <p id="apiKeyStatus" class="app-status-line" style="margin-top: 10px" role="status" aria-live="polite"></p>
+      <p class="text-mut text-xs" style="margin-top: 14px">
+        No key yet? <a href="/beta" class="text-acc" style="font-weight: 700">Join the beta</a> for 10,000 free credits.
+      </p>
+    </section>
+
+    <div id="appShell" class="app-shell" hidden>
+      <aside class="app-sidebar">
+        <div class="app-sidebar__brand">
+          <span class="wm" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 40 40" aria-hidden="true">
+              <circle cx="20" cy="20" r="15" stroke="#143C2B" stroke-width="4" fill="none" />
+              <line x1="20" y1="1.5" x2="20" y2="9" stroke="#143C2B" stroke-width="4" stroke-linecap="round" />
+              <line x1="20" y1="31" x2="20" y2="38.5" stroke="#143C2B" stroke-width="4" stroke-linecap="round" />
+              <line x1="1.5" y1="20" x2="9" y2="20" stroke="#143C2B" stroke-width="4" stroke-linecap="round" />
+              <line x1="31" y1="20" x2="38.5" y2="20" stroke="#143C2B" stroke-width="4" stroke-linecap="round" />
+              <circle cx="20" cy="20" r="4.2" fill="#C77A1E" />
+            </svg>
+            Scout
+          </span>
+        </div>
+
+        <a class="nav-item is-active" href="/app" data-nav="playground">
+          <span aria-hidden="true">&#9656;</span> Playground
+        </a>
+        <a class="nav-item" href="/app/runs" data-nav="runs">
+          <span aria-hidden="true">&#8801;</span> Your runs
+        </a>
+        <a class="nav-item" href="/app/destinations" data-nav="destinations">
+          <span aria-hidden="true">&#10530;</span> Destinations
+        </a>
+        <a class="nav-item" href="/app/keys" data-nav="keys">
+          <span aria-hidden="true">&#9111;</span> API keys
+        </a>
+        <a class="nav-item" href="/app/usage" data-nav="usage">
+          <span aria-hidden="true">&#9684;</span> Usage
+        </a>
+        <a class="nav-item" href="/docs" data-nav="docs">
+          <span aria-hidden="true">&#10063;</span> Docs
+        </a>
+
+        <div class="credit-meter">
+          <div class="credit-meter__label">
+            <span class="lab">Credits</span>
+            <button id="signOutBtn" class="text-xs text-mut" type="button" style="background:none;border:none;cursor:pointer;text-decoration:underline">
+              sign out
+            </button>
+          </div>
+          <div class="credit-meter__value">
+            <span id="creditValue">&mdash;</span>
+            <span class="credit-meter__cap">/ <span id="creditCap">&mdash;</span></span>
+          </div>
+          <div class="credit-meter__track">
+            <div id="creditFill" class="credit-meter__fill" style="width: 0%"></div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="app-main">
+        <div class="endpoint-tabs" role="tablist" aria-label="Endpoint">
+          <button class="btn is-active" data-endpoint="products" style="box-shadow: var(--in); color: var(--acc)" type="button">products</button>
+          <button class="btn" data-endpoint="scrape" type="button">scrape</button>
+          <button class="btn" data-endpoint="crawl" type="button">crawl</button>
+          <button class="btn" data-endpoint="map" type="button">map</button>
+          <button class="btn" data-endpoint="company" type="button">company</button>
+          <button class="btn" data-endpoint="screenshot" type="button">screenshot</button>
+        </div>
+
+        <div class="run-bar">
+          <span class="lab">POST</span>
+          <input
+            id="runUrl"
+            class="input-well m run-bar__url"
+            type="text"
+            placeholder="https://acme-store.com/collections/all"
+          />
+          <select id="runFormat" class="btn m" style="appearance: none">
+            <option value="json">format: json</option>
+            <option value="markdown">format: markdown</option>
+          </select>
+          <button id="runBtn" class="btn btn-primary" type="button">Run &#9656;</button>
+        </div>
+        <p id="runStatus" class="app-status-line" role="status" aria-live="polite"></p>
+
+        <div id="resultSection" hidden>
+          <div class="result-head">
+            <div class="result-head__title">
+              <h3 class="h3">Result</h3>
+              <span id="resultMeta" class="m text-sm text-mut"></span>
+            </div>
+            <div class="result-head__actions">
+              <div style="position: relative">
+                <button id="downloadBtn" class="btn" type="button">&#8681; Download &#9662;</button>
+                <div id="downloadMenu" class="neu-card--sm" style="position: absolute; right: 0; top: 100%; margin-top: 6px; z-index: 5; display: none; min-width: 160px; padding: 8px">
+                  <button class="nav-item" data-download="json" type="button" style="width: 100%; text-align: left">JSON</button>
+                  <button class="nav-item" data-download="jsonl" type="button" style="width: 100%; text-align: left">JSONL</button>
+                  <button class="nav-item" data-download="csv" type="button" style="width: 100%; text-align: left">CSV</button>
+                  <button class="nav-item" data-download="markdown" type="button" style="width: 100%; text-align: left">Markdown</button>
+                </div>
+              </div>
+              <button id="saveBtn" class="btn" type="button">&#10063; Save to runs</button>
+            </div>
+          </div>
+
+          <div class="screen-frame">
+            <div class="screen">
+              <div class="screen__bar screen__bar--top">
+                <div class="tab-row" role="tablist" aria-label="Result view">
+                  <button class="rtab is-active" data-rtab="preview" type="button">Preview</button>
+                  <button class="rtab" data-rtab="json" type="button">JSON</button>
+                  <button class="rtab" data-rtab="jsonl" type="button">JSONL</button>
+                  <button class="rtab" data-rtab="table" type="button">Table / CSV</button>
+                  <button class="rtab" data-rtab="curl" type="button">cURL</button>
+                </div>
+                <span id="resultScreenMeta" class="screen__meta"></span>
+              </div>
+
+              <div id="rtabPreview" class="rtab-panel is-active">
+                <div class="table-wrap">
+                  <table>
+                    <thead id="previewHead"></thead>
+                    <tbody id="previewBody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="rtabJson" class="rtab-panel">
+                <pre id="jsonCode" class="screen__code screen__code--json"></pre>
+              </div>
+
+              <div id="rtabJsonl" class="rtab-panel">
+                <pre id="jsonlCode" class="screen__code screen__code--json"></pre>
+              </div>
+
+              <div id="rtabTable" class="rtab-panel">
+                <div class="table-wrap">
+                  <table>
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="rtabCurl" class="rtab-panel">
+                <pre id="curlCode" class="curl-block"></pre>
+              </div>
+
+              <div class="screen__bar screen__bar--bottom">
+                <span id="resultFootLeft" class="screen__meta"></span>
+                <span id="resultFootRight" class="screen__meta"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-panels">
+            <div class="neu-card--sm">
+              <div class="lab lab--acc">Evidence<span id="evidenceRowLabel"></span></div>
+              <div id="evidenceBody" class="m text-sm" style="margin-top: 10px; display: flex; flex-direction: column; gap: 7px"></div>
+            </div>
+
+            <div class="neu-card--sm">
+              <div class="lab lab--acc">Send to a destination</div>
+              <div class="destination-actions">
+                <div class="dest-picker">
+                  <select id="destinationSelect" class="btn m" style="appearance: none; flex: 1">
+                    <option value="webhook">Webhook</option>
+                    <option value="algolia">Algolia</option>
+                  </select>
+                </div>
+                <button id="destinationSendBtn" class="btn btn-primary" type="button" style="justify-content: center">
+                  &#10530; Push <span id="destinationCount">0</span> records
+                </button>
+                <div class="destination-actions__row">
+                  <button id="destinationCsvBtn" class="btn" type="button">Download CSV</button>
+                </div>
+              </div>
+              <p id="destinationStatus" class="app-status-line" style="margin-top: 11px"></p>
+              <p class="text-mut text-xs" style="margin-top: 4px">
+                Connect a destination once — reuse it on every run. Webhook and CSV work
+                out of the box; Algolia needs an App ID + Admin key (stored server-side).
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      (() => {
+        "use strict";
+
+        const KEY_STORAGE = "scout_app_api_key";
+        const ENDPOINT_META = {
+          scrape: { path: "/v1/hosted/scrape", kind: "scrape" },
+          crawl: { path: "/v1/hosted/crawl", kind: "crawl" },
+          map: { path: "/v1/hosted/map", kind: "map" },
+          products: { path: "/v1/hosted/products", kind: "products" },
+          screenshot: { path: "/v1/hosted/screenshot", kind: "screenshot" },
+          company: { path: "/v1/hosted/run/company", kind: "run" },
+        };
+
+        const els = {
+          keyGate: document.getElementById("keyGate"),
+          apiKeyInput: document.getElementById("apiKeyInput"),
+          apiKeySubmit: document.getElementById("apiKeySubmit"),
+          apiKeyStatus: document.getElementById("apiKeyStatus"),
+          appShell: document.getElementById("appShell"),
+          signOutBtn: document.getElementById("signOutBtn"),
+          creditValue: document.getElementById("creditValue"),
+          creditCap: document.getElementById("creditCap"),
+          creditFill: document.getElementById("creditFill"),
+          endpointTabs: Array.from(document.querySelectorAll("[data-endpoint]")),
+          runUrl: document.getElementById("runUrl"),
+          runFormat: document.getElementById("runFormat"),
+          runBtn: document.getElementById("runBtn"),
+          runStatus: document.getElementById("runStatus"),
+          resultSection: document.getElementById("resultSection"),
+          resultMeta: document.getElementById("resultMeta"),
+          resultScreenMeta: document.getElementById("resultScreenMeta"),
+          resultFootLeft: document.getElementById("resultFootLeft"),
+          resultFootRight: document.getElementById("resultFootRight"),
+          downloadBtn: document.getElementById("downloadBtn"),
+          downloadMenu: document.getElementById("downloadMenu"),
+          saveBtn: document.getElementById("saveBtn"),
+          rtabs: Array.from(document.querySelectorAll("[data-rtab]")),
+          previewHead: document.getElementById("previewHead"),
+          previewBody: document.getElementById("previewBody"),
+          jsonCode: document.getElementById("jsonCode"),
+          jsonlCode: document.getElementById("jsonlCode"),
+          tableHead: document.getElementById("tableHead"),
+          tableBody: document.getElementById("tableBody"),
+          curlCode: document.getElementById("curlCode"),
+          evidenceBody: document.getElementById("evidenceBody"),
+          evidenceRowLabel: document.getElementById("evidenceRowLabel"),
+          destinationSelect: document.getElementById("destinationSelect"),
+          destinationSendBtn: document.getElementById("destinationSendBtn"),
+          destinationCsvBtn: document.getElementById("destinationCsvBtn"),
+          destinationCount: document.getElementById("destinationCount"),
+          destinationStatus: document.getElementById("destinationStatus"),
+        };
+
+        let state = {
+          endpoint: "products",
+          records: [],
+          lastRun: null,
+          runId: "",
+        };
+
+        function apiKey() {
+          return sessionStorage.getItem(KEY_STORAGE) || "";
+        }
+
+        function setApiKey(value) {
+          sessionStorage.setItem(KEY_STORAGE, value);
+        }
+
+        function clearApiKey() {
+          sessionStorage.removeItem(KEY_STORAGE);
+        }
+
+        async function apiFetch(path, options) {
+          const opts = options || {};
+          const headers = Object.assign({}, opts.headers || {}, {
+            Authorization: `Bearer ${apiKey()}`,
+          });
+          if (opts.body && !headers["Content-Type"]) {
+            headers["Content-Type"] = "application/json";
+          }
+          const res = await fetch(path, Object.assign({}, opts, { headers }));
+          let data = null;
+          try {
+            data = await res.json();
+          } catch (err) {
+            data = null;
+          }
+          if (!res.ok) {
+            const detail = (data && (data.detail || data.error)) || res.statusText;
+            throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+          }
+          return data;
+        }
+
+        async function refreshAccountSummary() {
+          try {
+            const me = await apiFetch("/v1/hosted/me");
+            const bal = me.balance || {};
+            const lim = me.limits || {};
+            els.creditValue.textContent = (bal.standard_credits_remaining ?? 0).toLocaleString();
+            els.creditCap.textContent = (lim.standard_credits ?? 0).toLocaleString();
+            const cap = lim.standard_credits || 1;
+            const pct = Math.max(0, Math.min(100, (100 * (bal.standard_credits_remaining ?? 0)) / cap));
+            els.creditFill.style.width = `${pct}%`;
+            return true;
+          } catch (err) {
+            return false;
+          }
+        }
+
+        async function enterApp() {
+          els.apiKeyStatus.textContent = "Checking account…";
+          els.apiKeyStatus.classList.remove("app-status-line--error");
+          const ok = await refreshAccountSummary();
+          if (!ok) {
+            els.apiKeyStatus.textContent = "Could not verify that key. Check it and try again.";
+            els.apiKeyStatus.classList.add("app-status-line--error");
+            clearApiKey();
+            return;
+          }
+          els.keyGate.hidden = true;
+          els.appShell.hidden = false;
+        }
+
+        els.apiKeySubmit.addEventListener("click", () => {
+          const value = els.apiKeyInput.value.trim();
+          if (!value) {
+            els.apiKeyStatus.textContent = "Paste a hosted API key first.";
+            els.apiKeyStatus.classList.add("app-status-line--error");
+            return;
+          }
+          setApiKey(value);
+          enterApp();
+        });
+
+        els.apiKeyInput.addEventListener("keydown", (evt) => {
+          if (evt.key === "Enter") els.apiKeySubmit.click();
+        });
+
+        els.signOutBtn.addEventListener("click", () => {
+          clearApiKey();
+          els.appShell.hidden = true;
+          els.keyGate.hidden = false;
+          els.apiKeyInput.value = "";
+          els.apiKeyStatus.textContent = "Signed out.";
+          els.apiKeyStatus.classList.remove("app-status-line--error");
+        });
+
+        els.endpointTabs.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            els.endpointTabs.forEach((b) => {
+              b.classList.remove("is-active");
+              b.style.boxShadow = "";
+              b.style.color = "";
+            });
+            btn.classList.add("is-active");
+            btn.style.boxShadow = "var(--in)";
+            btn.style.color = "var(--acc)";
+            state.endpoint = btn.dataset.endpoint;
+          });
+        });
+
+        els.rtabs.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            els.rtabs.forEach((b) => b.classList.remove("is-active"));
+            btn.classList.add("is-active");
+            document.querySelectorAll(".rtab-panel").forEach((p) => p.classList.remove("is-active"));
+            document.getElementById(`rtab${capitalize(btn.dataset.rtab)}`).classList.add("is-active");
+          });
+        });
+
+        function capitalize(s) {
+          return s.charAt(0).toUpperCase() + s.slice(1);
+        }
+
+        function buildRequestBody(endpoint, url) {
+          if (endpoint === "scrape") {
+            return { url, formats: ["markdown", "raw_html"], use_js: true };
+          }
+          if (endpoint === "crawl") {
+            return { url, max_depth: 1, max_pages: 10, include_external: false, use_js: true };
+          }
+          if (endpoint === "map") {
+            return { url, max_pages: 50, include_external: false };
+          }
+          if (endpoint === "products") {
+            return {
+              query: "playground products",
+              start_url: url,
+              max_categories: 2,
+              limit_per_category: 25,
+              max_products: 25,
+              persist: true,
+              use_js: true,
+            };
+          }
+          if (endpoint === "screenshot") {
+            return { url, full_page: false, viewport_width: 1280, viewport_height: 800, use_js: true };
+          }
+          if (endpoint === "company") {
+            return {
+              use_case: "company",
+              query: url,
+              url,
+              targets: [url],
+              output_dir: "",
+              mode: "auto",
+              max_targets: 3,
+              max_records: 25,
+            };
+          }
+          return { url };
+        }
+
+        function recordsFromResponse(endpoint, data) {
+          if (endpoint === "scrape") {
+            const s = data.scrape || {};
+            return [
+              {
+                url: s.url,
+                final_url: s.final_url,
+                title: s.metadata && s.metadata.title,
+                content_hash: s.content_hash,
+                quality_score: s.quality_score,
+                success: s.success,
+              },
+            ];
+          }
+          if (endpoint === "crawl") {
+            const pages = (data.crawl && data.crawl.pages) || [];
+            return pages.map((p) => ({
+              url: p.url,
+              title: p.metadata && p.metadata.title,
+              word_count: p.metadata && p.metadata.word_count,
+              success: p.success,
+            }));
+          }
+          if (endpoint === "map") {
+            const urls = (data.map && data.map.urls) || [];
+            return urls.map((u, i) => ({ position: i + 1, url: u }));
+          }
+          if (endpoint === "products") {
+            return (data.products && data.products.records) || [];
+          }
+          if (endpoint === "screenshot") {
+            const s = data.screenshot || {};
+            return [{ url: s.url, width: s.width, height: s.height, success: s.success }];
+          }
+          if (endpoint === "company") {
+            return (data.run && data.run.records) || [];
+          }
+          return [];
+        }
+
+        function durationFor(endpoint, data) {
+          if (endpoint === "scrape") return (data.scrape || {}).duration_ms;
+          if (endpoint === "crawl") return (data.crawl || {}).duration_ms;
+          if (endpoint === "map") return (data.map || {}).duration_ms;
+          if (endpoint === "products") return (data.products || {}).duration_ms;
+          if (endpoint === "screenshot") return (data.screenshot || {}).duration_ms;
+          if (endpoint === "company") return (data.run || {}).duration_ms;
+          return 0;
+        }
+
+        els.runBtn.addEventListener("click", runEndpoint);
+        els.runUrl.addEventListener("keydown", (evt) => {
+          if (evt.key === "Enter") runEndpoint();
+        });
+
+        async function runEndpoint() {
+          const url = els.runUrl.value.trim();
+          if (!url) {
+            els.runStatus.textContent = "Enter a URL first.";
+            els.runStatus.classList.add("app-status-line--error");
+            return;
+          }
+          els.runStatus.classList.remove("app-status-line--error");
+          els.runStatus.textContent = "Running…";
+          els.runBtn.setAttribute("aria-disabled", "true");
+
+          const endpoint = state.endpoint;
+          const meta = ENDPOINT_META[endpoint];
+          const body = buildRequestBody(endpoint, url);
+          const start = performance.now();
+
+          try {
+            const data = await apiFetch(meta.path, {
+              method: "POST",
+              body: JSON.stringify(body),
+            });
+            const elapsedMs = Math.round(performance.now() - start);
+            const records = recordsFromResponse(endpoint, data);
+            const credits = (data.hosted && data.hosted.credits_charged) || 0;
+            const durationMs = durationFor(endpoint, data) || elapsedMs;
+            const runId =
+              (data.run && data.run.run_id) ||
+              (data.products && data.products.run_id) ||
+              "";
+
+            state.records = records;
+            state.lastRun = { endpoint, url, body, data, durationMs, credits };
+            state.runId = runId;
+
+            renderResult();
+            await refreshAccountSummary();
+            els.runStatus.textContent = "";
+          } catch (err) {
+            els.runStatus.textContent = err.message || "Run failed.";
+            els.runStatus.classList.add("app-status-line--error");
+          } finally {
+            els.runBtn.removeAttribute("aria-disabled");
+          }
+        }
+
+        function renderResult() {
+          const { endpoint, url, durationMs, credits } = state.lastRun;
+          const records = state.records;
+
+          els.resultSection.hidden = false;
+          els.resultMeta.textContent = `200 OK · ${records.length} records · ${(durationMs / 1000).toFixed(1)}s · ${credits} credits`;
+          els.resultScreenMeta.innerHTML = `${records.length} rows · <span style="color: var(--verified)">${records.length} verified &#10003;</span>`;
+          els.resultFootLeft.textContent = `showing ${Math.min(records.length, 50)} of ${records.length} · every record carries source + hash`;
+          els.resultFootRight.textContent = state.runId ? `saved to Your runs · ${state.runId}` : "not yet saved";
+
+          renderPreview(records);
+          renderJson(records);
+          renderJsonl(records);
+          renderTable(records);
+          renderCurl(endpoint, url, state.lastRun.body);
+          renderEvidence(records[0]);
+
+          els.destinationCount.textContent = String(records.length);
+        }
+
+        function columnsFor(records) {
+          const cols = [];
+          const seen = new Set();
+          records.slice(0, 25).forEach((r) => {
+            Object.keys(r || {}).forEach((k) => {
+              if (!seen.has(k) && k !== "markdown") {
+                seen.add(k);
+                cols.push(k);
+              }
+            });
+          });
+          return cols.slice(0, 6);
+        }
+
+        function cellValue(v) {
+          if (v === null || v === undefined) return "";
+          if (typeof v === "object") return JSON.stringify(v);
+          return String(v);
+        }
+
+        function renderPreview(records) {
+          const cols = columnsFor(records);
+          els.previewHead.innerHTML = `<tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr>`;
+          els.previewBody.innerHTML = records
+            .slice(0, 10)
+            .map(
+              (r) =>
+                `<tr>${cols
+                  .map((c) => {
+                    const cls = c === "citation" || c === "url" ? "citation" : "";
+                    return `<td class="${cls}">${escapeHtml(cellValue(r[c]))}</td>`;
+                  })
+                  .join("")}</tr>`
+            )
+            .join("");
+        }
+
+        function renderTable(records) {
+          const cols = columnsFor(records);
+          els.tableHead.innerHTML = `<tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr>`;
+          els.tableBody.innerHTML = records
+            .map((r) => `<tr>${cols.map((c) => `<td>${escapeHtml(cellValue(r[c]))}</td>`).join("")}</tr>`)
+            .join("");
+        }
+
+        function renderJson(records) {
+          els.jsonCode.textContent = JSON.stringify(records, null, 2);
+        }
+
+        function renderJsonl(records) {
+          els.jsonlCode.textContent = records.map((r) => JSON.stringify(r)).join("\n");
+        }
+
+        function renderCurl(endpoint, url, body) {
+          const meta = ENDPOINT_META[endpoint];
+          const bodyStr = JSON.stringify(body, null, 2);
+          els.curlCode.textContent = [
+            `curl -X POST "https://scout.yourdomain.com${meta.path}" \\`,
+            `  -H "Authorization: Bearer scout_live_..." \\`,
+            `  -H "Content-Type: application/json" \\`,
+            `  -d '${bodyStr}'`,
+          ].join("\n");
+        }
+
+        function renderEvidence(record) {
+          if (!record) {
+            els.evidenceRowLabel.textContent = "";
+            els.evidenceBody.innerHTML = `<span class="text-mut">No record selected.</span>`;
+            return;
+          }
+          const label = record.name || record.title || record.url || "row 1";
+          els.evidenceRowLabel.textContent = ` (row: ${label})`;
+          const source = safeHost(record.url || record.final_url || "");
+          const hash = record.content_hash || record.hash || "";
+          const verified = record.success !== false;
+          els.evidenceBody.innerHTML = [
+            row("source", source || "—"),
+            row("hash", hash ? `${hash.slice(0, 4)}…${hash.slice(-3)}` : "—"),
+            row("verified", `<span style="color: var(--acc); font-weight: 700">${verified ? "✓ true" : "✗ false"}</span>`),
+            row("url", record.url || "—"),
+          ].join("");
+        }
+
+        function row(key, value) {
+          return `<div style="display:flex;justify-content:space-between"><span class="text-mut">${key}</span><span>${value}</span></div>`;
+        }
+
+        function safeHost(url) {
+          try {
+            return new URL(url).host;
+          } catch (err) {
+            return "";
+          }
+        }
+
+        function escapeHtml(s) {
+          return s
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        }
+
+        function toCsv(records) {
+          const cols = columnsFor(records);
+          const lines = [cols.join(",")];
+          records.forEach((r) => {
+            lines.push(cols.map((c) => `"${cellValue(r[c]).replace(/"/g, '""')}"`).join(","));
+          });
+          return lines.join("\n");
+        }
+
+        function download(filename, contents, mime) {
+          const blob = new Blob([contents], { type: mime || "text/plain" });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(link.href);
+        }
+
+        els.downloadBtn.addEventListener("click", () => {
+          els.downloadMenu.style.display = els.downloadMenu.style.display === "block" ? "none" : "block";
+        });
+        document.addEventListener("click", (evt) => {
+          if (!els.downloadBtn.contains(evt.target) && !els.downloadMenu.contains(evt.target)) {
+            els.downloadMenu.style.display = "none";
+          }
+        });
+        els.downloadMenu.addEventListener("click", (evt) => {
+          const btn = evt.target.closest("[data-download]");
+          if (!btn) return;
+          const fmt = btn.dataset.download;
+          const base = `scout-${state.endpoint}-${Date.now()}`;
+          if (fmt === "json") download(`${base}.json`, JSON.stringify(state.records, null, 2), "application/json");
+          if (fmt === "jsonl") download(`${base}.jsonl`, state.records.map((r) => JSON.stringify(r)).join("\n"), "application/x-ndjson");
+          if (fmt === "csv") download(`${base}.csv`, toCsv(state.records), "text/csv");
+          if (fmt === "markdown") {
+            const md = `# Scout ${state.endpoint} result\n\n` + state.records.map((r) => "```json\n" + JSON.stringify(r, null, 2) + "\n```\n").join("\n");
+            download(`${base}.md`, md, "text/markdown");
+          }
+          els.downloadMenu.style.display = "none";
+        });
+
+        els.saveBtn.addEventListener("click", () => {
+          if (state.runId) {
+            els.runStatus.textContent = `Already saved as ${state.runId}.`;
+            els.runStatus.classList.remove("app-status-line--error");
+            return;
+          }
+          els.runStatus.textContent = "This endpoint saves automatically when persist=true; re-run products/company to get a run_id, or use Download instead.";
+          els.runStatus.classList.remove("app-status-line--error");
+        });
+
+        els.destinationCsvBtn.addEventListener("click", () => {
+          download(`scout-${state.endpoint}-${Date.now()}.csv`, toCsv(state.records), "text/csv");
+        });
+
+        els.destinationSendBtn.addEventListener("click", sendToDestination);
+
+        async function sendToDestination() {
+          const destination = els.destinationSelect.value;
+          if (!state.records.length) {
+            els.destinationStatus.textContent = "Run something first — no records to send.";
+            els.destinationStatus.classList.add("app-status-line--error");
+            return;
+          }
+          els.destinationStatus.classList.remove("app-status-line--error");
+          els.destinationStatus.textContent = `Sending ${state.records.length} records to ${destination}…`;
+
+          const config = destination === "algolia" ? await promptAlgoliaConfig() : await promptWebhookConfig();
+          if (config === null) {
+            els.destinationStatus.textContent = "";
+            return;
+          }
+
+          try {
+            const payload = {
+              destination,
+              config,
+              records: state.records,
+              run_id: state.runId || "",
+            };
+            const res = await apiFetch("/v1/hosted/destinations/send", {
+              method: "POST",
+              body: JSON.stringify(payload),
+            });
+            const charged = (res.hosted && res.hosted.credits_charged) || 0;
+            els.destinationStatus.textContent = `Sent. ${charged} credits charged.`;
+            await refreshAccountSummary();
+          } catch (err) {
+            els.destinationStatus.textContent = err.message || "Send failed.";
+            els.destinationStatus.classList.add("app-status-line--error");
+          }
+        }
+
+        async function promptWebhookConfig() {
+          const url = window.prompt("Webhook URL to POST records to:");
+          if (!url) return null;
+          return { url };
+        }
+
+        async function promptAlgoliaConfig() {
+          const appId = window.prompt("Algolia App ID:");
+          if (!appId) return null;
+          const apiKeyValue = window.prompt("Algolia Admin API key:");
+          if (!apiKeyValue) return null;
+          const indexName = window.prompt("Algolia index name:");
+          if (!indexName) return null;
+          return { app_id: appId, api_key: apiKeyValue, index_name: indexName };
+        }
+
+        // Auto sign-in if a key already lives in this tab's session.
+        if (apiKey()) {
+          enterApp();
+        }
+      })();
+    </script>
+  </body>
+</html>

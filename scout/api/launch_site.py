@@ -104,6 +104,23 @@ async def launch_site_account() -> FileResponse:
     return _launch_site_page("account.html")
 
 
+@router.get("/app")
+@router.get("/app.html")
+@router.get("/app/runs")
+@router.get("/app/destinations")
+@router.get("/app/keys")
+@router.get("/app/usage")
+async def launch_site_app() -> FileResponse:
+    """Serve the authed Scout app shell (playground, runs, destinations, keys, usage).
+
+    A single-page shell: all /app/* sub-routes render the same HTML and let
+    client-side JS switch panels. Auth is a hosted API key entered client-side
+    (Bearer token, sessionStorage only) — see AuthMiddleware's public
+    passthrough list, which mirrors the existing /account pattern.
+    """
+    return _launch_site_page("app.html")
+
+
 @router.get("/examples")
 @router.get("/examples.html")
 async def launch_site_examples() -> FileResponse:

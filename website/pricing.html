@@ -3,213 +3,173 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout Pricing - Metered hosted beta</title>
+    <title>Scout Pricing — Start free, pay only when you scale</title>
     <meta
       name="description"
-      content="Scout hosted beta pricing is metered and being validated from unit economics."
+      content="Scout pricing: 5,000 credits free, $12/mo for 50,000 credits, or one-time pay-as-you-go packs. Every plan is the full product — evidence on every record."
     />
     <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
     <link rel="stylesheet" href="./assets/flux-design-system/tokens.css" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body class="wi">
-    <div class="wi-grid-bg" aria-hidden="true"><div class="wi-grid-bg__inner"></div></div>
-    <div class="wi-noise" aria-hidden="true"></div>
+  <body>
     <div class="site-shell">
       <header class="site-header">
-        <a class="brand" href="/" aria-label="Scout home">
-          <img class="brand-logo" src="./assets/scout-wordmark.svg" alt="Scout" width="172" height="64" />
-        </a>
-        <nav class="site-nav" aria-label="Primary navigation">
-          <a href="/">Overview</a>
-          <a href="/#use-cases">Features</a>
-          <a href="/#demo">Demo</a>
-          <a href="/docs">Docs</a>
-          <a href="/#purchase" aria-current="true">Pricing</a>
-        </nav>
-        <a class="wi-pill nav-cta" href="/beta">Join beta</a>
+        <div class="wrap site-header__row">
+          <a href="/" aria-label="Scout home" class="wm wm--lg">
+            Sc<svg viewBox="0 0 40 40" width="24" height="24" aria-hidden="true">
+              <circle cx="20" cy="20" r="15" fill="none" stroke="#143C2B" stroke-width="5" />
+              <line x1="20" y1="1.5" x2="20" y2="9" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
+              <line x1="20" y1="31" x2="20" y2="38.5" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
+              <line x1="1.5" y1="20" x2="9" y2="20" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
+              <line x1="31" y1="20" x2="38.5" y2="20" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
+              <circle cx="20" cy="20" r="5.5" fill="#C77A1E" />
+            </svg>ut
+          </a>
+          <nav class="nav-primary" aria-label="Primary navigation">
+            <a class="nav-link" href="/">Product</a>
+            <a class="nav-link" href="/docs">Docs</a>
+            <a class="nav-link is-active" href="/pricing" aria-current="true">Pricing</a>
+          </nav>
+          <a href="/beta" class="btn btn-primary btn-inline">Get API key</a>
+        </div>
       </header>
 
       <main>
-        <section class="page-hero">
-          <p class="wi-label wi-label--accent">Scout Pricing</p>
-          <h1>Metered hosted beta. No unlimited crawling.</h1>
-          <p>
-            Hosted runs use Scout workers, browsers, storage, security, and
-            support. External LLM use is disabled by default for beta, and
-            hosted usage is finite-credit and priced from real unit economics.
+        <section class="section section--hero wrap wrap--narrow">
+          <p class="lab lab--acc">Pricing</p>
+          <h1 class="h1" style="margin:14px auto 0;max-width:16em">Start free. Pay only when you scale.</h1>
+          <p class="lede" style="max-width:34em;margin-left:auto;margin-right:auto">
+            Every plan is the full product — all endpoints, evidence on every record. Credits are
+            the only meter.
           </p>
         </section>
 
-        <section
-          class="section pricing"
-          data-packages-endpoint="/v1/billing/packages"
-          aria-labelledby="pricing-packages-title"
-        >
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Hosted packages</p>
-            <h2 id="pricing-packages-title">Packages are loaded from Scout's billing model.</h2>
-          </div>
-          <div id="pricingPackageGrid" class="pricing-grid">
-            <article>
-              <span class="price">$0</span>
-              <h3>Operator local verification</h3>
-              <p>The local package is for internal verification and operator debugging, not the tester beta distribution.</p>
-            </article>
-            <article class="featured-price">
-              <span class="price">Beta trial</span>
-              <h3>Hosted beta tester key</h3>
-              <p>30 days with 10,000 standard credits and 100 browser credits for registered beta testers. The beta trial is capped and metered.</p>
-              <p>Beta access is a simple email signup — no credit card required. Paid credit packages use Stripe Checkout separately.</p>
-            </article>
-            <article>
-              <span class="price">$10</span>
-              <h3>1,000 standard credits</h3>
-              <p>Pay-as-you-go candidate package for hosted API users. 1,000 standard credits means roughly 1,000 scrapes, 1,000 returned crawl pages, or 1,000 product/intelligence records.</p>
-              <p>Buy one-time credit packs any time, or subscribe below for a recurring monthly grant.</p>
-            </article>
-            <article class="featured-price" data-package-id="unlimited_monthly">
-              <span class="price">$12/mo</span>
-              <h3>Unlimited Monthly</h3>
-              <p>A recurring monthly plan that resets every billing cycle: 25,000 page operations (scrape, crawl, map, screenshot) + 10,000 products + 50 company dossiers every month.</p>
-              <p>Credits reset to the full monthly grant on each successful payment. No rollover, and metering still applies once the monthly grant is spent.</p>
-            </article>
+        <section class="section section--tight wrap" aria-labelledby="pricing-plans-title">
+          <h2 id="pricing-plans-title" class="visually-hidden" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Plans</h2>
+          <div class="grid-2" style="max-width:760px;margin:0 auto">
+            <div class="neu-card">
+              <span class="lab lab--acc">Free</span>
+              <div class="row" style="align-items:baseline;gap:8px;margin:14px 0 2px">
+                <span style="font-size:44px;font-weight:800;letter-spacing:-.03em">$0</span>
+                <span class="text-mut" style="font-size:14px">5,000 credits</span>
+              </div>
+              <div class="m text-acc" style="font-size:12.5px;margin-top:6px">≈ 2k pages + 1k products + 10 dossiers</div>
+              <div style="margin:20px 0"><a href="/beta" class="btn btn-block">Get your API key</a></div>
+              <div class="feat"><span class="feat__check">✓</span> All endpoints, evidence on every record</div>
+              <div class="feat"><span class="feat__check">✓</span> Download JSON / CSV, save runs</div>
+              <div class="feat"><span class="feat__check">✓</span> No credit card required</div>
+            </div>
+
+            <div class="neu-card card--relative">
+              <span class="card-tag">RECOMMENDED</span>
+              <span class="lab lab--acc">Monthly</span>
+              <div class="row" style="align-items:baseline;gap:8px;margin:14px 0 2px">
+                <span style="font-size:44px;font-weight:800;letter-spacing:-.03em">$12</span>
+                <span class="text-mut" style="font-size:15px">/mo · 50,000 credits</span>
+              </div>
+              <div class="m text-acc" style="font-size:12.5px;margin-top:6px">≈ 20k pages + 10k products + 100 dossiers / month</div>
+              <div style="margin:20px 0"><a href="/beta" class="btn btn-primary btn-block">Start monthly</a></div>
+              <div class="feat"><span class="feat__check">✓</span> 50,000 credits, resets monthly</div>
+              <div class="feat"><span class="feat__check">✓</span> Exports and destinations, webhooks, and saved runs</div>
+              <div class="feat"><span class="feat__check">✓</span> Hard cap — no surprise bills</div>
+            </div>
           </div>
         </section>
 
-        <section class="section beta" aria-labelledby="pricing-checkout-title">
-          <div>
-            <p class="wi-label wi-label--accent">Buy hosted credits</p>
-            <h2 id="pricing-checkout-title">Buy hosted credits online.</h2>
-            <p>
-              Paid packages are shown with live checkout wiring. The form stays
-              disabled until Stripe Checkout, webhook provisioning, and API-key
-              email delivery are configured.
+        <section class="section wrap" aria-labelledby="credit-buys-title">
+          <div class="center" style="margin-bottom:26px">
+            <span class="lab lab--acc">What a credit buys</span>
+            <h2 id="credit-buys-title" class="h2" style="margin-top:12px">1 credit ≈ one job done. Here's what work costs.</h2>
+            <p class="lede" style="max-width:32em;margin-left:auto;margin-right:auto">
+              So you can size a plan to what you actually need.
             </p>
           </div>
-          <div class="beta-panel" aria-label="Hosted credit checkout">
-            <p id="pricingCheckoutReturnStatus" class="beta-status" role="status" hidden></p>
-            <form
-              id="pricingCheckoutForm"
-              class="beta-form"
-              data-endpoint="/v1/billing/stripe/checkout-session"
-              data-status-endpoint="/v1/billing/stripe/status"
-              data-ready-flag="ready_for_paid_key_delivery"
-            >
-              <label for="pricingCheckoutName">Name or app name</label>
-              <input
-                id="pricingCheckoutName"
-                name="name"
-                type="text"
-                autocomplete="name"
-                placeholder="Your name or app"
-                required
-              />
+          <div class="grid-3">
+            <div class="neu-card neu-card--sm row gap-md">
+              <span class="neu-well neu-well--badge">1</span>
+              <span style="font-size:14.5px">Clean one page into a typed record</span>
+            </div>
+            <div class="neu-card neu-card--sm row gap-md">
+              <span class="neu-well neu-well--badge">3</span>
+              <span style="font-size:14.5px">Full-page screenshot, kept as evidence</span>
+            </div>
+            <div class="neu-card neu-card--sm row gap-md">
+              <span class="neu-well neu-well--badge">5</span>
+              <span style="font-size:14.5px">Render one JavaScript-heavy page</span>
+            </div>
+            <div class="neu-card neu-card--sm row gap-md">
+              <span class="neu-well neu-well--badge">100</span>
+              <span style="font-size:14.5px">Crawl a 100-page docs or blog site</span>
+            </div>
+            <div class="neu-card neu-card--sm row gap-md">
+              <span class="neu-well neu-well--badge">~200</span>
+              <span style="font-size:14.5px">A full company intelligence dossier</span>
+            </div>
+            <div class="neu-card neu-card--sm row gap-md">
+              <span class="neu-well neu-well--badge">2,000</span>
+              <span style="font-size:14.5px">Extract a 2,000-item product catalog</span>
+            </div>
+          </div>
+        </section>
 
-              <label for="pricingCheckoutEmail">Email for API key delivery</label>
-              <input
-                id="pricingCheckoutEmail"
-                name="email"
-                type="email"
-                autocomplete="email"
-                placeholder="you@example.com"
-                required
-              />
+        <section class="section section--tight wrap">
+          <div class="screen-frame">
+            <div class="screen" style="padding:22px 26px">
+              <div class="m screen__meta" style="text-transform:uppercase;font-size:11px;letter-spacing:.14em">Exact per-unit cost</div>
+              <div class="m grid-auto" style="margin-top:15px;color:var(--scrfg);font-size:13px">
+                <div><span class="syn" style="color:var(--syn)">1 credit</span> · scrape</div>
+                <div><span class="syn" style="color:var(--syn)">1 credit</span> · crawled page</div>
+                <div><span class="syn" style="color:var(--syn)">1 credit</span> · product / record</div>
+                <div><span class="syn" style="color:var(--syn)">3 credits</span> · screenshot</div>
+                <div><span class="syn" style="color:var(--syn)">5 credits</span> · browser render</div>
+                <div><span class="syn" style="color:var(--syn)">10 credits</span> · browser minute</div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-              <label for="pricingCheckoutPackage">Credit package</label>
-              <select id="pricingCheckoutPackage" name="package_id">
-                <option value="standard_1000">$10 - 1,000 standard credits</option>
-                <option value="standard_3000">$25 - 3,000 standard credits</option>
-                <option value="standard_15000">$100 - 15,000 standard credits</option>
-                <option value="unlimited_monthly">$12/mo - Unlimited Monthly subscription</option>
-              </select>
-
-              <button class="wi-btn" type="submit">Continue To Secure Checkout</button>
-              <p id="pricingCheckoutStatus" class="beta-status" role="status" aria-live="polite">
-                Hosted checkout stays disabled until Stripe, webhook, and email delivery are configured.
+        <section class="section section--tight wrap">
+          <div class="neu-card neu-card--sm row wrap-wrap gap-md" style="justify-content:space-between">
+            <div>
+              <span class="lab">Prefer no commitment?</span>
+              <p class="text-mut" style="margin-top:5px;font-size:14.5px">
+                One-time credit packs — <b style="color:var(--fg)">$10</b>/10k ·
+                <b style="color:var(--fg)">$25</b>/30k ·
+                <b style="color:var(--fg)">$100</b>/150k. Never expire.
+                (Cheaper per credit on Monthly.)
               </p>
-            </form>
-            <p class="beta-note">
-              Need a beta key before paid checkout opens?
-              <a href="/beta#beta-key">Register for hosted beta access</a>.
+            </div>
+            <a href="/beta" class="btn btn-inline">Buy a pack</a>
+          </div>
+          <p class="m text-mut text-xs center" style="margin-top:16px">
+            Heavy usage — 250k+ / month? A higher tier is coming.
+            <a href="mailto:support@scout.chowmes.com" class="text-acc">Talk to us →</a>
+          </p>
+        </section>
+
+        <section class="section wrap wrap--narrow">
+          <div class="neu-card center" style="padding:44px 40px">
+            <h2 class="h2">Try it free — <span class="text-acc">5,000 credits</span>, no card.</h2>
+            <p class="lede" style="max-width:32em;margin:10px auto 22px">
+              See the evidence on your own URLs before you pay anything.
             </p>
-          </div>
-        </section>
-
-        <section class="section launch-status" aria-labelledby="credit-meaning-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">What one credit means</p>
-            <h2 id="credit-meaning-title">Credits map to resource cost, not marketing magic.</h2>
-          </div>
-          <div id="pricingCreditCosts" class="status-grid">
-            <article>
-              <span class="status-tag status-tag--primary">Standard</span>
-              <h3>Light acquisition</h3>
-              <p>1 scrape = 1 standard credit. 1 returned crawl page = 1 standard credit. 1 product or intelligence record = 1 standard credit.</p>
-            </article>
-            <article>
-              <span class="status-tag status-tag--limited">Artifacts</span>
-              <h3>Screenshots cost more</h3>
-              <p>1 screenshot = 3 standard credits because it uses rendered page capture, image generation, transfer, and storage.</p>
-            </article>
-            <article>
-              <span class="status-tag status-tag--blocker">Browser</span>
-              <h3>Browser work is separate</h3>
-              <p>1 browser render = 5 browser credits. 1 browser minute = 10 browser credits. Browser credits are not included in the first public pay-as-you-go package.</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section launch-status" aria-labelledby="unit-economics-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Unit economics v1</p>
-            <h2 id="unit-economics-title">The first paid package must clear margin before launch.</h2>
-          </div>
-          <div id="pricingUnitEconomics" class="status-grid">
-            <article>
-              <span class="status-tag status-tag--primary">$10 package</span>
-              <h3>1,000 standard credits</h3>
-              <p>Estimated cost for 1,000 standard credits: $2.59, including $1.50 variable hosted cost, $0.59 payment processing, and $0.50 allocated support.</p>
-            </article>
-            <article>
-              <span class="status-tag status-tag--primary">Margin</span>
-              <h3>Default target is met</h3>
-              <p>Estimated gross margin: 74.1%. Break-even: 17 packs/month against a $120 monthly fixed-cost assumption.</p>
-            </article>
-            <article>
-              <span class="status-tag status-tag--limited">Assumption</span>
-              <h3>Numbers are adjustable</h3>
-              <p>This is the launch candidate, not a forever price. If browser, LLM, support, firewall, or hosting costs rise, package credits or prices must change.</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section launch-status" aria-labelledby="pricing-limits-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Hosted economics</p>
-            <h2 id="pricing-limits-title">No unlimited hosted crawling.</h2>
-          </div>
-          <div class="status-grid">
-            <article>
-              <span class="status-tag status-tag--limited">Credits</span>
-              <h3>Finite hosted credits</h3>
-              <p>Every hosted run consumes variable resources: fetches, browser minutes, screenshots, storage, retries, security, and support. Hosted beta uses caps while unit economics are validated, and external LLM use is disabled by default.</p>
-            </article>
-            <article>
-              <span class="status-tag status-tag--blocker">Limits</span>
-              <h3>No unlimited hosted crawling</h3>
-              <p>A one-time pass cannot economically support millions of calls. Hosted Scout must meter usage from day one and price from real costs.</p>
-            </article>
-            <article>
-              <span class="status-tag status-tag--primary">Operator</span>
-              <h3>Operator path stays separate</h3>
-              <p>Use local Scout only for internal verification, private debugging, or operator workflows outside the hosted beta.</p>
-            </article>
+            <a href="/beta" class="btn btn-primary btn-inline">Get your API key</a>
           </div>
         </section>
       </main>
+
+      <footer class="site-footer">
+        <div class="wrap site-footer__row m">
+          <span>Scout · evidence before extraction claims</span>
+          <span class="site-footer__links">
+            <a href="/docs">Docs</a>
+            <a href="/legal">Legal</a>
+            <a href="mailto:support@scout.chowmes.com">support@scout.chowmes.com</a>
+          </span>
+        </div>
+      </footer>
     </div>
-    <script src="./assets/pricing.js" defer></script>
   </body>
 </html>

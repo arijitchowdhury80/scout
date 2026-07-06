@@ -623,7 +623,7 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
     assert "browser_100" in package_ids
     assert standard_1000["amount_cents"] == 1000
     assert standard_1000["hosted_plan"] == "hosted_starter"
-    assert standard_1000["standard_credits"] == 1000
+    assert standard_1000["standard_credits"] == 10000
     assert standard_1000["browser_credits"] == 0
     assert data["credit_costs"]["scrape"] == "1 standard credit"
     assert data["credit_costs"]["screenshot"] == "3 standard credits"
@@ -633,7 +633,7 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
             "credit_type": "standard",
             "credits_per_unit": 1,
             "metered_unit": "request",
-            "included_in_standard_1000": 1000,
+            "included_in_standard_1000": 10000,
             "customer_description": "Fetch one public URL and return the requested hosted scrape formats.",
         },
         {
@@ -641,7 +641,7 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
             "credit_type": "standard",
             "credits_per_unit": 1,
             "metered_unit": "returned page",
-            "included_in_standard_1000": 1000,
+            "included_in_standard_1000": 10000,
             "customer_description": "Return one discovered crawl/map page within hosted plan limits.",
         },
         {
@@ -649,7 +649,7 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
             "credit_type": "standard",
             "credits_per_unit": 3,
             "metered_unit": "screenshot",
-            "included_in_standard_1000": 333,
+            "included_in_standard_1000": 3333,
             "customer_description": "Capture one screenshot artifact for a public URL.",
         },
         {
@@ -669,11 +669,11 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
             "customer_description": "Consume one minute of hosted browser execution when browser credits are enabled.",
         },
     ]
-    assert data["unit_economics"]["standard_1000"]["gross_margin_percent"] == 74.1
-    assert data["unit_economics"]["standard_1000"]["break_even_packages_per_month"] == 17
+    assert data["unit_economics"]["standard_1000"]["gross_margin_percent"] == 79.1
+    assert data["unit_economics"]["standard_1000"]["break_even_packages_per_month"] == 16
     assert data["unit_economics_assumptions"] == {
         "fixed_monthly_cost_cents": 12000,
-        "standard_credit_cost_cents": 0.15,
+        "standard_credit_cost_cents": 0.01,
         "browser_credit_cost_cents": 2.0,
         "allocated_support_cost_cents": 50,
         "payment_percent_fee": 2.9,

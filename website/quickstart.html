@@ -9,43 +9,44 @@
       content="Use hosted Scout with a beta API key or a Claude/Codex skill to produce citable acquisition artifacts."
     />
     <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
-    <link rel="stylesheet" href="./assets/flux-design-system/tokens.css" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body class="wi">
-    <div class="wi-grid-bg" aria-hidden="true"><div class="wi-grid-bg__inner"></div></div>
-    <div class="wi-noise" aria-hidden="true"></div>
-    <div class="site-shell">
-      <header class="site-header">
-        <a class="brand" href="/" aria-label="Scout home">
-          <img class="brand-logo" src="./assets/scout-wordmark.svg" alt="Scout" width="172" height="64" />
-        </a>
-        <nav class="site-nav" aria-label="Primary navigation">
-          <a href="/">Overview</a>
-          <a href="/#use-cases">Features</a>
-          <a href="/#demo">Demo</a>
-          <a href="/docs" aria-current="true">Docs</a>
-          <a href="/#purchase">Pricing</a>
+  <body>
+    <header class="site-header">
+      <div class="wrap site-header__row">
+        <a class="wm" href="/" aria-label="Scout home">Sc<svg width="17" height="17" viewBox="0 0 40 40" aria-hidden="true">
+            <circle cx="20" cy="20" r="15" stroke="#143C2B" stroke-width="4" fill="none"/>
+            <line x1="20" y1="1.5" x2="20" y2="9" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/>
+            <line x1="20" y1="31" x2="20" y2="38.5" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/>
+            <line x1="1.5" y1="20" x2="9" y2="20" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/>
+            <line x1="31" y1="20" x2="38.5" y2="20" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="20" cy="20" r="4.2" fill="#C77A1E"/>
+          </svg>ut</a>
+        <nav class="nav-primary" aria-label="Primary navigation">
+          <a class="nav-link" href="/">Overview</a>
+          <a class="nav-link" href="/pricing">Pricing</a>
+          <a class="nav-link is-active" href="/quickstart" aria-current="true">Docs</a>
+          <a class="nav-link" href="/status.html">Status</a>
         </nav>
-        <a class="wi-pill nav-cta" href="/beta">Join beta</a>
-      </header>
+        <a class="btn btn-primary btn-sm" href="/beta.html">Join beta</a>
+      </div>
+    </header>
 
-      <main>
-        <section class="page-hero docs-hero">
-          <p class="wi-label wi-label--accent">Scout Docs</p>
-          <h1>Technical documentation for Scout.</h1>
-          <p>
-            Install Scout, call the hosted API, inspect endpoint shapes, and
-            understand the artifact contract. The interactive playground lives
-            on the homepage under Demo; documentation stays focused on how to
-            implement and verify Scout.
-          </p>
-        </section>
+    <main id="top">
+      <section class="page-hero">
+        <p class="lab lab--acc">Scout docs</p>
+        <h1 class="h1">Technical documentation for Scout.</h1>
+        <p class="lede">
+          Install Scout, call the hosted API, inspect endpoint shapes, and understand the
+          artifact contract. The interactive playground lives on the homepage; these docs
+          stay focused on how to implement and verify Scout.
+        </p>
+      </section>
 
+      <div class="wrap section">
         <div class="docs-layout">
           <aside class="docs-sidebar" aria-label="Scout docs table of contents">
-            <p class="wi-label wi-label--accent">On this page</p>
+            <p class="lab">On this page</p>
             <nav>
               <a href="#docs-index-title">Documentation map</a>
               <a href="#playground-link-title">Playground link</a>
@@ -59,79 +60,71 @@
             <div class="docs-sidebar__callout">
               <strong>Want to try it first?</strong>
               <p>Run a capped hosted demo before wiring an API call.</p>
-              <a class="wi-pill" href="/#playground">Open playground</a>
+              <a class="btn btn-secondary btn-sm" href="/#playground">Open playground</a>
             </div>
           </aside>
 
           <div class="docs-content">
-        <section class="section docs-index" aria-labelledby="docs-index-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Documentation map</p>
-            <h2 id="docs-index-title">Start with the path you need.</h2>
-          </div>
-          <div class="endpoint-table" role="table" aria-label="Scout documentation sections">
-            <div role="row">
-              <strong role="cell"><a href="#hosted-api-title">Hosted API</a></strong>
-              <span role="cell">Use `https://scout.chowmes.com` with a delivered beta API key.</span>
-            </div>
-            <div role="row">
-              <strong role="cell"><a href="#api-reference-title">API reference</a></strong>
-              <span role="cell">Review the hosted endpoints beta testers need.</span>
-            </div>
-            <div role="row">
-              <strong role="cell"><a href="#skill-title">Claude/Codex skill</a></strong>
-              <span role="cell">Use Scout through an agent while hosted HTTP does the acquisition work.</span>
-            </div>
-            <div role="row">
-              <strong role="cell"><a href="#examples-title">Examples</a></strong>
-              <span role="cell">Run small scrape, product, and company workflows before larger runs.</span>
-            </div>
-            <div role="row">
-              <strong role="cell"><a href="#artifact-contract-title">Artifacts</a></strong>
-              <span role="cell">Understand the evidence files every useful run should leave behind.</span>
-            </div>
-          </div>
-        </section>
+            <section aria-labelledby="docs-index-title">
+              <p class="lab lab--acc">Documentation map</p>
+              <h2 class="h2" id="docs-index-title">Start with the path you need.</h2>
+              <div class="endpoint-table" role="table" aria-label="Scout documentation sections">
+                <div class="endpoint-row" role="row">
+                  <strong role="cell"><a href="#hosted-api-title">Hosted API</a></strong>
+                  <span role="cell">Use <code class="m">https://scout.chowmes.com</code> with a delivered beta API key.</span>
+                </div>
+                <div class="endpoint-row" role="row">
+                  <strong role="cell"><a href="#api-reference-title">API reference</a></strong>
+                  <span role="cell">Review the hosted endpoints beta testers need.</span>
+                </div>
+                <div class="endpoint-row" role="row">
+                  <strong role="cell"><a href="#skill-title">Claude/Codex skill</a></strong>
+                  <span role="cell">Use Scout through an agent while hosted HTTP does the acquisition work.</span>
+                </div>
+                <div class="endpoint-row" role="row">
+                  <strong role="cell"><a href="#examples-title">Examples</a></strong>
+                  <span role="cell">Run small scrape, product, and company workflows before larger runs.</span>
+                </div>
+                <div class="endpoint-row" role="row">
+                  <strong role="cell"><a href="#artifact-contract-title">Artifacts</a></strong>
+                  <span role="cell">Understand the evidence files every useful run should leave behind.</span>
+                </div>
+              </div>
+            </section>
 
-        <section class="section docs-callout" aria-labelledby="playground-link-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Interactive demo</p>
-            <h2 id="playground-link-title">Try Scout in the homepage playground.</h2>
-            <p>
-              Documentation stays focused on API calls, endpoint shape,
-              artifacts, and examples. The hosted playground lives under the
-              demo flow so testers can try Scout before they dive into docs.
-            </p>
-          </div>
-          <div class="note-grid">
-            <article>
-              <h3>Open playground</h3>
-              <p>Run capped hosted demos for scrape, crawl, products, and intelligence workflows.</p>
-              <a class="wi-btn" href="/#playground">Open playground</a>
-            </article>
-            <article>
-              <h3>Then implement</h3>
-              <p>Use the commands below when you are ready to call hosted Scout or configure the skill.</p>
-              <a class="wi-btn wi-btn--ghost" href="#hosted-api-title">Jump to API setup</a>
-            </article>
-          </div>
-        </section>
+            <section class="section--tight" aria-labelledby="playground-link-title">
+              <p class="lab lab--acc">Interactive demo</p>
+              <h2 class="h2" id="playground-link-title">Try Scout in the homepage playground.</h2>
+              <p class="lede">
+                Documentation stays focused on API calls, endpoint shape, artifacts, and
+                examples. The hosted playground lives under the demo flow so testers can try
+                Scout before they dive into docs.
+              </p>
+              <div class="note-grid">
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Open playground</h3>
+                  <p class="text-mut text-sm">Run capped hosted demos for scrape, crawl, products, and intelligence workflows.</p>
+                  <a class="btn btn-primary btn-sm" href="/#playground">Open playground</a>
+                </article>
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Then implement</h3>
+                  <p class="text-mut text-sm">Use the commands below when you are ready to call hosted Scout or configure the skill.</p>
+                  <a class="btn btn-secondary btn-sm" href="#hosted-api-title">Jump to API setup</a>
+                </article>
+              </div>
+            </section>
 
-        <section class="section step-section" aria-labelledby="hosted-api-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Path 01 · Hosted beta</p>
-            <h2 id="hosted-api-title">Call the live Scout API.</h2>
-          </div>
-          <p>
-            Hosted HTTP beta starts through `/beta` and is always metered. When
-            the hosted stack is ready, the beta form starts with $0 card-backed
-            setup so Stripe Checkout and webhook provisioning are exercised.
-            Email-only registration remains available as a fallback request
-            queue. Do not use localhost for hosted calls.
-            Hosted credits are capped while unit economics are validated; Scout
-            does not offer unlimited hosted crawling.
-          </p>
-          <pre><code>export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
+            <section class="section--tight" aria-labelledby="hosted-api-title">
+              <p class="lab lab--acc">Path 01 &middot; Hosted beta</p>
+              <h2 class="h2" id="hosted-api-title">Call the live Scout API.</h2>
+              <p class="lede">
+                Hosted HTTP beta starts through <code class="m">/beta.html</code> and is always
+                metered. Email-only registration is the beta signup path. Do not use localhost
+                for hosted calls. Hosted credits are capped and named plainly &mdash;
+                Free is 5,000 credits, Monthly is 50,000 credits &mdash; never sold as
+                unmetered or open-ended hosted crawling.
+              </p>
+              <pre><code>export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
 export SCOUT_HOSTED_API_KEY="paste-your-delivered-key"
 
 curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
@@ -141,228 +134,218 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/scrape" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com","formats":["markdown"],"timeout_ms":30000}'</code></pre>
-          <div class="hosted-key-card" aria-labelledby="hosted-key-title">
-            <div>
-              <p class="wi-label wi-label--accent">Private beta access</p>
-              <h3 id="hosted-key-title">Register for your beta tester API key.</h3>
-              <p>
-                Beta testers start with $0 card-backed setup when available.
-                Scout records the tester, provisions a finite-credit beta
-                account after signed checkout completion, and emails the API
-                key. Public signup never shows raw keys in the browser.
-              </p>
-            </div>
-            <a class="wi-btn" href="/beta#beta-key">Get beta tester API key</a>
-            <div id="hostedKeyResult" class="hosted-key-result" aria-live="polite">
-              <p>
-                Use the hosted beta form for $0 setup or email-only fallback.
-                Existing keys still work with the hosted API examples below.
-              </p>
-            </div>
-          </div>
-          <p>
-            Already have a key? Open <a href="/account">Hosted Account</a> to
-            inspect credits, recent usage, and purchase history without creating
-            a login.
-          </p>
-          <div class="note-grid">
-            <article>
-              <h3>Use the real domain</h3>
-              <p>Hosted calls go to `https://scout.chowmes.com/v1/hosted/*` with `Authorization: Bearer ...`.</p>
-            </article>
-            <article>
-              <h3>Credits</h3>
-              <p>`/v1/hosted/me` shows your plan, balance, and current limits. A basic hosted scrape consumes one standard credit.</p>
-            </article>
-            <article>
-              <h3>Keys</h3>
-              <p>Recommended beta onboarding starts at `/v1/billing/stripe/checkout-session` with package `beta_trial`, your name, and your email. The fallback request queue uses `/v1/hosted/beta-key`. Scout emails the API key; never paste hosted API keys into frontend code, public repos, screenshots, tickets, or shared logs.</p>
-            </article>
-          </div>
-        </section>
 
-        <section class="section step-section" aria-labelledby="api-reference-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">API reference</p>
-            <h2 id="api-reference-title">The endpoints testers actually need.</h2>
-          </div>
-          <div class="endpoint-table" role="table" aria-label="Scout beta API endpoints">
-            <div role="row">
-              <strong role="cell">GET /v1/hosted/me</strong>
-              <span role="cell">Check hosted beta plan, credits, limits, and retention.</span>
-            </div>
-            <div role="row">
-              <strong role="cell">POST /v1/hosted/beta-key</strong>
-              <span role="cell">Register for a finite-credit beta tester API key by email.</span>
-            </div>
-            <div role="row">
-              <strong role="cell">POST /v1/hosted/scrape</strong>
-              <span role="cell">Acquire one public URL and return content plus evidence metadata.</span>
-            </div>
-            <div role="row">
-              <strong role="cell">GET /health</strong>
-              <span role="cell">Verify a local or hosted Scout service is alive.</span>
-            </div>
-            <div role="row">
-              <strong role="cell">POST /v1/hosted/products</strong>
-              <span role="cell">Acquire product records through the hosted beta surface.</span>
-            </div>
-            <div role="row">
-              <strong role="cell">POST /v1/hosted/run/{use_case}</strong>
-              <span role="cell">Run company, PRISM, investor, careers, news, social, and locations workflows.</span>
-            </div>
-            <div role="row">
-              <strong role="cell">GET /v1/hosted/runs</strong>
-              <span role="cell">List hosted run summaries owned by the caller's beta key.</span>
-            </div>
-          </div>
-        </section>
+              <div class="neu-card" style="margin-top:20px;">
+                <p class="lab lab--acc">Private beta access</p>
+                <h3 class="h3">Register for your beta tester API key.</h3>
+                <p class="text-mut text-sm" style="margin-top:8px;">
+                  Scout records the tester, provisions a finite-credit beta account, and
+                  emails the API key. Public signup never shows raw keys in the browser.
+                </p>
+                <div style="margin-top:14px;">
+                  <a class="btn btn-primary btn-sm" href="/beta.html#beta-key">Get beta tester API key</a>
+                </div>
+              </div>
 
-        <section class="section step-section" aria-labelledby="python-install-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Operator verification</p>
-            <h2 id="python-install-title">Local package is not the tester beta path.</h2>
-          </div>
-          <p>
-            Operators can still verify the package locally. Beta testers should
-            use hosted HTTP or the Claude/Codex skill.
-          </p>
-          <pre><code>python3 -m venv .venv
+              <p class="lede">
+                Already have a key? Open <a class="text-acc" href="/account">Hosted Account</a>
+                to inspect credits, recent usage, and purchase history without creating a login.
+              </p>
+
+              <div class="note-grid">
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Use the real domain</h3>
+                  <p class="text-mut text-sm">Hosted calls go to <code class="m">https://scout.chowmes.com/v1/hosted/*</code> with <code class="m">Authorization: Bearer ...</code>.</p>
+                </article>
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Credits</h3>
+                  <p class="text-mut text-sm"><code class="m">/v1/hosted/me</code> shows your plan, balance, and current limits. A basic hosted scrape consumes one credit.</p>
+                </article>
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Keys</h3>
+                  <p class="text-mut text-sm">Beta onboarding uses <code class="m">/v1/hosted/beta-key</code>. Scout emails the API key; never paste hosted API keys into frontend code, public repos, screenshots, tickets, or shared logs.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="section--tight" aria-labelledby="api-reference-title">
+              <p class="lab lab--acc">API reference</p>
+              <h2 class="h2" id="api-reference-title">The endpoints testers actually need.</h2>
+              <div class="endpoint-table" role="table" aria-label="Scout beta API endpoints">
+                <div class="endpoint-row" role="row">
+                  <strong role="cell">GET /v1/hosted/me</strong>
+                  <span role="cell">Check hosted beta plan, credits, limits, and retention.</span>
+                </div>
+                <div class="endpoint-row" role="row">
+                  <strong role="cell">POST /v1/hosted/beta-key</strong>
+                  <span role="cell">Register for a finite-credit beta tester API key by email.</span>
+                </div>
+                <div class="endpoint-row" role="row">
+                  <strong role="cell">POST /v1/hosted/scrape</strong>
+                  <span role="cell">Acquire one public URL and return content plus evidence metadata.</span>
+                </div>
+                <div class="endpoint-row" role="row">
+                  <strong role="cell">GET /health</strong>
+                  <span role="cell">Verify a local or hosted Scout service is alive.</span>
+                </div>
+                <div class="endpoint-row" role="row">
+                  <strong role="cell">POST /v1/hosted/products</strong>
+                  <span role="cell">Acquire product records through the hosted beta surface.</span>
+                </div>
+                <div class="endpoint-row" role="row">
+                  <strong role="cell">POST /v1/hosted/run/{use_case}</strong>
+                  <span role="cell">Run company, PRISM, investor, careers, news, social, and locations workflows.</span>
+                </div>
+                <div class="endpoint-row" role="row">
+                  <strong role="cell">GET /v1/hosted/runs</strong>
+                  <span role="cell">List hosted run summaries owned by the caller's beta key.</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="section--tight" aria-labelledby="python-install-title">
+              <p class="lab lab--acc">Operator verification</p>
+              <h2 class="h2" id="python-install-title">Local package is not the tester beta path.</h2>
+              <p class="lede">
+                Operators can still verify the package locally. Beta testers should use hosted
+                HTTP or the Claude/Codex skill.
+              </p>
+              <pre><code>python3 -m venv .venv
 source .venv/bin/activate
 pip install "git+https://github.com/arijitchowdhury80/scout.git@codex/scout-saas-prod-ready"
 playwright install chromium
 export SCOUT_WORKDIR="$PWD/scout-runs"
 scout serve</code></pre>
-          <div class="note-grid">
-            <article>
-              <h3>Workdir</h3>
-              <p>`SCOUT_WORKDIR` is where local Scout writes records, source pages, blocked pages, validation, reports, raw evidence, and screenshots.</p>
-            </article>
-            <article>
-              <h3>Local-only health check</h3>
-              <p>Only after `scout serve` is running on your own machine, open `http://localhost:8421/health` from that same machine.</p>
-            </article>
-            <article>
-              <h3>Package release</h3>
-              <p>`pip install scout-web` comes after registry publishing gates close. Until then, package installs remain operator verification only.</p>
-            </article>
-          </div>
-        </section>
+              <div class="note-grid">
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Workdir</h3>
+                  <p class="text-mut text-sm"><code class="m">SCOUT_WORKDIR</code> is where local Scout writes records, source pages, blocked pages, validation, reports, raw evidence, and screenshots.</p>
+                </article>
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Local-only health check</h3>
+                  <p class="text-mut text-sm">Only after <code class="m">scout serve</code> is running on your own machine, open <code class="m">http://localhost:8421/health</code> from that same machine.</p>
+                </article>
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Package release</h3>
+                  <p class="text-mut text-sm"><code class="m">pip install scout-web</code> comes after registry publishing gates close. Until then, package installs remain operator verification only.</p>
+                </article>
+              </div>
+            </section>
 
-        <section class="section step-section" aria-labelledby="skill-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Path 03 · Claude/Codex skill</p>
-            <h2 id="skill-title">Use Scout from an agent workflow.</h2>
-          </div>
-          <pre><code># Point the Scout skill at hosted HTTP
+            <section class="section--tight" aria-labelledby="skill-title">
+              <p class="lab lab--acc">Path 03 &middot; Claude/Codex skill</p>
+              <h2 class="h2" id="skill-title">Use Scout from an agent workflow.</h2>
+              <pre><code># Point the Scout skill at hosted HTTP
 export SCOUT_HOSTED_BASE_URL="https://scout.chowmes.com"
 export SCOUT_HOSTED_API_KEY="paste-your-generated-key"</code></pre>
-          <div class="note-grid">
-            <article>
-              <h3>Skill boundary</h3>
-              <p>The skill is the agent-facing wrapper. Hosted HTTP remains the acquisition surface.</p>
-            </article>
-            <article>
-              <h3>Use small first runs</h3>
-              <p>Start with one public URL, inspect records and evidence, then expand within your hosted credits.</p>
-            </article>
-          </div>
-        </section>
+              <div class="note-grid">
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Skill boundary</h3>
+                  <p class="text-mut text-sm">The skill is the agent-facing wrapper. Hosted HTTP remains the acquisition surface.</p>
+                </article>
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Use small first runs</h3>
+                  <p class="text-mut text-sm">Start with one public URL, inspect records and evidence, then expand within your hosted credits.</p>
+                </article>
+              </div>
+            </section>
 
-        <section class="section quickstart-checklist" aria-labelledby="first-run-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">First useful run</p>
-            <h2 id="first-run-title">Make one artifact folder, then inspect it.</h2>
-          </div>
-          <div class="check-grid">
-            <article><h3>1. Pick a target</h3><p>Start with a public page you are allowed to access.</p></article>
-            <article><h3>2. Run Scout</h3><p>Use hosted HTTP or the Claude/Codex skill. Keep live hard-site testing small and intentional.</p></article>
-            <article><h3>3. Inspect evidence</h3><p>Open `records.json`, `source_pages.json`, `blocked_pages.json`, and `extraction_report.md`.</p></article>
-          </div>
-        </section>
+            <section class="section--tight" aria-labelledby="first-run-title">
+              <p class="lab lab--acc">First useful run</p>
+              <h2 class="h2" id="first-run-title">Make one artifact folder, then inspect it.</h2>
+              <div class="check-grid">
+                <article class="neu-card neu-card--sm"><h3 class="h3">1. Pick a target</h3><p class="text-mut text-sm">Start with a public page you are allowed to access.</p></article>
+                <article class="neu-card neu-card--sm"><h3 class="h3">2. Run Scout</h3><p class="text-mut text-sm">Use hosted HTTP or the Claude/Codex skill. Keep live hard-site testing small and intentional.</p></article>
+                <article class="neu-card neu-card--sm"><h3 class="h3">3. Inspect evidence</h3><p class="text-mut text-sm">Open <code class="m">records.json</code>, <code class="m">source_pages.json</code>, <code class="m">blocked_pages.json</code>, and <code class="m">extraction_report.md</code>.</p></article>
+              </div>
+            </section>
 
-        <section class="section step-section" aria-labelledby="examples-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Examples</p>
-            <h2 id="examples-title">Run small, inspectable workflows first.</h2>
-          </div>
-          <div class="note-grid">
-            <article>
-              <h3>Page to markdown</h3>
-              <p>Capture one public page as readable text with source metadata.</p>
-              <pre><code>mkdir -p ./scout-runs/example-page
+            <section class="section--tight" aria-labelledby="examples-title">
+              <p class="lab lab--acc">Examples</p>
+              <h2 class="h2" id="examples-title">Run small, inspectable workflows first.</h2>
+              <div class="note-grid">
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Page to markdown</h3>
+                  <p class="text-mut text-sm">Capture one public page as readable text with source metadata.</p>
+                  <pre><code>mkdir -p ./scout-runs/example-page
 scout scrape https://example.com \
   > ./scout-runs/example-page/scrape.json</code></pre>
-            </article>
-            <article>
-              <h3>Product category to records</h3>
-              <p>Create product records plus blocked-page evidence for a small listing run.</p>
-              <pre><code>scout products books \
+                </article>
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Product category to records</h3>
+                  <p class="text-mut text-sm">Create product records plus blocked-page evidence for a small listing run.</p>
+                  <pre><code>scout products books \
   --site books.toscrape.com \
   --start-url https://books.toscrape.com/ \
   --output-dir ./scout-runs/books-products</code></pre>
-            </article>
-            <article>
-              <h3>Company intelligence packet</h3>
-              <p>Produce a compact company packet with overview, key URLs, and citable source pages.</p>
-              <pre><code>scout run company \
+                </article>
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Company intelligence packet</h3>
+                  <p class="text-mut text-sm">Produce a compact company packet with overview, key URLs, and citable source pages.</p>
+                  <pre><code>scout run company \
   --query Adobe \
   --mode auto \
   --workdir ./scout-runs/adobe-company</code></pre>
-            </article>
-          </div>
-        </section>
+                </article>
+              </div>
+            </section>
 
-        <section class="section step-section" aria-labelledby="artifact-contract-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Artifact contract</p>
-            <h2 id="artifact-contract-title">Every useful run should leave evidence behind.</h2>
-          </div>
-          <div class="check-grid">
-            <article><h3>records.json</h3><p>Structured records created from the run.</p></article>
-            <article><h3>source_pages.json</h3><p>Source registry with URLs, providers, timestamps, and hashes.</p></article>
-            <article><h3>blocked_pages.json</h3><p>Blocked, sparse, or failed pages with provider attempts and reasons where available.</p></article>
-            <article><h3>extraction_report.md</h3><p>A human-readable summary of what worked, what failed, and what should be reviewed next.</p></article>
-          </div>
-        </section>
+            <section class="section--tight" aria-labelledby="artifact-contract-title">
+              <p class="lab lab--acc">Artifact contract</p>
+              <h2 class="h2" id="artifact-contract-title">Every useful run should leave evidence behind.</h2>
+              <div class="check-grid">
+                <article class="neu-card neu-card--sm"><h3 class="h3">records.json</h3><p class="text-mut text-sm">Structured records created from the run.</p></article>
+                <article class="neu-card neu-card--sm"><h3 class="h3">source_pages.json</h3><p class="text-mut text-sm">Source registry with URLs, providers, timestamps, and hashes.</p></article>
+                <article class="neu-card neu-card--sm"><h3 class="h3">blocked_pages.json</h3><p class="text-mut text-sm">Blocked, sparse, or failed pages with provider attempts and reasons where available.</p></article>
+                <article class="neu-card neu-card--sm"><h3 class="h3">extraction_report.md</h3><p class="text-mut text-sm">A human-readable summary of what worked, what failed, and what should be reviewed next.</p></article>
+              </div>
+            </section>
 
-        <section class="section step-section" aria-labelledby="readiness-title">
-          <div class="section-heading">
-            <p class="wi-label wi-label--accent">Readiness check</p>
-            <h2 id="readiness-title">Verify the same launch gate CI runs.</h2>
-          </div>
-          <p>
-            The readiness checker summarizes the current truth: the controlled
-            beta release is ready with limits. Public self-serve SaaS, paid
-            checkout, public registries, and security-clean claims remain future
-            gates.
-          </p>
-          <pre><code>scout launch-readiness
+            <section class="section--tight" aria-labelledby="readiness-title">
+              <p class="lab lab--acc">Readiness check</p>
+              <h2 class="h2" id="readiness-title">Verify the same launch gate CI runs.</h2>
+              <p class="lede">
+                The readiness checker summarizes the current truth: the controlled beta
+                release is ready with limits. Public self-serve SaaS, paid checkout, public
+                registries, and security-clean claims remain future gates.
+              </p>
+              <pre><code>scout launch-readiness
 scout launch-readiness --json
 scout launch-readiness --require-public
 scout launch-readiness --require-hosted-saas</code></pre>
-          <div class="note-grid">
-            <article>
-              <h3>Beta gate</h3>
-              <p>The default command should report `Private beta: ready_with_limits` when the repo evidence is intact.</p>
-            </article>
-            <article>
-              <h3>Release gate</h3>
-              <p>`--require-public` should pass for the current controlled beta release.</p>
-            </article>
-            <article>
-              <h3>Hosted SaaS gate</h3>
-              <p>`--require-hosted-saas` should fail until SMTP delivery and Stripe checkout/webhook smoke are complete.</p>
-            </article>
-          </div>
-        </section>
-
+              <div class="note-grid">
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Beta gate</h3>
+                  <p class="text-mut text-sm">The default command should report <code class="m">Private beta: ready_with_limits</code> when the repo evidence is intact.</p>
+                </article>
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Release gate</h3>
+                  <p class="text-mut text-sm"><code class="m">--require-public</code> should pass for the current controlled beta release.</p>
+                </article>
+                <article class="neu-card neu-card--sm">
+                  <h3 class="h3">Hosted SaaS gate</h3>
+                  <p class="text-mut text-sm"><code class="m">--require-hosted-saas</code> should fail until SMTP delivery and Stripe checkout/webhook smoke are complete.</p>
+                </article>
+              </div>
+            </section>
           </div>
         </div>
+      </div>
+    </main>
 
-      </main>
-    </div>
+    <footer class="site-footer">
+      <div class="wrap site-footer__row">
+        <span>&copy; Scout. Evidence before extraction claims.</span>
+        <div class="site-footer__links">
+          <a href="/">Home</a>
+          <a href="/pricing">Pricing</a>
+          <a href="/beta.html">Beta</a>
+          <a href="/legal.html">Legal</a>
+          <a href="/status.html">Status</a>
+        </div>
+      </div>
+    </footer>
+
     <script src="./assets/copy-code.js" defer></script>
-    <script src="./assets/hosted-keygen.js" defer></script>
   </body>
 </html>

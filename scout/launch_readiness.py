@@ -379,15 +379,24 @@ def _private_beta_checks(root: Path) -> list[EvidenceCheck]:
 
 
 def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
-    """Verify website pages expose the current hosted pricing posture."""
+    """Verify website pages expose the current hosted pricing posture.
+
+    Pricing model LOCKED 2026-07-06 (docs/product/pricing-model-2026-07-06.md)
+    changed the required posture markers: "unlimited" is now a BANNED word
+    (brand-integrity rule — never call a capped plan unlimited), replaced by
+    naming the actual credit number ("50,000 credits", "credit-metered").
+    Checking for the literal string "unlimited" would fail the exact pages
+    that correctly implement the new pricing copy, so that marker was
+    inverted into a banned-phrase check instead of a required one.
+    """
     required_markers = [
-        "metered",
-        "unit economics",
-        "unlimited",
+        "credit",
+        "cap",
     ]
+    banned_markers = ["unlimited"]
     # The beta page is a clean self-service signup surface; the hosted pricing
-    # posture (metered / unit economics / unlimited) lives on the pricing and
-    # quickstart pages, not on the signup form.
+    # posture (credits / capped) lives on the pricing and quickstart pages,
+    # not on the signup form.
     website_pages = [
         "website/pricing.html",
         "website/quickstart.html",
@@ -403,25 +412,37 @@ def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
         )
 
     missing_markers: list[str] = []
+    banned_hits: list[str] = []
     for page in website_pages:
         content = " ".join(_read(root / page).lower().split())
         for marker in required_markers:
             if marker not in content:
                 missing_markers.append(f"{page}: {marker}")
+        for banned in banned_markers:
+            if banned in content:
+                banned_hits.append(f"{page}: {banned!r}")
 
-    if missing_markers:
+    if missing_markers or banned_hits:
+        notes = []
+        if missing_markers:
+            notes.append("Missing hosted pricing posture markers: " + "; ".join(missing_markers))
+        if banned_hits:
+            notes.append(
+                "Banned pricing posture language present (never call a capped plan "
+                "unlimited): " + "; ".join(banned_hits)
+            )
         return EvidenceCheck(
             area="website hosted pricing posture",
             status="weak",
             evidence=", ".join(website_pages),
-            note="Missing hosted pricing posture markers: " + "; ".join(missing_markers),
+            note=" ".join(notes),
         )
 
     return EvidenceCheck(
         area="website hosted pricing posture",
         status="verified",
         evidence=", ".join(website_pages),
-        note="Website exposes unit-economics-based hosted pricing posture.",
+        note="Website exposes credit-metered hosted pricing posture (no 'unlimited' claims).",
     )
 
 

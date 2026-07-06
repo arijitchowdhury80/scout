@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from scout.core.platform.hosted import HostedPlan
 from scout.core.platform.pricing import (
+    COMPANY_DOSSIER_CREDIT_COST,
     DEFAULT_UNIT_ECONOMICS,
     credit_cost_table,
+    credit_packages,
+    dossiers_per_package,
     get_credit_package,
     package_unit_economics,
 )
@@ -17,12 +20,62 @@ def test_pay_as_you_go_1000_credit_pack_defines_customer_value() -> None:
     assert package.amount_cents == 1000
     assert package.hosted_plan is HostedPlan.HOSTED_STARTER
     assert package.currency == "usd"
-    assert package.standard_credits == 1000
+    assert package.standard_credits == 10000
     assert package.browser_credits == 0
     assert package.customer_summary == (
-        "1,000 standard credits: roughly 1,000 scrapes, 1,000 returned crawl pages, "
-        "333 screenshots, or 1,000 product/intelligence records before heavier browser work."
+        "10,000 standard credits for $10: roughly 10,000 scrapes, 10,000 returned crawl "
+        "pages, 3,333 screenshots, 10,000 product/intelligence records, or 50 company "
+        "dossiers before heavier browser work."
     )
+
+
+def test_standard_3000_pack_reprices_to_thirty_thousand_credits() -> None:
+    package = get_credit_package("standard_3000")
+
+    assert package.amount_cents == 2500
+    assert package.standard_credits == 30000
+    assert package.customer_summary == (
+        "30,000 standard credits for $25 — a volume discount for recurring API users "
+        "(150 company dossiers at ~200 credits each)."
+    )
+
+
+def test_standard_15000_pack_reprices_to_one_hundred_fifty_thousand_credits() -> None:
+    package = get_credit_package("standard_15000")
+
+    assert package.amount_cents == 10000
+    assert package.standard_credits == 150000
+    assert package.customer_summary == (
+        "150,000 standard credits for $100 for heavier teams once support and abuse "
+        "controls are proven (750 company dossiers at ~200 credits each)."
+    )
+
+
+def test_free_ga_package_is_the_public_zero_cost_acquisition_tier() -> None:
+    package = get_credit_package("free_ga")
+
+    assert package.amount_cents == 0
+    assert package.currency == "usd"
+    assert package.standard_credits == 5000
+    assert package.browser_credits == 0
+    assert package.trial_days == 0
+    assert package.requires_payment_method is False
+    assert package.is_public_purchase is True
+    assert package.is_subscription is False
+    assert package.hosted_plan is HostedPlan.LOCAL_FREE
+    assert "unlimited" not in package.customer_summary.lower()
+    assert package.customer_summary == (
+        "5,000 standard credits, free, one-time: roughly 5,000 pages, 25 company "
+        "dossiers at ~200 credits each, or 2 product catalogs. Scout's public GA "
+        "acquisition tier — no subscription required."
+    )
+
+
+def test_no_customer_summary_ever_uses_the_word_unlimited() -> None:
+    for package in credit_packages():
+        assert "unlimited" not in package.customer_summary.lower(), (
+            f"{package.package_id} customer_summary must not say 'unlimited'"
+        )
 
 
 def test_beta_trial_package_is_free_limited_and_timeboxed() -> None:
@@ -61,9 +114,11 @@ def test_unlimited_monthly_package_is_a_recurring_subscription() -> None:
     assert package.is_public_purchase is True
     assert package.is_subscription is True
     assert package.hosted_plan is HostedPlan.HOSTED_UNLIMITED
+    assert "unlimited" not in package.customer_summary.lower()
     assert package.customer_summary == (
-        "$12/month unlimited: 25,000 page operations (scrape, crawl, map, screenshot) "
-        "+ 10,000 products + 50 company dossiers every month."
+        "$12/month: 50,000 credits / month — 20,000 page operations (scrape, crawl, "
+        "map, screenshot) + 10,000 products + 100 company dossiers at ~200 credits "
+        "each, resetting every billing cycle."
     )
 
 
@@ -73,19 +128,32 @@ def test_credit_cost_table_explains_what_one_credit_means() -> None:
     assert table["scrape"] == "1 standard credit"
     assert table["crawl_page"] == "1 standard credit per returned page"
     assert table["browser_minute"] == "10 browser credits per minute"
+    assert table["company_dossier"] == "~200 standard credits per dossier"
+
+
+def test_company_dossier_credit_cost_is_standardized_at_200() -> None:
+    assert COMPANY_DOSSIER_CREDIT_COST == 200
+
+
+def test_dossiers_per_package_uses_the_standardized_dossier_cost() -> None:
+    assert dossiers_per_package("free_ga") == 25
+    assert dossiers_per_package("standard_1000") == 50
+    assert dossiers_per_package("standard_3000") == 150
+    assert dossiers_per_package("standard_15000") == 750
+    assert dossiers_per_package("unlimited_monthly") == 250
 
 
 def test_unit_economics_for_1000_credit_pack_meets_default_margin_target() -> None:
     economics = package_unit_economics("standard_1000", DEFAULT_UNIT_ECONOMICS)
 
     assert economics.revenue_cents == 1000
-    assert economics.variable_cost_cents == 150
+    assert economics.variable_cost_cents == 100
     assert economics.payment_fee_cents == 59
-    assert economics.loaded_cost_cents == 259
-    assert economics.gross_profit_cents == 741
-    assert economics.gross_margin_percent == 74.1
+    assert economics.loaded_cost_cents == 209
+    assert economics.gross_profit_cents == 791
+    assert economics.gross_margin_percent == 79.1
     assert economics.target_margin_met is True
-    assert economics.break_even_packages_per_month == 17
+    assert economics.break_even_packages_per_month == 16
 
 
 def test_unit_economics_marks_low_margin_when_costs_are_too_high() -> None:

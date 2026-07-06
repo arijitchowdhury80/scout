@@ -192,7 +192,7 @@ def test_hosted_usage_history_returns_charge_and_balance_after_for_customer_mete
     assert usage["action"] == "scrape"
     assert usage["credit_type"] == "standard"
     assert usage["credits"] == 3
-    assert usage["standard_balance_after"] == 997
+    assert usage["standard_balance_after"] == 9997
     assert usage["browser_balance_after"] == 0
     assert usage["metadata"] == {"target_url": "https://example.com"}
     assert provisioned.raw_api_key not in response.text

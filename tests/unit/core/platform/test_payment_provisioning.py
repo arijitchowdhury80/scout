@@ -75,7 +75,7 @@ def test_process_checkout_standard_1000_payment_provisions_1000_credits(
     assert result.plan is HostedPlan.HOSTED_STARTER
     assert tenant is not None
     assert tenant.plan is HostedPlan.HOSTED_STARTER
-    assert balance.standard_credits_remaining == 1000
+    assert balance.standard_credits_remaining == 10000
     assert balance.browser_credits_remaining == 0
 
 
@@ -99,7 +99,7 @@ def test_process_checkout_standard_15000_payment_provisions_pro_plan(
     assert result.plan is HostedPlan.HOSTED_PRO
     assert tenant is not None
     assert tenant.plan is HostedPlan.HOSTED_PRO
-    assert balance.standard_credits_remaining == 15000
+    assert balance.standard_credits_remaining == 150000
     assert balance.browser_credits_remaining == 0
 
 
@@ -139,7 +139,7 @@ def test_process_checkout_standard_1000_tops_up_existing_beta_account_without_ne
     assert tenant is not None
     assert tenant.plan is HostedPlan.HOSTED_STARTER
     assert result.raw_api_key == ""
-    assert balance.standard_credits_remaining == 1075
+    assert balance.standard_credits_remaining == 10075
     assert balance.browser_credits_remaining == 0
     assert stored_event is not None
     assert stored_event.tenant_id == beta.tenant.tenant_id

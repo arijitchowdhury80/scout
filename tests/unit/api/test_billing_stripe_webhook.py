@@ -167,7 +167,7 @@ def test_stripe_webhook_paid_package_delivery_includes_package_credit_metadata(
     assert stored.package_id == "standard_1000"
     assert stored.amount_total_cents == 1000
     assert delivered.package_id == "standard_1000"
-    assert delivered.standard_credits == 1000
+    assert delivered.standard_credits == 10000
     assert delivered.browser_credits == 0
     assert delivered.trial_days == 0
     assert "scout_live_" not in response.text
@@ -275,7 +275,7 @@ def test_stripe_webhook_paid_checkout_tops_up_existing_account_without_key_email
     assert body["delivery_status"] == "not_required"
     assert body["tenant_id"] == beta.tenant.tenant_id
     assert body["key_id"] == beta.api_key.key_id
-    assert balance.standard_credits_remaining == 1060
+    assert balance.standard_credits_remaining == 10060
     assert balance.browser_credits_remaining == 0
     assert stored is not None
     assert stored.package_id == "standard_1000"

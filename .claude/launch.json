@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "scout-api",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "uvicorn", "scout.api.main:app", "--host", "127.0.0.1", "--port", "8421"],
+      "port": 8421
+    }
+  ]
+}

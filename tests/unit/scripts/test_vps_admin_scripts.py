@@ -124,7 +124,6 @@ def test_vps_admin_scripts_expose_expected_help_and_defaults() -> None:
         ],
         "scout-hosted-economics": [
             "Show Scout hosted credit packages and unit economics",
-            "$10 for 1,000 standard credits",
             "standard_1000",
             "gross_margin_percent",
             "break_even_packages_per_month",
@@ -598,10 +597,10 @@ def test_hosted_admin_economics_command_prints_package_margin_without_secrets() 
     output = result.stdout + result.stderr
     script_text = script.read_text(encoding="utf-8")
 
-    assert "$10 for 1,000 standard credits" in output
+    assert "$10 for 10,000 standard credits" in output
     assert "standard_1000" in output
-    assert "74.1%" in output
-    assert "17 packs/month" in output
+    assert "79.1%" in output
+    assert "16 packs/month" in output
     assert "scout-hosted-economics" in script_text
     assert "STRIPE_SECRET_KEY" not in output
     assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" not in output

@@ -24,8 +24,8 @@ def _parser() -> argparse.ArgumentParser:
             "Show Scout hosted credit packages and unit economics. No secrets are read or printed."
         ),
         epilog=(
-            "$10 for 1,000 standard credits. Table output includes standard_1000, "
-            "gross_margin_percent, and break_even_packages_per_month."
+            "Standard credit pack pricing varies by package. Table output includes "
+            "standard_1000, gross_margin_percent, and break_even_packages_per_month."
         ),
     )
     parser.add_argument(
@@ -51,8 +51,12 @@ def _payload() -> dict[str, Any]:
     )
 
     packages = credit_packages()
+    standard_1000 = next(p for p in packages if p.package_id == "standard_1000")
     return {
-        "headline": "$10 for 1,000 standard credits",
+        "headline": (
+            f"{_money(standard_1000.amount_cents)} for "
+            f"{standard_1000.standard_credits:,} standard credits"
+        ),
         "packages": [package.model_dump(mode="json") for package in packages],
         "credit_policy": [policy.model_dump(mode="json") for policy in credit_policy_table()],
         "unit_economics": {
@@ -95,13 +99,17 @@ def _print_table(payload: dict[str, Any]) -> None:
             )
         )
     print()
+    standard_1000_credits = next(
+        int(p["standard_credits"]) for p in payload["packages"] if p["package_id"] == "standard_1000"
+    )
     print("Credit policy")
     for policy in payload["credit_policy"]:
         print(
             "- "
             f"{policy['action']}: {policy['credits_per_unit']} "
             f"{policy['credit_type']} credit(s) per {policy['metered_unit']}; "
-            f"{policy['included_in_standard_1000']} included in a 1,000-credit pack"
+            f"{policy['included_in_standard_1000']} included in a "
+            f"{standard_1000_credits:,}-credit pack"
         )
 
 
@@ -158,8 +166,12 @@ def money(cents):
 
 def payload():
     packages = credit_packages()
+    standard_1000 = next(p for p in packages if p.package_id == "standard_1000")
     return {
-        "headline": "$10 for 1,000 standard credits",
+        "headline": (
+            f"{money(standard_1000.amount_cents)} for "
+            f"{standard_1000.standard_credits:,} standard credits"
+        ),
         "packages": [package.model_dump(mode="json") for package in packages],
         "credit_policy": [policy.model_dump(mode="json") for policy in credit_policy_table()],
         "unit_economics": {
@@ -195,13 +207,17 @@ def table(data):
             )
         )
     print()
+    standard_1000_credits = next(
+        int(p["standard_credits"]) for p in data["packages"] if p["package_id"] == "standard_1000"
+    )
     print("Credit policy")
     for policy in data["credit_policy"]:
         print(
             "- "
             f"{policy['action']}: {policy['credits_per_unit']} "
             f"{policy['credit_type']} credit(s) per {policy['metered_unit']}; "
-            f"{policy['included_in_standard_1000']} included in a 1,000-credit pack"
+            f"{policy['included_in_standard_1000']} included in a "
+            f"{standard_1000_credits:,}-credit pack"
         )
 
 

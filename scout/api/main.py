@@ -17,6 +17,8 @@ from scout.api.routers import (
     app_runs,
     billing,
     crawl,
+    demo,
+    destinations,
     extract,
     harvest,
     health,
@@ -172,6 +174,8 @@ app.include_router(screenshot.router)
 app.include_router(workdir.router)
 app.include_router(hosted.router)
 app.include_router(billing.router)
+app.include_router(destinations.router)
+app.include_router(demo.router)
 app.include_router(launch_site.router)
 
 
