@@ -141,7 +141,7 @@
       </footer>
     </div>
   
-    <div id="checkoutModal" hidden style="position:fixed;inset:0;background:rgba(20,29,24,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px">
+    <div id="checkoutModal" style="display:none;position:fixed;inset:0;background:rgba(20,29,24,.45);align-items:center;justify-content:center;z-index:50;padding:20px">
       <div class="neu-card" style="background:#E6EFEA;max-width:420px;width:100%;padding:34px;border-radius:24px">
         <h3 class="h3" id="checkoutTitle" style="margin:0 0 6px">Start monthly</h3>
         <p class="text-mut text-sm" style="margin:0 0 20px">You'll finish payment on Stripe's secure page.</p>
@@ -175,12 +175,12 @@
             pkg.value = btn.dataset.checkout;
             title.textContent = pkg.value === "unlimited_monthly" ? "Start monthly" : "Buy a credit pack";
             status.textContent = "";
-            modal.hidden = false;
+            modal.style.display = "flex";
             document.getElementById("coName").focus();
           });
         });
-        document.getElementById("checkoutCancel").addEventListener("click", () => { modal.hidden = true; });
-        modal.addEventListener("click", (e) => { if (e.target === modal) modal.hidden = true; });
+        document.getElementById("checkoutCancel").addEventListener("click", () => { modal.style.display = "none"; });
+        modal.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
           status.textContent = "Preparing secure checkout…";
