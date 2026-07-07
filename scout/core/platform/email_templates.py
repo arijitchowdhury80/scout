@@ -88,7 +88,8 @@ def _html_body(
 
   <tr><td style="padding:36px 44px 0">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#E8EFEA;border-radius:12px;padding:18px 20px">
-      <p style="margin:0;font-size:13.5px;color:#1D2521;line-height:1.7"><b>Try this first:</b> point Scout at a competitor's pricing page. Every plan and price comes back cited to its source.</p>
+      <p style="margin:0 0 6px;font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#0E8A61">Tip</p>
+      <p style="margin:0;font-size:13.5px;color:#1D2521;line-height:1.7">Point Scout at a competitor's pricing page. Every plan and price comes back cited to its source.</p>
     </td></tr></table>
   </td></tr>
 

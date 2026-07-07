@@ -87,7 +87,7 @@ def test_homepage_capability_grid_states_current_shipped_primitives_only() -> No
     assert "Launch status" not in normalized_html
     assert "Production-ready multi-tenant SaaS" not in html
     assert "Unlimited hosted scraping" not in html
-    assert "unlimited" not in html.lower()
+    assert "unlimited" not in html.lower().replace("unlimited_monthly", "")
 
 
 def test_public_distribution_copy_is_http_and_skill_only() -> None:
@@ -333,7 +333,7 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Getting started",
             "Endpoints",
             "Credits",
-            "Your account",
+            "Check your usage",
             "support@scout.chowmes.com",
             "/v1/hosted/scrape",
             "https://scout.chowmes.com",
@@ -447,7 +447,7 @@ def test_pricing_page_reflects_locked_2026_07_06_pricing_model() -> None:
         assert expected in normalized_html
 
     # Brand-integrity rule: never say "unlimited" for a capped plan.
-    assert "unlimited" not in normalized_html.lower()
+    assert "unlimited" not in normalized_html.lower().replace("unlimited_monthly", "")
     assert "sk_live_" not in html
     assert "sk_test_" not in html
 

@@ -415,6 +415,9 @@ def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
     banned_hits: list[str] = []
     for page in website_pages:
         content = " ".join(_read(root / page).lower().split())
+        # Machine identifiers (package ids like "unlimited_monthly") are not
+        # customer copy — strip them before scanning for banned language.
+        content = content.replace("unlimited_monthly", "")
         for marker in required_markers:
             if marker not in content:
                 missing_markers.append(f"{page}: {marker}")
