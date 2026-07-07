@@ -70,7 +70,7 @@ def test_smtp_delivery_service_sends_one_time_key_email() -> None:
     assert "Hi Builder Person," in body
     assert "1,000 credits" in body
     assert "scout_live_test_key" in body
-    assert "https://scout.chowmes.com/docs" in body
+    assert "https://docs.scout.chowmes.com" in body
     assert "https://scout.chowmes.com/#playground" in body
     assert "support@scout.chowmes.com" in body
     assert "— Arijit, Scout" in body
@@ -229,7 +229,7 @@ def test_beta_delivery_email_is_multipart_alternative_with_html() -> None:
     assert "support@scout.chowmes.com" in html_body
 
     # Docs + playground links present.
-    assert "https://scout.chowmes.com/docs" in html_body
+    assert "https://docs.scout.chowmes.com" in html_body
     assert "https://scout.chowmes.com/#playground" in html_body
 
     # Credits/trial copy derived from request fields with thousands separators.

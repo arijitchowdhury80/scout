@@ -83,25 +83,17 @@
     }
   },
   "footer": {
-    "socials": {},
-    "links": [
-      {
-        "header": "Scout",
-        "items": [
-          {
-            "label": "Home",
-            "href": "https://scout.chowmes.com"
-          },
-          {
-            "label": "Playground",
-            "href": "https://scout.chowmes.com/#playground"
-          },
-          {
-            "label": "Support",
-            "href": "mailto:support@scout.chowmes.com"
-          }
-        ]
-      }
-    ]
+    "socials": {
+      "website": "https://scout.chowmes.com"
+    }
+  },
+  "background": {
+    "color": {
+      "light": "#E6EFEA",
+      "dark": "#141D18"
+    }
+  },
+  "appearance": {
+    "default": "light"
   }
 }

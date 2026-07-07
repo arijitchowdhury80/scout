@@ -93,7 +93,6 @@ def test_homepage_capability_grid_states_current_shipped_primitives_only() -> No
 def test_public_distribution_copy_is_http_and_skill_only() -> None:
     public_files = [
         _WEBSITE_DIR / "index.html",
-        _WEBSITE_DIR / "quickstart.html",
         _WEBSITE_DIR / "pricing.html",
         _REPO_ROOT / "README.md",
     ]
@@ -257,7 +256,7 @@ def test_beta_page_is_single_email_signup_with_support_contact() -> None:
 def test_rebuilt_pages_use_reticle_wordmark_not_legacy_marks() -> None:
     """Pages rebuilt in the neumorphic language carry the reticle lockup, not
     the retired warm-industrial or flux visual system."""
-    rebuilt_pages = ["index.html", "pricing.html", "beta.html", "quickstart.html", "legal.html"]
+    rebuilt_pages = ["index.html", "pricing.html", "beta.html", "legal.html"]
     for page_name in rebuilt_pages:
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
         assert "warm-industrial-design-system" not in html
@@ -268,7 +267,7 @@ def test_rebuilt_pages_use_reticle_wordmark_not_legacy_marks() -> None:
 def test_rebuilt_pages_share_site_header_and_beta_cta() -> None:
     """Pages rebuilt to the neumorphic language share the site-header /
     nav-primary shell and route the primary CTA to /beta."""
-    rebuilt_pages = ["index.html", "pricing.html", "beta.html", "quickstart.html", "legal.html"]
+    rebuilt_pages = ["index.html", "pricing.html", "beta.html", "legal.html"]
     for page_name in rebuilt_pages:
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
         assert '<header class="site-header">' in html
@@ -327,17 +326,6 @@ def test_launch_website_demo_gif_is_slow_enough_to_read() -> None:
 
 def test_launch_website_has_beta_onboarding_pages() -> None:
     pages = {
-        "quickstart.html": [
-            "Scout Docs",
-            "Technical documentation for Scout.",
-            "Getting started",
-            "Endpoints",
-            "Credits",
-            "Check your usage",
-            "support@scout.chowmes.com",
-            "/v1/hosted/scrape",
-            "https://scout.chowmes.com",
-        ],
         "pricing.html": [
             "Scout Pricing",
             "Start free. Pay only when you scale.",
@@ -399,28 +387,6 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         assert "sk_test_" not in html
 
 
-def test_quickstart_is_hosted_only_no_localhost_paths() -> None:
-    """Operator local-install content was removed (2026-07-06): tester docs are
-    hosted-only. The hosted domain must be present; localhost must not."""
-    html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
-
-    assert "https://scout.chowmes.com" in html
-    assert "http://localhost:8421" not in html
-    assert "http://127.0.0.1:8421" not in html
-
-
-def test_docs_send_testers_to_email_signup_without_password() -> None:
-    """Lean docs (2026-07-06): chapter 1 sends testers to /beta email signup;
-    no password fields, no card language, no operator install content."""
-    html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
-    normalized_html = " ".join(html.split())
-
-    assert 'name="invite_password"' not in html
-    assert 'type="password"' not in html
-    assert 'href="/beta"' in html
-    assert "Sign up with your email" in normalized_html
-    assert "5,000 free credits" in normalized_html
-    assert 'src="./assets/copy-code.js"' in html
 
 
 def test_pricing_page_reflects_locked_2026_07_06_pricing_model() -> None:
@@ -458,7 +424,6 @@ def test_public_website_describes_self_service_beta_not_invite_only() -> None:
         "index.html",
         "beta.html",
         "pricing.html",
-        "quickstart.html",
     ]
     banned_phrases = [
         "invite-only",
@@ -501,15 +466,6 @@ def test_account_page_lets_hosted_users_inspect_usage_without_login() -> None:
     assert "sk_live_" not in html
     assert "sk_live_" not in account_js
 
-
-def test_command_docs_include_copy_code_behavior() -> None:
-    # The beta page is a clean signup form with no CLI snippets; copy-code docs
-    # live on the docs and status pages.
-    # Only the docs page carries command snippets now; /status is a plain
-    # public health page with no CLI content.
-    html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
-    assert "<pre><code>" in html
-    assert 'src="./assets/copy-code.js"' in html
 
 
 def test_homepage_has_anonymous_console_gated_to_fast_endpoints_only() -> None:
@@ -604,40 +560,18 @@ def test_homepage_console_company_and_screenshot_stay_sample_only() -> None:
     assert "Get your free API key" in html
 
 
-def test_docs_page_has_chapter_sidebar_without_embedded_playground() -> None:
-    """Lean docs: chaptered sidebar navigation; the playground stays on the
-    homepage — docs never embed live controls."""
-    html = (_WEBSITE_DIR / "quickstart.html").read_text(encoding="utf-8")
-
-    assert "Technical documentation for Scout." in html
-    assert 'class="docs-layout' in html
-    assert 'class="docs-sidebar' in html
-    assert 'class="docs-content' in html
-    for anchor in ("#start", "#endpoints", "#credits", "#account", "#help"):
-        assert f'href="{anchor}"' in html
-    assert 'id="playgroundForm"' not in html
-    assert 'src="./assets/playground.js"' not in html
-
 
 def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
     client = TestClient(app)
 
     expected = {
-        "/quickstart": "Scout Docs",
-        "/docs": "Scout Docs",
-        "/guide": "Scout Docs",
         "/pricing": "Scout Pricing",
-        "/examples": "Scout Docs",
         "/beta": "Get your Scout API key.",
         "/account": "Scout Hosted Account",
         "/legal": "Scout Legal And Third-Party Notices",
         "/terms": "Scout Beta Terms Placeholder",
         "/privacy": "Scout Beta Privacy Placeholder",
-        "/quickstart.html": "Scout Docs",
-        "/docs.html": "Scout Docs",
-        "/guide.html": "Scout Docs",
         "/pricing.html": "Scout Pricing",
-        "/examples.html": "Scout Docs",
         "/beta.html": "Get your Scout API key.",
         "/account.html": "Scout Hosted Account",
         "/legal.html": "Scout Legal And Third-Party Notices",
@@ -667,16 +601,14 @@ def test_api_serves_third_party_notices_without_auth() -> None:
     assert "Apache License, Version 2.0" in response.text
 
 
-def test_public_docs_route_serves_software_docs_and_api_docs_move_to_api_docs() -> None:
+def test_public_docs_route_redirects_and_api_docs_stay_swagger() -> None:
     client = TestClient(app)
 
-    public_docs = client.get("/docs")
+    public_docs = client.get("/docs", follow_redirects=False)
     api_docs = client.get("/api/docs")
 
-    assert public_docs.status_code == 200
-    assert "Scout Docs" in public_docs.text
-    assert "Technical documentation for Scout." in public_docs.text
-    assert "Swagger UI" not in public_docs.text
+    assert public_docs.status_code == 308
+    assert public_docs.headers["location"] == "https://docs.scout.chowmes.com"
     assert api_docs.status_code == 200
     assert "Swagger UI" in api_docs.text
 
@@ -748,3 +680,13 @@ def test_app_shell_has_result_tabs_and_destinations_panel() -> None:
     assert "Bearer" in html
     assert "sk_live_" not in html
     assert "sk_test_" not in html
+
+
+def test_docs_routes_redirect_to_hosted_documentation() -> None:
+    """Old docs page removed (2026-07-07): /docs and legacy aliases 308-redirect
+    to the Mintlify-hosted documentation at docs.scout.chowmes.com."""
+    client = TestClient(app)
+    for path in ("/docs", "/quickstart", "/guide", "/examples"):
+        response = client.get(path, follow_redirects=False)
+        assert response.status_code == 308
+        assert response.headers["location"] == "https://docs.scout.chowmes.com"

@@ -394,12 +394,10 @@ def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
         "cap",
     ]
     banned_markers = ["unlimited"]
-    # The beta page is a clean self-service signup surface; the hosted pricing
-    # posture (credits / capped) lives on the pricing and quickstart pages,
-    # not on the signup form.
+    # Docs moved to docs.scout.chowmes.com (Mintlify); the on-site pricing page
+    # is the single public surface carrying the hosted pricing posture.
     website_pages = [
         "website/pricing.html",
-        "website/quickstart.html",
     ]
 
     missing_pages = [page for page in website_pages if not (root / page).exists()]

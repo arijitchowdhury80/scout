@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 
 router = APIRouter(include_in_schema=False)
@@ -100,16 +100,16 @@ def _asset_media_type(asset_name: str) -> str:
 @router.get("/quickstart.html")
 @router.get("/docs")
 @router.get("/docs.html")
-async def launch_site_quickstart() -> FileResponse:
-    """Serve the consolidated Scout docs page."""
-    return _launch_site_page("quickstart.html")
+async def launch_site_quickstart() -> RedirectResponse:
+    """Redirect to the hosted documentation site (Mintlify, docs-site/)."""
+    return RedirectResponse("https://docs.scout.chowmes.com", status_code=308)
 
 
 @router.get("/guide")
 @router.get("/guide.html")
-async def launch_site_guide() -> FileResponse:
-    """Keep old guide links working by serving the consolidated docs page."""
-    return _launch_site_page("quickstart.html")
+async def launch_site_guide() -> RedirectResponse:
+    """Redirect legacy guide links to the hosted documentation site."""
+    return RedirectResponse("https://docs.scout.chowmes.com", status_code=308)
 
 
 @router.get("/pricing")
@@ -145,9 +145,9 @@ async def launch_site_app() -> FileResponse:
 
 @router.get("/examples")
 @router.get("/examples.html")
-async def launch_site_examples() -> FileResponse:
-    """Keep old examples links working by serving the consolidated docs page."""
-    return _launch_site_page("quickstart.html")
+async def launch_site_examples() -> RedirectResponse:
+    """Redirect legacy examples links to the hosted documentation site."""
+    return RedirectResponse("https://docs.scout.chowmes.com", status_code=308)
 
 
 @router.get("/beta")
