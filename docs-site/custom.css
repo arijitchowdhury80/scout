@@ -1,0 +1,65 @@
+/* Scout brand override for Mintlify — match the neumorphic main site.
+   Tokens: mint #E6EFEA, forest #143C2B, emerald #0E8A61, amber #C77A1E,
+   dark data-screen #141D18, soft shadow rgba(158,184,171,.55). */
+
+:root {
+  --scout-mint: #E6EFEA;
+  --scout-forest: #143C2B;
+  --scout-emerald: #0E8A61;
+  --scout-ink: #26302A;
+  --scout-mut: #566259;
+  --scout-hair: rgba(158,184,171,.35);
+  --scout-ex: 6px 6px 14px rgba(158,184,171,.55), -6px -6px 14px rgba(255,255,255,.75);
+}
+
+/* Type: match the site's system-ui sans + mono */
+body, .prose, h1, h2, h3, h4, p, li, a, button, input, table {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+}
+code, pre, .prose code, kbd { font-family: ui-monospace, "SF Mono", Menlo, monospace !important; }
+
+/* Surfaces: mint everywhere */
+html, body, #page, main, #content-area, .bg-background-light { background-color: var(--scout-mint) !important; }
+body { color: var(--scout-ink); }
+
+/* Navbar: mint + soft neumorphic, matching the site header */
+#navbar, header#navbar, nav#navbar {
+  background: rgba(230,239,234,.9) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--scout-hair) !important;
+  box-shadow: none !important;
+}
+#navbar a { color: var(--scout-mut) !important; font-weight: 600; }
+#navbar a:hover { color: var(--scout-forest) !important; }
+
+/* Sidebar: mint, green active */
+#sidebar, .sidebar, #navigation-items { background: var(--scout-mint) !important; }
+#sidebar a[data-active="true"], .sidebar a.active, #navigation-items a[aria-current="page"] {
+  color: var(--scout-emerald) !important; font-weight: 700;
+}
+
+/* Primary buttons (Get API key) -> forest fill */
+a[role="button"], .btn-primary, button[type="submit"], #navbar a.rounded-full {
+  background-color: var(--scout-forest) !important;
+  color: #E9F2EC !important; border: none !important; border-radius: 12px !important;
+}
+
+/* Links + accents -> emerald */
+.prose a, a.text-primary { color: var(--scout-emerald) !important; }
+
+/* Code blocks -> the dark data-screen, framed soft */
+pre, .prose pre, .code-block {
+  background: #141D18 !important; border-radius: 14px !important;
+  border: none !important; box-shadow: var(--scout-ex) !important;
+}
+pre code, pre span { color: #EAF2ED !important; }
+
+/* Intro cards -> soft neumorphic, mint */
+.card, a.card, [class*="Card"] {
+  background: var(--scout-mint) !important; border: none !important;
+  border-radius: 18px !important; box-shadow: var(--scout-ex) !important;
+}
+
+/* Rounded, breathing feel */
+.prose h2 { letter-spacing: -.02em; }
