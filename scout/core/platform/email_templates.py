@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from scout.core.platform.key_delivery import HostedApiKeyDeliveryRequest
 
-_DOCS_URL = "https://scout.chowmes.com/docs"
+_DOCS_URL = "https://docs.scout.chowmes.com"
 _PLAYGROUND_URL = "https://scout.chowmes.com/#playground"
 _SUPPORT_EMAIL = "support@scout.chowmes.com"
 

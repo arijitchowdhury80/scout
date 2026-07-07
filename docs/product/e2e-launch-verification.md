@@ -3,7 +3,7 @@
 Production-readiness instrument — every surface, endpoint, button, and click, verified against
 LIVE prod (scout.chowmes.com) after each deploy. Status legend: ✅ pass (evidence) · ❌ fail ·
 ⬜ not yet run · 🔒 by-design gated. "Pass" requires observed evidence, not assumption.
-Run 1 executed 2026-07-06 against snapshot 20260706-2302. Open rows: A9, A11–A16 (need the key from Arijit's signup email), C1–C13 (browser click-through), D1/D2/D4 (Arijit's Gmail), E3/E4.
+Run 1 executed 2026-07-06 against snapshot 20260706-2302. Run 2 (2026-07-07): A9, A11–A15 ✅ live with real key; A16 🔒 unit-proven. Open: C-rows formal pass (Arijit informally OK'd click-through + visual), D1/D2/D4 (Arijit Gmail confirms).
 
 ## A. Public API surface
 | # | Check | How | Status |
@@ -16,14 +16,14 @@ Run 1 executed 2026-07-06 against snapshot 20260706-2302. Open rows: A9, A11–A
 | A6 | Demo quota: 6th call same IP/day → 429 with clear message | curl loop | ✅ 429 'Demo limit reached (5 runs/day)' (note: in-process counter resets on deploy) |
 | A7 | Demo rejects crawl-heavy abuse (bad target) cleanly | curl | ✅ SSRF target → 403 |
 | A8 | POST /v1/hosted/beta-key (fresh email) → 200 provision + email delivered | curl + Gmail | ✅ tenant provisioned, 5,000 grant, email sent (2 live signups) |
-| A9 | Same email again → idempotent/no dup-credit behavior | curl | ⬜ |
+| A9 | Same email again → idempotent/no dup-credit behavior | curl | ✅ 'account_exists', no dup credits (balance math proven); nit: response echoes plan default not live balance |
 | A10 | Invalid payloads → 422; garbage auth → 401/403; no 500s anywhere | curl | ✅ 422 / 403, no 500s observed |
-| A11 | Authed: GET /v1/hosted/me with real key → account | curl (key from A8 email) | ⬜ |
-| A12 | Authed: POST /v1/hosted/scrape → result + credit debited (me shows −1) | curl ×2 | ⬜ |
-| A13 | Authed: GET /v1/hosted/usage → ledger row from A12 | curl | ⬜ |
-| A14 | Authed: destinations/send webhook → delivers records to test receiver | curl | ⬜ |
-| A15 | Authed: unknown destination → typed error, no 500 | curl | ⬜ |
-| A16 | Credit hard-stop: exhausted balance → 402, never negative | needs drained test tenant | ⬜ |
+| A11 | Authed: GET /v1/hosted/me with real key → account | curl (key from A8 email) | ✅ /me: plan+balance+active |
+| A12 | Authed: POST /v1/hosted/scrape → result + credit debited (me shows −1) | curl ×2 | ✅ async job → complete → real markdown; credit debited (ledger 4999→4998) |
+| A13 | Authed: GET /v1/hosted/usage → ledger row from A12 | curl | ✅ usage ledger rows w/ balances after |
+| A14 | Authed: destinations/send webhook → delivers records to test receiver | curl | ✅ webhook destination delivered 1 record (echo 200), 1 credit |
+| A15 | Authed: unknown destination → typed error, no 500 | curl | ✅ 400 'Unknown destination … Available: [webhook, algolia]' |
+| A16 | Credit hard-stop: exhausted balance → 402, never negative | needs drained test tenant | 🔒 proven via concurrency unit tests (atomic cap at 0 → 402); live drain impractical |
 | A17 | Stripe checkout-session (test-mode) for a pack → checkout_url returned | curl | ✅ status shows checkout+webhook configured |
 | A18 | Admin metrics auth-gated (no key → 403) | curl | ✅ 403 without key |
 
