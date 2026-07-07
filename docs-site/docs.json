@@ -67,10 +67,19 @@
   },
   "logo": {
     "light": "/logo/reticle.svg",
-    "dark": "/logo/reticle.svg"
+    "dark": "/logo/reticle.svg",
+    "href": "https://scout.chowmes.com"
   },
   "navbar": {
     "links": [
+      {
+        "label": "Product",
+        "href": "https://scout.chowmes.com"
+      },
+      {
+        "label": "Pricing",
+        "href": "https://scout.chowmes.com/pricing"
+      },
       {
         "label": "Support",
         "href": "mailto:support@scout.chowmes.com"
@@ -85,7 +94,26 @@
   "footer": {
     "socials": {
       "website": "https://scout.chowmes.com"
-    }
+    },
+    "links": [
+      {
+        "header": "Scout",
+        "items": [
+          {
+            "label": "Product",
+            "href": "https://scout.chowmes.com"
+          },
+          {
+            "label": "Pricing",
+            "href": "https://scout.chowmes.com/pricing"
+          },
+          {
+            "label": "Get your key",
+            "href": "https://scout.chowmes.com/beta"
+          }
+        ]
+      }
+    ]
   },
   "background": {
     "color": {
