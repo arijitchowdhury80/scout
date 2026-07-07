@@ -690,3 +690,17 @@ def test_docs_routes_redirect_to_hosted_documentation() -> None:
         response = client.get(path, follow_redirects=False)
         assert response.status_code == 308
         assert response.headers["location"] == "https://docs.scout.chowmes.com"
+
+
+def test_no_em_dashes_in_customer_facing_copy() -> None:
+    """Arijit's standing rule: no em dashes anywhere customer-facing (an AI-writing
+    tell). Guards every public HTML page + JS/CSS assets against regression."""
+    import pathlib
+
+    surfaces = list(_WEBSITE_DIR.glob("*.html")) + list((_WEBSITE_DIR / "assets").glob("*.js"))
+    offenders = []
+    for path in surfaces:
+        text = path.read_text(encoding="utf-8")
+        if "—" in text:
+            offenders.append(path.name)
+    assert not offenders, f"em dash (—) found in: {offenders}"

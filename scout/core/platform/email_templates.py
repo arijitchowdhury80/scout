@@ -76,7 +76,7 @@ def _html_body(
   <tr><td style="padding:36px 44px 0">
     <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#0E8A61">Your first call</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#141D18;border-radius:12px;padding:18px 20px;font-family:'SF Mono',Menlo,monospace;font-size:12.5px;color:#EAF2ED;line-height:1.9">curl -X POST https://scout.chowmes.com/v1/scrape \\<br>&nbsp;&nbsp;-H "Authorization: Bearer <span style="color:#7BD4AC">{masked_key}</span>" \\<br>&nbsp;&nbsp;-d '{{"url":"https://example.com"}}'</td></tr></table>
-    <p style="margin:12px 0 0;font-size:14px;line-height:1.7;color:#566259">You get clean data back — with the <span style="color:#B26A12;font-weight:700">source and proof</span> attached to every record.</p>
+    <p style="margin:12px 0 0;font-size:14px;line-height:1.7;color:#566259">You get clean data back, with the <span style="color:#B26A12;font-weight:700">source and proof</span> attached to every record.</p>
   </td></tr>
 
   <tr><td style="padding:36px 44px 0">
@@ -94,8 +94,8 @@ def _html_body(
   </td></tr>
 
   <tr><td style="padding:36px 44px 40px">
-    <p style="margin:0;font-size:14px;color:#566259;line-height:1.7">Stuck, or want to tell me what you're building? <b style="color:#1D2521">Just reply</b> — or write <a href="mailto:{_SUPPORT_EMAIL}" style="color:#0E8A61;font-weight:700;text-decoration:none">{_SUPPORT_EMAIL}</a>. It reaches me directly.</p>
-    <p style="margin:16px 0 0;font-size:14px;color:#1D2521">— Arijit, Scout</p>
+    <p style="margin:0;font-size:14px;color:#566259;line-height:1.7">Stuck, or want to tell me what you're building? <b style="color:#1D2521">Just reply</b>, or write <a href="mailto:{_SUPPORT_EMAIL}" style="color:#0E8A61;font-weight:700;text-decoration:none">{_SUPPORT_EMAIL}</a>. It reaches me directly.</p>
+    <p style="margin:16px 0 0;font-size:14px;color:#1D2521">Arijit, Scout</p>
   </td></tr>
 
   <tr><td style="padding:22px 44px 30px;border-top:1px solid #DBE3DD">
@@ -126,7 +126,7 @@ def _text_body(
             f"Hi {greeting_name},",
             "",
             (
-                f"Welcome — you've got {standard_credits} credits to turn any URL "
+                f"Welcome, you've got {standard_credits} credits to turn any URL "
                 "into clean, citable records. Here's everything to make your first "
                 "call in the next five minutes."
             ),
@@ -136,17 +136,17 @@ def _text_body(
             "Treat it like a password. Need a new one? Reissue any time from the site.",
             "",
             "FIRST 5 MINUTES",
-            "1. Scrape your first URL — run this, you'll get a typed record back:",
+            "1. Scrape your first URL, run this, you'll get a typed record back:",
             "curl -X POST https://scout.chowmes.com/v1/scrape \\",
             f'  -H "Authorization: Bearer {raw_key}" \\',
             '  -d \'{"url":"https://example.com"}\'',
             "",
             (
-                "2. Check the evidence — every record carries its source, citation, "
+                "2. Check the evidence, every record carries its source, citation, "
                 "and a verified mark."
             ),
             (
-                "3. Go further — crawl a whole site, pull a product catalog, or "
+                "3. Go further, crawl a whole site, pull a product catalog, or "
                 "build a company dossier, same key, every endpoint."
             ),
             "",
@@ -154,7 +154,7 @@ def _text_body(
             f"Playground: {_PLAYGROUND_URL}",
             "",
             (
-                "Try this first: point Scout at a competitor's pricing page — "
+                "Try this first: point Scout at a competitor's pricing page, "
                 "you'll get back a clean record of every plan and price, each one "
                 "cited to the exact source."
             ),
@@ -164,10 +164,10 @@ def _text_body(
             "",
             (
                 "Stuck, or just want to tell me what you're building? Reply to this "
-                f"email or write {_SUPPORT_EMAIL} — it reaches the founder directly, "
+                f"email or write {_SUPPORT_EMAIL}, it reaches the founder directly, "
                 "and replies work."
             ),
             "",
-            "— Arijit, Scout",
+            "Arijit, Scout",
         ]
     )

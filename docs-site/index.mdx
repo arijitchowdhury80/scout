@@ -3,13 +3,13 @@ title: Introduction
 description: Scout is a hosted web intelligence API that returns evidence-grade records, not just scraped text.
 ---
 
-Scout scrapes, crawls, maps, and extracts structured data from the public web, then hands it back as **typed JSON with evidence attached** — the source URL, a content hash, a verified flag, and (for product records) per-field citations. It's built to answer the question "can I trust this record?" as directly as it answers "what does this page say?"
+Scout scrapes, crawls, maps, and extracts structured data from the public web, then hands it back as **typed JSON with evidence attached**, the source URL, a content hash, a verified flag, and (for product records) per-field citations. It's built to answer the question "can I trust this record?" as directly as it answers "what does this page say?"
 
-Every hosted call is metered in credits and authenticated with a Bearer API key. There is no unlimited tier — plans are priced against a fixed, published credit allowance so usage is predictable.
+Every hosted call is metered in credits and authenticated with a Bearer API key. There is no unlimited tier, plans are priced against a fixed, published credit allowance so usage is predictable.
 
 <CardGroup cols={2}>
   <Card title="Get your API key" icon="key" href="https://scout.chowmes.com/beta">
-    Register with your email. Scout emails a one-time `scout_live_...` key you use as a Bearer token.
+    Register with your email. Scout emails a one-time `scout_live_..` key you use as a Bearer token.
   </Card>
   <Card title="Try the playground" icon="flask" href="https://scout.chowmes.com/#playground">
     Run a capped, live demo (scrape and map) directly on the homepage before writing any code.
@@ -20,10 +20,10 @@ Every hosted call is metered in credits and authenticated with a Bearer API key.
 
 Every response includes:
 
-- **Source** — the exact URL fetched, when it was fetched, and which fetch provider ran (`ScoutMetadata` on scrape/crawl; `_source` on product records).
-- **Content hash** — `content_hash` on scrape responses, so repeats of a run can be diffed.
-- **Citations** — product records (`AlgoliaProductRecord`) carry a `citations` array and a `completeness_score`, so a field like price or brand can be traced back to where it came from.
-- **Blocked-page transparency** — crawl and product runs report `blocked_pages` rather than silently dropping pages that failed or were sparse.
+- **Source**, the exact URL fetched, when it was fetched, and which fetch provider ran (`ScoutMetadata` on scrape/crawl; `_source` on product records).
+- **Content hash**, `content_hash` on scrape responses, so repeats of a run can be diffed.
+- **Citations**, product records (`AlgoliaProductRecord`) carry a `citations` array and a `completeness_score`, so a field like price or brand can be traced back to where it came from.
+- **Blocked-page transparency**, crawl and product runs report `blocked_pages` rather than silently dropping pages that failed or were sparse.
 
 ## Where to go next
 

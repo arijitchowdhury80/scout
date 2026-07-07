@@ -18,7 +18,7 @@
     form?.dataset.checkoutEndpoint || "/v1/billing/stripe/checkout-session";
   const checkoutReadyFlag = form?.dataset.readyFlag || "ready_for_beta_checkout";
 
-  // Status stays empty until the user submits — no on-load "checking…" text.
+  // Status stays empty until the user submits, no on-load "checking…" text.
 
   cardButton?.addEventListener("click", async () => {
     if (!form || !validateForm()) return;

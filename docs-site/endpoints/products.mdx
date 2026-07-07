@@ -3,16 +3,16 @@ title: Products
 description: Extract Algolia-ready product records from a catalog or category page.
 ---
 
-`POST /v1/hosted/products` — costs **1 standard credit per record returned** (capped by `max_products` and your plan limit).
+`POST /v1/hosted/products`, costs **1 standard credit per record returned** (capped by `max_products` and your plan limit).
 
 ## Request
 
-Fields on `ProductCrawlRequest` (partial — the ones most callers need):
+Fields on `ProductCrawlRequest` (partial, the ones most callers need):
 
 | Field | Type | Default | Notes |
 |---|---|---|---|
 | `start_url` | string | `""` | catalog or category URL to start from |
-| `site` | string | `""` | alternative to `start_url` — a bare domain |
+| `site` | string | `""` | alternative to `start_url`, a bare domain |
 | `query` | string | `""` | optional product search query |
 | `limit_per_category` | int | `10` | |
 | `max_categories` | int | `10` | |
@@ -29,14 +29,14 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/products" \
 
 ## Response
 
-`ProductCrawlResponse`, wrapped in hosted usage metadata. Each record is an `AlgoliaProductRecord` — already shaped for a search index:
+`ProductCrawlResponse`, wrapped in hosted usage metadata. Each record is an `AlgoliaProductRecord`, already shaped for a search index:
 
 ```json
 {
   "success": true,
   "hosted": {
-    "tenant_id": "tn_...",
-    "key_id": "key_...",
+    "tenant_id": "tn_..",
+    "key_id": "key_..",
     "credits_charged": 10,
     "credit_type": "standard"
   },
@@ -71,6 +71,6 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/products" \
 }
 ```
 
-`objectID` is ready to push straight into Algolia. `_source` and `citations` are the evidence trail — where each record (and, where available, each field) came from. `completeness_score` flags records worth a second look before they go live in a search index.
+`objectID` is ready to push straight into Algolia. `_source` and `citations` are the evidence trail, where each record (and, where available, each field) came from. `completeness_score` flags records worth a second look before they go live in a search index.
 
 See [Destinations](/destinations) to push these records directly to Algolia or a webhook.

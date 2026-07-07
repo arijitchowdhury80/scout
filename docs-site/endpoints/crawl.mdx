@@ -3,7 +3,7 @@ title: Crawl
 description: Follow links from a start URL across a small site section.
 ---
 
-`POST /v1/hosted/crawl` — costs **1 standard credit per page actually crawled** (capped by your requested `max_pages` and your plan's `max_pages_per_run` limit).
+`POST /v1/hosted/crawl`, costs **1 standard credit per page actually crawled** (capped by your requested `max_pages` and your plan's `max_pages_per_run` limit).
 
 ## Request
 
@@ -11,7 +11,7 @@ Fields on `CrawlRequest`:
 
 | Field | Type | Default | Notes |
 |---|---|---|---|
-| `url` | string | — | required, crawl start point |
+| `url` | string |, | required, crawl start point |
 | `max_depth` | int | `2` | link-following depth |
 | `max_pages` | int | `10` | hard cap on pages fetched |
 | `url_pattern` | string | `""` | restrict crawl to matching URLs |
@@ -34,8 +34,8 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/crawl" \
 {
   "success": true,
   "hosted": {
-    "tenant_id": "tn_...",
-    "key_id": "key_...",
+    "tenant_id": "tn_..",
+    "key_id": "key_..",
     "credits_charged": 5,
     "credit_type": "standard"
   },
@@ -45,7 +45,7 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/crawl" \
     "pages": [
       {
         "url": "https://example.com/about",
-        "markdown": "...",
+        "markdown": "..",
         "metadata": {"url": "https://example.com/about", "crawled_at": "2026-07-06T18:00:00Z"},
         "success": true
       }

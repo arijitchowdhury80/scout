@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scout — Evidence-grade web intelligence, live in your browser</title>
+    <title>Scout. Evidence-grade web intelligence, live in your browser</title>
     <meta
       name="description"
-      content="Point Scout at any URL and watch it return a typed, citable record — right here, before you sign up. Self-hosted web intelligence for AI workflows, product catalogs, and research pipelines."
+      content="Point Scout at any URL and watch it return a typed, citable record, right here, before you sign up. Self-hosted web intelligence for AI workflows, product catalogs, and research pipelines."
     />
     <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
@@ -35,7 +35,7 @@
             <h1 class="h1" style="margin-top: 16px;">
               Point Scout at any URL.<br />Watch it return a citable record.
             </h1>
-            <p class="lede" style="max-width: 38em; margin-left: auto; margin-right: auto;">Give Scout a web page — get back neat, structured data you can drop into a spreadsheet, an app, or an AI agent. And it shows you exactly where every piece came from, so you can trust it. Try it right now — no signup.</p>
+            <p class="lede" style="max-width: 38em; margin-left: auto; margin-right: auto;">Give Scout a web page, get back neat, structured data you can drop into a spreadsheet, an app, or an AI agent. And it shows you exactly where every piece came from, so you can trust it. Try it right now, no signup.</p>
           </div>
         </section>
 
@@ -82,10 +82,10 @@
                     <aside class="screen__evidence">
                       <div class="lab" style="color: var(--scrmut); font-size: 10.5px;">Evidence</div>
                       <div style="margin-top: 12px; display:flex; flex-direction:column; gap:11px;">
-                        <div class="evidence-row"><span class="evidence-row__key">source</span><span class="m" id="evSource">—</span></div>
-                        <div class="evidence-row"><span class="evidence-row__key">hash</span><span class="m" id="evHash">—</span></div>
-                        <div class="evidence-row"><span class="evidence-row__key">verified</span><span class="m" id="evVerified">—</span></div>
-                        <div class="evidence-row"><span class="evidence-row__key">blocked</span><span class="m" id="evBlocked">—</span></div>
+                        <div class="evidence-row"><span class="evidence-row__key">source</span><span class="m" id="evSource">, </span></div>
+                        <div class="evidence-row"><span class="evidence-row__key">hash</span><span class="m" id="evHash">, </span></div>
+                        <div class="evidence-row"><span class="evidence-row__key">verified</span><span class="m" id="evVerified">, </span></div>
+                        <div class="evidence-row"><span class="evidence-row__key">blocked</span><span class="m" id="evBlocked">, </span></div>
                       </div>
                     </aside>
                   </div>
@@ -145,12 +145,12 @@
               <div class="neu-card neu-card--sm">
                 <span class="m lab lab--acc">RECORDS</span>
                 <h3 class="h3" style="margin: 7px 0 5px;">Data you can use right away</h3>
-                <p class="text-mut text-sm">Product lists, company info, docs, and research come back as clean, organized data — ready for your spreadsheet, your app, or your AI agent. Never a wall of messy HTML.</p>
+                <p class="text-mut text-sm">Product lists, company info, docs, and research come back as clean, organized data, ready for your spreadsheet, your app, or your AI agent. Never a wall of messy HTML.</p>
               </div>
               <div class="neu-card neu-card--sm">
                 <span class="m lab lab--acc">PROOF</span>
                 <h3 class="h3" style="margin: 7px 0 5px;">See where everything came from</h3>
-                <p class="text-mut text-sm">Every piece of data links back to the exact page it was found on. And when Scout can’t reach a page, it says so honestly — it never fills the gap with guesses.</p>
+                <p class="text-mut text-sm">Every piece of data links back to the exact page it was found on. And when Scout can’t reach a page, it says so honestly, it never fills the gap with guesses.</p>
               </div>
               <div class="neu-card neu-card--sm">
                 <span class="m lab lab--acc">EXPORTS</span>
@@ -209,7 +209,7 @@
           <div class="wrap wrap--narrow">
             <div class="neu-card center">
               <h2 class="h2">Start with <span class="text-acc">5,000 free credits</span>.</h2>
-              <p class="lede">Unlock every endpoint, downloads, and saved runs. Just your email — no card.</p>
+              <p class="lede">Unlock every endpoint, downloads, and saved runs. Just your email, no card.</p>
               <a href="/beta" class="btn btn-primary btn-lg" style="margin-top: 22px;">Get your API key</a>
             </div>
           </div>
@@ -257,7 +257,7 @@
           },
         };
 
-        const SAMPLE_LABEL = "// sample from a real run — get a free key to run your own";
+        const SAMPLE_LABEL = "// sample from a real run, get a free key to run your own";
 
         const STATIC_FALLBACK = {
           scrape: {
@@ -284,7 +284,7 @@
             },
             evidence: {
               source: "acme.com",
-              content_hash: "—",
+              content_hash: ", ",
               verified: true,
               blocked: false,
             },
@@ -294,7 +294,7 @@
               record_type: "crawl_preview",
               start_url: "https://acme.com",
               pages: [
-                { url: "https://acme.com", title: "Acme — Home", success: true },
+                { url: "https://acme.com", title: "Acme. Home", success: true },
                 { url: "https://acme.com/pricing", title: "Acme pricing", success: true },
                 { url: "https://acme.com/about", title: "About Acme", success: true },
               ],
@@ -302,7 +302,7 @@
             },
             evidence: {
               source: "acme.com",
-              content_hash: "—",
+              content_hash: ", ",
               verified: true,
               blocked: false,
             },
@@ -319,7 +319,7 @@
             },
             evidence: {
               source: "acme.com",
-              content_hash: "—",
+              content_hash: ", ",
               verified: true,
               blocked: false,
             },
@@ -390,7 +390,7 @@
             renderSampleImage(sample.source);
             renderEvidence({
               source: "anthropic.com",
-              content_hash: "—",
+              content_hash: ", ",
               verified: true,
               blocked: false,
             });
@@ -406,8 +406,8 @@
             }
             renderSampleRecord(data);
             renderEvidence({
-              source: (data.evidence && data.evidence.source) || data.source || "—",
-              content_hash: (data.evidence && data.evidence.hash) || "—",
+              source: (data.evidence && data.evidence.source) || data.source || ", ",
+              content_hash: (data.evidence && data.evidence.hash) || ", ",
               verified: Boolean(data.evidence && data.evidence.verified),
               blocked: false,
             });
@@ -415,7 +415,7 @@
             codeEl.innerHTML =
               '<span class="cmt">' + escapeHtml(SAMPLE_LABEL) + "</span>\n\n" +
               "Couldn't load the sample record.\n" +
-              '<span class="code-accent">Sign up with just your email — 5,000 credits, no card.</span>';
+              '<span class="code-accent">Sign up with just your email. 5,000 credits, no card.</span>';
           }
         }
 
@@ -448,8 +448,8 @@
         }
 
         function renderEvidence(evidence) {
-          evSource.textContent = evidence.source || "—";
-          evHash.textContent = evidence.content_hash || evidence.hash || "—";
+          evSource.textContent = evidence.source || ", ";
+          evHash.textContent = evidence.content_hash || evidence.hash || ", ";
           if (evidence.verified) {
             evVerified.innerHTML = "✓ true";
             evVerified.classList.add("evidence-verified");
@@ -498,7 +498,7 @@
 
             if (resp.status === 429) {
               const payload = await resp.json().catch(() => ({}));
-              statusMeta.textContent = payload.detail || "Demo limit reached — sign up for more.";
+              statusMeta.textContent = payload.detail || "Demo limit reached, sign up for more.";
               return;
             }
 
@@ -515,7 +515,7 @@
             const creditNote = payload.truncated ? " · truncated preview" : "";
             statusMeta.textContent = `200 OK${creditNote} · anonymous preview`;
           } catch (err) {
-            // Network/CSP failure — graceful static fallback, never a dead console.
+            // Network/CSP failure, graceful static fallback, never a dead console.
             renderFallback(activeEndpoint, "Couldn't reach the live API · showing a static example");
           } finally {
             runBtn.disabled = false;

@@ -1,9 +1,9 @@
 ---
 title: Company intelligence
-description: Run a structured intelligence workflow — company, careers, investor, news, and more — against a query or URL.
+description: Run a structured intelligence workflow, company, careers, investor, news, and more, against a query or URL.
 ---
 
-`POST /v1/hosted/run/{use_case}` — costs **1 standard credit per record returned** (capped by `max_records` and your plan limit).
+`POST /v1/hosted/run/{use_case}`, costs **1 standard credit per record returned** (capped by `max_records` and your plan limit).
 
 This is Scout's high-level "run a whole workflow" endpoint. `{use_case}` selects which vertical intelligence workflow runs. Supported values: `company`, `products`, `careers`, `prism`, `investor`, `research`, `docs`, `news`, `social`, `locations`.
 
@@ -35,15 +35,15 @@ curl -X POST "$SCOUT_HOSTED_BASE_URL/v1/hosted/run/company" \
 {
   "success": true,
   "hosted": {
-    "tenant_id": "tn_...",
-    "key_id": "key_...",
+    "tenant_id": "tn_..",
+    "key_id": "key_..",
     "credits_charged": 25,
     "credit_type": "standard"
   },
   "run": {
     "success": true,
     "use_case": "company",
-    "output_dir": "/data/runs/hosted-tn_.../company",
+    "output_dir": "/data/runs/hosted-tn_../company",
     "total_records": 25
   }
 }
@@ -59,6 +59,6 @@ curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/runs/$RUN_ID/records" \
   -H "Authorization: Bearer $SCOUT_HOSTED_API_KEY"
 ```
 
-A company run is representative of what the pricing model calls a "dossier" — roughly 200 credits for a full company crawl, though the exact record count varies by site size.
+A company run is representative of what the pricing model calls a "dossier", roughly 200 credits for a full company crawl, though the exact record count varies by site size.
 
 See [Destinations](/destinations) to export or push the resulting records.

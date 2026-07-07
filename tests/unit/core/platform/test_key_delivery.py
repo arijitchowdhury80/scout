@@ -73,7 +73,7 @@ def test_smtp_delivery_service_sends_one_time_key_email() -> None:
     assert "https://docs.scout.chowmes.com" in body
     assert "https://scout.chowmes.com/#playground" in body
     assert "support@scout.chowmes.com" in body
-    assert "— Arijit, Scout" in body
+    assert "Arijit, Scout" in body
 
 
 def test_beta_key_email_uses_actual_credit_and_trial_values() -> None:
@@ -379,3 +379,18 @@ class FakeSmtpFactory:
 
     def __call__(self, host: str, port: int, timeout: float) -> FakeSmtpClient:
         return self.client
+
+
+def test_delivery_email_has_no_em_dashes() -> None:
+    """No em dashes in the key-delivery email (Arijit's standing voice rule)."""
+    from scout.core.platform.email_templates import build_beta_key_email
+    from scout.core.platform.hosted import HostedPlan
+
+    request = HostedApiKeyDeliveryRequest(
+        email="t@example.com", name="Tester", tenant_id="t", key_id="k",
+        raw_api_key="scout_live_x", checkout_session_id="x", plan=HostedPlan.HOSTED_BETA_PASS,
+        standard_credits=5000, browser_credits=100, trial_days=30, package_id="beta_trial",
+    )
+    _subject, text_body, html_body = build_beta_key_email(request)
+    assert "—" not in html_body
+    assert "—" not in text_body

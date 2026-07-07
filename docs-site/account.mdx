@@ -1,11 +1,11 @@
 ---
 title: Account
-description: Check your plan, usage history, and purchase history — and keep your key safe.
+description: Check your plan, usage history, and purchase history, and keep your key safe.
 ---
 
 Three read endpoints cover account visibility. All require your Bearer key and return no secret material.
 
-## Account summary — `GET /v1/hosted/me`
+## Account summary, `GET /v1/hosted/me`
 
 ```bash
 curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/me" \
@@ -16,8 +16,8 @@ Returns:
 
 ```json
 {
-  "tenant_id": "tn_...",
-  "key_id": "key_...",
+  "tenant_id": "tn_..",
+  "key_id": "key_..",
   "plan": "hosted_monthly",
   "account_status": "active",
   "balance": {
@@ -49,7 +49,7 @@ Returns:
 }
 ```
 
-## Usage ledger — `GET /v1/hosted/usage`
+## Usage ledger, `GET /v1/hosted/usage`
 
 ```bash
 curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/usage?limit=100" \
@@ -58,7 +58,7 @@ curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/usage?limit=100" \
 
 Returns recent credit-ledger entries: which action ran, how many credits it cost, and the balance after.
 
-## Purchase history — `GET /v1/hosted/purchases`
+## Purchase history, `GET /v1/hosted/purchases`
 
 ```bash
 curl "$SCOUT_HOSTED_BASE_URL/v1/hosted/purchases?limit=100" \
@@ -69,6 +69,6 @@ Returns checkout/package purchase records for pay-go credit packs.
 
 ## Key safety
 
-- Your key only ever arrives once, by email, in plaintext. Scout stores only a hash of it server-side — it cannot be retrieved again.
+- Your key only ever arrives once, by email, in plaintext. Scout stores only a hash of it server-side, it cannot be retrieved again.
 - Never paste a hosted API key into frontend code, public repos, screenshots, support tickets, or shared logs.
-- Lost your key? There is no self-serve reissue button. Email [support@scout.chowmes.com](mailto:support@scout.chowmes.com) — the old key is disabled and a replacement is emailed to the same address. See [Support](/support).
+- Lost your key? There is no self-serve reissue button. Email [support@scout.chowmes.com](mailto:support@scout.chowmes.com), the old key is disabled and a replacement is emailed to the same address. See [Support](/support).

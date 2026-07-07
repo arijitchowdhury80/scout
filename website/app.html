@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="./styles.css" />
     <style>
       /* Page-specific layout that extends styles.css rather than redefining
-         its tokens/components. Keep this block small — anything reusable
+         its tokens/components. Keep this block small, anything reusable
          belongs in styles.css per the design-system.md rule. */
       body { background: var(--bg); }
 
@@ -93,7 +93,7 @@
       <p class="text-mut text-sm" style="margin-top: 8px">
         Paste the key Scout emailed you. It is kept in this browser tab only
         (sessionStorage) and sent as a Bearer token to your own hosted
-        account — never written to disk or shared with any other page.
+        account, never written to disk or shared with any other page.
       </p>
       <div class="field">
         <label for="apiKeyInput">Hosted API key</label>
@@ -102,7 +102,7 @@
           class="input-well m"
           type="password"
           autocomplete="off"
-          placeholder="scout_live_..."
+          placeholder="scout_live_.."
         />
       </div>
       <button id="apiKeySubmit" class="btn btn-primary btn-block" style="margin-top: 14px" type="button">
@@ -286,7 +286,7 @@
               </div>
               <p id="destinationStatus" class="app-status-line" style="margin-top: 11px"></p>
               <p class="text-mut text-xs" style="margin-top: 4px">
-                Connect a destination once — reuse it on every run. Webhook and CSV work
+                Connect a destination once, reuse it on every run. Webhook and CSV work
                 out of the box; Algolia needs an App ID + Admin key (stored server-side).
               </p>
             </div>
@@ -688,7 +688,7 @@
           const bodyStr = JSON.stringify(body, null, 2);
           els.curlCode.textContent = [
             `curl -X POST "https://scout.yourdomain.com${meta.path}" \\`,
-            `  -H "Authorization: Bearer scout_live_..." \\`,
+            `  -H "Authorization: Bearer scout_live_.." \\`,
             `  -H "Content-Type: application/json" \\`,
             `  -d '${bodyStr}'`,
           ].join("\n");
@@ -706,10 +706,10 @@
           const hash = record.content_hash || record.hash || "";
           const verified = record.success !== false;
           els.evidenceBody.innerHTML = [
-            row("source", source || "—"),
-            row("hash", hash ? `${hash.slice(0, 4)}…${hash.slice(-3)}` : "—"),
+            row("source", source || ", "),
+            row("hash", hash ? `${hash.slice(0, 4)}…${hash.slice(-3)}` : ", "),
             row("verified", `<span style="color: var(--acc); font-weight: 700">${verified ? "✓ true" : "✗ false"}</span>`),
-            row("url", record.url || "—"),
+            row("url", record.url || ", "),
           ].join("");
         }
 
@@ -795,7 +795,7 @@
         async function sendToDestination() {
           const destination = els.destinationSelect.value;
           if (!state.records.length) {
-            els.destinationStatus.textContent = "Run something first — no records to send.";
+            els.destinationStatus.textContent = "Run something first, no records to send.";
             els.destinationStatus.classList.add("app-status-line--error");
             return;
           }
