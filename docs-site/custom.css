@@ -48,12 +48,6 @@ a[role="button"], .btn-primary, button[type="submit"], #navbar a.rounded-full {
 /* Links + accents -> emerald */
 .prose a, a.text-primary { color: var(--scout-emerald) !important; }
 
-/* Code blocks -> the dark data-screen, framed soft */
-pre, .prose pre, .code-block {
-  background: #141D18 !important; border-radius: 14px !important;
-  border: none !important; box-shadow: var(--scout-ex) !important;
-}
-pre code, pre span { color: #EAF2ED !important; }
 
 /* Intro cards -> soft neumorphic, mint */
 .card, a.card, [class*="Card"] {
@@ -78,3 +72,11 @@ pre code, pre span { color: #EAF2ED !important; }
 /* keep the logo link clean (no pill) */
 #navbar a[href="https://scout.chowmes.com"]:has(img),
 #navbar img { box-shadow: none !important; background: transparent !important; padding: 0 !important; }
+
+/* Logo link must never get a pill/shadow (it's the wordmark, like the main site) */
+#navbar a:has(img), #navbar a:has(svg), #navbar a:first-child {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}

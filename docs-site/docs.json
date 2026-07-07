@@ -123,5 +123,8 @@
   },
   "appearance": {
     "default": "light"
+  },
+  "styling": {
+    "codeblocks": "dark"
   }
 }
