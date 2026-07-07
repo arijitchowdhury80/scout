@@ -2,7 +2,7 @@
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
+from starlette.responses import JSONResponse, RedirectResponse, Response
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -93,6 +93,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 return JSONResponse({"detail": "Unauthorized"}, status_code=403)
             return await call_next(request)  # type: ignore[misc]
         if self._public_hosted_only:
+            # A human hitting an unknown URL (e.g. a mistyped or stale link) should
+            # land on the homepage, not a raw API error. Programmatic callers still
+            # get the JSON so they can detect hosted-only mode.
+            accepts_html = "text/html" in request.headers.get("accept", "")
+            if request.method == "GET" and accepts_html:
+                return RedirectResponse("/", status_code=307)
             return JSONResponse(
                 {"detail": "Local Scout API is disabled in hosted-only mode."},
                 status_code=403,

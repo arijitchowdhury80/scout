@@ -49,6 +49,8 @@ doesn't live in this jargon get it in one read?"
   "shows you where every piece came from, so you can trust it" not "source, hash, and proof attached".
 - Banned in headlines/subheads: hash, typed, JSON/JSONL, Pydantic, endpoint, self-hosted, Crawl4AI,
   "no black box", schema, dedup. These live in docs/API reference and the small trust strip only.
+- **No em dashes (—) anywhere customer-facing** — standing rule; use a period or comma. Guarded by
+  test_no_em_dashes_in_customer_facing_copy + test_delivery_email_has_no_em_dashes.
 - Mechanism words (citation, verified, evidence) are OK when the sentence explains the benefit.
 - Tech credibility (Crawl4AI, architecture) = footer/trust-strip/docs garnish, never the hero.
 - Applies to: website pages, the key-delivery email, docs landing pages, in-app copy.
