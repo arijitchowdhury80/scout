@@ -1,0 +1,12 @@
+<svg viewBox="0 0 168 44" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <text x="0" y="35" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-weight="800" font-size="40" letter-spacing="-2" fill="#143C2B">Sc</text>
+  <g transform="translate(60,9.5)">
+    <circle cx="13" cy="14" r="10" fill="none" stroke="#143C2B" stroke-width="3"/>
+    <line x1="13" y1="1" x2="13" y2="6" stroke="#143C2B" stroke-width="3" stroke-linecap="round"/>
+    <line x1="13" y1="22" x2="13" y2="27" stroke="#143C2B" stroke-width="3" stroke-linecap="round"/>
+    <line x1="1" y1="14" x2="6" y2="14" stroke="#143C2B" stroke-width="3" stroke-linecap="round"/>
+    <line x1="20" y1="14" x2="25" y2="14" stroke="#143C2B" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="13" cy="14" r="3.2" fill="#C77A1E"/>
+  </g>
+  <text x="88" y="35" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-weight="800" font-size="40" letter-spacing="-2" fill="#143C2B">ut</text>
+</svg>

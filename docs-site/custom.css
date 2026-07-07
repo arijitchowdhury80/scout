@@ -63,3 +63,18 @@ pre code, pre span { color: #EAF2ED !important; }
 
 /* Rounded, breathing feel */
 .prose h2 { letter-spacing: -.02em; }
+
+/* Nav items as soft neumorphic pills (match the site header) */
+#navbar > div a:not([role="button"]):not(.rounded-full),
+#navbar nav a {
+  background: var(--scout-mint) !important;
+  box-shadow: 4px 4px 9px rgba(158,184,171,.5), -4px -4px 9px rgba(255,255,255,.7) !important;
+  border-radius: 12px !important;
+  padding: 8px 16px !important;
+  color: var(--scout-mut) !important;
+  transition: color .2s;
+}
+#navbar > div a:not([role="button"]):hover { color: var(--scout-forest) !important; }
+/* keep the logo link clean (no pill) */
+#navbar a[href="https://scout.chowmes.com"]:has(img),
+#navbar img { box-shadow: none !important; background: transparent !important; padding: 0 !important; }

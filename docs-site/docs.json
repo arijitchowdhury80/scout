@@ -66,8 +66,8 @@
     ]
   },
   "logo": {
-    "light": "/logo/reticle.svg",
-    "dark": "/logo/reticle.svg",
+    "light": "/logo/wordmark.svg",
+    "dark": "/logo/wordmark-dark.svg",
     "href": "https://scout.chowmes.com"
   },
   "navbar": {
