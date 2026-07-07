@@ -217,9 +217,10 @@ class StripeCheckoutService:
                     success=False,
                     reason=f"Stripe price is not configured for package {package.package_id}.",
                 )
+            # Stripe rejects customer_creation outside payment mode;
+            # subscription mode always creates a customer implicitly.
             data = {
                 "mode": "subscription",
-                "customer_creation": "always",
                 "line_items[0][price]": price_id,
                 "line_items[0][quantity]": "1",
                 "success_url": self._config.success_url_for_package(package.package_id),
@@ -229,9 +230,10 @@ class StripeCheckoutService:
                 "metadata[product]": "scout_hosted",
             }
         elif package.amount_cents == 0:
+            # customer_creation is payment-mode-only; setup mode uses
+            # customer implicitly via the session.
             data = {
                 "mode": "setup",
-                "customer_creation": "always",
                 "payment_method_types[0]": "card",
                 "success_url": self._config.success_url_for_package(package.package_id),
                 "cancel_url": self._config.cancel_url_for_package(package.package_id),

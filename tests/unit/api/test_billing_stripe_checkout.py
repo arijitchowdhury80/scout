@@ -684,7 +684,7 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
     assert "whsec_" not in response.text
 
 
-def test_beta_trial_checkout_uses_stripe_setup_mode_with_customer_creation() -> None:
+def test_beta_trial_checkout_uses_stripe_setup_mode() -> None:
     transport = RecordingStripeTransport()
     service = StripeCheckoutService(
         StripeCheckoutConfig(
@@ -706,7 +706,6 @@ def test_beta_trial_checkout_uses_stripe_setup_mode_with_customer_creation() -> 
     assert result.success is True
     assert transport.data[0] == {
         "mode": "setup",
-        "customer_creation": "always",
         "payment_method_types[0]": "card",
         "success_url": "https://scout.chowmes.com/pricing?checkout=success",
         "cancel_url": "https://scout.chowmes.com/pricing?checkout=cancelled",
