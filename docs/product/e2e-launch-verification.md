@@ -43,19 +43,19 @@ Run 1 executed 2026-07-06 against snapshot 20260706-2302. Run 2 (2026-07-07): A9
 ## C. Interactive click-through (real browser on live site)
 | # | Flow | Checks | Status |
 |---|---|---|---|
-| C1 | Homepage console: scrape tab → enter URL → Run → live result renders + evidence panel fills | ⬜ |
-| C2 | map tab → Run → urls render | ⬜ |
-| C3 | crawl tab → Run → ≤3-page preview renders | ⬜ |
-| C4 | products tab → Run → records render (or honest empty) | ⬜ |
-| C5 | company tab → real sample renders + Run routes to /beta | ⬜ |
-| C6 | screenshot tab → sample image renders + Run routes to /beta | ⬜ |
-| C7 | Nav links (Product/Docs/Pricing + CTA) all navigate correctly on every page | ⬜ |
-| C8 | /beta signup form: happy path (fresh email) → success status message | ⬜ |
-| C9 | /beta signup: invalid email / empty name → inline validation, no crash | ⬜ |
-| C10 | Pricing CTAs: Get key → /beta; pack/monthly buttons behave (test-mode) | ⬜ |
-| C11 | Footer mailto support@ present everywhere | ⬜ |
-| C12 | Mobile (375px): homepage console fallback renders, pages don't overflow | ⬜ |
-| C13 | Keyboard: tab through console + signup form, focus visible | ⬜ |
+| C1 | Homepage console: scrape tab → enter URL → Run → live result renders + evidence panel fills | ✅ live scrape_preview + evidence (source+sha256) 2026-07-07 |
+| C2 | map tab → Run → urls render | ✅ map_preview urls live 2026-07-07 |
+| C3 | crawl tab → Run → ≤3-page preview renders | ✅ crawl_preview pages[] live 2026-07-07 |
+| C4 | products tab → Run → records render (or honest empty) | ⚠️ blocked by own demo quota (429) during test; endpoint green 07-06; quota A6 confirmed live |
+| C5 | company tab → real sample renders + Run routes to /beta | ✅ tab correctly [disabled] (↗), unlock-on-signup CTA present |
+| C6 | screenshot tab → sample image renders + Run routes to /beta | ✅ tab correctly [disabled] (↗), unlock-on-signup CTA present |
+| C7 | Nav links (Product/Docs/Pricing + CTA) all navigate correctly on every page | ⚠️ functional, but /beta nav differs (Overview/Pricing/Docs + "Read docs", /quickstart alias) vs home/pricing (Product/Docs/Pricing + Get API key). INCONSISTENT |
+| C8 | /beta signup form: happy path (fresh email) → success status message | ⚠️ form validates + wired to POST; live email send deferred (no unprompted outbound); endpoint+delivery proven A8 (07-06) |
+| C9 | /beta signup: invalid email / empty name → inline validation, no crash | ✅ HTML5 typeMismatch blocks submit, no fetch, no crash 2026-07-07 |
+| C10 | Pricing CTAs: Get key → /beta; pack/monthly buttons behave (test-mode) | ✅ Start monthly → modal (name/email) → Continue to payment → real checkout.stripe.com cs_test session 2026-07-07 |
+| C11 | Footer mailto support@ present everywhere | ⚠️ present on /pricing footer + /beta body; MISSING on home (/) footer. NOT everywhere |
+| C12 | Mobile (375px): homepage console fallback renders, pages don't overflow | ❌ horizontal overflow: console tab row extends to 591px (>375 vp), scrollWidth 461. Page scrolls sideways. FIX NEEDED |
+| C13 | Keyboard: tab through console + signup form, focus visible | ⚠️ interactive els have outline:none; :focus-visible matches but no distinct focus ring (relies on neu shadow). WCAG 2.4.7 review |
 
 ## D. Email + support loop
 | # | Flow | Checks | Status |
