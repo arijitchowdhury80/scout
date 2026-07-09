@@ -231,7 +231,12 @@
     if (!response.ok) {
       throw new Error(payload.detail || "Hosted beta key registration is not ready yet.");
     }
-    if (payload.delivery_status === "pending_delivery") {
+    if (payload.delivery_status === "account_exists") {
+      setStatus(
+        `${email} already has a Scout account. Use the API key originally delivered to that inbox, or email support@scout.chowmes.com from that address if you cannot find it.`,
+        "success",
+      );
+    } else if (payload.delivery_status === "pending_delivery") {
       setStatus(
         `Scout recorded your beta request for ${email}. The API key will be emailed after delivery is configured.`,
         "success",

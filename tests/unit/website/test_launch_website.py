@@ -72,6 +72,16 @@ def test_launch_website_keeps_paid_checkout_gated_behind_readiness_without_secre
     assert "sk_test_" not in pricing_js
 
 
+def test_beta_signup_copy_does_not_claim_duplicate_accounts_were_emailed() -> None:
+    hosted_keygen = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'payload.delivery_status === "account_exists"' in hosted_keygen
+    assert "already has a Scout account" in hosted_keygen
+    assert "Use the API key originally delivered" in hosted_keygen
+
+
 def test_homepage_capability_grid_states_current_shipped_primitives_only() -> None:
     """Homepage per-capability grid states real, currently-shipped primitives only."""
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
