@@ -232,10 +232,8 @@
       throw new Error(payload.detail || "Hosted beta key registration is not ready yet.");
     }
     if (payload.delivery_status === "account_exists") {
-      setStatus(
-        `${email} already has a Scout account. Use the API key originally delivered to that inbox, or email support@scout.chowmes.com from that address if you cannot find it.`,
-        "success",
-      );
+      setStatus(accountExistsMessage(email), "error");
+      return;
     } else if (payload.delivery_status === "pending_delivery") {
       setStatus(
         `Scout recorded your beta request for ${email}. The API key will be emailed after delivery is configured.`,
@@ -248,6 +246,10 @@
       );
     }
     form.reset();
+  }
+
+  function accountExistsMessage(email) {
+    return `${email}: This email is already registered. This is a duplicate signup. Please find the API key previously sent to this inbox, or email support@scout.chowmes.com from that address if you cannot find it. Scout cannot resend the same raw API key because keys are not stored in recoverable form.`;
   }
 
   function setStatus(message, state) {

@@ -78,8 +78,11 @@ def test_beta_signup_copy_does_not_claim_duplicate_accounts_were_emailed() -> No
     )
 
     assert 'payload.delivery_status === "account_exists"' in hosted_keygen
-    assert "already has a Scout account" in hosted_keygen
-    assert "Use the API key originally delivered" in hosted_keygen
+    assert "This email is already registered" in hosted_keygen
+    assert "This is a duplicate signup" in hosted_keygen
+    assert "Please find the API key previously sent to this inbox" in hosted_keygen
+    assert 'setStatus(accountExistsMessage(email), "error")' in hosted_keygen
+    assert "return;" in hosted_keygen
 
 
 def test_homepage_capability_grid_states_current_shipped_primitives_only() -> None:

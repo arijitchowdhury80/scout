@@ -20,6 +20,8 @@ A returning signup on `https://scout.chowmes.com/beta` displayed copy implying a
 
 Add an explicit `account_exists` branch in the beta signup UI. Returning users now see that the email already has a Scout account and should use the originally delivered key or contact `support@scout.chowmes.com` from that address.
 
+Follow-up UX hardening: duplicate signups use a non-success status, say "This email is already registered" and "This is a duplicate signup," keep the form intact, and do not claim a new email was sent. Scout does not resend the same raw API key because hosted keys are not stored in recoverable form after first delivery; replacement requires the support/operator path.
+
 ## Verification
 
 - `python3 -m pytest tests/unit/website/test_launch_website.py::test_beta_signup_copy_does_not_claim_duplicate_accounts_were_emailed -q`
