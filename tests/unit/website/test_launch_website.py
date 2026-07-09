@@ -103,6 +103,24 @@ def test_homepage_capability_grid_states_current_shipped_primitives_only() -> No
     assert "unlimited" not in html.lower().replace("unlimited_monthly", "")
 
 
+def test_homepage_explains_outcome_before_endpoint_details() -> None:
+    """Cold beta testers should understand the user outcome, not only primitives."""
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+    normalized_html = " ".join(html.split())
+
+    assert "What do you get after Scout runs?" in normalized_html
+    assert "URL in, clean reusable data out" in normalized_html
+    assert "Scout saves you from manually copying, cleaning, and checking website data." in normalized_html
+    assert "Watch a URL become a citable record" in normalized_html
+    assert 'aria-label="60 second Scout product walkthrough"' in html
+    assert 'class="demo-video-frame"' in html
+    assert 'src="./assets/scout-product-demo.gif"' in html
+    assert 'alt="Scout demo showing a URL becoming a citable record"' in html
+    assert "Paste a real URL" in normalized_html
+    assert "Inspect the evidence" in normalized_html
+    assert "Use it in a spreadsheet, app, database, or AI agent" in normalized_html
+
+
 def test_public_distribution_copy_is_http_and_skill_only() -> None:
     public_files = [
         _WEBSITE_DIR / "index.html",
@@ -264,6 +282,20 @@ def test_beta_page_is_single_email_signup_with_support_contact() -> None:
     assert "Lost your API key?" not in normalized_html
     assert "support@scout.chowmes.com" in html
     assert "reaches the founder directly" in normalized_html
+
+
+def test_beta_page_tells_testers_how_to_try_scout_before_signup() -> None:
+    html = (_WEBSITE_DIR / "beta.html").read_text(encoding="utf-8")
+    normalized_html = " ".join(html.split())
+
+    assert "Before you ask for a key, know what to test." in normalized_html
+    assert "Pick one real website you care about." in normalized_html
+    assert "a competitor pricing page" in normalized_html
+    assert "an ecommerce product page" in normalized_html
+    assert "a company website" in normalized_html
+    assert "Was the output accurate?" in normalized_html
+    assert "Could you reuse it in your work?" in normalized_html
+    assert 'href="#hostedRegisterForm"' in html
 
 
 def test_rebuilt_pages_use_reticle_wordmark_not_legacy_marks() -> None:
