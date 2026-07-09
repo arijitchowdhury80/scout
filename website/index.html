@@ -174,12 +174,20 @@
                       <span class="screen__meta">URL · output · evidence</span>
                     </div>
                     <div class="demo-video-frame">
-                      <img
-                        src="./assets/scout-product-demo.gif"
-                        alt="Scout demo showing a URL becoming a citable record"
-                        loading="lazy"
-                      />
-                      <span class="demo-video-frame__play" aria-hidden="true"></span>
+                      <video
+                        class="demo-video-frame__media"
+                        aria-label="Scout demo showing a URL becoming a citable record"
+                        autoplay
+                        loop
+                        muted
+                        playsinline
+                        controls
+                        preload="metadata"
+                        poster="./assets/scout-product-demo.gif"
+                      >
+                        <source src="./assets/scout-product-demo.webm" type="video/webm" />
+                        <source src="./assets/scout-product-demo.mp4" type="video/mp4" />
+                      </video>
                     </div>
                     <div class="walkthrough-steps">
                       <div class="walkthrough-step">

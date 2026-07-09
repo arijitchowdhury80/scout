@@ -114,8 +114,14 @@ def test_homepage_explains_outcome_before_endpoint_details() -> None:
     assert "Watch a URL become a citable record" in normalized_html
     assert 'aria-label="60 second Scout product walkthrough"' in html
     assert 'class="demo-video-frame"' in html
-    assert 'src="./assets/scout-product-demo.gif"' in html
-    assert 'alt="Scout demo showing a URL becoming a citable record"' in html
+    assert "<video" in html
+    assert "autoplay" in html
+    assert "loop" in html
+    assert "muted" in html
+    assert "playsinline" in html
+    assert 'src="./assets/scout-product-demo.mp4"' in html
+    assert 'src="./assets/scout-product-demo.webm"' in html
+    assert "demo-video-frame__play" not in html
     assert "Paste a real URL" in normalized_html
     assert "Inspect the evidence" in normalized_html
     assert "Use it in a spreadsheet, app, database, or AI agent" in normalized_html
@@ -355,6 +361,22 @@ def test_launch_website_demo_gif_is_real_beta_safe_media() -> None:
     assert len(data) > 20_000
     assert b"sk_live_" not in data
     assert b"sk_test_" not in data
+
+
+def test_launch_website_demo_video_assets_are_real_beta_safe_media() -> None:
+    mp4 = _WEBSITE_DIR / "assets" / "scout-product-demo.mp4"
+    webm = _WEBSITE_DIR / "assets" / "scout-product-demo.webm"
+
+    mp4_data = mp4.read_bytes()
+    webm_data = webm.read_bytes()
+
+    assert b"ftyp" in mp4_data[:32]
+    assert webm_data.startswith(b"\x1a\x45\xdf\xa3")
+    assert len(mp4_data) > 20_000
+    assert len(webm_data) > 20_000
+    for data in (mp4_data, webm_data):
+        assert b"sk_live_" not in data
+        assert b"sk_test_" not in data
 
 
 def test_launch_website_demo_gif_is_slow_enough_to_read() -> None:
