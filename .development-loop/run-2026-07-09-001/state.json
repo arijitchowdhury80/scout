@@ -1,0 +1,25 @@
+{
+  "mode": "FEATURE_LOOP",
+  "run_id": "2026-07-09-001",
+  "project": "Scout",
+  "feature": "Comparative Intelligence",
+  "created_at": "2026-07-09T18:54:49-04:00",
+  "updated_at": "2026-07-09T18:54:49-04:00",
+  "status": "WAITING_FOR_HUMAN",
+  "current_stage": "PLAN",
+  "builder": "feature-builder",
+  "retry_counts": {
+    "BUILD": 0,
+    "DEBUG": 0,
+    "RECTIFY": 0,
+    "STAGING": 0
+  },
+  "strike_log": [],
+  "debug_sessions": [],
+  "gates": {
+    "founder_approval": "pending",
+    "source_policy": "pending",
+    "v1_vertical": "recommended_product_price_comparison",
+    "build": "not_started"
+  }
+}
