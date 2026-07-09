@@ -69,6 +69,8 @@ async def launch_site_asset(asset_name: str) -> FileResponse:
         "reticle-52.png",
         "scout-mark.svg",
         "scout-product-demo.gif",
+        "scout-product-demo.mp4",
+        "scout-product-demo.webm",
         "scout-wordmark.svg",
         "status.js",
     }
@@ -87,6 +89,10 @@ def _asset_media_type(asset_name: str) -> str:
         return "text/javascript"
     if asset_name.endswith(".gif"):
         return "image/gif"
+    if asset_name.endswith(".mp4"):
+        return "video/mp4"
+    if asset_name.endswith(".webm"):
+        return "video/webm"
     if asset_name.endswith(".svg"):
         return "image/svg+xml"
     if asset_name.endswith(".json"):

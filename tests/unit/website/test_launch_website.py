@@ -197,6 +197,8 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
 
     styles = client.get("/styles.css")
     demo_gif = client.get("/assets/scout-product-demo.gif")
+    demo_mp4 = client.get("/assets/scout-product-demo.mp4")
+    demo_webm = client.get("/assets/scout-product-demo.webm")
     logo = client.get("/assets/scout-wordmark.svg")
     mark = client.get("/assets/scout-mark.svg")
     copy_code = client.get("/assets/copy-code.js")
@@ -220,6 +222,12 @@ def test_api_serves_launch_website_static_assets_without_auth() -> None:
     assert demo_gif.status_code == 200
     assert demo_gif.headers["content-type"] == "image/gif"
     assert demo_gif.content.startswith((b"GIF87a", b"GIF89a"))
+    assert demo_mp4.status_code == 200
+    assert demo_mp4.headers["content-type"] == "video/mp4"
+    assert b"ftyp" in demo_mp4.content[:32]
+    assert demo_webm.status_code == 200
+    assert demo_webm.headers["content-type"] == "video/webm"
+    assert demo_webm.content.startswith(b"\x1a\x45\xdf\xa3")
     assert logo.status_code == 200
     assert logo.headers["content-type"] in {"image/svg+xml", "image/svg+xml; charset=utf-8"}
     assert mark.status_code == 200
