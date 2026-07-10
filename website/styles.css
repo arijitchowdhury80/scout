@@ -232,6 +232,7 @@ button { font: inherit; color: inherit; }
   background: var(--bg);
   color: var(--fg);
   box-shadow: var(--ex);
+  min-height: 44px;
   transition: box-shadow .25s ease-out, transform .25s ease-out, background .2s, color .2s;
 }
 
@@ -296,6 +297,12 @@ button { font: inherit; color: inherit; }
   gap: 16px;
 }
 
+.site-header a[aria-label="Scout home"] {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
 .nav-primary {
   display: flex;
   gap: 8px;
@@ -309,6 +316,12 @@ button { font: inherit; color: inherit; }
   font-weight: 600;
   color: var(--mut);
   transition: box-shadow .2s, color .2s;
+}
+
+.nav-link,
+.tab,
+.input-well {
+  min-height: 44px;
 }
 
 .nav-link:hover { color: var(--fg); }
@@ -753,6 +766,13 @@ button { font: inherit; color: inherit; }
   gap: 18px;
 }
 
+.site-footer__links a {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
 /* --------------------------------------------------------------------------
    14b. MARKETING PAGE COMPOSITION (docs / status / legal / beta pages)
    Built from the same tokens/components above — no new colors or shadows.
@@ -1054,6 +1074,100 @@ button { font: inherit; color: inherit; }
   font-weight: 700;
 }
 
+.mobile-proof-section { display: none; }
+
+.mobile-proof-card {
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  box-shadow: var(--ex);
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+}
+
+.mobile-proof-card__copy {
+  display: grid;
+  gap: 10px;
+}
+
+.mobile-proof-flow {
+  display: grid;
+  gap: 10px;
+}
+
+.mobile-proof-flow div {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 4px 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--exs);
+}
+
+.mobile-proof-flow .neu-well { grid-row: span 2; }
+
+.mobile-proof-flow strong {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.mobile-proof-flow span:last-child {
+  color: var(--mut);
+  font-size: 12.5px;
+}
+
+.mobile-proof-screen { margin: 0; }
+
+.mobile-proof-record {
+  display: grid;
+  gap: 1px;
+  padding: 2px 0;
+}
+
+.mobile-proof-record div {
+  display: grid;
+  grid-template-columns: 86px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  padding: 12px 16px;
+  border-top: 1px solid var(--scrhair);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.mobile-proof-record div:first-child { border-top: none; }
+.mobile-proof-record span { color: var(--scrmut); font-weight: 700; }
+.mobile-proof-record strong { color: var(--scrfg); font-size: 12.5px; }
+
+.mobile-proof-video {
+  border-radius: 16px;
+  box-shadow: var(--ind);
+  padding: 6px;
+}
+
+.mobile-proof-video video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  background: var(--scr);
+  object-fit: cover;
+  object-position: top left;
+}
+
+.mobile-test-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mobile-proof-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
 /* simple auth-style form panel (beta signup, account lookup) */
 .form-panel {
   max-width: 480px;
@@ -1200,12 +1314,38 @@ textarea:focus-visible {
 
 @media (max-width: 640px) {
   .wrap { padding: 0 18px; }
-  .section { padding: 40px 18px; }
-  .h1 { font-size: 29px; overflow-wrap: anywhere; }
-  .site-header__row { height: auto; padding: 14px 0; flex-wrap: wrap; }
-  .nav-primary { order: 3; width: 100%; overflow-x: auto; }
+  .section { padding: 34px 18px; }
+  .section--hero { padding: 28px 18px 14px; }
+  .h1 { font-size: 30px; overflow-wrap: anywhere; }
+  .h2 { font-size: 23px; }
+  .lede { font-size: 15.5px; line-height: 1.62; }
+  .site-header__row {
+    height: 64px;
+    padding: 0;
+    flex-wrap: nowrap;
+  }
+  .site-header .wm,
+  .site-header .wm--lg {
+    font-size: 30px;
+  }
+  .site-header .wm svg {
+    width: .72em;
+    height: .72em;
+    margin-bottom: 2px;
+  }
+  .nav-primary { display: none; }
   .btn { width: 100%; }
   .btn-inline { width: auto; }
+  .site-header .btn {
+    width: auto;
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 13px;
+    white-space: nowrap;
+  }
+  .desktop-console-section, .desktop-outcome-section, .desktop-capability-section { display: none; }
+  .mobile-proof-section { display: block; }
   .url-bar { flex-direction: column; align-items: stretch; }
   .form-panel { padding: 22px; }
   .form-row { flex-direction: column; }
@@ -1223,6 +1363,30 @@ textarea:focus-visible {
   .demo-video-frame,
   .demo-video-frame__media { min-height: 180px; }
   .tester-checks div { grid-template-columns: 1fr; gap: 4px; }
+  .neu-card,
+  .neu-card--sm { padding: 18px; border-radius: 18px; }
+  .grid-3 { gap: 14px; }
+  .site-footer__row {
+    padding: 22px 18px;
+    gap: 14px;
+  }
+  .site-footer__links {
+    gap: 8px 12px;
+  }
+  .site-footer__links a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+@media (max-width: 900px), (pointer: coarse) {
+  main a:not(.btn):not(.nav-link),
+  .docs-sidebar nav a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
 }
 
 /* Locked demo tabs + console pitch styling (anonymous-demo upsell) */
@@ -1247,3 +1411,14 @@ textarea:focus-visible {
 .docs-endpoint p { margin: 0; }
 .docs-layout { padding-top: 34px; padding-bottom: 60px; gap: 72px; }
 .docs-sidebar nav a { display: block; padding: 9px 0; color: inherit; }
+
+@media (max-width: 900px), (pointer: coarse) {
+  .site-nav a,
+  .footer-links a,
+  .nav-cta {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}

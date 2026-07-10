@@ -39,8 +39,83 @@
           </div>
         </section>
 
+        <!-- ============ PHONE JOURNEY: not a stacked desktop console ============ -->
+        <section class="section section--tight mobile-proof-section" aria-labelledby="mobile-proof-title">
+          <div class="wrap">
+            <div class="mobile-proof-card">
+              <div class="mobile-proof-card__copy">
+                <p class="lab lab--acc">Phone path</p>
+                <h2 id="mobile-proof-title" class="h2" style="margin-top: 10px;">Test one real URL.</h2>
+                <p class="text-mut">
+                  Full live console works best on tablet or desktop. On your phone, use this
+                  short path: pick a real URL, see the proof Scout returns, then get a key.
+                </p>
+              </div>
+
+              <div class="mobile-proof-flow" aria-label="Scout mobile proof flow">
+                <div>
+                  <span class="neu-well neu-well--badge">1</span>
+                  <strong>Paste a URL</strong>
+                  <span>pricing page, product page, docs, article</span>
+                </div>
+                <div>
+                  <span class="neu-well neu-well--badge">2</span>
+                  <strong>Scout extracts</strong>
+                  <span>clean fields, markdown, products, links</span>
+                </div>
+                <div>
+                  <span class="neu-well neu-well--badge">3</span>
+                  <strong>Check proof</strong>
+                  <span>source, hash, blocked-page notes, export</span>
+                </div>
+              </div>
+
+              <div class="screen-frame mobile-proof-screen">
+                <div class="screen screen--tight">
+                  <div class="screen__bar screen__bar--top">
+                    <span class="screen__meta">observed output</span>
+                    <span class="screen__meta">source proof</span>
+                  </div>
+                  <div class="mobile-proof-record">
+                    <div><span class="syn">record</span><strong>Acme pricing</strong></div>
+                    <div><span class="syn">fields</span><strong>plans · prices · citations</strong></div>
+                    <div><span class="evidence-verified">verified</span><strong>source page attached</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mobile-proof-video" aria-label="Scout mobile demo video">
+                <video
+                  aria-label="Scout demo video for mobile visitors"
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  controls
+                  preload="metadata"
+                  poster="./assets/scout-product-demo.gif"
+                >
+                  <source src="./assets/scout-product-demo.webm" type="video/webm" />
+                  <source src="./assets/scout-product-demo.mp4" type="video/mp4" />
+                </video>
+              </div>
+
+              <div class="mobile-test-list" aria-label="Good first Scout tests">
+                <span class="neu-well neu-well--badge">competitor pricing</span>
+                <span class="neu-well neu-well--badge">product page</span>
+                <span class="neu-well neu-well--badge">company site</span>
+              </div>
+
+              <div class="mobile-proof-actions">
+                <a href="/beta" class="btn btn-primary">Get API key</a>
+                <a href="/pricing" class="btn btn-secondary">See pricing</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- ============ LIVE CONSOLE ============ -->
-        <section class="section section--tight" id="console" aria-labelledby="console-title">
+        <section class="section section--tight desktop-console-section" id="console" aria-labelledby="console-title">
           <div class="wrap">
             <h2 id="console-title" class="sr-only" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0);">Live Scout console</h2>
 
@@ -138,7 +213,7 @@
         </section>
 
         <!-- ============ OUTCOME BRIDGE: first-time tester comprehension ============ -->
-        <section class="section section--tight" aria-labelledby="outcome-title">
+        <section class="section section--tight desktop-outcome-section" aria-labelledby="outcome-title">
           <div class="wrap">
             <div class="outcome-bridge">
               <div class="outcome-copy">
@@ -238,7 +313,7 @@
         </section>
 
         <!-- ============ PER-CAPABILITY GRID ============ -->
-        <section class="section" id="use-cases" aria-labelledby="use-cases-title">
+        <section class="section desktop-capability-section" id="use-cases" aria-labelledby="use-cases-title">
           <div class="wrap">
             <div class="center" style="margin-bottom: 30px;">
               <p class="lab lab--acc">Capabilities</p>
