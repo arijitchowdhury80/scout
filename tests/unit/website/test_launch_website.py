@@ -127,6 +127,31 @@ def test_homepage_explains_outcome_before_endpoint_details() -> None:
     assert "Use it in a spreadsheet, app, database, or AI agent" in normalized_html
 
 
+def test_homepage_has_phone_specific_journey_instead_of_stacked_desktop_console() -> None:
+    """Phones need a separate journey, not the desktop playground collapsed into a roll."""
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+    css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
+    normalized_html = " ".join(html.split())
+    normalized_css = " ".join(css.split())
+
+    assert "mobile-proof-section" in html
+    assert "mobile-proof-card" in html
+    assert "Full live console works best on tablet or desktop" in normalized_html
+    assert "Test one real URL" in normalized_html
+    assert "desktop-console-section" in html
+    assert "desktop-outcome-section" in html
+    assert "desktop-capability-section" in html
+
+    assert ".mobile-proof-section { display: none; }" in normalized_css
+    assert "@media (max-width: 640px)" in css
+    assert ".mobile-proof-section { display: block; }" in normalized_css
+    assert ".desktop-console-section, .desktop-outcome-section, .desktop-capability-section { display: none; }" in normalized_css
+    assert ".site-header .btn {" in normalized_css
+    assert "width: auto;" in css
+    assert ".nav-link, .tab, .input-well" in normalized_css
+    assert "min-height: 44px" in css
+
+
 def test_public_distribution_copy_is_http_and_skill_only() -> None:
     public_files = [
         _WEBSITE_DIR / "index.html",
