@@ -241,7 +241,13 @@ class ProductCrawlRequest(BaseModel):
     timeout_ms: int = 60000
     stealth: bool = False
     browser_fallback: bool = True
-    browser_fallback_headless: bool = False
+    # FX-1: the hosted container has no X server / $DISPLAY. A headed
+    # ("browser_fallback_headless=False") launch crashes with
+    # "Missing X server or $DISPLAY" (the eyebuydirect repro). Default to
+    # headless so any caller that doesn't explicitly opt into a visible
+    # browser (e.g. the CLI, run by a human on their own machine) gets a
+    # fallback that actually works in the hosted/products context.
+    browser_fallback_headless: bool = True
     # FX-10a: respect robots.txt by default for every fetch this crawl issues.
     respect_robots_txt: bool = True
 

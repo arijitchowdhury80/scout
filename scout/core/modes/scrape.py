@@ -305,28 +305,35 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
         return ScoutMetadata(url=req.url, crawled_at=crawled_at)
 
     try:
+        # FX-4: each attempt gets its OWN `async with AsyncWebCrawler(...)`
+        # block — i.e. a fresh browser context — rather than retrying
+        # `arun()` on the same crawler that just failed. Under sustained
+        # load a net::ERR_HTTP2_PROTOCOL_ERROR can leave that context's
+        # underlying connection/browser state poisoned, so reusing it just
+        # reproduces the same failure. Bounded by MAX_TRANSIENT_RETRIES.
         async with AsyncWebCrawler(config=browser_cfg) as crawler:
             # arun() returns CrawlResultContainer whose __getattr__ delegates to _results[0].
             # Cast to CrawlResult so pyright can resolve attributes; runtime behaviour is unchanged.
             result = cast(CrawlResult, await crawler.arun(req.url, config=run_cfg))
 
-            attempt = 1
-            while not result.success and attempt <= MAX_TRANSIENT_RETRIES:
-                error_message = getattr(result, "error_message", None)
-                status_code = _status_code_of(result)
-                if not _is_transient_error(error_message, status_code):
-                    break
-                logger.warning(
-                    "[scout/scrape] transient error, retrying",
-                    url=req.url,
-                    attempt=attempt,
-                    max_retries=MAX_TRANSIENT_RETRIES,
-                    error=error_message,
-                    status_code=status_code,
-                )
-                await asyncio.sleep(RETRY_BACKOFF_SECONDS * attempt)
-                result = cast(CrawlResult, await crawler.arun(req.url, config=run_cfg))
-                attempt += 1
+        attempt = 1
+        while not result.success and attempt <= MAX_TRANSIENT_RETRIES:
+            error_message = getattr(result, "error_message", None)
+            status_code = _status_code_of(result)
+            if not _is_transient_error(error_message, status_code):
+                break
+            logger.warning(
+                "[scout/scrape] transient error, retrying with fresh browser context",
+                url=req.url,
+                attempt=attempt,
+                max_retries=MAX_TRANSIENT_RETRIES,
+                error=error_message,
+                status_code=status_code,
+            )
+            await asyncio.sleep(RETRY_BACKOFF_SECONDS * attempt)
+            async with AsyncWebCrawler(config=browser_cfg) as retry_crawler:
+                result = cast(CrawlResult, await retry_crawler.arun(req.url, config=run_cfg))
+            attempt += 1
 
         duration_ms = int((time.monotonic() - started) * 1000)
 

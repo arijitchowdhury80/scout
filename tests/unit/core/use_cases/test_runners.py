@@ -65,6 +65,31 @@ def _mock_exact_crawler(responses: dict[str, ScrapeResponse]) -> MagicMock:
     return crawler
 
 
+def _mock_format_aware_crawler(responses: dict[str, ScrapeResponse]) -> MagicMock:
+    """FX-3: unlike `_mock_crawler`, this mock honors `req.formats` the way the
+    real scrape() mode does — raw_html is only returned when
+    ScoutFormats.RAW_HTML was actually requested. This is what would have
+    caught the FX-3 bug: `scrape_request()` in base.py only asked for
+    ScoutFormats.MARKDOWN, so every runner's `resp.raw_html` was always ""
+    against a real server, even though the fixture in `_mock_crawler` handed
+    back canned raw_html regardless of what was requested.
+    """
+    from scout.core.types import ScoutFormats
+
+    crawler = MagicMock()
+
+    async def _scrape(req):
+        for pattern, resp in responses.items():
+            if pattern in req.url:
+                if ScoutFormats.RAW_HTML not in req.formats:
+                    return resp.model_copy(update={"raw_html": ""})
+                return resp
+        return _scrape_fail(req.url)
+
+    crawler.scrape = AsyncMock(side_effect=_scrape)
+    return crawler
+
+
 def _req(use_case: str, query: str = "Acme Corp", url: str = "https://www.acme.com") -> RunRequest:
     return RunRequest(use_case=use_case, query=query, url=url, mode="auto")
 
@@ -211,6 +236,53 @@ async def test_company_runner_extracts_execs_from_team_card_markup() -> None:
     assert jane["title"] == "VP of Engineering"
     assert jane["profile_url"] == "https://www.acme.com/team/jane-whitfield"
     assert jane["citations"]
+
+
+@pytest.mark.asyncio
+async def test_company_runner_extracts_execs_when_scrape_only_returns_raw_html_on_request() -> None:
+    """FX-3 regression: against a crawler that only populates raw_html when
+    ScoutFormats.RAW_HTML is explicitly requested (the real scrape() mode's
+    behavior — see scout/core/modes/scrape.py `want_raw_html`), the company
+    runner must still extract executives from realistic team-page markup
+    (an algolia.com-style team-cards page). This fails if `scrape_request()`
+    in base.py doesn't ask for RAW_HTML, because every runner's `resp.raw_html`
+    would silently come back empty and the JSON-LD/team-card parsers would
+    never see real HTML.
+    """
+    from scout.core.use_cases.runners.company import run_company
+
+    team_card_html = """
+    <html><body>
+    <div class="team-grid">
+      <div class="team-member">
+        <h3 class="member-name">Nicolas Dessaigne</h3>
+        <p class="member-title">Co-founder</p>
+      </div>
+      <div class="team-member">
+        <h3 class="member-name">Julien Lemoine</h3>
+        <p class="member-title">Co-founder & CTO</p>
+      </div>
+    </div>
+    </body></html>
+    """
+    crawler = _mock_format_aware_crawler(
+        {
+            "algolia.com": _scrape_ok(
+                "https://www.algolia.com",
+                "# Algolia\n\nSearch and discovery API.\n",
+                raw_html=team_card_html,
+            ),
+        }
+    )
+
+    records = await run_company(
+        _req("company", query="Algolia", url="https://www.algolia.com"), crawler
+    )
+
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    names = {r["name"] for r in exec_recs}
+    assert "Nicolas Dessaigne" in names
+    assert "Julien Lemoine" in names
 
 
 @pytest.mark.asyncio

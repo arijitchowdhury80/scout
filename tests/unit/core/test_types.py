@@ -227,7 +227,9 @@ def test_product_crawl_request_defaults():
     assert req.persist is False
     assert req.use_js is True
     assert req.browser_fallback is True
-    assert req.browser_fallback_headless is False
+    # FX-1: hosted container has no X server — the fallback must default to
+    # headless so it doesn't crash with "Missing X server or $DISPLAY".
+    assert req.browser_fallback_headless is True
 
 
 def test_algolia_product_record_serializes_source_alias():

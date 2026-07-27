@@ -127,6 +127,37 @@ async def test_deterministic_4xx_does_not_retry():
 
 
 @pytest.mark.asyncio
+async def test_transient_error_retry_uses_a_fresh_crawler_context():
+    """FX-4: under sustained load, net::ERR_HTTP2_PROTOCOL_ERROR can leave the
+    browser context itself in a poisoned state — retrying `arun()` on that
+    SAME context/instance just fails the same way again. The retry must
+    construct a brand-new AsyncWebCrawler (fresh browser context) rather than
+    reusing the one that just failed.
+    """
+    transient = _failed_result(status_code=None, error_message="net::ERR_HTTP2_PROTOCOL_ERROR")
+    success = _success_result()
+
+    with (
+        patch("scout.core.modes.scrape.AsyncWebCrawler") as MockCrawler,
+        patch("scout.core.modes.scrape.asyncio.sleep", new=AsyncMock()),
+    ):
+        first_instance = AsyncMock()
+        first_instance.arun = AsyncMock(return_value=transient)
+        second_instance = AsyncMock()
+        second_instance.arun = AsyncMock(return_value=success)
+        MockCrawler.return_value.__aenter__.side_effect = [first_instance, second_instance]
+
+        resp = await scrape(ScrapeRequest(url="https://example.com"))
+
+    assert resp.success is True
+    # A fresh AsyncWebCrawler(config=...) must be constructed per attempt —
+    # not just re-entered — so the retry gets a brand-new browser context.
+    assert MockCrawler.call_count == 2
+    first_instance.arun.assert_awaited_once()
+    second_instance.arun.assert_awaited_once()
+
+
+@pytest.mark.asyncio
 async def test_retries_are_bounded_and_give_up():
     """Repeated transient failures exhaust the retry budget and return failure."""
     transient = _failed_result(status_code=None, error_message="net::ERR_CONNECTION_RESET")

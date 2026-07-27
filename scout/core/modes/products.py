@@ -123,6 +123,35 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
                     logger.warning("[scout/products] blocked page skipped", url=url)
                     continue
                 product = extract_product_jsonld(scrape_resp.raw_html)
+                if product is None:
+                    # FX-2: the FX-1b fallback trigger only fired on
+                    # success=False, so a primary fetch that returns
+                    # success=True but extracts ZERO product records (the
+                    # lacoste repro — `fallback_attempted: false`, reason
+                    # `no_product_records`) skipped the fallback entirely.
+                    # Route this through the same recovery path used for
+                    # failed/blocked fetches instead of fabricating a
+                    # title-only placeholder record.
+                    logger.warning(
+                        "[scout/products] scrape succeeded but no product data extracted",
+                        url=url,
+                    )
+                    record, blocked_page = await _recover_via_fallback(
+                        req,
+                        url=url,
+                        group=group,
+                        scrape_resp=scrape_resp,
+                        reason="no_product_records",
+                    )
+                    blocked_pages.append(blocked_page)
+                    if record:
+                        _keep_best_record(records_by_url, record)
+                        continue
+                    logger.warning(
+                        "[scout/products] no product records and fallback did not recover",
+                        url=url,
+                    )
+                    continue
                 record = build_algolia_record(
                     url=scrape_resp.url,
                     title=scrape_resp.metadata.title,
@@ -250,25 +279,30 @@ async def _recover_via_fallback(
     silent empty).
     """
     fallback_resp = await _browser_fallback_scrape(req, url)
+    record: AlgoliaProductRecord | None = None
+    if fallback_resp and fallback_resp.success and not _is_blocked(fallback_resp):
+        product = extract_product_jsonld(fallback_resp.raw_html)
+        # FX-2: don't fabricate a title-only placeholder when even the
+        # fallback finds no product JSON-LD — record stays None so the
+        # crawl reports an honest empty instead of a silent junk record.
+        if product is not None:
+            record = build_algolia_record(
+                url=fallback_resp.url,
+                title=fallback_resp.metadata.title,
+                category_name=group.category_name,
+                category_url=group.category_url,
+                product=product,
+            )
+            record.source.extractor = f"{record.source.extractor}_browser_fallback"
     blocked_page = _blocked_page(
         url=url,
         group=group,
         scrape_resp=scrape_resp,
         fallback_resp=fallback_resp,
         reason=reason,
+        fallback_used=record is not None,
     )
-    if fallback_resp and fallback_resp.success and not _is_blocked(fallback_resp):
-        product = extract_product_jsonld(fallback_resp.raw_html)
-        record = build_algolia_record(
-            url=fallback_resp.url,
-            title=fallback_resp.metadata.title,
-            category_name=group.category_name,
-            category_url=group.category_url,
-            product=product,
-        )
-        record.source.extractor = f"{record.source.extractor}_browser_fallback"
-        return record, blocked_page
-    return None, blocked_page
+    return record, blocked_page
 
 
 def _blocked_page(
@@ -277,10 +311,10 @@ def _blocked_page(
     scrape_resp: ScrapeResponse,
     fallback_resp: ScrapeResponse | None,
     reason: str = "access_denied",
+    fallback_used: bool = False,
 ) -> BlockedPage:
     """Build blocked-page evidence including fallback attempt outcome."""
     fallback_attempted = fallback_resp is not None
-    fallback_used = bool(fallback_resp and fallback_resp.success and not _is_blocked(fallback_resp))
     fallback_error = fallback_resp.error if fallback_resp and not fallback_resp.success else ""
     return BlockedPage(
         url=url,
