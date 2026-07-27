@@ -93,7 +93,7 @@ def plan_limits(plan: HostedPlan) -> HostedPlanLimits:
             standard_credits=5000,
             browser_credits=100,
             artifact_retention_days=7,
-            max_pages_per_run=25,
+            max_pages_per_run=100,
             max_concurrent_runs=1,
         ),
         HostedPlan.HOSTED_STARTER: HostedPlanLimits(

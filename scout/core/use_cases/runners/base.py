@@ -50,6 +50,7 @@ def evidence_from_scrape(url: str, resp: ScrapeResponse) -> FetchResult:
             confidence=0.8 if resp.success else 0.2,
         ),
         markdown=resp.markdown,
+        html=resp.raw_html,
         text=resp.markdown,
         links=resp.links,
         raw={"title": resp.metadata.title if resp.metadata else ""},

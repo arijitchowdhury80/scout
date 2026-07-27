@@ -14,11 +14,17 @@ def _meta(url: str = "https://example.com") -> ScoutMetadata:
     return ScoutMetadata(url=url, crawled_at="2026-06-22T00:00:00Z")
 
 
-def _scrape_ok(url: str, markdown: str, links: list[str] | None = None) -> ScrapeResponse:
+def _scrape_ok(
+    url: str,
+    markdown: str,
+    links: list[str] | None = None,
+    raw_html: str = "",
+) -> ScrapeResponse:
     return ScrapeResponse(
         success=True,
         url=url,
         markdown=markdown,
+        raw_html=raw_html,
         links=links or [],
         metadata=_meta(url),
         duration_ms=100,
@@ -122,6 +128,109 @@ async def test_company_runner_extracts_executives() -> None:
     assert len(exec_recs) >= 1
     names = {r["name"] for r in exec_recs}
     assert "Jane Smith" in names
+
+
+@pytest.mark.asyncio
+async def test_company_runner_extracts_execs_from_jsonld_person() -> None:
+    from scout.core.use_cases.runners.company import run_company
+
+    jsonld_html = """
+    <html><body>
+    <h1>Acme Corp</h1>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {"@type": "Person", "name": "Priya Raman", "jobTitle": "Chief Executive Officer",
+         "url": "https://www.acme.com/team/priya-raman"},
+        {"@type": "Person", "name": "Sam Lee", "jobTitle": "Chief Technology Officer"}
+      ]
+    }
+    </script>
+    </body></html>
+    """
+    crawler = _mock_crawler(
+        {
+            "acme.com": _scrape_ok(
+                "https://www.acme.com",
+                "# Acme Corp\n\nWe build great products.\n",
+                raw_html=jsonld_html,
+            ),
+        }
+    )
+
+    records = await run_company(_req("company"), crawler)
+
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    names = {r["name"] for r in exec_recs}
+    assert "Priya Raman" in names
+    assert "Sam Lee" in names
+    priya = next(r for r in exec_recs if r["name"] == "Priya Raman")
+    assert priya["title"] == "Chief Executive Officer"
+    assert priya["profile_url"] == "https://www.acme.com/team/priya-raman"
+    assert priya["citations"]
+
+
+@pytest.mark.asyncio
+async def test_company_runner_extracts_execs_from_team_card_markup() -> None:
+    from scout.core.use_cases.runners.company import run_company
+
+    team_card_html = """
+    <html><body>
+    <div class="team-grid">
+      <div class="team-member">
+        <img src="/img/jane.jpg" alt="photo">
+        <h3 class="member-name">Jane Whitfield</h3>
+        <p class="member-title">VP of Engineering</p>
+        <a href="/team/jane-whitfield">Profile</a>
+      </div>
+      <div class="team-member">
+        <h3 class="member-name">Marcus Ito</h3>
+        <p class="member-title">Head of Product</p>
+      </div>
+    </div>
+    </body></html>
+    """
+    crawler = _mock_crawler(
+        {
+            "acme.com": _scrape_ok(
+                "https://www.acme.com",
+                "# Acme Corp\n\nOur people.\n",
+                raw_html=team_card_html,
+            ),
+        }
+    )
+
+    records = await run_company(_req("company"), crawler)
+
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    names = {r["name"] for r in exec_recs}
+    assert "Jane Whitfield" in names
+    assert "Marcus Ito" in names
+    jane = next(r for r in exec_recs if r["name"] == "Jane Whitfield")
+    assert jane["title"] == "VP of Engineering"
+    assert jane["profile_url"] == "https://www.acme.com/team/jane-whitfield"
+    assert jane["citations"]
+
+
+@pytest.mark.asyncio
+async def test_company_runner_returns_zero_execs_when_no_people_on_page() -> None:
+    from scout.core.use_cases.runners.company import run_company
+
+    crawler = _mock_crawler(
+        {
+            "acme.com": _scrape_ok(
+                "https://www.acme.com",
+                "# Acme Corp\n\nWe build great products for the web. No team listed here.\n",
+                raw_html="<html><body><h1>Acme Corp</h1><p>We build great products.</p></body></html>",
+            ),
+        }
+    )
+
+    records = await run_company(_req("company"), crawler)
+
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    assert exec_recs == []
 
 
 @pytest.mark.asyncio

@@ -39,7 +39,7 @@ def test_plan_limits_beta_pass_has_finite_credits_and_retention() -> None:
     assert limits.standard_credits == 5000
     assert limits.browser_credits == 100
     assert limits.artifact_retention_days == 7
-    assert limits.max_pages_per_run == 25
+    assert limits.max_pages_per_run == 100
 
 
 def test_plan_limits_unlimited_grants_fifty_thousand_standard_credits() -> None:

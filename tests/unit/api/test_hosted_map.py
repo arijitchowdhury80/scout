@@ -102,7 +102,7 @@ def test_hosted_map_rejects_max_pages_above_plan_limit_without_crawling() -> Non
     limits = plan_limits(HostedPlan.HOSTED_BETA_PASS)
     balance = account_service.get_balance(tenant_id)
     assert resp.status_code == 403
-    assert resp.json()["detail"] == "Plan allows at most 25 URLs per map."
+    assert resp.json()["detail"] == "Plan allows at most 100 URLs per map."
     assert balance.standard_credits_remaining == limits.standard_credits
     assert mock_crawler.map_urls.await_count == 0
 
