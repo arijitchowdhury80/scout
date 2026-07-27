@@ -8,11 +8,13 @@ from urllib.parse import urlparse
 import structlog
 
 from scout.core.artifacts import write_product_artifacts
+from scout.core.llm_extract import llm_extract_products
 from scout.core.modes.map import map_urls
 from scout.core.modes.scrape import scrape
 from scout.core.products.algolia import (
     build_algolia_record,
     build_listing_algolia_record,
+    build_llm_fallback_record,
     is_junk_record,
 )
 from scout.core.products.discovery import ProductUrlGroups, group_product_urls, normalize_start_url
@@ -34,8 +36,16 @@ from scout.core.types import (
 logger = structlog.get_logger(__name__)
 
 
-async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
-    """Discover product pages, extract product fields, and emit Algolia records."""
+async def products(req: ProductCrawlRequest, llm_api_key: str = "") -> ProductCrawlResponse:
+    """Discover product pages, extract product fields, and emit Algolia records.
+
+    `llm_api_key` gates the LLM extraction fallback (FX: durable long-tail
+    moat). It is empty by default — every existing caller that doesn't pass
+    it explicitly gets the old heuristics-only behaviour unchanged. When set,
+    the LLM fallback only fires if the heuristic paths (JSON-LD, listing
+    cards, browser fallback) produced zero product records for the whole
+    run — see `_llm_products_fallback` below.
+    """
     started = time.monotonic()
     start_url = normalize_start_url(req.site, req.start_url)
     if not start_url:
@@ -164,6 +174,22 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
         records = [r for r in records_by_url.values() if not is_junk_record(r.name)][
             : req.max_products
         ]
+
+        llm_fallback_attempted = False
+        if not records and llm_api_key:
+            # FX: heuristics (JSON-LD, listing cards, browser fallback) found
+            # nothing for this entire run — try the LLM extraction fallback
+            # once, over the best candidate page, before giving up. This is
+            # the only place the LLM fallback runs, and it only runs here
+            # because `records` is empty.
+            llm_fallback_attempted = True
+            fallback_page_url = groups[0].category_url if groups else start_url
+            llm_records = await _llm_products_fallback(
+                req, llm_api_key=llm_api_key, page_url=fallback_page_url
+            )
+            if llm_records:
+                records = llm_records[: req.max_products]
+
         if not records and not blocked_pages:
             # No product URL was ever discovered to fetch, so no fallback could
             # have run — fallback_attempted must be False here, not an echo of
@@ -172,7 +198,7 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
             blocked_pages.append(
                 _empty_product_evidence(
                     start_url=start_url,
-                    fallback_attempted=False,
+                    fallback_attempted=llm_fallback_attempted,
                 )
             )
         raw_products = [record.model_dump(mode="json", by_alias=True) for record in records]
@@ -238,6 +264,57 @@ def _has_path(url: str) -> bool:
 def _is_blocked(resp: ScrapeResponse) -> bool:
     text = f"{resp.metadata.title} {resp.markdown} {resp.raw_html}".lower()
     return "access denied" in text or "powered and protected by" in text
+
+
+async def _llm_products_fallback(
+    req: ProductCrawlRequest,
+    *,
+    llm_api_key: str,
+    page_url: str,
+) -> list[AlgoliaProductRecord]:
+    """Heuristic-first LLM fallback: only called when JSON-LD/card/browser
+    heuristics found zero product records for the whole run (see `products`
+    above). Re-fetches the best candidate page's rendered markdown and asks
+    a cheap, bounded LLM (claude-haiku-4-5) to name products it can see.
+    Returns [] on any failure — never fabricates a record.
+    """
+    scrape_resp = await scrape(
+        ScrapeRequest(
+            url=page_url,
+            formats=[ScoutFormats.MARKDOWN],
+            use_js=True,
+            timeout_ms=req.timeout_ms,
+            stealth=req.stealth,
+            respect_robots_txt=req.respect_robots_txt,
+        )
+    )
+    if not scrape_resp.success or not scrape_resp.markdown.strip():
+        logger.info(
+            "[scout/products] llm fallback skipped, no renderable content",
+            url=page_url,
+        )
+        return []
+
+    items = await llm_extract_products(scrape_resp.markdown, llm_api_key, page_url=page_url)
+    records: list[AlgoliaProductRecord] = []
+    for item in items:
+        if not item.name.strip():
+            continue
+        records.append(
+            build_llm_fallback_record(
+                name=item.name.strip(),
+                url=item.url,
+                price=item.price,
+                currency=item.currency,
+                page_url=scrape_resp.url or page_url,
+            )
+        )
+    logger.info(
+        "[scout/products] llm fallback fired",
+        url=page_url,
+        records_found=len(records),
+    )
+    return records
 
 
 async def _browser_fallback_scrape(

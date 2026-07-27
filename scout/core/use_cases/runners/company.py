@@ -7,9 +7,11 @@ import re
 from typing import Any
 from urllib.parse import urljoin
 
+import structlog
 from bs4 import BeautifulSoup, Tag
 
 from scout.core.crawler import ScoutCrawler
+from scout.core.llm_extract import llm_extract_executives
 from scout.core.platform.types import FetchResult, RunRequest
 from scout.core.use_cases.prism import CompanyRecord, CompanySocialRecord, ExecutiveRecord
 from scout.core.use_cases.runners.base import (
@@ -17,6 +19,8 @@ from scout.core.use_cases.runners.base import (
     make_citation,
     safe_scrape,
 )
+
+logger = structlog.get_logger(__name__)
 
 _ABOUT_PATHS = ["/about", "/about-us", "/company", "/our-story"]
 _TEAM_PATHS = [
@@ -277,6 +281,55 @@ def _extract_socials(
     return records
 
 
+def _fallback_llm_api_key(crawler: ScoutCrawler) -> str:
+    """Effective LLM-fallback key for this crawler, defensively typed.
+
+    `crawler` is a real `ScoutCrawler` in production, but unit tests pass a
+    `MagicMock()` — accessing an unset attribute on a Mock returns another
+    Mock (truthy, not a str), which would otherwise look like "an API key is
+    configured" and trigger a real LLM call from every existing test that
+    doesn't set it. Guard the type so only an actual configured string ever
+    counts as a key.
+    """
+    key = getattr(crawler, "fallback_llm_api_key", "")
+    return key if isinstance(key, str) else ""
+
+
+async def _extract_executives_via_llm(
+    company: str, source: FetchResult, api_key: str
+) -> list[ExecutiveRecord]:
+    """LLM fallback for executives — only called when the 3-tier heuristic
+    (JSON-LD Person nodes, team cards, regex-on-markdown) found zero
+    executives for this run. Never fabricates: any item the model returns
+    that doesn't parse into a real name is dropped.
+    """
+    items = await llm_extract_executives(
+        source.markdown, api_key, page_url=source.evidence.source_url
+    )
+    records: list[ExecutiveRecord] = []
+    for item in items:
+        name = item.name.strip()
+        if not name:
+            continue
+        records.append(
+            _make_exec_record(
+                company,
+                name,
+                item.title.strip(),
+                source,
+                snippet=f"{name} — {item.title}".strip(" —"),
+                confidence=0.6,
+            )
+        )
+    logger.info(
+        "[scout/company] llm executive fallback fired",
+        company=company,
+        url=source.evidence.source_url,
+        records_found=len(records),
+    )
+    return records
+
+
 def _has_executive_signal(company: str, source: FetchResult) -> bool:
     """Whether a fetched page actually contains extractable executive data.
 
@@ -384,6 +437,16 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
                 executives.append(exec_rec)
     if not executives:
         executives = _extract_executives(all_markdown, company, primary)
+    if not executives:
+        # FX: the 3-tier heuristic (JSON-LD Person / team cards / regex)
+        # found nothing for this company — try the LLM fallback once, over
+        # the best team/leadership page fetched, before giving up.
+        llm_api_key = _fallback_llm_api_key(crawler)
+        if llm_api_key:
+            # sources[-1] is the most specific page fetched (team/leadership
+            # path if one was found, else the about page) — the best
+            # candidate for actually containing an exec roster.
+            executives = await _extract_executives_via_llm(company, sources[-1], llm_api_key)
     for exec_rec in executives:
         records.append(exec_rec.model_dump(mode="json"))
 

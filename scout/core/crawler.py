@@ -23,9 +23,28 @@ from scout.core.types import (
 
 
 class ScoutCrawler:
-    def __init__(self, llm_api_key: str = "") -> None:
-        """Initialise ScoutCrawler; llm_api_key is required for extract mode only."""
+    def __init__(self, llm_api_key: str = "", llm_extraction_fallback_enabled: bool = True) -> None:
+        """Initialise ScoutCrawler.
+
+        `llm_api_key` is required for extract mode, and also gates the LLM
+        extraction fallback (products/executives) unless that fallback is
+        separately disabled via `llm_extraction_fallback_enabled` — see
+        `fallback_llm_api_key` below and scout/api/config.py's
+        `llm_extraction_fallback_enabled` setting.
+        """
         self.llm_api_key = llm_api_key
+        self.llm_extraction_fallback_enabled = llm_extraction_fallback_enabled
+
+    @property
+    def fallback_llm_api_key(self) -> str:
+        """Effective API key for the LLM extraction fallback (products/executives).
+
+        Empty whenever the fallback is disabled or no key is configured.
+        Deliberately separate from `llm_api_key` so disabling the fallback
+        (cost control) never disables the primary `extract()` mode, and vice
+        versa.
+        """
+        return self.llm_api_key if self.llm_extraction_fallback_enabled else ""
 
     async def scrape(self, req: ScrapeRequest) -> ScrapeResponse:
         """Fetch a single URL and return clean markdown content."""
@@ -49,4 +68,4 @@ class ScoutCrawler:
 
     async def products(self, req: ProductCrawlRequest) -> ProductCrawlResponse:
         """Crawl product pages and prepare Algolia-ready records."""
-        return await _products(req)
+        return await _products(req, llm_api_key=self.fallback_llm_api_key)

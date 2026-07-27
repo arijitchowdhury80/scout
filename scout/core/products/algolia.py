@@ -90,6 +90,50 @@ def build_listing_algolia_record(card: ProductListingCard) -> AlgoliaProductReco
     return record
 
 
+def build_llm_fallback_record(
+    *,
+    name: str,
+    url: str,
+    price: float | None,
+    currency: str,
+    page_url: str,
+    category_name: str = "",
+    category_url: str = "",
+) -> AlgoliaProductRecord:
+    """Build an Algolia product record from an LLM-fallback extraction.
+
+    Only called when heuristic extraction (JSON-LD / listing cards / browser
+    fallback) found zero product records for the page — see
+    scout/core/llm_extract.py and its call site in modes/products.py.
+    `url` may be empty when the model could only name a product on a listing
+    page with no per-product link; anchor the objectID on the page URL +
+    name in that case so multiple products from the same page still get
+    distinct, stable IDs instead of colliding.
+    """
+    record_url = url or f"{page_url}#{name}"
+    categories = [category_name] if category_name else []
+    hierarchical = {"lvl0": category_name} if category_name else {}
+    record = AlgoliaProductRecord(
+        objectID=_object_id(record_url),
+        name=name,
+        url=url or page_url,
+        brand=brand_fallback("", url or page_url),
+        price=price,
+        currency=currency,
+        categories=categories,
+        hierarchicalCategories=hierarchical,
+        source=ProductSource(
+            url=url or page_url,
+            extractor="llm_fallback",
+            category_url=category_url,
+            category_name=category_name,
+        ),
+    )
+    record.citations = [_product_citation(record.source, field="name", claim=record.name)]
+    record.completeness_score = _completeness_score(record)
+    return record
+
+
 def is_junk_record(name: str) -> bool:
     return bool(_JUNK_PATTERNS.match(name.strip()))
 

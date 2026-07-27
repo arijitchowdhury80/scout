@@ -64,7 +64,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         StripeCustomerPortalService,
     )
 
-    app.state.crawler = ScoutCrawler(llm_api_key=resolve_hosted_llm_api_key(settings))
+    app.state.crawler = ScoutCrawler(
+        llm_api_key=resolve_hosted_llm_api_key(settings),
+        llm_extraction_fallback_enabled=settings.llm_extraction_fallback_enabled,
+    )
     db_path = settings.resolve_db_path()
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     run_db = RunDB(db_path)

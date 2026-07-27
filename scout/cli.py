@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime
 import json
+import os
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -318,7 +319,10 @@ def _run_high_level_use_case(
     )
     import asyncio
 
-    crawler = ScoutCrawler()
+    # Same LLM_API_KEY env var used by the `extract` command; wiring this
+    # here lets `run company`/`run products` use the LLM extraction fallback
+    # (see scout/core/llm_extract.py) when heuristics find nothing.
+    crawler = ScoutCrawler(llm_api_key=os.environ.get("LLM_API_KEY", ""))
     resp = asyncio.run(
         run_use_case(
             RunRequest(
