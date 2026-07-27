@@ -597,10 +597,10 @@ def test_hosted_admin_economics_command_prints_package_margin_without_secrets() 
     output = result.stdout + result.stderr
     script_text = script.read_text(encoding="utf-8")
 
-    assert "$10 for 10,000 standard credits" in output
+    assert "$10 for 15,000 standard credits" in output
     assert "standard_1000" in output
-    assert "79.1%" in output
-    assert "16 packs/month" in output
+    assert "74.1%" in output
+    assert "17 packs/month" in output
     assert "scout-hosted-economics" in script_text
     assert "STRIPE_SECRET_KEY" not in output
     assert "HOSTED_KEY_DELIVERY_SMTP_PASSWORD" not in output
@@ -705,8 +705,7 @@ def test_hosted_setup_report_json_never_prints_secret_values(tmp_path: Path) -> 
                 "HOSTED_KEY_DELIVERY_SMTP_PASSWORD=smtp-secret-value",
                 "STRIPE_SECRET_KEY=sk_test_should_not_print",
                 "STRIPE_STANDARD_1000_PRICE_ID=price_1000",
-                "STRIPE_STANDARD_3000_PRICE_ID=price_3000",
-                "STRIPE_STANDARD_15000_PRICE_ID=price_15000",
+                "STRIPE_MONTHLY_PRICE_ID=price_monthly",
                 "STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success",
                 "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled",
                 "STRIPE_PORTAL_RETURN_URL=https://scout.chowmes.com/account",
@@ -836,8 +835,7 @@ def test_validate_hosted_config_reports_missing_required_keys_without_secret_val
     assert "Missing required hosted config keys" in output
     assert "STRIPE_WEBHOOK_SECRET" in output
     assert "STRIPE_STANDARD_1000_PRICE_ID" in output
-    assert "STRIPE_STANDARD_3000_PRICE_ID" in output
-    assert "STRIPE_STANDARD_15000_PRICE_ID" in output
+    assert "STRIPE_MONTHLY_PRICE_ID" in output
     assert "sk_test_should_not_print" not in output
 
 
@@ -889,8 +887,7 @@ def test_validate_hosted_config_accepts_complete_beta_and_paid_config(tmp_path: 
                 "HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true",
                 "STRIPE_SECRET_KEY=sk_test_should_not_print",
                 "STRIPE_STANDARD_1000_PRICE_ID=price_1000",
-                "STRIPE_STANDARD_3000_PRICE_ID=price_3000",
-                "STRIPE_STANDARD_15000_PRICE_ID=price_15000",
+                "STRIPE_MONTHLY_PRICE_ID=price_monthly",
                 "STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success",
                 "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled",
                 "STRIPE_BETA_SUCCESS_URL=https://scout.chowmes.com/beta?checkout=success",
@@ -937,8 +934,7 @@ def test_validate_hosted_config_warns_on_non_https_beta_redirects(tmp_path: Path
                 "HOSTED_KEY_DELIVERY_SMTP_PASSWORD=smtp-secret-value",
                 "STRIPE_SECRET_KEY=sk_test_should_not_print",
                 "STRIPE_STANDARD_1000_PRICE_ID=price_1000",
-                "STRIPE_STANDARD_3000_PRICE_ID=price_3000",
-                "STRIPE_STANDARD_15000_PRICE_ID=price_15000",
+                "STRIPE_MONTHLY_PRICE_ID=price_monthly",
                 "STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success",
                 "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled",
                 "STRIPE_BETA_SUCCESS_URL=http://127.0.0.1/beta?checkout=success",
@@ -986,8 +982,7 @@ def test_validate_hosted_config_rejects_obsolete_beta_price_id(tmp_path: Path) -
                 "STRIPE_SECRET_KEY=sk_test_should_not_print",
                 "STRIPE_BETA_PRICE_ID=price_obsolete_should_not_print",
                 "STRIPE_STANDARD_1000_PRICE_ID=price_1000",
-                "STRIPE_STANDARD_3000_PRICE_ID=price_3000",
-                "STRIPE_STANDARD_15000_PRICE_ID=price_15000",
+                "STRIPE_MONTHLY_PRICE_ID=price_monthly",
                 "STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success",
                 "STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled",
                 "STRIPE_PORTAL_RETURN_URL=https://scout.chowmes.com/account",
@@ -1030,8 +1025,7 @@ def test_configure_hosted_env_uses_allowlist_and_never_echoes_secret_values() ->
     assert "STRIPE_SECRET_KEY" in script_text
     assert "STRIPE_WEBHOOK_SECRET" in script_text
     assert "STRIPE_STANDARD_1000_PRICE_ID" in script_text
-    assert "STRIPE_STANDARD_3000_PRICE_ID" in script_text
-    assert "STRIPE_STANDARD_15000_PRICE_ID" in script_text
+    assert "STRIPE_MONTHLY_PRICE_ID" in script_text
     assert "STRIPE_BETA_SUCCESS_URL" in script_text
     assert "STRIPE_BETA_CANCEL_URL" in script_text
     assert "STRIPE_PORTAL_RETURN_URL" in script_text

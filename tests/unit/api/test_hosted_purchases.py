@@ -52,8 +52,8 @@ def test_hosted_purchase_history_returns_only_authenticated_tenant_records(
         _checkout(
             checkout_session_id="cs_second",
             email="second@example.com",
-            package_id="standard_3000",
-            amount_total_cents=2500,
+            package_id="standard_1000",
+            amount_total_cents=1000,
         )
     )
     app.dependency_overrides[get_hosted_account_service] = lambda: account_service
@@ -192,7 +192,7 @@ def test_hosted_usage_history_returns_charge_and_balance_after_for_customer_mete
     assert usage["action"] == "scrape"
     assert usage["credit_type"] == "standard"
     assert usage["credits"] == 3
-    assert usage["standard_balance_after"] == 9997
+    assert usage["standard_balance_after"] == 14997
     assert usage["browser_balance_after"] == 0
     assert usage["metadata"] == {"target_url": "https://example.com"}
     assert provisioned.raw_api_key not in response.text

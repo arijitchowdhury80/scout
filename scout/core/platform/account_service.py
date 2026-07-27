@@ -654,14 +654,14 @@ class HostedAccountService:
 
 def _higher_plan(current: HostedPlan, candidate: HostedPlan) -> HostedPlan:
     """Return the higher hosted plan without downgrading existing tenants."""
-    # UNLIMITED ($12/mo recurring) sits above STARTER and below PRO: an
+    # MONTHLY ($12/mo recurring) sits above STARTER and below PRO: an
     # existing PRO tenant is never silently downgraded to the subscription tier,
-    # while a STARTER/BETA tenant upgrading to UNLIMITED is honored.
+    # while a STARTER/BETA tenant upgrading to MONTHLY is honored.
     rank = {
         HostedPlan.LOCAL_FREE: 0,
         HostedPlan.HOSTED_BETA_PASS: 1,
         HostedPlan.HOSTED_STARTER: 2,
-        HostedPlan.HOSTED_UNLIMITED: 3,
+        HostedPlan.HOSTED_MONTHLY: 3,
         HostedPlan.HOSTED_PRO: 4,
     }
     if rank[candidate] > rank[current]:

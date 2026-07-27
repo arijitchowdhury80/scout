@@ -42,11 +42,11 @@ def test_plan_limits_beta_pass_has_finite_credits_and_retention() -> None:
     assert limits.max_pages_per_run == 100
 
 
-def test_plan_limits_unlimited_grants_fifty_thousand_standard_credits() -> None:
-    limits = plan_limits(HostedPlan.HOSTED_UNLIMITED)
+def test_plan_limits_monthly_grants_twenty_thousand_standard_credits() -> None:
+    limits = plan_limits(HostedPlan.HOSTED_MONTHLY)
 
     assert limits.hosted_enabled is True
-    assert limits.standard_credits == 50000
+    assert limits.standard_credits == 20000
     assert limits.browser_credits == 0
     assert limits.artifact_retention_days == 30
     assert limits.max_pages_per_run == 250

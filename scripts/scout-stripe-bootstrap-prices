@@ -23,16 +23,14 @@ STRIPE_PRICE_ENDPOINT = "https://api.stripe.com/v1/prices"
 SECRET_MARKERS = ("sk_test_", "sk_live_", "rk_test_", "rk_live_")
 PRICE_ENV_KEYS = {
     "standard_1000": "STRIPE_STANDARD_1000_PRICE_ID",
-    "standard_3000": "STRIPE_STANDARD_3000_PRICE_ID",
-    "standard_15000": "STRIPE_STANDARD_15000_PRICE_ID",
 }
 
 
 def public_paid_packages() -> list[HostedCreditPackage]:
     """Return hosted packages that need one-time Stripe price IDs.
 
-    Subscriptions (e.g. unlimited_monthly) are intentionally excluded: they need
-    a *recurring* Stripe price created out-of-band via STRIPE_UNLIMITED_PRICE_ID,
+    Subscriptions (e.g. monthly) are intentionally excluded: they need
+    a *recurring* Stripe price created out-of-band via STRIPE_MONTHLY_PRICE_ID,
     not the one-time prices this bootstrap creates.
     """
     return [

@@ -38,7 +38,7 @@ def test_provision_account_creates_tenant_key_and_plan_credits() -> None:
     assert verify_api_key(result.raw_api_key, result.api_key.key_hash)
 
 
-def test_upgrade_tenant_plan_ranks_unlimited_above_starter() -> None:
+def test_upgrade_tenant_plan_ranks_monthly_above_starter() -> None:
     service = HostedAccountService(InMemoryHostedAccountStore())
     starter = service.provision_account(
         email="upgrader@example.com",
@@ -48,15 +48,15 @@ def test_upgrade_tenant_plan_ranks_unlimited_above_starter() -> None:
         scopes=["runs:create"],
     )
 
-    target = service.upgrade_tenant_plan(starter.tenant.tenant_id, HostedPlan.HOSTED_UNLIMITED)
+    target = service.upgrade_tenant_plan(starter.tenant.tenant_id, HostedPlan.HOSTED_MONTHLY)
     tenant = service.get_tenant(starter.tenant.tenant_id)
 
-    assert target is HostedPlan.HOSTED_UNLIMITED
+    assert target is HostedPlan.HOSTED_MONTHLY
     assert tenant is not None
-    assert tenant.plan is HostedPlan.HOSTED_UNLIMITED
+    assert tenant.plan is HostedPlan.HOSTED_MONTHLY
 
 
-def test_upgrade_tenant_plan_does_not_downgrade_pro_to_unlimited() -> None:
+def test_upgrade_tenant_plan_does_not_downgrade_pro_to_monthly() -> None:
     service = HostedAccountService(InMemoryHostedAccountStore())
     pro = service.provision_account(
         email="pro@example.com",
@@ -66,7 +66,7 @@ def test_upgrade_tenant_plan_does_not_downgrade_pro_to_unlimited() -> None:
         scopes=["runs:create"],
     )
 
-    target = service.upgrade_tenant_plan(pro.tenant.tenant_id, HostedPlan.HOSTED_UNLIMITED)
+    target = service.upgrade_tenant_plan(pro.tenant.tenant_id, HostedPlan.HOSTED_MONTHLY)
     tenant = service.get_tenant(pro.tenant.tenant_id)
 
     assert target is HostedPlan.HOSTED_PRO

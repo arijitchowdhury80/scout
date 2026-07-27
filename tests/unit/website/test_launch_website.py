@@ -101,7 +101,7 @@ def test_homepage_capability_grid_states_current_shipped_primitives_only() -> No
     assert "Launch status" not in normalized_html
     assert "Production-ready multi-tenant SaaS" not in html
     assert "Unlimited hosted scraping" not in html
-    assert "unlimited" not in html.lower().replace("unlimited_monthly", "")
+    assert "unlimited" not in html.lower()
 
 
 def test_homepage_explains_outcome_before_endpoint_details() -> None:
@@ -428,14 +428,10 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Free",
             "5,000 credits",
             "$12",
-            "50,000 credits",
+            "20,000 credits",
             "Prefer no commitment?",
             "$10",
-            "10k",
-            "$25",
-            "30k",
-            "$100",
-            "150k",
+            "15,000 credits",
             "Never expire.",
         ],
         "beta.html": [
@@ -486,9 +482,9 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
 
 
 def test_pricing_page_reflects_locked_2026_07_06_pricing_model() -> None:
-    """Pricing copy matches docs/product/pricing-model-2026-07-06.md: Free
-    5,000 one-time, Monthly $12/50,000 (never called "unlimited"), pay-go
-    packs demoted/secondary, dossier ~200 credits."""
+    """Pricing copy matches the 2026-07-27 two-tier simplification: Free
+    5,000 one-time, Monthly $12/20,000 (never called "unlimited"), one $10
+    one-time pack for 15,000 credits, dossier ~200 credits."""
     html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
@@ -497,19 +493,24 @@ def test_pricing_page_reflects_locked_2026_07_06_pricing_model() -> None:
         "$0",
         "5,000 credits",
         "$12",
-        "50,000 credits",
+        "20,000 credits",
         "resets monthly",
         "dossiers",
         "$10",
-        "$25",
-        "$100",
+        "15,000 credits",
         "Never expire.",
     ]
     for expected in expected_strings:
         assert expected in normalized_html
 
+    # Founder decision (2026-07-27): the $25/30k and $100/150k packs are
+    # retired entirely, not merely hidden — only two paid tiers remain.
+    assert "$25" not in normalized_html
+    assert "$100" not in normalized_html
+    assert "50,000 credits" not in normalized_html
+
     # Brand-integrity rule: never say "unlimited" for a capped plan.
-    assert "unlimited" not in normalized_html.lower().replace("unlimited_monthly", "")
+    assert "unlimited" not in normalized_html.lower()
     assert "sk_live_" not in html
     assert "sk_test_" not in html
 

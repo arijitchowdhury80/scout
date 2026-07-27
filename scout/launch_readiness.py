@@ -381,10 +381,10 @@ def _private_beta_checks(root: Path) -> list[EvidenceCheck]:
 def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
     """Verify website pages expose the current hosted pricing posture.
 
-    Pricing model LOCKED 2026-07-06 (docs/product/pricing-model-2026-07-06.md)
-    changed the required posture markers: "unlimited" is now a BANNED word
+    Pricing model LOCKED 2026-07-06, simplified to two paid tiers 2026-07-27
+    (docs/product/pricing-model-2026-07-06.md): "unlimited" is a BANNED word
     (brand-integrity rule — never call a capped plan unlimited), replaced by
-    naming the actual credit number ("50,000 credits", "credit-metered").
+    naming the actual credit number ("20,000 credits", "credit-metered").
     Checking for the literal string "unlimited" would fail the exact pages
     that correctly implement the new pricing copy, so that marker was
     inverted into a banned-phrase check instead of a required one.
@@ -413,9 +413,8 @@ def _website_hosted_beta_limits_status(root: Path) -> EvidenceCheck:
     banned_hits: list[str] = []
     for page in website_pages:
         content = " ".join(_read(root / page).lower().split())
-        # Machine identifiers (package ids like "unlimited_monthly") are not
-        # customer copy — strip them before scanning for banned language.
-        content = content.replace("unlimited_monthly", "")
+        # The monthly package id is "monthly" (no longer "unlimited_monthly"),
+        # so no substring stripping is needed before the banned-word scan.
         for marker in required_markers:
             if marker not in content:
                 missing_markers.append(f"{page}: {marker}")

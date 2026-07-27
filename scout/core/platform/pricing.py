@@ -119,62 +119,31 @@ _PACKAGES = {
         name="Standard Credits 1000",
         hosted_plan=HostedPlan.HOSTED_STARTER,
         amount_cents=1000,
-        standard_credits=10000,
+        standard_credits=15000,
         browser_credits=0,
         trial_days=0,
         requires_payment_method=True,
         is_public_purchase=True,
         customer_summary=(
-            "10,000 standard credits for $10: roughly 10,000 scrapes, 10,000 returned crawl "
-            "pages, 3,333 screenshots, 10,000 product/intelligence records, or 50 company "
-            "dossiers before heavier browser work."
+            "15,000 standard credits for $10: roughly 15,000 pages (scrapes, crawl pages, "
+            "or product/intelligence records), or 75 company dossiers at ~200 credits each."
         ),
     ),
-    "standard_3000": HostedCreditPackage(
-        package_id="standard_3000",
-        name="Standard Credits 3000",
-        hosted_plan=HostedPlan.HOSTED_STARTER,
-        amount_cents=2500,
-        standard_credits=30000,
-        browser_credits=0,
-        trial_days=0,
-        requires_payment_method=True,
-        is_public_purchase=True,
-        customer_summary=(
-            "30,000 standard credits for $25 — a volume discount for recurring API users "
-            "(150 company dossiers at ~200 credits each)."
-        ),
-    ),
-    "standard_15000": HostedCreditPackage(
-        package_id="standard_15000",
-        name="Standard Credits 15000",
-        hosted_plan=HostedPlan.HOSTED_PRO,
-        amount_cents=10000,
-        standard_credits=150000,
-        browser_credits=0,
-        trial_days=0,
-        requires_payment_method=True,
-        is_public_purchase=True,
-        customer_summary=(
-            "150,000 standard credits for $100 for heavier teams once support and abuse "
-            "controls are proven (750 company dossiers at ~200 credits each)."
-        ),
-    ),
-    "unlimited_monthly": HostedCreditPackage(
-        package_id="unlimited_monthly",
+    "monthly": HostedCreditPackage(
+        package_id="monthly",
         name="Monthly Subscription",
-        hosted_plan=HostedPlan.HOSTED_UNLIMITED,
+        hosted_plan=HostedPlan.HOSTED_MONTHLY,
         amount_cents=1200,
-        standard_credits=50000,
+        standard_credits=20000,
         browser_credits=0,
         trial_days=0,
         requires_payment_method=True,
         is_public_purchase=True,
         is_subscription=True,
         customer_summary=(
-            "$12/month: 50,000 credits / month — 20,000 page operations (scrape, crawl, "
-            "map, screenshot) + 10,000 products + 100 company dossiers at ~200 credits "
-            "each, resetting every billing cycle."
+            "$12/month: 20,000 credits / month — roughly 8,000 page operations (scrape, "
+            "crawl, map, screenshot) + 4,000 products + 40 company dossiers at ~200 "
+            "credits each, resetting every billing cycle."
         ),
     ),
     "browser_100": HostedCreditPackage(
