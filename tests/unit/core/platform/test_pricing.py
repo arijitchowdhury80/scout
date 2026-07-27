@@ -23,8 +23,9 @@ def test_pay_as_you_go_1000_credit_pack_defines_customer_value() -> None:
     assert package.standard_credits == 15000
     assert package.browser_credits == 0
     assert package.customer_summary == (
-        "15,000 standard credits for $10: roughly 15,000 pages (scrapes, crawl pages, "
-        "or product/intelligence records), or 75 company dossiers at ~200 credits each."
+        "15,000 standard credits for $10: 1 credit = 1 operation, so spend them "
+        "however you want. Example: roughly 15,000 pages (scrapes, crawl pages, or "
+        "product/intelligence records), or 75 company dossiers at ~200 credits each."
     )
 
 
@@ -54,7 +55,7 @@ def test_free_ga_package_is_the_public_zero_cost_acquisition_tier() -> None:
     assert package.customer_summary == (
         "5,000 standard credits, free, one-time: roughly 5,000 pages, 25 company "
         "dossiers at ~200 credits each, or 2 product catalogs. Scout's public GA "
-        "acquisition tier — no subscription required."
+        "acquisition tier. No subscription required."
     )
 
 
@@ -97,9 +98,11 @@ def test_monthly_package_is_a_recurring_subscription() -> None:
     assert package.hosted_plan is HostedPlan.HOSTED_MONTHLY
     assert "unlimited" not in package.customer_summary.lower()
     assert package.customer_summary == (
-        "$12/month: 20,000 credits / month — roughly 8,000 page operations (scrape, "
-        "crawl, map, screenshot) + 4,000 products + 40 company dossiers at ~200 "
-        "credits each, resetting every billing cycle."
+        "$12/month: 20,000 credits / month. 1 credit = 1 operation (a page, a "
+        "product, or a record). These are not fixed buckets, spend the 20,000 "
+        "however you want. Example: 5,000 page operations (scrape, crawl, map, "
+        "screenshot) + 5,000 products + 50 company dossiers at ~200 credits each, "
+        "resetting every billing cycle."
     )
 
 

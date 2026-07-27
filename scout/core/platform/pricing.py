@@ -94,7 +94,7 @@ _PACKAGES = {
         is_public_purchase=False,
         customer_summary=(
             "30-day beta trial with 5,000 standard credits and 100 browser credits for "
-            "registered beta testers — enough to exercise every Scout feature end to end."
+            "registered beta testers. Enough to exercise every Scout feature end to end."
         ),
     ),
     "free_ga": HostedCreditPackage(
@@ -111,7 +111,7 @@ _PACKAGES = {
         customer_summary=(
             "5,000 standard credits, free, one-time: roughly 5,000 pages, 25 company "
             "dossiers at ~200 credits each, or 2 product catalogs. Scout's public GA "
-            "acquisition tier — no subscription required."
+            "acquisition tier. No subscription required."
         ),
     ),
     "standard_1000": HostedCreditPackage(
@@ -125,8 +125,9 @@ _PACKAGES = {
         requires_payment_method=True,
         is_public_purchase=True,
         customer_summary=(
-            "15,000 standard credits for $10: roughly 15,000 pages (scrapes, crawl pages, "
-            "or product/intelligence records), or 75 company dossiers at ~200 credits each."
+            "15,000 standard credits for $10: 1 credit = 1 operation, so spend them "
+            "however you want. Example: roughly 15,000 pages (scrapes, crawl pages, or "
+            "product/intelligence records), or 75 company dossiers at ~200 credits each."
         ),
     ),
     "monthly": HostedCreditPackage(
@@ -141,9 +142,11 @@ _PACKAGES = {
         is_public_purchase=True,
         is_subscription=True,
         customer_summary=(
-            "$12/month: 20,000 credits / month — roughly 8,000 page operations (scrape, "
-            "crawl, map, screenshot) + 4,000 products + 40 company dossiers at ~200 "
-            "credits each, resetting every billing cycle."
+            "$12/month: 20,000 credits / month. 1 credit = 1 operation (a page, a "
+            "product, or a record). These are not fixed buckets, spend the 20,000 "
+            "however you want. Example: 5,000 page operations (scrape, crawl, map, "
+            "screenshot) + 5,000 products + 50 company dossiers at ~200 credits each, "
+            "resetting every billing cycle."
         ),
     ),
     "browser_100": HostedCreditPackage(

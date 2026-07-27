@@ -24,8 +24,12 @@ Never say "unlimited" for a capped plan — it contradicts Scout's honesty brand
 - 1 credit = 1 scrape / crawled page / product / record
 - 3 = screenshot · 5 = browser render · 10 = browser minute
 - **1 company dossier ≈ 200 credits** (representative company crawl; varies by site size)
-- Monthly 20k mix (marketed): **8,000 pages + 4,000 products + 40 dossiers** (= 8k+4k+8k = 20k) ✓
-- Pay-go $10/15k mix (marketed): **15,000 pages, or 75 dossiers**
+- Credits are fungible: 1 credit = 1 operation, not a per-category bucket. Every mix below is an
+  *example* of what the credits buy, not a fixed allocation — a user can spend 20,000 credits on
+  20,000 pages and zero dossiers, or 10,000 pages + 1,000 products, or any other split.
+- Monthly 20k mix (marketed, example only): **5,000 pages + 5,000 products + 50 dossiers**
+  (= 5k+5k+10k = 20k) ✓
+- Pay-go $10/15k mix (marketed, example only): **15,000 pages, or 75 dossiers**
 - Free 5k ≈ 5,000 pages · or 25 dossiers · or 2 product catalogs
 
 ## Per-credit ladder
