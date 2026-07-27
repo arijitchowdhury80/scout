@@ -7,7 +7,7 @@ Decided with Arijit this session. Supersedes the "50 dossiers / $12 unlimited" f
 | Tier | Price | Credits | Notes |
 |---|---|---|---|
 | **Free (GA)** | $0 | **5,000** one-time | Public free tier. Acquisition hook (PLG). |
-| **Beta** | $0 | 10,000 / 30 days | Existing beta cohort — unchanged, already shipped. Separate from GA free. |
+| **Beta** | $0 | 5,000 / 30 days | Beta cohort. Matches the deployed HOSTED_BETA_PASS (5,000 standard + 100 browser credits). Separate from GA free. |
 | **Monthly** | **$12/mo** | **50,000 / month** | Hero plan (MRR). Resets each cycle, hard-stop at cap. **NOT called "unlimited."** |
 | Pay-go (demoted) | $10 / $25 / $100 | 10k / 30k / 150k | One-time packs, never expire. Secondary. |
 | Heavy (future) | $49 / $99 (TBD) | 250k / 1M (TBD) | Penciled for expansion revenue. Not at launch. |

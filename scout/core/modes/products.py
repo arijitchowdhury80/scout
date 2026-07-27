@@ -78,6 +78,7 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
                         use_js=req.use_js,
                         timeout_ms=req.timeout_ms,
                         stealth=req.stealth,
+                        respect_robots_txt=req.respect_robots_txt,
                     )
                 )
                 if not scrape_resp.success:
@@ -226,6 +227,7 @@ async def _browser_fallback_scrape(
             timeout_ms=req.timeout_ms,
             stealth=True,
             headless=req.browser_fallback_headless,
+            respect_robots_txt=req.respect_robots_txt,
         )
     )
 
@@ -316,6 +318,7 @@ async def _discover_from_categories(
                 use_js=req.use_js,
                 timeout_ms=req.timeout_ms,
                 stealth=req.stealth,
+                respect_robots_txt=req.respect_robots_txt,
             )
         )
         if not scrape_resp.success:

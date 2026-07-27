@@ -63,3 +63,17 @@ def test_screenshot_flag_threads_through_run_config() -> None:
     req = ScrapeRequest(url="https://x.com")
     assert _build_run_config(req, want_screenshot=True).screenshot is True
     assert _build_run_config(req, want_screenshot=False).screenshot is False
+
+
+def test_robots_txt_is_respected_by_default() -> None:
+    """FX-10a: Scout defaults to respecting robots.txt even though crawl4ai's
+    own CrawlerRunConfig.check_robots_txt defaults to False."""
+    req = ScrapeRequest(url="https://x.com")
+    rc = _build_run_config(req, want_screenshot=False)
+    assert rc.check_robots_txt is True
+
+
+def test_robots_txt_can_be_disabled_explicitly() -> None:
+    req = ScrapeRequest(url="https://x.com", respect_robots_txt=False)
+    rc = _build_run_config(req, want_screenshot=False)
+    assert rc.check_robots_txt is False

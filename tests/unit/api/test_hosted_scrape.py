@@ -689,7 +689,13 @@ def test_hosted_beta_key_generation_records_request_even_when_delivery_would_fai
         app.dependency_overrides.clear()
 
     assert resp.status_code == 502
-    assert resp.json()["detail"] == "SMTP delivery failed: smtp down"
+    # FX-5a: the client gets a friendly generic message — never the raw
+    # provider error. The raw reason is still captured server-side below.
+    assert resp.json()["detail"] == (
+        "We could not send your key right now. Please try again shortly or "
+        "contact support@scout.chowmes.com."
+    )
+    assert "SMTP" not in resp.text
     assert account_service.store.find_tenant_by_email("retry@example.com") is None
     assert len(delivery.requests) == 1
     signup_events = account_service.list_signup_events()

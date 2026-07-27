@@ -46,6 +46,29 @@ def test_docker_runtime_uses_settings_environment_names() -> None:
     assert "SCOUT_DB_PATH" not in compose
 
 
+def test_dockerfile_runs_as_non_root_user() -> None:
+    """FX-13a: prod was verified running the container as uid=0 (root). The
+    image must create a fixed-uid non-root user, own /app and /data, and
+    switch to it before CMD."""
+    dockerfile = _DOCKERFILE.read_text(encoding="utf-8")
+
+    assert "groupadd" in dockerfile and "scoutgroup" in dockerfile
+    assert "useradd" in dockerfile and "scoutadmin" in dockerfile
+    assert "chown -R" in dockerfile
+    assert "USER scoutadmin" in dockerfile
+
+    # USER must land before CMD so the process actually runs unprivileged.
+    assert dockerfile.index("USER scoutadmin") < dockerfile.index(
+        'CMD ["uvicorn", "scout.api.main:app"'
+    )
+    # /app and /data must be chowned to the non-root user before the switch.
+    chown_idx = dockerfile.index("chown -R")
+    assert chown_idx < dockerfile.index("USER scoutadmin")
+    chown_line = dockerfile[chown_idx : dockerfile.index("\n", chown_idx)]
+    assert "/app" in chown_line
+    assert "/data" in chown_line
+
+
 def test_published_docker_image_smoke_helper_is_documented() -> None:
     helper = _ROOT / "scripts" / "docker_image_smoke.py"
     policy = (_ROOT / "docs" / "product" / "registry-publishing-policy-2026-06-29.md").read_text(

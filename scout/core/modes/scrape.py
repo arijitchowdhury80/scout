@@ -207,6 +207,9 @@ def _build_run_config(req: ScrapeRequest, *, want_screenshot: bool) -> CrawlerRu
         "magic": req.stealth,
         # stealth runs get navigator override for free; or opt in explicitly
         "override_navigator": req.stealth or req.override_navigator,
+        # FX-10a: crawl4ai defaults check_robots_txt to False. Scout defaults to
+        # respecting robots.txt; respect_robots_txt=False on the request opts out.
+        "check_robots_txt": req.respect_robots_txt,
     }
     if req.mean_delay is not None:
         kwargs["mean_delay"] = req.mean_delay

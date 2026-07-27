@@ -48,6 +48,9 @@ class ScrapeRequest(BaseModel):
     user_agent_mode: str | None = None  # "random" rotates a realistic UA per run
     override_navigator: bool = False  # patch navigator.* to defeat headless fingerprinting
     mean_delay: float | None = None  # human-like pacing between actions (seconds)
+    # FX-10a: respect robots.txt by default (maps to CrawlerRunConfig.check_robots_txt,
+    # which crawl4ai itself defaults to False). Explicit False opts out.
+    respect_robots_txt: bool = True
 
 
 class PdfMetadata(BaseModel):
@@ -104,6 +107,8 @@ class CrawlRequest(BaseModel):
     use_js: bool = False
     timeout_ms: int = 60000
     stealth: bool = False
+    # FX-10a: respect robots.txt by default (maps to CrawlerRunConfig.check_robots_txt).
+    respect_robots_txt: bool = True
 
 
 class CrawlPage(BaseModel):
@@ -237,6 +242,8 @@ class ProductCrawlRequest(BaseModel):
     stealth: bool = False
     browser_fallback: bool = True
     browser_fallback_headless: bool = False
+    # FX-10a: respect robots.txt by default for every fetch this crawl issues.
+    respect_robots_txt: bool = True
 
 
 class ProductSource(BaseModel):

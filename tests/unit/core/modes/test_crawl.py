@@ -77,6 +77,46 @@ async def test_crawl_response_has_correct_start_url():
 
 
 @pytest.mark.asyncio
+async def test_crawl_respects_robots_txt_by_default():
+    """FX-10a: crawl() must set CrawlerRunConfig.check_robots_txt=True by default
+    even though crawl4ai itself defaults it to False."""
+    captured: dict = {}
+
+    def _capture_config(_url, config=None):
+        captured["config"] = config
+        return _async_gen()
+
+    with patch("scout.core.modes.crawl.AsyncWebCrawler") as MockCrawler:
+        instance = AsyncMock()
+        instance.arun = AsyncMock(side_effect=_capture_config)
+        MockCrawler.return_value.__aenter__.return_value = instance
+
+        req = CrawlRequest(url="https://example.com")
+        await crawl(req)
+
+    assert captured["config"].check_robots_txt is True
+
+
+@pytest.mark.asyncio
+async def test_crawl_can_disable_robots_txt_respect():
+    captured: dict = {}
+
+    def _capture_config(_url, config=None):
+        captured["config"] = config
+        return _async_gen()
+
+    with patch("scout.core.modes.crawl.AsyncWebCrawler") as MockCrawler:
+        instance = AsyncMock()
+        instance.arun = AsyncMock(side_effect=_capture_config)
+        MockCrawler.return_value.__aenter__.return_value = instance
+
+        req = CrawlRequest(url="https://example.com", respect_robots_txt=False)
+        await crawl(req)
+
+    assert captured["config"].check_robots_txt is False
+
+
+@pytest.mark.asyncio
 async def test_crawl_handles_failed_page_in_stream():
     """Strategy may yield a failed result — included in pages with success=False."""
     failed = MagicMock()

@@ -29,7 +29,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxshmfence1 \
     && rm -rf /var/lib/apt/lists/*
 
+# FX-13a: create a fixed-uid/gid non-root user/group. Prod was verified
+# running the container as uid=0 (root); everything below drops to this user
+# before CMD. Fixed ids make ownership predictable and reproducible across
+# rebuilds.
+RUN groupadd --gid 10001 scoutgroup \
+    && useradd --uid 10001 --gid scoutgroup --shell /usr/sbin/nologin --no-create-home scoutadmin
+
 WORKDIR /app
+
+# Route Playwright's Chromium download under /app instead of root's home
+# (~/.cache/ms-playwright), so it can be chowned to scoutadmin along with the
+# rest of the app and remains readable/launchable once we drop root below.
+ENV PLAYWRIGHT_BROWSERS_PATH=/app/.playwright-browsers
 
 # Install Python dependencies (no dev deps in prod)
 COPY pyproject.toml README.md LICENSE THIRD_PARTY_NOTICES.md ./
@@ -52,6 +64,19 @@ ENV PYTHONUNBUFFERED=1 \
     SCOUT_WORKDIR=/data/runs \
     DB_PATH=/data/scout.db
 
+# FX-13a: create the data dir and hand ownership of the app + data trees to
+# the non-root user so /data (SCOUT_WORKDIR/DB_PATH's parent, the volume
+# mountpoint) and /app stay writable/readable once CMD runs as scoutadmin.
+RUN mkdir -p /data \
+    && chown -R scoutadmin:scoutgroup /app /data
+
 EXPOSE 8421
+
+# FX-13a: drop root before serving traffic.
+# NOTE: docker-compose.yml / the scout.service systemd unit may need matching
+# adjustments at deploy time — e.g. host-side bind-mount ownership for /data
+# so uid 10001 (scoutadmin) can write to it, or an explicit `user:`/
+# `User=`/`Group=` override. That deploy-time change is NOT made here.
+USER scoutadmin
 
 CMD ["uvicorn", "scout.api.main:app", "--host", "0.0.0.0", "--port", "8421"]
