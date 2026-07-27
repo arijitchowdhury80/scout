@@ -16,7 +16,7 @@ Point it at a website and you get the company details, the people, the open role
 
 You reach it two ways. A simple web API you can call from anything. And a skill that plugs into Claude and Codex, so your AI assistant can go read the web and bring back real records instead of guesses.
 
-It's live on Product Hunt today, and it's a beta. I want 50 to 100 people who work with web data to use it hard and tell me where it breaks. I would genuinely rather hear the ugly feedback now.
+It's live on Product Hunt today, and it's a beta. I'm opening 50 spots. I want 50 people who work with web data to use it hard and tell me where it breaks. I would genuinely rather hear the ugly feedback now.
 
 If that's you, the link is in the comments. And if you know someone who lives in scraping and research, tag them.
 

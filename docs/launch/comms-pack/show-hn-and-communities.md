@@ -53,7 +53,7 @@ Early on I had to choose: make the output look impressive, or make it defensible
 
 I built Scout around the second choice. Every fact it pulls from a website keeps a link to the page it came from. Less flashy in a demo, far more useful in real work. It turns sites into structured records: company info, people, jobs, news, product catalogs. API plus an AI-assistant integration.
 
-The bet is that people doing serious research or client work will pay for trustworthy over impressive. Beta is open and I want 50 to 100 people to stress test it. Happy to trade notes with other founders on beta launches in the comments.
+The bet is that people doing serious research or client work will pay for trustworthy over impressive. Beta is open with 50 spots and I want 50 people to stress test it. Happy to trade notes with other founders on beta launches in the comments.
 
 ---
 
@@ -68,7 +68,7 @@ Today's the day I open Scout to a beta crowd.
 
 Short version: point it at a website, get back clean structured records instead of a wall of text, and every fact keeps the source page attached so you can prove where it came from. It handles company research, people, jobs, news, and product catalogs, and it works through an API or as a skill inside Claude and Codex.
 
-I'm being deliberate about the beta. I want 50 to 100 real users, not a vanity spike. My whole goal this week is to learn which sites break it and which features people actually reach for. I'll share what I find back here as I go, good and bad. If you build with web data, I'd love you in the group. Ask me anything about the build below.
+I'm being deliberate about the beta. I'm capping it at 50 spots, real users, not a vanity spike. My whole goal this week is to learn which sites break it and which features people actually reach for. I'll share what I find back here as I go, good and bad. If you build with web data, I'd love you in the group. Ask me anything about the build below.
 
 ---
 

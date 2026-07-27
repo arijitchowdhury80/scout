@@ -1,6 +1,6 @@
 # Launch Content Calendar (T-14 to T+7)
 
-Goal: Product Hunt beta launch, 50 to 100 beta testers.
+Goal: Product Hunt beta launch, a limited beta of 50 testers (50 spots).
 Voice rule across all assets: plain, sharp, no hype, no em dashes, no invented metrics.
 Times are your local time. "T-day" is the Product Hunt launch day (target: a Tuesday or Wednesday, 12:01am PT go-live).
 
@@ -57,7 +57,7 @@ Assets referenced:
 
 | Date | Channel | Asset / Action |
 |---|---|---|
-| T+1 | Internal | Tally sign-ups against the 50 to 100 goal. Log every "site that broke it" report. |
+| T+1 | Internal | Tally sign-ups against the 50-spot goal. Log every "site that broke it" report. |
 | T+1 | X | Quote-tweet the best question or feedback from launch day with a real answer. |
 | T+2 | Internal | Personally reply to every beta tester who gave real feedback. Ask one sharp follow-up. |
 | T+3 | LinkedIn | Publish the follow-up post (what I learned, what people actually wanted, still recruiting). |

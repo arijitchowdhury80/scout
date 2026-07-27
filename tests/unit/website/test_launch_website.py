@@ -869,3 +869,41 @@ def test_no_em_dashes_in_customer_facing_copy() -> None:
         if "—" in text:
             offenders.append(path.name)
     assert not offenders, f"em dash (—) found in: {offenders}"
+
+
+def test_console_fallback_echoes_typed_url_instead_of_fake_acme_result() -> None:
+    """Founder-caught bug: when the live demo API is unreachable or errors,
+    the console used to fall back to a STATIC acme.com sample regardless of
+    what the visitor typed, so typing "algolia.com" showed acme.com data as
+    if it were their result. Fix: the fallback now derives a host from the
+    visitor's typed URL and rewrites the sample's url/title/source fields to
+    reflect it, and it never silently claims the canned data is real."""
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+
+    # A host-extraction + payload-rewrite step must exist and be wired into
+    # renderFallback so the typed URL actually reaches the rendered sample.
+    assert "function extractTypedHost(rawUrl)" in html
+    assert "function buildFallbackPayload(endpoint, typedUrl)" in html
+    assert "function renderFallback(endpoint, note, typedUrl)" in html
+    assert "const payload = buildFallbackPayload(endpoint, typedUrl);" in html
+    assert 'evidence.source = host;' in html
+
+    # Both fallback trigger sites (non-2xx response, network/CSP failure)
+    # must pass the visitor's typed url through, not call renderFallback bare.
+    assert 'renderFallback(activeEndpoint, detail + " · couldn\'t run it live, showing a sample shape instead", url);' in html
+    normalized = " ".join(html.split())
+    assert (
+        'renderFallback( activeEndpoint, "Couldn\'t reach the live demo right now · showing a sample shape, '
+        'not your real result", url );'
+        in normalized
+    )
+
+    # The rendered fallback must never present the sample as real data: it
+    # always carries an explicit "not a real result" comment.
+    assert "this is a sample shape for \" + payload.evidence.source + \", not a real result" in html
+    assert "this is a sample shape, not a real result" in html
+
+    # The status line must go loud (amber, bold) on fallback, not a quiet
+    # gray note that reads like a normal successful run.
+    assert "statusMeta.classList.add(\"screen__meta--warn\");" in html
+    assert ".screen__meta--warn" in (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")

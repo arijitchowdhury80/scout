@@ -64,6 +64,16 @@ ENV PYTHONUNBUFFERED=1 \
     SCOUT_WORKDIR=/data/runs \
     DB_PATH=/data/scout.db
 
+# FX: scoutadmin (uid 10001, --no-create-home) has no writable /home entry.
+# Without HOME set, crawl4ai resolves its cache dir under ~/.crawl4ai and
+# crash-loops with PermissionError the moment it tries to write there. We
+# patched this live in prod via env vars; owning it here means the image
+# is correct without depending on deploy-time env injection. /app is
+# writable by scoutadmin (chowned below), so both HOME and crawl4ai's own
+# cache dir land inside the app tree instead of a nonexistent home dir.
+ENV HOME=/app \
+    CRAWL4AI_BASE_DIRECTORY=/app/.crawl4ai
+
 # FX-13a: create the data dir and hand ownership of the app + data trees to
 # the non-root user so /data (SCOUT_WORKDIR/DB_PATH's parent, the volume
 # mountpoint) and /app stay writable/readable once CMD runs as scoutadmin.

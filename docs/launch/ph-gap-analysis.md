@@ -1,7 +1,7 @@
 # Product Hunt Launch — Mechanics Gap Analysis (Scout)
 
 Date: 2026-07-26 · Track B, Phase 1 · Author: launch-research agent
-Goal: POTD (ideally POTW) + 50–100 real beta testers for scout.chowmes.com
+Goal: POTD (ideally POTW) + a limited beta of 50 real testers (50 spots) for scout.chowmes.com
 
 ---
 
@@ -50,8 +50,8 @@ Goal: POTD (ideally POTW) + 50–100 real beta testers for scout.chowmes.com
 ### 1.8 Day-of-week: the Tuesday lore, updated
 
 - Tue–Thu = highest traffic AND highest competition. Q1 2026 data: #1 POTD needs ~1,050 net upvotes on Tuesday vs ~550 on Saturday; top-5 needs ~500–900 weekday vs ~300–500 weekend. PH's own guide notes weekend launches get **15% more Visit-button clicks**. Sources: [TrendGap](https://trendgap.io/blog/product-hunt-launch-upvotes-rank-2026), [Analook](https://www.analook.com/blog/product-hunt-launch-strategy.html), [PH official](https://www.producthunt.com/launch/preparing-for-launch), [PH forum — best day](https://www.producthunt.com/p/producthunt/the-best-day-to-launch-on-product-hunt).
-- **POTW mechanics:** awarded to the launch with the most points (upvotes + meaningful engagement, per PH) among everything launched Mon–Sun — so a weekend #1 with 550 votes will NOT win the week against a Tuesday 1,000-vote launch. If POTW is a genuine goal you must launch early-week and clear ~1,000+; if POTD badge + 50–100 testers is the real goal, a lower-competition day is far higher-probability. Sources: [PH help — Product of the Day/Week/Month](https://help.producthunt.com/en/articles/11751186-product-of-the-day-week-month), [PH discussion](https://www.producthunt.com/p/producthunt/how-product-of-the-day-week-month-are-chosen).
-- **Realistic read for Scout:** a solo maker without a large PH-native following sustaining ~1,050 Tuesday votes is unlikely. **Wednesday or Thursday** balances traffic vs the Tuesday pile-up; **Saturday/Sunday** maximizes POTD-badge probability but forfeits POTW. Given the stated goal ranks POTD ≥ POTW ≥ testers, recommend **Wednesday 12:01 AM PT**, with Sunday as the fallback if the supporter list turns out small (<150 committed).
+- **POTW mechanics:** awarded to the launch with the most points (upvotes + meaningful engagement, per PH) among everything launched Mon–Sun — so a weekend #1 with 550 votes will NOT win the week against a Tuesday 1,000-vote launch. If POTW is a genuine goal you must launch early-week and clear ~1,000+; if POTD badge + a 50-tester beta is the real goal, a lower-competition day is far higher-probability (a 50-spot beta fills without badge-level traffic). Sources: [PH help — Product of the Day/Week/Month](https://help.producthunt.com/en/articles/11751186-product-of-the-day-week-month), [PH discussion](https://www.producthunt.com/p/producthunt/how-product-of-the-day-week-month-are-chosen).
+- **Realistic read for Scout:** a solo maker without a large PH-native following sustaining ~1,050 Tuesday votes is unlikely. **Wednesday or Thursday** balances traffic vs the Tuesday pile-up; **Saturday/Sunday** maximizes POTD-badge probability but forfeits POTW. Given the stated goal ranks POTD ≥ POTW ≥ testers, recommend **Wednesday 12:01 AM PT**, with Sunday as the fallback if the supporter list turns out small (<80 committed). Note: a 50-spot beta needs far less traffic than a POTD run, so the supporter list is sized for early velocity and the badge, not for filling the beta — the beta fills on modest traffic regardless.
 
 ---
 
@@ -82,7 +82,7 @@ Goal: POTD (ideally POTW) + 50–100 real beta testers for scout.chowmes.com
 | 8 | Description ≤500 chars | **MISSING** | Value prop + who it's for + skill/API distribution angle | Copy task, 30 min |
 | 9 | First-comment maker story | **MISSING** | 3–5 paragraphs: why built, who for, what's different (evidence-grade + Claude/Codex skill distribution), feedback ask — never upvote ask | Copy task; draft pre-launch, post at 12:01 |
 | 10 | Topics (3 launch tags) | **MISSING (decision)** | Candidates: Developer Tools, Artificial Intelligence, APIs / SaaS / Data & Analytics — pick the 3 with best traffic-to-competition fit at setup | Decision task |
-| 11 | Supporter/outreach plan (compliant) | **MISSING** | Need 150–400 real humans reachable in 3 waves across 20h; "feedback not upvotes" wording; NO incentives, NO mass DMs | Track B Phase 2 — list building |
+| 11 | Supporter/outreach plan (compliant) | **MISSING** | Need 80–200 real humans reachable in 3 waves across 20h (sized for early velocity + the badge, not for filling the 50-spot beta — that fills on modest traffic); "feedback not upvotes" wording; NO incentives, NO mass DMs | Track B Phase 2 — list building |
 | 12 | Launch-day comment engine | **MISSING** | Maker replies to every comment within minutes for 12–16h; comment depth is a ranking input | Arijit calendar block, launch day |
 | 13 | Launch date/time | **DECISION** | 12:01 AM PT; Wednesday recommended (Sunday fallback); avoid US holiday weeks | Arijit decision |
 | 14 | Beta funnel ready for spike | **HAVE (verify)** | beta.html live; confirm signup + duplicate handling + credit provisioning survive a 1-day spike | Smoke test pre-launch |

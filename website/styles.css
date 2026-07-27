@@ -585,6 +585,14 @@ button { font: inherit; color: inherit; }
   overflow-wrap: anywhere;
 }
 
+/* FX-founder: honest-fallback banner. The live demo API can be unreachable;
+   when that happens we must never look like the acme.com sample is a real
+   result for the URL the visitor typed. Loud amber, not a quiet gray note. */
+.screen__meta--warn {
+  color: var(--amber2);
+  font-weight: 700;
+}
+
 .screen__body {
   display: grid;
   grid-template-columns: 1fr 240px;

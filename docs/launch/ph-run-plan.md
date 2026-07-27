@@ -1,9 +1,11 @@
 # Scout — Product Hunt Beta Launch Run Plan
 
 **Track B, Phase 2 · Drafted 2026-07-26 · Owner: Arijit (founder) + orchestrator**
-**Goal:** PH beta launch → 50–100 real beta signups, contend for Product of the Day/Week.
+**Goal:** PH beta launch → fill a limited beta of 50 real testers (50 spots), contend for Product of the Day/Week.
 **Product surface:** scout.chowmes.com (live, commit 908f6d9) · signup = `/beta` → `POST /v1/hosted/beta-key` → key by email · skill users get the package via email → support@ → download link.
 **Status legend used below:** each item carries an acceptance check. Nothing in this doc is posted or published by the orchestrator — every public action is founder-executed.
+
+**Beta is capacity-scoped to 50 testers.** This is a deliberate cap, not just a marketing number: the hosted box (single VPS) comfortably serves ~50 testers at realistic beta concurrency, so no new hardware is needed for launch. The 50-spot cap doubles as honest scarcity in the comms ("50 spots") and keeps support quality high (direct founder support per tester). If demand runs hot, hold the extra as a waitlist rather than raising the cap on launch day.
 
 ---
 
@@ -126,7 +128,7 @@ PH listing → scout.chowmes.com (or capability page) → `/beta` page → form 
 ### Funnel instrumentation (needed to know if any of this works — see §6)
 Minimum: nginx/access-log counts per stage + backend counters. Stages: (a) site sessions with `ref=producthunt` (append `?ref=producthunt` to every PH-facing link), (b) /beta pageviews, (c) `POST /v1/hosted/beta-key` successes, (d) first authenticated run per new key within 24h/72h. If no analytics exists on the site, a log-parsing script is enough — do not add a tracking vendor for this.
 
-Target math: Product-of-the-Day traffic is typically 2–10k visits. At 3k visits: 30% reach /beta (900), 20% submit (180), 50% activate (90) → the 50–100 goal needs roughly a top-5 finish OR better-than-baseline conversion. The conversion levers above matter more than the rank.
+Target math: at baseline conversion (30% of visits reach /beta, 20% of those submit = ~6% of visits become signups), filling 50 spots needs only ~850 visits. A mid-week top-10 finish clears that comfortably, and a Product-of-the-Day traffic spike (2–10k visits) fills it several times over — at 3k visits you'd see ~180 signups against 50 spots. So the 50-cap is reachable well below badge-level traffic; rank matters less than signup quality and activation, and the conversion levers above matter more than the finish position. If signups overshoot the 50 cap, hold the surplus as a waitlist.
 
 ---
 
@@ -139,14 +141,14 @@ One shared doc/terminal (orchestrator can maintain a live tally from logs + PH p
 | Upvote velocity | PH page (manual/poll) | top-5 at 9am PT | top-10 | below fold |
 | Comments answered | PH page | 100% <1h | <3h | unanswered >3h |
 | Site sessions (ref=producthunt) | access logs | ≥1,500 by 6pm | 500–1,500 | <500 |
-| /beta submits (signups) | backend counter / DB | ≥60 by EOD | 25–60 | <25 |
+| /beta submits (signups) | backend counter / DB | ≥50 by EOD (beta full) | 25–50 | <25 |
 | **Activation: first successful authenticated run** | RunDB / API logs per new key | ≥50% of signups within 24h | 25–50% | <25% |
 | Key-email delivery latency + failures | Resend dashboard | <60s, 0 bounces to majors | isolated bounces | systemic bounces |
 | support@ inbound + SLA | Gmail | all <2h | <6h | backlog |
 | API error rate / p95 latency | VPS logs / health endpoint | normal | elevated | 5xx spike (drop everything — a down API on PH day is fatal) |
 | Anon playground global-ceiling headroom | limiter counters | <50% used by noon | 50–80% | ceiling hit |
 
-North-star for the launch: **activated beta testers (first successful run), not upvotes.** 100 signups with 20 activations is a worse outcome than 60 signups with 45.
+North-star for the launch: **activated beta testers (first successful run), not upvotes.** Filling all 50 spots with signups who never run anything is a worse outcome than 35 signups with 30 that activate — quality of the 50 beats raw fill rate.
 
 Post-launch (Day+1 to Day+7): D1/D7 return-run rate per cohort, credits consumed per active key, support themes → docs fixes, and a written retro in `docs/launch/`.
 
@@ -164,4 +166,4 @@ Post-launch (Day+1 to Day+7): D1/D7 return-run rate per cohort, credits consumed
 8. Funnel dry-run clean end-to-end, instrumentation counting (§5)
 9. Anon-demo ceiling + load headroom decision made (founder call)
 
-Open founder decisions required before T-14: launch date (Tue–Thu PT generally strongest for Product of the Day contention; Sun/Mon weakest competition but least traffic — pick based on whether the goal is badge or bodies; for 50–100 testers, traffic wins → Tue/Wed), hunter vs self, launch-week ceiling raise.
+Open founder decisions required before T-14: launch date (Tue–Thu PT generally strongest for Product of the Day contention; Sun/Mon weakest competition but least traffic — pick based on whether the goal is badge or bodies; a 50-spot beta fills on mid-week traffic without needing the badge → Tue/Wed), hunter vs self, launch-week ceiling raise.

@@ -575,6 +575,7 @@
             } else {
               runBtn.textContent = "Run \u25B8";
               statusMeta.textContent = "ready";
+              statusMeta.classList.remove("screen__meta--warn");
             }
           });
         });
@@ -608,11 +609,67 @@
           evBlocked.textContent = evidence.blocked ? "true" : "false";
         }
 
-        function renderFallback(endpoint, note) {
-          const fallback = STATIC_FALLBACK[endpoint] || STATIC_FALLBACK.scrape;
-          renderRecord(fallback.record);
-          renderEvidence(fallback.evidence);
+        // Best-effort host extraction from whatever the visitor typed, so the
+        // fallback sample can echo it back instead of silently showing
+        // acme.com. Accepts bare hosts ("algolia.com") as well as full URLs.
+        function extractTypedHost(rawUrl) {
+          if (!rawUrl) return null;
+          let candidate = rawUrl.trim();
+          if (!candidate) return null;
+          if (!/^https?:\/\//i.test(candidate)) candidate = "https://" + candidate;
+          try {
+            return new URL(candidate).host || null;
+          } catch (err) {
+            return null;
+          }
+        }
+
+        // Deep-clones the canned sample for `endpoint` and, if we have a host
+        // to work with, rewrites every acme.com-shaped field so the fallback
+        // reflects the URL the visitor actually typed rather than presenting
+        // fixed acme.com data as if it were their result.
+        function buildFallbackPayload(endpoint, typedUrl) {
+          const base = STATIC_FALLBACK[endpoint] || STATIC_FALLBACK.scrape;
+          const record = JSON.parse(JSON.stringify(base.record));
+          const evidence = JSON.parse(JSON.stringify(base.evidence));
+          const host = extractTypedHost(typedUrl);
+
+          if (host) {
+            const swapAcme = (value) =>
+              typeof value === "string" ? value.replace(/acme\.com/gi, host).replace(/Acme/g, host) : value;
+
+            if ("url" in record) record.url = swapAcme(record.url);
+            if ("start_url" in record) record.start_url = swapAcme(record.start_url);
+            if ("title" in record) record.title = host + " (example shape)";
+            if (Array.isArray(record.urls)) record.urls = record.urls.map(swapAcme);
+            if (Array.isArray(record.pages)) {
+              record.pages = record.pages.map((page) => ({
+                ...page,
+                url: swapAcme(page.url),
+                title: swapAcme(page.title),
+              }));
+            }
+            evidence.source = host;
+          }
+
+          return { record, evidence, isEchoed: Boolean(host) };
+        }
+
+        function renderFallback(endpoint, note, typedUrl) {
+          const payload = buildFallbackPayload(endpoint, typedUrl);
+          const comment = payload.isEchoed
+            ? "// demo API unreachable right now, this is a sample shape for " + payload.evidence.source + ", not a real result"
+            : "// demo API unreachable right now, this is a sample shape, not a real result";
+          const json = JSON.stringify(payload.record, null, 2);
+          const highlighted = escapeHtml(json).replace(
+            /"([a-zA-Z0-9_]+)":/g,
+            '<span class="syn">"$1"</span>:'
+          );
+          codeEl.innerHTML =
+            '<code><span class="cmt">' + escapeHtml(comment) + "</span>\n\n" + highlighted + "</code>";
+          renderEvidence(payload.evidence);
           statusMeta.textContent = note || "Static example · sign up to run it live";
+          statusMeta.classList.add("screen__meta--warn");
         }
 
         // A small viewport (below md) gets the calmer static example rather
@@ -626,6 +683,7 @@
           codeEl.innerHTML = '<code><span class="cmt">// run scout to see a typed record here</span></code>';
           renderEvidence({});
           statusMeta.textContent = "Ready · scrape, map, crawl, products live · 5 runs/IP/day";
+          statusMeta.classList.remove("screen__meta--warn");
         }
 
         function applyViewportMode(isInitialLoad) {
@@ -671,6 +729,7 @@
           runBtn.disabled = true;
           runBtn.setAttribute("aria-disabled", "true");
           statusMeta.textContent = "Running…";
+          statusMeta.classList.remove("screen__meta--warn");
 
           try {
             const resp = await fetch(endpoint, {
@@ -687,8 +746,8 @@
 
             if (!resp.ok) {
               const payload = await resp.json().catch(() => ({}));
-              statusMeta.textContent = payload.detail || `Error ${resp.status} · showing example instead`;
-              renderFallback(activeEndpoint);
+              const detail = payload.detail || `Error ${resp.status}`;
+              renderFallback(activeEndpoint, detail + " · couldn't run it live, showing a sample shape instead", url);
               return;
             }
 
@@ -697,9 +756,16 @@
             renderEvidence(payload.evidence || {});
             const creditNote = payload.truncated ? " · truncated preview" : "";
             statusMeta.textContent = `200 OK${creditNote} · anonymous preview`;
+            statusMeta.classList.remove("screen__meta--warn");
           } catch (err) {
             // Network/CSP failure, graceful static fallback, never a dead console.
-            renderFallback(activeEndpoint, "Couldn't reach the live API · showing a static example");
+            // Echo the visitor's typed URL into the sample so it's clearly
+            // not a fake acme.com "result" for the site they asked about.
+            renderFallback(
+              activeEndpoint,
+              "Couldn't reach the live demo right now · showing a sample shape, not your real result",
+              url
+            );
           } finally {
             runBtn.disabled = false;
             runBtn.removeAttribute("aria-disabled");

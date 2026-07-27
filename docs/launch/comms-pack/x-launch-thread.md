@@ -55,7 +55,7 @@ A simple web API you can call from anything.
 And a skill that plugs straight into Claude and Codex, so your AI assistant can go read the web and bring back real records instead of guesses.
 
 **8/**
-This is a beta. I want 50 to 100 people who actually crawl the web for a living to break it and tell me where it hurts.
+This is a beta with 50 spots. I want 50 people who actually crawl the web for a living to break it and tell me where it hurts.
 
 If that is you, grab a spot. Honest feedback is the whole point. I would rather hear what's wrong now than after launch.
 

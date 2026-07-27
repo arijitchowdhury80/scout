@@ -18,7 +18,7 @@ The part I care about most: every fact keeps a link back to the exact page it ca
 
 You can use it two ways. A simple web API you can call from anything. And a skill that plugs straight into Claude and Codex, so your assistant can go read the web and bring back real records instead of making things up.
 
-Now the ask. This is a beta, and I mean that word. I'm looking for 50 to 100 people who work with web data day to day to use it hard and tell me the truth. I want to know which sites break it, which features you reach for, and which ones you ignore. The blunt feedback is the entire point of launching this way instead of hiding until it's "perfect."
+Now the ask. This is a beta, and I mean that word. I'm opening 50 spots. I want 50 people who work with web data day to day to use it hard and tell me the truth. I want to know which sites break it, which features you reach for, and which ones you ignore. The blunt feedback is the entire point of launching this way instead of hiding until it's "perfect."
 
 I'll be here all day answering everything. Point Scout at a website you know well and tell me what you think. And if it falls over, tell me that first. That's the most useful thing you can give me today.
 
