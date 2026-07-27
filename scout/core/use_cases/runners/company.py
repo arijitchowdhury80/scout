@@ -19,7 +19,15 @@ from scout.core.use_cases.runners.base import (
 )
 
 _ABOUT_PATHS = ["/about", "/about-us", "/company", "/our-story"]
-_TEAM_PATHS = ["/team", "/leadership", "/about/team", "/about/leadership"]
+_TEAM_PATHS = [
+    "/team",
+    "/leadership",
+    "/about/team",
+    "/about/leadership",
+    "/our-team",
+    "/company/leadership",
+    "/about/management",
+]
 _SOCIAL_PATTERNS = {
     "linkedin": re.compile(r"https?://(?:www\.)?linkedin\.com/company/[^\s\"')]+"),
     "twitter": re.compile(r"https?://(?:www\.)?(?:twitter|x)\.com/[^\s\"')]+"),
@@ -88,7 +96,10 @@ _TEAM_CARD_CLASS_RE = re.compile(
     r"team|staff|leadership|people|person|profile|member|bio|exec", re.I
 )
 _NAME_CLASS_RE = re.compile(r"name", re.I)
-_TITLE_CLASS_RE = re.compile(r"title|role|position|job", re.I)
+# FX: real leadership pages (e.g. algolia.com/about/leadership) label the title
+# element with a "function" class rather than title/role/position/job — added
+# here after inspecting the live page (see company.py BUILD-2 investigation).
+_TITLE_CLASS_RE = re.compile(r"title|role|position|job|function", re.I)
 
 
 def _make_exec_record(
@@ -169,6 +180,35 @@ def _extract_jsonld_people(html: str, company: str, source: FetchResult) -> list
     return records
 
 
+def _extract_name_text(card: Tag) -> str:
+    """Return the person's full name from a team/leadership card.
+
+    Some sites (e.g. algolia.com/about/leadership) split a name across
+    sibling elements, e.g. `<span class="people-firstName">Stephen</span>
+    <span class="people-lastName"> Lynch</span>`, rather than one element
+    holding the whole name. `find(class_=_NAME_CLASS_RE)` alone would only
+    ever return the first such span ("Stephen"), which then fails the
+    person-name shape check downstream. Concatenate every matching element
+    instead so multi-span names come through whole, while single-element
+    names (the common case, e.g. `<h3 class="member-name">Jane
+    Whitfield</h3>`) still work unchanged.
+    """
+    itemprop_name = card.find(attrs={"itemprop": "name"})
+    if isinstance(itemprop_name, Tag):
+        text = itemprop_name.get_text(strip=True)
+        if text:
+            return text
+    name_parts = [el for el in card.find_all(class_=_NAME_CLASS_RE) if isinstance(el, Tag)]
+    if name_parts:
+        text = re.sub(r"\s+", " ", "".join(el.get_text() for el in name_parts)).strip()
+        if text:
+            return text
+    heading = card.find(["h1", "h2", "h3", "h4", "h5"])
+    if isinstance(heading, Tag):
+        return heading.get_text(strip=True)
+    return ""
+
+
 def _extract_team_cards(html: str, company: str, source: FetchResult) -> list[ExecutiveRecord]:
     """Extract executives from common team-member card markup (name + title pairs)."""
     if not html:
@@ -182,15 +222,10 @@ def _extract_team_cards(html: str, company: str, source: FetchResult) -> list[Ex
     for card in candidates:
         if not isinstance(card, Tag):
             continue
-        name_el = (
-            card.find(attrs={"itemprop": "name"})
-            or card.find(class_=_NAME_CLASS_RE)
-            or card.find(["h1", "h2", "h3", "h4", "h5"])
-        )
+        name = _extract_name_text(card)
         title_el = card.find(attrs={"itemprop": "jobTitle"}) or card.find(class_=_TITLE_CLASS_RE)
-        if not name_el or not title_el or name_el is title_el:
+        if not name or not title_el:
             continue
-        name = name_el.get_text(strip=True)
         title = title_el.get_text(strip=True)
         if not name or not title or not _PERSON_NAME_RE.match(name) or len(title) > 100:
             continue
@@ -242,6 +277,23 @@ def _extract_socials(
     return records
 
 
+def _has_executive_signal(company: str, source: FetchResult) -> bool:
+    """Whether a fetched page actually contains extractable executive data.
+
+    Used to tell a real leadership/team page apart from an unrelated page
+    that happens to return success=True for a guessed team path (e.g. a
+    login redirect at /team on a site whose real roster lives at
+    /about/leadership).
+    """
+    if _extract_jsonld_people(source.html, company, source):
+        return True
+    if _extract_team_cards(source.html, company, source):
+        return True
+    if _extract_executives(source.markdown, company, source):
+        return True
+    return False
+
+
 async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
     base = _base_url(req)
     company = _company_name(req)
@@ -258,21 +310,43 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
         all_markdown += homepage.markdown + "\n"
         all_links.extend(homepage.links)
 
-    async def scrape_first(paths: list[str]) -> None:
+    def _adopt(src: FetchResult) -> None:
         nonlocal all_markdown, all_links
+        sources.append(src)
+        all_markdown += src.markdown + "\n"
+        all_links.extend(src.links)
+
+    async def scrape_first(paths: list[str], *, require_signal: bool = False) -> None:
+        """Fetch candidate paths in order, keeping the first usable page.
+
+        FX (BUILD-2): a path can return success=True with real markdown that
+        isn't actually a team/leadership page — e.g. algolia.com/team
+        redirects to a login prompt, not the exec roster at
+        algolia.com/about/leadership. Stopping at the first *successful*
+        fetch (the old behaviour) locked the runner onto that dead end and
+        never reached the real page. When `require_signal` is set, keep
+        trying subsequent candidate paths until one actually contains
+        executive data; fall back to the first successful fetch only if none
+        of the candidates do (so callers still get *a* source instead of
+        nothing).
+        """
+        fallback: FetchResult | None = None
         for path in paths:
             url = urljoin(base + "/", path.lstrip("/"))
             resp = await safe_scrape(crawler, url)
             if not resp:
                 continue
             src = evidence_from_scrape(url, resp)
-            sources.append(src)
-            all_markdown += resp.markdown + "\n"
-            all_links.extend(resp.links)
-            return
+            if not require_signal or _has_executive_signal(company, src):
+                _adopt(src)
+                return
+            if fallback is None:
+                fallback = src
+        if fallback is not None:
+            _adopt(fallback)
 
     await scrape_first(_ABOUT_PATHS)
-    await scrape_first(_TEAM_PATHS)
+    await scrape_first(_TEAM_PATHS, require_signal=True)
 
     if not sources:
         return []

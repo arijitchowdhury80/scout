@@ -341,6 +341,93 @@ async def test_company_runner_stops_after_first_about_and_team_success() -> None
     assert "https://www.acme.com/leadership" not in requested_urls
 
 
+@pytest.mark.asyncio
+async def test_company_runner_skips_team_path_with_no_executive_signal() -> None:
+    """BUILD-2 regression: algolia.com/team returns success=True with real
+    markdown (a login prompt), not the actual exec roster — which lives at
+    /about/leadership. The runner must keep trying candidate team paths
+    until it finds one with real executive data instead of locking onto the
+    first successful-but-irrelevant fetch.
+    """
+    from scout.core.use_cases.runners.company import run_company
+
+    leadership_html = """
+    <html><body>
+    <div class="people">
+        <h4><span class="people-firstName">Stephen</span><span class="people-lastName"> Lynch</span></h4>
+        <span class="people-function">Chief Executive Officer</span>
+    </div>
+    </body></html>
+    """
+    crawler = _mock_format_aware_crawler(
+        {
+            # Longer/more specific path patterns must be listed before their
+            # prefixes below — _mock_format_aware_crawler matches by
+            # substring-in-url, first match wins, so "algolia.com/about"
+            # would otherwise also swallow "/about/team" and
+            # "/about/leadership" requests.
+            "algolia.com/about/leadership": _scrape_ok(
+                "https://www.algolia.com/about/leadership",
+                "# Leadership\n",
+                raw_html=leadership_html,
+            ),
+            "algolia.com/about/team": _scrape_fail("https://www.algolia.com/about/team"),
+            "algolia.com/leadership": _scrape_fail("https://www.algolia.com/leadership"),
+            "algolia.com/team": _scrape_ok(
+                "https://www.algolia.com/team",
+                "# Log in\n\nOr log in with SSO.\n",
+            ),
+            "algolia.com/about": _scrape_ok(
+                "https://www.algolia.com/about", "# About Algolia\n\nSearch API.\n"
+            ),
+        }
+    )
+
+    records = await run_company(
+        _req("company", query="Algolia", url="https://www.algolia.com"), crawler
+    )
+    requested_urls = [call.args[0].url for call in crawler.scrape.await_args_list]
+
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    assert "https://www.algolia.com/team" in requested_urls
+    assert "https://www.algolia.com/about/leadership" in requested_urls
+    assert len(exec_recs) == 1
+    assert exec_recs[0]["name"] == "Stephen Lynch"
+    assert exec_recs[0]["title"] == "Chief Executive Officer"
+
+
+@pytest.mark.asyncio
+async def test_company_runner_extracts_execs_with_split_name_spans_and_function_title() -> None:
+    """Some leadership pages (e.g. the real algolia.com/about/leadership
+    markup) split a person's name across sibling spans rather than a single
+    element, and label the title element with a "function" class instead of
+    title/role/position/job. Both must still resolve to a usable exec record.
+    """
+    from scout.core.use_cases.runners.company import run_company
+
+    html = """
+    <html><body>
+    <div class="people">
+        <h4><span class="people-firstName">Carlton</span><span class="people-lastName"> H. Baab</span></h4>
+        <span class="people-function">Chief Financial Officer</span>
+    </div>
+    </body></html>
+    """
+    crawler = _mock_crawler(
+        {
+            "acme.com/leadership": _scrape_ok(
+                "https://www.acme.com/leadership", "# Leadership\n", raw_html=html
+            ),
+        }
+    )
+
+    records = await run_company(_req("company"), crawler)
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    assert len(exec_recs) == 1
+    assert exec_recs[0]["name"] == "Carlton H. Baab"
+    assert exec_recs[0]["title"] == "Chief Financial Officer"
+
+
 # ---------------------------------------------------------------------------
 # Careers runner
 # ---------------------------------------------------------------------------

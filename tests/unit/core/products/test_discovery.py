@@ -112,3 +112,37 @@ def test_select_category_urls_filters_utility_pages() -> None:
     categories = select_category_urls(urls, query="men polos", limit=5)
 
     assert categories == ["https://shop.example.com/lacoste/men/clothing/polos"]
+
+
+def test_select_category_urls_excludes_asset_urls_that_match_the_query() -> None:
+    """BUILD-1a regression: a BFS-discovered image URL whose filename happens
+    to contain a query token (e.g. a product photo named "Polo-KAI.jpg")
+    must never outrank the real category page just because the token
+    happens to match. Live repro: lacoste.com's BFS fallback surfaced
+    corporate.lacoste.com/app/uploads/.../Polo-KAI-2-scaled.jpg ahead of
+    /us/lacoste/men/clothing/polos.
+    """
+    urls = [
+        "https://corporate.example.com/app/uploads/2026/03/Polo-KAI-2-scaled.jpg",
+        "https://shop.example.com/us/lacoste/men/clothing/polos",
+    ]
+
+    categories = select_category_urls(urls, query="polo", limit=5)
+
+    assert categories == ["https://shop.example.com/us/lacoste/men/clothing/polos"]
+
+
+def test_select_category_urls_restricts_to_given_domain() -> None:
+    """A `domain` filter excludes links to unrelated subdomains/microsites
+    (e.g. a corporate press-blog) discovered alongside the real storefront.
+    """
+    urls = [
+        "https://corporate.example.com/press/men-news",
+        "https://shop.example.com/us/lacoste/men/clothing/polos",
+    ]
+
+    categories = select_category_urls(
+        urls, query="men", limit=5, domain="shop.example.com"
+    )
+
+    assert categories == ["https://shop.example.com/us/lacoste/men/clothing/polos"]

@@ -107,6 +107,116 @@ async def test_map_falls_back_to_bfs_when_sitemap_sparse():
     assert resp.start_url == "https://example.com"
 
 
+# ── Common Crawl fallback path ────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_map_falls_back_to_common_crawl_when_bfs_also_sparse():
+    """BUILD-1a: when a WAF blocks direct fetches, sitemap AND BFS both come
+    back sparse (the live lacoste.com repro: sitemap=0, BFS=1 because the
+    homepage fetch itself returns a blocked page with zero links). Common
+    Crawl's index doesn't touch the target domain at all, so it can still
+    recover real category/product URLs.
+    """
+    sparse_sitemap: list[str] = []
+    cc_urls = [f"https://example.com/category-{i}" for i in range(20)]
+
+    # BFS: homepage fetch "succeeds" (blocked page) but has no links to follow.
+    bfs_result = MagicMock()
+    bfs_result.success = True
+    bfs_result.url = "https://example.com"
+    bfs_result.links = {"internal": []}
+
+    call_count = {"aseed_urls": 0}
+
+    async def _aseed_urls(domain, config):
+        call_count["aseed_urls"] += 1
+        if config.source == "sitemap":
+            return sparse_sitemap
+        assert config.source == "cc"
+        return cc_urls
+
+    with patch("scout.core.modes.map.AsyncWebCrawler") as MockCrawler:
+        instance = AsyncMock()
+        instance.aseed_urls = AsyncMock(side_effect=_aseed_urls)
+        instance.arun = AsyncMock(return_value=bfs_result)
+        MockCrawler.return_value.__aenter__.return_value = instance
+
+        req = MapRequest(url="https://example.com", max_pages=50)
+        resp = await map_urls(req)
+
+    assert resp.success is True
+    assert resp.total == 20
+    assert resp.urls == cc_urls
+    # Both the sitemap check and the CC fallback go through aseed_urls.
+    assert call_count["aseed_urls"] == 2
+
+
+@pytest.mark.asyncio
+async def test_map_keeps_bfs_results_when_common_crawl_yields_fewer():
+    """CC fallback only replaces BFS results when it actually finds more."""
+    sparse_sitemap: list[str] = []
+    cc_urls = ["https://example.com/only-one"]
+
+    bfs_result = MagicMock()
+    bfs_result.success = True
+    bfs_result.url = "https://example.com"
+    bfs_result.links = {
+        "internal": [
+            {"href": "https://example.com/a"},
+            {"href": "https://example.com/b"},
+        ]
+    }
+
+    async def _aseed_urls(domain, config):
+        if config.source == "sitemap":
+            return sparse_sitemap
+        return cc_urls
+
+    with patch("scout.core.modes.map.AsyncWebCrawler") as MockCrawler:
+        instance = AsyncMock()
+        instance.aseed_urls = AsyncMock(side_effect=_aseed_urls)
+        instance.arun = AsyncMock(return_value=bfs_result)
+        MockCrawler.return_value.__aenter__.return_value = instance
+
+        req = MapRequest(url="https://example.com", max_pages=50)
+        resp = await map_urls(req)
+
+    assert resp.success is True
+    # BFS found 3 urls (seed + a + b) vs CC's 1 — BFS result is kept.
+    assert resp.total == 3
+    assert "https://example.com/only-one" not in resp.urls
+
+
+@pytest.mark.asyncio
+async def test_map_common_crawl_failure_does_not_break_map_urls():
+    """A Common Crawl lookup error must not fail the whole map_urls call —
+    fall back to whatever BFS already found."""
+    sparse_sitemap: list[str] = []
+
+    bfs_result = MagicMock()
+    bfs_result.success = True
+    bfs_result.url = "https://example.com"
+    bfs_result.links = {"internal": []}
+
+    async def _aseed_urls(domain, config):
+        if config.source == "sitemap":
+            return sparse_sitemap
+        raise RuntimeError("Common Crawl index unavailable")
+
+    with patch("scout.core.modes.map.AsyncWebCrawler") as MockCrawler:
+        instance = AsyncMock()
+        instance.aseed_urls = AsyncMock(side_effect=_aseed_urls)
+        instance.arun = AsyncMock(return_value=bfs_result)
+        MockCrawler.return_value.__aenter__.return_value = instance
+
+        req = MapRequest(url="https://example.com", max_pages=50)
+        resp = await map_urls(req)
+
+    assert resp.success is True
+    assert resp.urls == ["https://example.com"]
+
+
 # ── aseed_urls dict normalisation ─────────────────────────────────────────────
 
 

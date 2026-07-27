@@ -342,7 +342,14 @@ async def _discover_from_categories(
     req: ProductCrawlRequest,
     urls: list[str],
 ) -> list[ProductUrlGroups]:
-    category_urls = select_category_urls(urls, query=req.query, limit=req.max_categories)
+    # Restrict candidates to the crawl's own host — `urls` is always led by
+    # the site's start_url (see call sites above), and BFS-discovered links
+    # can otherwise pull in an unrelated subdomain/microsite (see
+    # discovery.py's select_category_urls docstring).
+    domain = urlparse(urls[0]).netloc if urls else ""
+    category_urls = select_category_urls(
+        urls, query=req.query, limit=req.max_categories, domain=domain
+    )
     groups = []
     for category_url in category_urls:
         scrape_resp = await scrape(
