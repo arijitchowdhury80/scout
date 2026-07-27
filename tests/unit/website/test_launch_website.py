@@ -744,6 +744,118 @@ def test_docs_routes_redirect_to_hosted_documentation() -> None:
         assert response.headers["location"] == "https://docs.scout.chowmes.com"
 
 
+def test_canonical_nav_is_identical_across_home_beta_pricing_account() -> None:
+    """FX-8/R4a: one canonical nav (Product/Docs/Pricing + Get API key CTA +
+    text wordmark, Docs always pointing at the docs subdomain) across every
+    GTM-facing page. No more three-different-navbars drift."""
+    canonical_nav = (
+        '<nav class="nav-primary" aria-label="Primary navigation"> '
+        '<a class="nav-link" href="/">Product</a> '
+        '<a class="nav-link" href="https://docs.scout.chowmes.com">Docs</a>'
+    )
+    for page_name in ("index.html", "beta.html", "account.html"):
+        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
+        normalized_html = " ".join(html.split())
+        assert canonical_nav in normalized_html, f"{page_name} nav drifted from canonical"
+        assert 'class="wm wm--lg"' in html
+        assert '>Get API key</a>' in html
+        assert 'href="https://docs.scout.chowmes.com"' in html
+        assert 'href="/quickstart">Read docs' not in html
+        assert ">Join beta<" not in html
+        assert ">Overview<" not in html
+        assert ">Features<" not in html
+        assert ">Demo<" not in html
+
+    # Pricing keeps the same nav shell, just with Pricing marked active.
+    pricing_html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
+    assert 'class="wm wm--lg"' in pricing_html
+    assert '>Get API key</a>' in pricing_html
+    assert '<a class="nav-link" href="/">Product</a>' in pricing_html
+    assert '<a class="nav-link" href="https://docs.scout.chowmes.com">Docs</a>' in pricing_html
+    assert 'class="nav-link is-active" href="/pricing"' in pricing_html
+
+
+def test_account_page_has_no_dead_anchor_links() -> None:
+    """FX-8/R4b: /account previously linked Demo -> /#demo and
+    Pricing -> /#purchase, neither of which exists on the homepage. The
+    canonical nav drops those anchors entirely."""
+    html = (_WEBSITE_DIR / "account.html").read_text(encoding="utf-8")
+    assert "/#demo" not in html
+    assert "/#purchase" not in html
+
+
+def test_account_page_has_canonical_footer() -> None:
+    """FX-8/R4c: /account previously shipped with no footer/contentinfo at
+    all. It now carries the same footer as every other GTM page."""
+    html = (_WEBSITE_DIR / "account.html").read_text(encoding="utf-8")
+    assert '<footer class="site-footer">' in html
+    assert 'href="/legal">Legal' in html
+    assert 'href="/terms">Terms' in html
+    assert 'href="/privacy">Privacy' in html
+    assert 'mailto:support@scout.chowmes.com' in html
+
+
+def test_footer_link_set_is_identical_across_home_beta_pricing_account() -> None:
+    """FX-8/P4: footer link set (and the support mailto) matches across
+    home/beta/pricing/account, instead of home having the full set while
+    beta/pricing carry a reduced one and account has none."""
+    canonical_links = [
+        'href="/">Product',
+        'href="/pricing">Pricing',
+        'href="https://docs.scout.chowmes.com">Docs',
+        'href="/beta">Beta',
+        'href="/legal">Legal',
+        'href="/terms">Terms',
+        'href="/privacy">Privacy',
+        'href="mailto:support@scout.chowmes.com">Support',
+        'href="https://github.com/unclecode/crawl4ai">Crawl4AI',
+    ]
+    for page_name in ("index.html", "beta.html", "pricing.html", "account.html"):
+        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
+        assert '<footer class="site-footer">' in html, f"{page_name} missing footer"
+        for link in canonical_links:
+            assert link in html, f"{page_name} footer missing {link!r}"
+
+
+def test_locked_console_tabs_cta_routes_to_beta_not_a_no_op() -> None:
+    """FX-8/P1: selecting a locked tab (company/screenshot) swaps the Run
+    button to 'Get your free API key'; clicking it must navigate to /beta,
+    not silently no-op. The submit handler now calls preventDefault()
+    unconditionally before deciding whether to redirect or run the demo."""
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+    normalized = " ".join(html.split())
+
+    assert (
+        'form.addEventListener("submit", async (event) => { event.preventDefault(); '
+        'if (!(activeEndpoint in DEMO_ENDPOINTS)) { window.location.href = "/beta"; return; }'
+        in normalized
+    )
+
+
+def test_console_reevaluates_mobile_desktop_mode_on_resize() -> None:
+    """FX-8/P3: the live console previously decided mobile-vs-desktop mode
+    once at page load and never re-checked, so resizing from 375px to
+    desktop left it stuck on the static example. It now re-evaluates on a
+    debounced window resize handler."""
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+
+    assert "window.addEventListener(\"resize\"" in html
+    assert "applyViewportMode(false)" in html
+    assert "applyViewportMode(true)" in html
+    assert "resetConsoleToReady" in html
+
+
+def test_focus_ring_uses_high_contrast_forest_token() -> None:
+    """FX-8/P2: the shared --focus-ring token was a washed-out
+    emerald-on-pale-mint ring (rgba(14,138,97,.55)). Bumped to the darker
+    forest token at high opacity for WCAG-visible contrast while staying
+    on-brand (forest/emerald are locked design-system tokens)."""
+    css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
+
+    assert "rgba(14,138,97,.55)" not in css
+    assert "--focus-ring: 0 0 0 3px rgba(20,60,43,.9);" in css
+
+
 def test_no_em_dashes_in_customer_facing_copy() -> None:
     """Arijit's standing rule: no em dashes anywhere customer-facing (an AI-writing
     tell). Guards every public HTML page + JS/CSS assets against regression."""

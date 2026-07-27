@@ -489,10 +489,6 @@
         const evBlocked = document.getElementById("evBlocked");
         const tabs = Array.from(document.querySelectorAll('[data-endpoint]'));
 
-        // A small viewport (below md) gets the calmer static example rather
-        // than the dense live console, per plg-playground-ux.md risk #4.
-        const isMobile = window.matchMedia("(max-width: 640px)").matches;
-
         let activeEndpoint = "scrape";
 
         function setActiveTab(endpoint) {
@@ -619,19 +615,54 @@
           statusMeta.textContent = note || "Static example · sign up to run it live";
         }
 
-        // No-JS-required baseline: if fetch isn't available, show the example.
-        if (typeof window.fetch !== "function" || isMobile) {
-          renderFallback(activeEndpoint, isMobile ? "Static example on mobile · run the live console on desktop" : undefined);
+        // A small viewport (below md) gets the calmer static example rather
+        // than the dense live console, per plg-playground-ux.md risk #4. This
+        // is re-evaluated on resize (not just at load) so a page loaded on a
+        // phone and then widened to desktop (or a tablet rotated) picks up
+        // the live console instead of staying stuck on the static example.
+        let isMobileMode = window.matchMedia("(max-width: 640px)").matches;
+
+        function resetConsoleToReady() {
+          codeEl.innerHTML = '<code><span class="cmt">// run scout to see a typed record here</span></code>';
+          renderEvidence({});
+          statusMeta.textContent = "Ready · scrape, map, crawl, products live · 5 runs/IP/day";
         }
+
+        function applyViewportMode(isInitialLoad) {
+          const nowMobile = window.matchMedia("(max-width: 640px)").matches;
+          if (!isInitialLoad && nowMobile === isMobileMode) return;
+          isMobileMode = nowMobile;
+
+          if (typeof window.fetch !== "function" || nowMobile) {
+            renderFallback(
+              activeEndpoint,
+              nowMobile ? "Static example on mobile · run the live console on desktop" : undefined
+            );
+          } else if (!isInitialLoad) {
+            // Coming back from the mobile static example to a live-capable
+            // viewport: restore the ready state instead of leaving the
+            // static example on screen.
+            resetConsoleToReady();
+          }
+        }
+
+        // No-JS-required baseline: if fetch isn't available, show the example.
+        applyViewportMode(true);
+
+        let viewportResizeTimer;
+        window.addEventListener("resize", () => {
+          clearTimeout(viewportResizeTimer);
+          viewportResizeTimer = setTimeout(() => applyViewportMode(false), 150);
+        });
 
         if (!form) return;
 
         form.addEventListener("submit", async (event) => {
+          event.preventDefault();
           if (!(activeEndpoint in DEMO_ENDPOINTS)) {
             window.location.href = "/beta";
             return;
           }
-          event.preventDefault();
           const url = urlInput.value.trim();
           if (!url) return;
 
