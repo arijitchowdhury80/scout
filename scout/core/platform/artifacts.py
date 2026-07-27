@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import hashlib
 import json
 from pathlib import Path
@@ -14,6 +15,7 @@ from scout.core.platform.types import (
     ValidationFinding,
     ValidationSeverity,
 )
+from scout.core.products.exports import CSV_FIELDS, flatten_record_dict
 
 
 def _write_json(path: Path, data: Any) -> None:
@@ -170,6 +172,23 @@ def _coverage_summary(
     )
 
 
+def _write_records_csv(output_dir: Path, records: list[dict[str, Any]]) -> Path:
+    """Write records.csv for HTTP download (FX-11 Build 2).
+
+    Reuses scout.core.products.exports.flatten_record_dict/CSV_FIELDS — the
+    same tabular shape product exports already use — rather than a second,
+    hand-rolled flattener. Non-product verticals (careers, news, ...) don't
+    populate every product column; missing fields render as blank cells,
+    never fabricated values.
+    """
+    path = output_dir / "records.csv"
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=CSV_FIELDS)
+        writer.writeheader()
+        writer.writerows(flatten_record_dict(record) for record in records)
+    return path
+
+
 def write_run_artifacts(
     output_dir: Path,
     manifest: RunManifest,
@@ -187,6 +206,7 @@ def write_run_artifacts(
         manifest=str(output_dir / "manifest.json"),
         records_json=str(output_dir / "records.json"),
         records_jsonl=str(output_dir / "records.jsonl"),
+        records_csv=str(output_dir / "records.csv"),
         source_pages_json=str(output_dir / "source_pages.json"),
         blocked_pages_json=str(output_dir / "blocked_pages.json"),
         validation_json=str(output_dir / "validation.json"),
@@ -203,6 +223,7 @@ def write_run_artifacts(
     (output_dir / "records.jsonl").write_text(
         "".join(json.dumps(record, ensure_ascii=False) + "\n" for record in records)
     )
+    _write_records_csv(output_dir, records)
     _write_json(
         output_dir / "source_pages.json",
         source_entries,

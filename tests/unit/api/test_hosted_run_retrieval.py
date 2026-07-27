@@ -97,6 +97,10 @@ def test_hosted_run_summary_records_and_artifacts_are_retrievable_for_owner(
             f"/v1/hosted/runs/{run_id}/artifacts/records_json/download",
             headers={"Authorization": f"Bearer {raw_key}"},
         )
+        csv_download = client.get(
+            f"/v1/hosted/runs/{run_id}/artifacts/records_csv/download",
+            headers={"Authorization": f"Bearer {raw_key}"},
+        )
     finally:
         app.dependency_overrides.clear()
 
@@ -115,10 +119,18 @@ def test_hosted_run_summary_records_and_artifacts_are_retrievable_for_owner(
     )
     assert artifact_download.status_code == 200
     assert artifact_download.json()[0]["citations"]
+    assert artifacts.json()["artifacts"]["records_csv"].endswith("records.csv")
+    assert artifacts.json()["download_urls"]["records_csv"].endswith(
+        f"/v1/hosted/runs/{run_id}/artifacts/records_csv/download"
+    )
+    assert csv_download.status_code == 200
+    assert csv_download.headers["content-type"].startswith("text/csv")
+    assert "objectID" in csv_download.text.splitlines()[0]
     assert raw_key not in summary.text
     assert raw_key not in records.text
     assert raw_key not in artifacts.text
     assert raw_key not in artifact_download.text
+    assert raw_key not in csv_download.text
 
 
 async def test_hosted_records_endpoint_rejects_records_json_outside_output_dir(

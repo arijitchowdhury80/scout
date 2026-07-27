@@ -50,6 +50,21 @@ class ScrapeRequest(BaseModel):
     mean_delay: float | None = None  # human-like pacing between actions (seconds)
 
 
+class PdfMetadata(BaseModel):
+    """Metadata extracted from a PDF document (FX-11 Build 1).
+
+    Populated only when ScrapeResponse.provider == "pdf" — i.e. the scraped
+    URL resolved to a PDF byte stream and was routed through the pypdf
+    extraction path instead of Crawl4AI's browser pipeline.
+    """
+
+    model_config = {"frozen": True}
+
+    page_count: int = 0
+    title: str = ""
+    encrypted: bool = False
+
+
 class ScrapeResponse(BaseModel):
     success: bool
     url: str
@@ -72,6 +87,7 @@ class ScrapeResponse(BaseModel):
     recommended_collector_reason: str = ""
     error: str = ""
     duration_ms: int
+    pdf: PdfMetadata | None = None
 
 
 # ---------------------------------------------------------------------------

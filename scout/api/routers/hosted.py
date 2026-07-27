@@ -71,6 +71,7 @@ _HOSTED_ARTIFACT_FIELDS = {
     "manifest",
     "records_json",
     "records_jsonl",
+    "records_csv",
     "source_pages_json",
     "blocked_pages_json",
     "validation_json",
@@ -1557,6 +1558,8 @@ def _artifact_media_type(path: Path) -> str:
         return "application/json"
     if path.suffix == ".jsonl":
         return "application/x-ndjson"
+    if path.suffix == ".csv":
+        return "text/csv"
     if path.suffix == ".md":
         return "text/markdown"
     return "application/octet-stream"

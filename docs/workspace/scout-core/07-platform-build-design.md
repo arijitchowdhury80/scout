@@ -2,6 +2,12 @@
 
 Date: 2026-05-15
 
+> **Superseded (FX-11, 2026-07-27):** `website-quality` (UC-06 below) and
+> `jobs` were dropped and are not implemented — `scout.core.platform.registry`
+> rejects both use case names. This doc is kept as historical design record;
+> do not use it as a current capability list. See
+> `docs/test-results-2026-07-26/FIX-PLAN.md` FX-11.
+
 ## Decision
 
 All identified use cases are required, but they should not be implemented as separate one-off scrapers. Scout will be built as a shared web-to-record platform with domain modules on top.

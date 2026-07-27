@@ -147,7 +147,7 @@ EVIDENCE CONTRACT
   manifest / records / source pages / blocked pages / screenshots / citations
 
 RECORD OUTPUTS
-  products | company | investor | careers | news | research | docs | website quality
+  products | company | investor | careers | news | research | docs | social | locations
 
 LOCAL-FIRST
   Runs on your machine. You pick the workdir. You own artifacts.

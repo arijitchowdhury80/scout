@@ -16,7 +16,7 @@ from scout.core.types import AlgoliaProductRecord
 
 logger = logging.getLogger(__name__)
 
-_CSV_FIELDS = [
+CSV_FIELDS = [
     "objectID",
     "name",
     "url",
@@ -113,7 +113,7 @@ def _write_csv(request: ProductExportRequest) -> Path:
     """Write records as flattened CSV."""
     path = request.output_dir / f"{request.basename}.csv"
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=_CSV_FIELDS)
+        writer = csv.DictWriter(handle, fieldnames=CSV_FIELDS)
         writer.writeheader()
         writer.writerows(_csv_rows(request))
     return path
@@ -134,7 +134,7 @@ def _write_google_sheets(request: ProductExportRequest) -> dict[str, Path]:
     csv_path = request.output_dir / f"{request.basename}.google-sheets.csv"
     guide_path = request.output_dir / f"{request.basename}.google-sheets-import.md"
     with csv_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=_CSV_FIELDS)
+        writer = csv.DictWriter(handle, fieldnames=CSV_FIELDS)
         writer.writeheader()
         writer.writerows(_csv_rows(request))
     guide_path.write_text(
@@ -165,8 +165,22 @@ def _csv_rows(request: ProductExportRequest) -> list[dict[str, object]]:
 
 
 def _flatten_record(record: AlgoliaProductRecord) -> dict[str, object]:
-    """Flatten one product record for tabular sinks."""
+    """Flatten one product record model for tabular sinks."""
     data = record.model_dump(mode="json", by_alias=True)
+    return flatten_record_dict(data)
+
+
+def flatten_record_dict(data: dict[str, object]) -> dict[str, object]:
+    """Flatten one already-JSON-mode record dict into CSV_FIELDS columns.
+
+    Public so other artifact writers (e.g.
+    scout.core.platform.artifacts.write_run_artifacts, which persists
+    generic run records — not necessarily AlgoliaProductRecord instances —
+    for HTTP download) can reuse the exact same tabular shape instead of
+    hand-rolling a second flattener. Missing keys resolve to blanks rather
+    than raising, since non-product verticals (careers, news, ...) won't
+    have every product column populated.
+    """
     raw_source = data.get("_source")
     source: dict[str, object] = raw_source if isinstance(raw_source, dict) else {}
     return {
@@ -205,8 +219,8 @@ def _sqlite_schema(table_name: str) -> str:
 
 def _sqlite_insert(table_name: str) -> str:
     """Return SQLite insert SQL for product export rows."""
-    fields = ", ".join(_CSV_FIELDS)
-    placeholders = ", ".join(f":{field}" for field in _CSV_FIELDS)
+    fields = ", ".join(CSV_FIELDS)
+    placeholders = ", ".join(f":{field}" for field in CSV_FIELDS)
     return f"insert or replace into {table_name} ({fields}) values ({placeholders})"
 
 

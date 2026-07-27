@@ -22,6 +22,7 @@ from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
 from crawl4ai.content_filter_strategy import PruningContentFilter
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 
+from scout.core.pdf import extract_pdf_text, fetch_pdf_bytes, looks_like_pdf_url
 from scout.core.types import ScoutFormats, ScoutMetadata, ScrapeRequest, ScrapeResponse
 
 logger = structlog.get_logger(__name__)
@@ -212,10 +213,80 @@ def _build_run_config(req: ScrapeRequest, *, want_screenshot: bool) -> CrawlerRu
     return CrawlerRunConfig(**kwargs)
 
 
+async def _scrape_pdf(req: ScrapeRequest, crawled_at: str, started: float) -> ScrapeResponse:
+    """FX-11 Build 1: fetch a PDF URL and extract text via pypdf.
+
+    Bypasses Crawl4AI/the browser entirely — a raw PDF byte stream doesn't
+    need JS rendering, and Crawl4AI has no supported public API for PDF
+    text extraction (see scout.core.pdf module docstring).
+    """
+
+    def _empty_meta() -> ScoutMetadata:
+        return ScoutMetadata(url=req.url, crawled_at=crawled_at)
+
+    try:
+        pdf_bytes = await fetch_pdf_bytes(req.url, timeout_ms=req.timeout_ms)
+        markdown, pdf_meta = extract_pdf_text(pdf_bytes)
+    except Exception as exc:
+        duration_ms = int((time.monotonic() - started) * 1000)
+        logger.warning("[scout/scrape] pdf extraction failed", url=req.url, error=str(exc))
+        score, reasons, collector, collector_reason = _quality_score(
+            title="", markdown="", links=[], success=False, error=str(exc)
+        )
+        return ScrapeResponse(
+            success=False,
+            url=req.url,
+            metadata=_empty_meta(),
+            fetched_at=crawled_at,
+            provider="pdf",
+            quality_score=score,
+            quality_reasons=reasons,
+            recommended_collector=collector,
+            recommended_collector_reason=collector_reason,
+            error=str(exc),
+            duration_ms=duration_ms,
+        )
+
+    duration_ms = int((time.monotonic() - started) * 1000)
+    metadata = ScoutMetadata(
+        url=req.url,
+        crawled_at=crawled_at,
+        title=pdf_meta.title,
+        word_count=_count_words(markdown),
+        token_estimate=_estimate_tokens(markdown),
+    )
+    quality, quality_reasons, collector, collector_reason = _quality_score(
+        title=pdf_meta.title, markdown=markdown, links=[], success=True
+    )
+    return ScrapeResponse(
+        success=True,
+        url=req.url,
+        status_code=200,
+        markdown=markdown,
+        raw_markdown=markdown,
+        clean_markdown=markdown,
+        metadata=metadata,
+        final_url=req.url,
+        fetched_at=crawled_at,
+        provider="pdf",
+        content_hash=_content_hash(markdown),
+        cleanup_rules_applied=["pypdf.extract_text"],
+        quality_score=quality,
+        quality_reasons=quality_reasons,
+        recommended_collector=collector,
+        recommended_collector_reason=collector_reason,
+        duration_ms=duration_ms,
+        pdf=pdf_meta,
+    )
+
+
 async def scrape(req: ScrapeRequest) -> ScrapeResponse:
     """Fetch a single URL and return clean content."""
     started = time.monotonic()
     crawled_at = datetime.now(timezone.utc).isoformat()
+
+    if looks_like_pdf_url(req.url):
+        return await _scrape_pdf(req, crawled_at, started)
 
     want_screenshot = ScoutFormats.SCREENSHOT in req.formats
     want_raw_html = ScoutFormats.RAW_HTML in req.formats

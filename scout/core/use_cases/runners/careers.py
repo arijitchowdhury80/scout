@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urljoin, urlparse
 
 from scout.core.crawler import ScoutCrawler
 from scout.core.platform.types import RunRequest
-from scout.core.use_cases.intelligence import CareerSiteRecord
+from scout.core.use_cases.intelligence import CareerRoleRecord, CareerSiteRecord
 from scout.core.use_cases.runners.base import (
     evidence_from_scrape,
     make_citation,
@@ -79,6 +80,11 @@ def _extract_departments(markdown: str) -> list[str]:
     return [dept for dept in _DEPT_KEYWORDS if dept in lower]
 
 
+_ROLE_LINE_RE = re.compile(
+    r"(?m)^.*(?:Engineer|Manager|Director|Analyst|Designer|Developer|Specialist|Lead).*$"
+)
+
+
 def _count_job_signals(markdown: str) -> int:
     patterns = [
         re.compile(r"(?:open|available)\s+(?:positions?|roles?|jobs?)", re.I),
@@ -91,6 +97,101 @@ def _count_job_signals(markdown: str) -> int:
         r"(?m)^.*(?:Engineer|Manager|Director|Analyst|Designer|Developer).*$", markdown
     )
     return count + len(job_lines)
+
+
+# ---------------------------------------------------------------------------
+# FX-11 Build 3 — 24h jobs filter
+#
+# Careers pages rarely link individually to each role from the landing
+# page, so roles are detected line-by-line from rendered markdown (the same
+# heuristic _count_job_signals already uses). Dates, when present, tend to
+# appear on the same line ("Posted 3 days ago", "Posted today", or an
+# explicit date). When no date is found, the role is never dropped and
+# never assigned a guessed date — it's flagged instead. See
+# CareerRoleRecord docstring.
+# ---------------------------------------------------------------------------
+
+_RELATIVE_POSTED_RE = re.compile(r"posted\s+(\d+)\s+(day|days|hour|hours|week|weeks)\s+ago", re.I)
+_POSTED_TODAY_RE = re.compile(r"posted\s+today", re.I)
+_ISO_DATE_RE = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
+
+_RELATIVE_UNIT_TO_TIMEDELTA = {
+    "day": lambda n: timedelta(days=n),
+    "days": lambda n: timedelta(days=n),
+    "hour": lambda n: timedelta(hours=n),
+    "hours": lambda n: timedelta(hours=n),
+    "week": lambda n: timedelta(weeks=n),
+    "weeks": lambda n: timedelta(weeks=n),
+}
+
+
+def _parse_posted_at(line: str, now: datetime) -> tuple[str | None, bool, str]:
+    """Best-effort publish-date extraction from one role listing line.
+
+    Returns (posted_at_iso, found, reason). found is False — and reason is
+    a non-empty machine-readable code — whenever no recognizable date
+    signal is present; no date is ever guessed in that case.
+    """
+    if _POSTED_TODAY_RE.search(line):
+        return now.isoformat(), True, ""
+
+    relative = _RELATIVE_POSTED_RE.search(line)
+    if relative:
+        amount = int(relative.group(1))
+        unit = relative.group(2).lower()
+        delta = _RELATIVE_UNIT_TO_TIMEDELTA[unit](amount)
+        return (now - delta).isoformat(), True, ""
+
+    iso_match = _ISO_DATE_RE.search(line)
+    if iso_match:
+        try:
+            parsed = datetime.fromisoformat(iso_match.group(1)).replace(tzinfo=timezone.utc)
+        except ValueError:
+            pass
+        else:
+            return parsed.isoformat(), True, ""
+
+    return None, False, "no_date_on_page"
+
+
+def _extract_roles(markdown: str, now: datetime) -> list[CareerRoleRecord]:
+    """Extract individual role listings (deduped, order-preserving) from markdown."""
+    roles: list[CareerRoleRecord] = []
+    seen: set[str] = set()
+    for line in _ROLE_LINE_RE.findall(markdown):
+        title = line.strip()
+        if not title or title in seen:
+            continue
+        seen.add(title)
+        posted_at, found, reason = _parse_posted_at(title, now)
+        roles.append(
+            CareerRoleRecord(
+                title=title,
+                posted_at=posted_at,
+                posted_at_found=found,
+                posted_at_reason=reason,
+            )
+        )
+    return roles
+
+
+def _filter_roles_within_hours(
+    roles: list[CareerRoleRecord],
+    posted_within_hours: int | None,
+    now: datetime,
+) -> list[CareerRoleRecord]:
+    """Keep roles posted within the window; dateless roles always pass through."""
+    if posted_within_hours is None:
+        return roles
+    cutoff = now - timedelta(hours=posted_within_hours)
+    kept: list[CareerRoleRecord] = []
+    for role in roles:
+        if not role.posted_at_found or role.posted_at is None:
+            kept.append(role)  # no fabrication — unknown date is never treated as stale
+            continue
+        if datetime.fromisoformat(role.posted_at) >= cutoff:
+            kept.append(role)
+    return kept
 
 
 async def run_careers(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
@@ -120,6 +221,10 @@ async def run_careers(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
     departments = _extract_departments(all_markdown)
     job_count = _count_job_signals(all_markdown)
 
+    now = datetime.now(timezone.utc)
+    roles = _extract_roles(all_markdown, now)
+    roles = _filter_roles_within_hours(roles, req.posted_within_hours, now)
+
     summary_parts = []
     if ats:
         summary_parts.append(f"ATS: {ats}")
@@ -136,6 +241,8 @@ async def run_careers(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
         ats_platform=ats,
         departments=departments,
         hiring_signal_summary=summary,
+        roles=roles,
+        posted_within_hours=req.posted_within_hours,
         source_url=careers_url,
         confidence=0.75 if ats or departments else 0.5,
         citations=[make_citation(source, "careers_url", careers_url, summary[:200])],
