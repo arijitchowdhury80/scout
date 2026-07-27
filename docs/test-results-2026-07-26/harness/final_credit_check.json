@@ -1,0 +1,39 @@
+{
+  "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+  "key_id": "key_115674082548492f9e56a1b0127f4e82",
+  "plan": "hosted_beta_pass",
+  "account_status": "active",
+  "balance": {
+    "standard_credits_remaining": 4822,
+    "browser_credits_remaining": 100
+  },
+  "limits": {
+    "plan": "hosted_beta_pass",
+    "hosted_enabled": true,
+    "standard_credits": 5000,
+    "browser_credits": 100,
+    "artifact_retention_days": 7,
+    "max_pages_per_run": 25,
+    "max_concurrent_runs": 1
+  },
+  "usage_summary": {
+    "total_events": 29,
+    "standard_credits_used": 178,
+    "browser_credits_used": 0,
+    "usage_url": "/v1/hosted/usage"
+  },
+  "purchase_summary": {
+    "total_purchases": 0,
+    "total_amount_cents": 0,
+    "currency": "",
+    "last_package_id": "",
+    "purchases_url": "/v1/hosted/purchases"
+  },
+  "links": {
+    "usage": "/v1/hosted/usage",
+    "purchases": "/v1/hosted/purchases",
+    "billing_portal": "/v1/billing/stripe/customer-portal-session",
+    "docs": "https://scout.chowmes.com/docs",
+    "pricing": "https://scout.chowmes.com/pricing"
+  }
+}

@@ -10,6 +10,7 @@ Returns ScrapeResponse with:
 
 from __future__ import annotations
 
+import asyncio
 import time
 from datetime import datetime, timezone
 import hashlib
@@ -24,6 +25,62 @@ from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 from scout.core.types import ScoutFormats, ScoutMetadata, ScrapeRequest, ScrapeResponse
 
 logger = structlog.get_logger(__name__)
+
+# FX-1a: bounded retry on transient nav/network errors only (never on
+# deterministic blocks like 4xx/anti-bot responses). See
+# docs/test-results-2026-07-26/FIX-PLAN.md FX-1a — one confirmed transient
+# failure (net::ERR_HTTP2_PROTOCOL_ERROR under memory pressure) used to fail
+# the whole run with no retry.
+MAX_TRANSIENT_RETRIES = 2
+RETRY_BACKOFF_SECONDS = 0.5
+
+_TRANSIENT_ERROR_SIGNATURES = (
+    "net::err_http2_protocol_error",
+    "net::err_connection_reset",
+    "net::err_connection_closed",
+    "net::err_connection_refused",
+    "net::err_connection_timed_out",
+    "net::err_connection_aborted",
+    "net::err_empty_response",
+    "net::err_network_changed",
+    "net::err_timed_out",
+    "timeout",
+)
+
+
+def _is_transient_error(error_message: str | None, status_code: int | None) -> bool:
+    """Whether a failed fetch looks like a transient blip worth retrying.
+
+    Deterministic blocks (4xx/5xx from the server — anti-bot, not-found,
+    etc.) are NOT retried; retrying those just burns time on a fetch that
+    will fail the same way every time.
+    """
+    if status_code is not None and 400 <= status_code < 600:
+        return False
+    lowered = (error_message or "").lower()
+    return any(signature in lowered for signature in _TRANSIENT_ERROR_SIGNATURES)
+
+
+def _status_code_of(result: object) -> int | None:
+    """Read status_code off a crawl4ai result, tolerating mocks/older versions."""
+    value = getattr(result, "status_code", None)
+    return value if isinstance(value, int) else None
+
+
+def _failure_reason(result: object) -> str:
+    """Build a non-empty diagnostic string for a failed crawl4ai result.
+
+    FX-1c: the observed bug was a failed scrape returning BOTH
+    status_code=None and error_message=None with no diagnostic anywhere —
+    impossible to support or debug. This always returns something useful.
+    """
+    error_message = getattr(result, "error_message", None)
+    if error_message:
+        return str(error_message)
+    status_code = _status_code_of(result)
+    if status_code is not None:
+        return f"HTTP {status_code}"
+    return "Crawl failed with no error detail or status code from crawl4ai"
 
 
 def _estimate_tokens(text: str) -> int:
@@ -179,20 +236,46 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
             # Cast to CrawlResult so pyright can resolve attributes; runtime behaviour is unchanged.
             result = cast(CrawlResult, await crawler.arun(req.url, config=run_cfg))
 
+            attempt = 1
+            while not result.success and attempt <= MAX_TRANSIENT_RETRIES:
+                error_message = getattr(result, "error_message", None)
+                status_code = _status_code_of(result)
+                if not _is_transient_error(error_message, status_code):
+                    break
+                logger.warning(
+                    "[scout/scrape] transient error, retrying",
+                    url=req.url,
+                    attempt=attempt,
+                    max_retries=MAX_TRANSIENT_RETRIES,
+                    error=error_message,
+                    status_code=status_code,
+                )
+                await asyncio.sleep(RETRY_BACKOFF_SECONDS * attempt)
+                result = cast(CrawlResult, await crawler.arun(req.url, config=run_cfg))
+                attempt += 1
+
         duration_ms = int((time.monotonic() - started) * 1000)
 
         if not result.success:
-            logger.warning("[scout/scrape] crawl failed", url=req.url, error=result.error_message)
+            status_code = _status_code_of(result)
+            error_reason = _failure_reason(result)
+            logger.warning(
+                "[scout/scrape] crawl failed",
+                url=req.url,
+                status_code=status_code,
+                error=error_reason,
+            )
             score, reasons, collector, collector_reason = _quality_score(
                 title="",
                 markdown="",
                 links=[],
                 success=False,
-                error=result.error_message or "Unknown error",
+                error=error_reason,
             )
             return ScrapeResponse(
                 success=False,
                 url=req.url,
+                status_code=status_code,
                 metadata=_empty_meta(),
                 fetched_at=crawled_at,
                 provider="crawl4ai",
@@ -200,7 +283,7 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
                 quality_reasons=reasons,
                 recommended_collector=collector,
                 recommended_collector_reason=collector_reason,
-                error=result.error_message or "Unknown error",
+                error=error_reason,
                 duration_ms=duration_ms,
             )
 
@@ -234,6 +317,7 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
         return ScrapeResponse(
             success=True,
             url=final_url,
+            status_code=_status_code_of(result),
             markdown=clean_md,
             raw_markdown=raw_md,
             clean_markdown=clean_md,

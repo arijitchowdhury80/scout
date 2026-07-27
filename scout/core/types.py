@@ -53,6 +53,7 @@ class ScrapeRequest(BaseModel):
 class ScrapeResponse(BaseModel):
     success: bool
     url: str
+    status_code: int | None = None
     markdown: str = ""
     raw_markdown: str = ""
     clean_markdown: str = ""

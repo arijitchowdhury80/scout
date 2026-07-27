@@ -3,8 +3,9 @@
 Reconciled to docs/product/design-system.md, docs/product/plg-playground-ux.md,
 and docs/product/pricing-model-2026-07-06.md. The homepage is now the live
 demo console (direction E): reticle wordmark, mint neumorphic shell, anonymous
-scrape+map demo wired to /v1/demo/*, authed app shell at /app, and pricing
-copy that names the credit number instead of claiming "unlimited".
+scrape+map demo wired to /v1/demo/*, and pricing copy that names the credit
+number instead of claiming "unlimited". FX-7 (founder decision): Scout is HTTP
+API + Claude/Codex skill only — the standalone /app surface has been removed.
 """
 
 from __future__ import annotations
@@ -199,19 +200,14 @@ def test_public_site_responses_are_reload_safe_after_deploys() -> None:
         assert response.headers["cache-control"] == "public, max-age=0, must-revalidate"
 
 
-def test_app_shell_is_now_a_shipped_authed_playground_surface() -> None:
-    """/app was previously a removed surface; design-system.md now locks in an
-    authed app shell (sidebar: Playground / Your runs / Destinations / API
-    keys / Usage / Docs + credit meter). It must be served, and other
-    surfaces that were NOT reintroduced stay 403."""
+def test_app_surface_is_removed_and_stays_unauthorized() -> None:
+    """FX-7: Scout is HTTP API + Claude/Codex skill only — there is no
+    standalone web app. The /app shell has been deleted entirely; any /app*
+    or other unknown path must fall through to the default auth gate (403),
+    never serve HTML."""
     client = TestClient(app)
 
-    app_response = client.get("/app")
-    assert app_response.status_code == 200
-    assert "text/html" in app_response.headers["content-type"]
-    assert "Scout App" in app_response.text
-
-    for path in ("/api/config", "/app/live-browser"):
+    for path in ("/app", "/app.html", "/api/config", "/app/live-browser"):
         response = client.get(path)
         assert response.status_code == 403
         assert "text/html" not in response.headers.get("content-type", "")
@@ -677,8 +673,6 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/legal.html": "Scout Legal And Third-Party Notices",
         "/terms.html": "Scout Beta Terms Placeholder",
         "/privacy.html": "Scout Beta Privacy Placeholder",
-        "/app": "Scout App",
-        "/app.html": "Scout App",
     }
 
     for path, text in expected.items():
@@ -738,48 +732,6 @@ def test_no_vendor_locked_destinations_copy_on_public_pages() -> None:
     for page_name in public_pages:
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
         assert "Push to Algolia" not in html
-
-
-def test_app_shell_has_result_tabs_and_destinations_panel() -> None:
-    """The authed app shell (design-system.md IA: Playground / Your runs /
-    Destinations / API keys / Usage / Docs + credit meter) renders results
-    inline with tabs (Preview/JSON/JSONL/Table-CSV/cURL) and an evidence
-    panel, and Destinations (Algolia/webhook) is only offered here, never on
-    the public homepage."""
-    html = (_WEBSITE_DIR / "app.html").read_text(encoding="utf-8")
-
-    assert "key-gate" in html
-    assert 'id="apiKeyInput"' in html
-    assert 'id="appShell"' in html
-    assert 'class="app-sidebar"' in html
-    assert "Playground" in html
-    assert "Your runs" in html
-    assert "Destinations" in html
-    assert "API keys" in html
-    assert "Usage" in html
-    assert 'class="credit-meter"' in html
-
-    # Result tabs: Preview / JSON / JSONL / Table-CSV / cURL.
-    assert 'data-rtab="preview"' in html
-    assert 'data-rtab="json"' in html
-    assert 'data-rtab="jsonl"' in html
-    assert 'data-rtab="table"' in html
-    assert 'data-rtab="curl"' in html
-
-    # Evidence panel + destination send, authed-only.
-    assert "Evidence" in html
-    assert "Send to a destination" in html
-    assert 'id="destinationSelect"' in html
-    assert "Algolia" in html
-    assert "Webhook" in html
-
-    # Bearer-token session auth, never persisted to disk.
-    assert "sessionStorage" in html
-    assert "localStorage" not in html
-    assert "Authorization" in html
-    assert "Bearer" in html
-    assert "sk_live_" not in html
-    assert "sk_test_" not in html
 
 
 def test_docs_routes_redirect_to_hosted_documentation() -> None:

@@ -81,29 +81,42 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
                     )
                 )
                 if not scrape_resp.success:
+                    # FX-1b: a failed primary fetch (success=False — the lacoste/
+                    # eyebuydirect repro: empty render, no error) must NOT be
+                    # silently skipped. Previously this branch `continue`d before
+                    # the browser fallback ever had a chance to engage, which is
+                    # exactly why blocked_pages downstream reported
+                    # fallback_attempted=True (an artifact of echoing the config
+                    # flag) while fallback_used stayed False — no fallback had
+                    # actually run. Engage the fallback here for real.
                     logger.warning(
                         "[scout/products] scrape failed", url=url, error=scrape_resp.error
                     )
-                    continue
-                if _is_blocked(scrape_resp):
-                    fallback_resp = await _browser_fallback_scrape(req, url)
-                    blocked_page = _blocked_page(
+                    record, blocked_page = await _recover_via_fallback(
+                        req,
                         url=url,
                         group=group,
                         scrape_resp=scrape_resp,
-                        fallback_resp=fallback_resp,
+                        reason="fetch_failed",
                     )
                     blocked_pages.append(blocked_page)
-                    if fallback_resp and fallback_resp.success and not _is_blocked(fallback_resp):
-                        product = extract_product_jsonld(fallback_resp.raw_html)
-                        record = build_algolia_record(
-                            url=fallback_resp.url,
-                            title=fallback_resp.metadata.title,
-                            category_name=group.category_name,
-                            category_url=group.category_url,
-                            product=product,
-                        )
-                        record.source.extractor = f"{record.source.extractor}_browser_fallback"
+                    if record:
+                        _keep_best_record(records_by_url, record)
+                        continue
+                    logger.warning(
+                        "[scout/products] fetch failed and fallback did not recover", url=url
+                    )
+                    continue
+                if _is_blocked(scrape_resp):
+                    record, blocked_page = await _recover_via_fallback(
+                        req,
+                        url=url,
+                        group=group,
+                        scrape_resp=scrape_resp,
+                        reason="access_denied",
+                    )
+                    blocked_pages.append(blocked_page)
+                    if record:
                         _keep_best_record(records_by_url, record)
                         continue
                     logger.warning("[scout/products] blocked page skipped", url=url)
@@ -122,10 +135,14 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
             : req.max_products
         ]
         if not records and not blocked_pages:
+            # No product URL was ever discovered to fetch, so no fallback could
+            # have run — fallback_attempted must be False here, not an echo of
+            # the browser_fallback config flag (that was the FX-1b bug: a
+            # config value standing in for "did this actually happen").
             blocked_pages.append(
                 _empty_product_evidence(
                     start_url=start_url,
-                    fallback_attempted=req.browser_fallback,
+                    fallback_attempted=False,
                 )
             )
         raw_products = [record.model_dump(mode="json", by_alias=True) for record in records]
@@ -197,7 +214,7 @@ async def _browser_fallback_scrape(
     req: ProductCrawlRequest,
     url: str,
 ) -> ScrapeResponse | None:
-    """Retry a blocked product URL through the headed browser fallback channel."""
+    """Retry a blocked/failed product URL through the headed browser fallback channel."""
     if not req.browser_fallback:
         return None
     logger.info("[scout/products] browser fallback retry", url=url)
@@ -213,11 +230,51 @@ async def _browser_fallback_scrape(
     )
 
 
+async def _recover_via_fallback(
+    req: ProductCrawlRequest,
+    *,
+    url: str,
+    group: ProductUrlGroups,
+    scrape_resp: ScrapeResponse,
+    reason: str,
+) -> tuple[AlgoliaProductRecord | None, BlockedPage]:
+    """Engage the browser fallback for a failed-or-blocked primary fetch.
+
+    FX-1b: this is the single place the fallback actually runs, so
+    `fallback_attempted`/`fallback_used` on the returned BlockedPage always
+    reflect what really happened — never just the `browser_fallback` config
+    flag. Returns (record, blocked_page); record is None when the fallback
+    did not recover usable content (an honest "blocked" outcome, not a
+    silent empty).
+    """
+    fallback_resp = await _browser_fallback_scrape(req, url)
+    blocked_page = _blocked_page(
+        url=url,
+        group=group,
+        scrape_resp=scrape_resp,
+        fallback_resp=fallback_resp,
+        reason=reason,
+    )
+    if fallback_resp and fallback_resp.success and not _is_blocked(fallback_resp):
+        product = extract_product_jsonld(fallback_resp.raw_html)
+        record = build_algolia_record(
+            url=fallback_resp.url,
+            title=fallback_resp.metadata.title,
+            category_name=group.category_name,
+            category_url=group.category_url,
+            product=product,
+        )
+        record.source.extractor = f"{record.source.extractor}_browser_fallback"
+        return record, blocked_page
+    return None, blocked_page
+
+
 def _blocked_page(
     url: str,
     group: ProductUrlGroups,
     scrape_resp: ScrapeResponse,
     fallback_resp: ScrapeResponse | None,
+    reason: str = "access_denied",
 ) -> BlockedPage:
     """Build blocked-page evidence including fallback attempt outcome."""
     fallback_attempted = fallback_resp is not None
@@ -225,7 +282,7 @@ def _blocked_page(
     fallback_error = fallback_resp.error if fallback_resp and not fallback_resp.success else ""
     return BlockedPage(
         url=url,
-        reason="access_denied",
+        reason=reason,
         category_url=group.category_url,
         category_name=group.category_name,
         title=scrape_resp.metadata.title,

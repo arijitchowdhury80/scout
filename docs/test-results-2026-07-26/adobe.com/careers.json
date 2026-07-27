@@ -1,0 +1,65 @@
+{
+  "success": true,
+  "job_id": "job_e7ebf492c5494f2e",
+  "kind": "run:careers",
+  "status": "complete",
+  "retry_after_seconds": 10,
+  "hosted": {
+    "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+    "key_id": "key_115674082548492f9e56a1b0127f4e82",
+    "credits_charged": 0,
+    "credit_type": "standard"
+  },
+  "created_at": "2026-07-27T03:42:15.864515+00:00",
+  "started_at": "2026-07-27T03:42:15.864764+00:00",
+  "finished_at": "2026-07-27T03:42:21.499141+00:00",
+  "result": {
+    "success": false,
+    "hosted": {
+      "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+      "key_id": "key_115674082548492f9e56a1b0127f4e82",
+      "credits_charged": 0,
+      "credit_type": "standard"
+    },
+    "run": {
+      "success": false,
+      "use_case": "careers",
+      "output_dir": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-careers-20260727-034215",
+      "manifest": {
+        "run_id": "run_6038cbbd72ae",
+        "use_case": "careers",
+        "query": "",
+        "started_at": "2026-07-27T03:42:15.864817+00:00",
+        "finished_at": "2026-07-27T03:42:21.490708+00:00",
+        "providers_attempted": [
+          "crawl4ai",
+          "api",
+          "saved",
+          "host_webfetch",
+          "websearch",
+          "host_browser"
+        ],
+        "output_dir": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-careers-20260727-034215",
+        "total_records": 0,
+        "total_sources": 0,
+        "total_blocked": 0,
+        "artifacts": {
+          "manifest": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-careers-20260727-034215/manifest.json",
+          "records_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-careers-20260727-034215/records.json",
+          "records_jsonl": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-careers-20260727-034215/records.jsonl",
+          "source_pages_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-careers-20260727-034215/source_pages.json",
+          "blocked_pages_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-careers-20260727-034215/blocked_pages.json",
+          "validation_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-careers-20260727-034215/validation.json",
+          "report_md": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-careers-20260727-034215/extraction_report.md"
+        },
+        "warnings": [
+          "careers produced no records."
+        ],
+        "errors": []
+      },
+      "total_records": 0,
+      "error": ""
+    }
+  },
+  "error": ""
+}

@@ -1,0 +1,21 @@
+# Scout marketing site robots.txt
+# Place at repo path: website/robots.txt  (served at https://scout.chowmes.com/robots.txt)
+# Purpose: allow indexing of public marketing pages; keep app/account/API surfaces out of search indexes.
+
+User-agent: *
+Allow: /
+
+# Keep authenticated / functional surfaces out of search results.
+# Site currently serves flat .html files; both path forms covered.
+Disallow: /app
+Disallow: /app.html
+Disallow: /app/
+Disallow: /account
+Disallow: /account.html
+Disallow: /account/
+Disallow: /api/
+Disallow: /playground
+Disallow: /playground/
+
+# Sitemap (update path if/when a sitemap is published)
+Sitemap: https://scout.chowmes.com/sitemap.xml

@@ -1,0 +1,60 @@
+{
+  "success": true,
+  "job_id": "job_5e74113389084da4",
+  "kind": "map",
+  "status": "complete",
+  "retry_after_seconds": 10,
+  "hosted": {
+    "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+    "key_id": "key_115674082548492f9e56a1b0127f4e82",
+    "credits_charged": 0,
+    "credit_type": "standard"
+  },
+  "created_at": "2026-07-27T03:35:23.782720+00:00",
+  "started_at": "2026-07-27T03:35:23.782979+00:00",
+  "finished_at": "2026-07-27T03:35:30.590869+00:00",
+  "result": {
+    "success": true,
+    "hosted": {
+      "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+      "key_id": "key_115674082548492f9e56a1b0127f4e82",
+      "credits_charged": 25,
+      "credit_type": "standard"
+    },
+    "map": {
+      "success": true,
+      "start_url": "https://eyebuydirect.com",
+      "urls": [
+        "https://www.eyebuydirect.com/guides/how-to-buy-prescription-eyeglasses-online",
+        "https://www.eyebuydirect.com/guides/how-to-read-a-prescription",
+        "https://www.eyebuydirect.com/guides/how-to-measure-your-pd",
+        "https://www.eyebuydirect.com/guides/frames-and-face-shapes",
+        "https://www.eyebuydirect.com/prescription-lens",
+        "https://www.eyebuydirect.com/prescription-lens/premium-lens-coating",
+        "https://www.eyebuydirect.com/prescription-lens/lens-index",
+        "https://www.eyebuydirect.com/prescription-lens/digital-protection",
+        "https://www.eyebuydirect.com/eyeglasses/50s-style",
+        "https://www.eyebuydirect.com/eyeglasses/aesthetic",
+        "https://www.eyebuydirect.com/eyeglasses/anti-glare-glasses",
+        "https://www.eyebuydirect.com/eyeglasses/bronze",
+        "https://www.eyebuydirect.com/eyeglasses/cheap",
+        "https://www.eyebuydirect.com/eyeglasses/cool",
+        "https://www.eyebuydirect.com/eyeglasses/cute",
+        "https://www.eyebuydirect.com/eyeglasses/floral",
+        "https://www.eyebuydirect.com/eyeglasses/gaming-glasses",
+        "https://www.eyebuydirect.com/eyeglasses/gold",
+        "https://www.eyebuydirect.com/eyeglasses/gray",
+        "https://www.eyebuydirect.com/eyeglasses/heart-shaped",
+        "https://www.eyebuydirect.com/eyeglasses/hipster",
+        "https://www.eyebuydirect.com/eyeglasses/ivory-tortoise",
+        "https://www.eyebuydirect.com/eyeglasses/kids/blue-light-glasses",
+        "https://www.eyebuydirect.com/eyeglasses/kids/boys",
+        "https://www.eyebuydirect.com/eyeglasses/kids/girls"
+      ],
+      "total": 25,
+      "error": "",
+      "duration_ms": 6788
+    }
+  },
+  "error": ""
+}

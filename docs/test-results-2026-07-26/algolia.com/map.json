@@ -1,0 +1,60 @@
+{
+  "success": true,
+  "job_id": "job_a0d1bd7f72004122",
+  "kind": "map",
+  "status": "complete",
+  "retry_after_seconds": 10,
+  "hosted": {
+    "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+    "key_id": "key_115674082548492f9e56a1b0127f4e82",
+    "credits_charged": 0,
+    "credit_type": "standard"
+  },
+  "created_at": "2026-07-27T03:34:25.557317+00:00",
+  "started_at": "2026-07-27T03:34:25.557566+00:00",
+  "finished_at": "2026-07-27T03:34:32.172129+00:00",
+  "result": {
+    "success": true,
+    "hosted": {
+      "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+      "key_id": "key_115674082548492f9e56a1b0127f4e82",
+      "credits_charged": 25,
+      "credit_type": "standard"
+    },
+    "map": {
+      "success": true,
+      "start_url": "https://algolia.com",
+      "urls": [
+        "https://www.algolia.com/de/blog/product/how-when-and-why-do-mobile-users-engage-with-search",
+        "https://www.algolia.com/de/developers/lp-developer-external-pages/jekyll",
+        "https://www.algolia.com/de/blog/ai/how-to-identify-user-search-intent-using-ai-and-machine-learning",
+        "https://www.algolia.com/de/blog/product/algolia-picking-up-where-google-site-search-left-off/blogaauthorcontainer/author",
+        "https://www.algolia.com/de/blog/author-directory/marie-auxille-denis",
+        "https://www.algolia.com/de/blog/engineering/reducing-infrastructure-cost",
+        "https://www.algolia.com/de/blog/ecommerce/extending-adobe-edge-delivery-services-for-performant-search",
+        "https://www.algolia.com/de/blog/author-directory/louise-vollaire",
+        "https://www.algolia.com/de/blog/author-directory/claudia-rodriguez-schroeder",
+        "https://www.algolia.com/de/blog/engineering/recommendations-for-developers-the-complete-how-to-what-to-and-where-to-guide/blogaauthorcontainer/author",
+        "https://www.algolia.com/de/blog/ux/how-to-use-microcopy-to-improve-ux/blogaauthorcontainer/author",
+        "https://www.algolia.com/de/blog/ai/agentic-retrieval",
+        "https://www.algolia.com/de/about/news/algolias-chief-ecosystem-officer-to-talk-ai-powered-search-and-content-retrieval-at-adobe-summit-2025",
+        "https://www.algolia.com/de/resources/asset/webinar-nsfiresidechat-apac",
+        "https://www.algolia.com/de/resources/asset/keynote",
+        "https://www.algolia.com/de/partner-program/marketing",
+        "https://www.algolia.com/de/contactus",
+        "https://www.algolia.com/de/resources/asset/ebook-leveling-up-search-with-ai/data-the-fuel-of-ai-personalization",
+        "https://www.algolia.com/de/partner-program/referrals",
+        "https://www.algolia.com/de/developers/code-exchange/integrate-algolia-with-mage-native",
+        "https://www.algolia.com/de/about/news/algolia-report-ai-search-emerges-as-the-cornerstone-of-digital-first-b2b-ecommerce-strategy",
+        "https://www.algolia.com/de/blog/ecommerce/what-is-online-retail-merchandising-an-introduction",
+        "https://www.algolia.com/de/blog/product/new-ai-capabilities-available-to-algolia-customers-query-categorization",
+        "https://www.algolia.com/de/blog/engineering/how-to-build-a-simulator-for-any-feature-part-1-unit-testing",
+        "https://www.algolia.com/de/blog/ecommerce/b2b-search-best-practices-3-ways-to-increase-the-lifetime-value-of-your-buyers/blogaauthorcontainer/author"
+      ],
+      "total": 25,
+      "error": "",
+      "duration_ms": 6589
+    }
+  },
+  "error": ""
+}

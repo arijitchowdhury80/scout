@@ -1,8 +1,8 @@
 """POST /structure — PRISM-callable endpoint that structures raw HTML into
 markdown + typed records via Crawl4AI (raw:// scheme, no network fetch).
 
-This is the programmatic API surface for external consumers. The /app/browser/*
-endpoints are UI-specific; this one takes HTML directly."""
+This is the programmatic API surface for external consumers — Scout is HTTP
+API + Claude/Codex skill only (FX-7); there is no standalone /app UI."""
 
 from fastapi.testclient import TestClient
 
