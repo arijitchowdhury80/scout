@@ -1,22 +1,19 @@
 # SESSION.md — Scout Launch-Readiness Program (updated 2026-07-27)
 
 ## Status (one line)
-Moat exec extraction: 4-source waterfall (on-site→Wikidata→SEC→Wikipedia) gives 94% COVERAGE, but the **golden set revealed coverage≠correctness — verified key-person RECALL ~60% (below 80% bar) → NOT launchable on quality yet.** Golden harness built; caught+fixed a trust-killing bug (dead/former execs, e.g. Werner von Siemens d.1892). Branch `fix/launch-readiness-fx1-fx7`, HEAD 727f278. 1007 tests, pyright 0, ruff clean.
+Moat exec extraction: ROOT-CAUSE FIX shipped — **identity reconciliation layer** (`scout/core/enrich/reconcile.py`) replaced the whack-a-mole per-source string-merge. Measured vs SEC DEF 14A golden set: **reconciliation DOUBLED precision 26→58% & recall 49→72%** (13 public cos). Still below 90/80 bar, BUT residual is precisely diagnosed: precision "gap" mostly a measurement artifact (real senior execs beyond narrow roster); genuine gap = outside-board-director recall (maybe out of scope). Branch `fix/launch-readiness-fx1-fx7`, HEAD 2a00b1f. 1029 tests, pyright 0, ruff clean.
 
 ## What shipped this session (5 commits: 5927e0f, 9639ecf, eb747a1, 4a19489)
 - Layer 1 render (scan_full_page/delay/block_images), Layer 3 LLM adjudication + company-identity guard (CLEAN 5/5), Layer 2 discovery (nav-anchor harvest + sitemap + anchor-text scoring), Pillar A LLM-driven page selection (killed keyword hardcoding), scaled auto-eval harness, tuple-order coverage bug fix (GitLab 0→10), latency −35%.
 
 ## RESUME ACTION (next session — do this)
-1. Read this file + memory `scout-extraction-fix-plan-seed.md` + `docs/test-results-2026-07-27/moat-gauntlet/GOLDEN-SET-FINDINGS.md` (the honest quality picture) + COVERAGE-PROGRESSION.md.
-2. **CLOSE THE QUALITY GAP to precision≥90%/recall≥80% (the launch gate):**
-   - **Better ground truth for real PRECISION**: SEC DEF 14A officer/director tables (complete + authoritative) + per-company TRAP-name sets → then precision is honestly scorable (current labels = Wikipedia key_people only, too sparse; recall ~60% is partly a label artifact — Shopify label listed president not CEO Lütke which Scout got right).
-   - **RECALL diagnosis**: why is a listed CEO sometimes not returned? Improve cross-source merge; add FUZZY cross-source dedup (fixes Datadog "Olivier Pomel"×2; and "Joe Creed" vs "Joseph E. Creed").
-   - **Larger N** (23 labeled too few).
-3. Harness: `golden_build.py` (labels) + `golden_score.py` (score) + `scaled_eval.py` (coverage/latency), all in `docs/test-results-2026-07-27/moat-gauntlet/`.
-4. **Last ~6% coverage (Vercel/Notion):** true paid web-search grounding (Anthropic web_search via LLM_API_KEY, billable) — cost-gated, founder nod.
-5. **Latency** (p50 55s): run the 4 enrichment sources CONCURRENTLY (asyncio.gather); clean sitemap-cancel noise.
-6. Then **products** flip (products.py still empty-only) + **Layer 4 anti-bot = ScraperAPI** (founder funds+key).
-7. Branch guard-blocked from push — founder pushes. Enrich modules: `scout/core/enrich/{wikidata,wikipedia,sec}.py`; gated by `ScoutCrawler.enrichment_enabled`.
+1. Read this file + memory `scout-extraction-fix-plan-seed.md` + `docs/test-results-2026-07-27/moat-gauntlet/RECONCILIATION-RESULTS.md` (precise residual diagnosis) + plan `docs/workspace/scout-core/exec-reconciliation-plan-2026-07-28.md`.
+2. **SPLIT THE METRIC first (cheap, high-value):** tag each DEF 14A roster entry OFFICER vs DIRECTOR in `golden_sec_build.py`; score exec-recall vs director-recall separately. Evidence-based hypothesis: exec-recall already ≈bar; the gap is outside-director recall. Tells us if we're much closer than 58/72 on the metric that matters.
+3. **Product scope decision (founder):** does "company execs" include outside board DIRECTORS (VCs — Danny Rimer/Andrew Reed)? NO → likely near bar on executives already. YES → add a board source (governance/IR page or DEF 14A director list) but keep it OUT of golden labels (circularity).
+4. Only THEN chase last precision points (genuine on-site/Wikipedia LLM noise, measured).
+5. **Then**: last ~6% coverage (Vercel/Notion, paid web-search, cost-gated); latency (concurrent enrichment via asyncio.gather, p50 55s); products flip (products.py empty-only); Layer 4 ScraperAPI.
+6. Harness (all `docs/test-results-2026-07-27/moat-gauntlet/`): `golden_sec_build.py`+`golden_sec_score.py` (real P/R public cos), `scaled_eval.py` (coverage/latency), `golden_build/score.py` (Wikipedia recall).
+7. Branch guard-blocked from push — founder pushes. Identity: `scout/core/enrich/reconcile.py`. Sources `enrich/{wikidata,wikipedia,sec}.py` yield ExecCandidate; gated by `ScoutCrawler.enrichment_enabled`.
 
 ## Where we stopped (EXACT)
 - Branch `fix/launch-readiness-fx1-fx7`, HEAD `df9632e`, ~11 fix commits, 952 unit tests pass, pyright 0, ruff clean. **Deployed to prod** (scout.chowmes.com) through `68a940a` (LLM layer df9632e committed but NOT yet deployed).
