@@ -430,6 +430,35 @@ def _make_wikidata_exec_record(company: str, wexec: WikidataExec) -> ExecutiveRe
     )
 
 
+def _name_tokens(name: str) -> list[str]:
+    cleaned = "".join(c if c.isalnum() or c.isspace() else " " for c in name.lower())
+    return [t for t in cleaned.split() if len(t) > 1]
+
+
+def _same_person(a: str, b: str) -> bool:
+    """Fuzzy same-person: surnames match and first name (or initial) agrees.
+    Catches cross-source format drift — 'Joe Creed' vs 'Joseph E. Creed',
+    'Olivier Pomel' vs 'Olivier Pomel'."""
+    ta, tb = _name_tokens(a), _name_tokens(b)
+    if not ta or not tb or ta[-1] != tb[-1]:
+        return False
+    return ta[0] == tb[0] or ta[0].startswith(tb[0]) or tb[0].startswith(ta[0])
+
+
+def _dedupe_execs(execs: list[ExecutiveRecord]) -> list[ExecutiveRecord]:
+    """Drop cross-source duplicates of the same person, keeping the first
+    (source-priority order: on-site → Wikidata → SEC → Wikipedia). Prefers the
+    kept record's longer/ more specific title when the later dup has more detail."""
+    kept: list[ExecutiveRecord] = []
+    for e in execs:
+        match = next((k for k in kept if _same_person(k.name, e.name)), None)
+        if match is None:
+            kept.append(e)
+        elif not match.title and e.title:
+            match.title = e.title  # backfill a missing title from the dup
+    return kept
+
+
 def _make_sec_exec_record(company: str, name: str, title: str) -> ExecutiveRecord:
     """Map an SEC EDGAR officer/director onto an ExecutiveRecord with provenance."""
     slug = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
@@ -872,6 +901,11 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
         else:
             executives = _extract_executives(all_markdown, company, primary)
 
+    # Rebuild the dedup set from whatever on-site path populated `executives`
+    # (the LLM/regex paths above assign the list without touching seen_names) so
+    # enrichment doesn't RE-ADD an on-site exec — the "Olivier Pomel x2" bug.
+    seen_names = {rec.name.lower().strip() for rec in executives}
+
     # WATERFALL source #2 — Wikidata enrichment. ~half of companies never
     # publish leadership on their own site (Stripe, Vercel, most retail brands),
     # so on-site alone caps coverage at ~50%. Wikidata (free, structured,
@@ -912,7 +946,7 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
                         _make_wikipedia_exec_record(company, name, witem.title.strip())
                     )
 
-    for exec_rec in executives:
+    for exec_rec in _dedupe_execs(executives):
         records.append(exec_rec.model_dump(mode="json"))
 
     socials = _extract_socials(all_markdown, all_links, company, primary)
