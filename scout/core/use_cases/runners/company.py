@@ -24,7 +24,8 @@ from scout.core.use_cases.runners.base import (
 logger = structlog.get_logger(__name__)
 
 # Hard cap on secondary sitemap discovery so a giant sitemap can't hang a scan.
-_SITEMAP_TIMEOUT_S = 15.0
+# 10s balances latency against giving normal sitemaps time to return.
+_SITEMAP_TIMEOUT_S = 10.0
 
 _ABOUT_PATHS = ["/about", "/about-us", "/company", "/our-story"]
 _TEAM_PATHS = [
@@ -541,14 +542,21 @@ def _prefilter_candidates(
     sitemap_urls: list[str],
     limit: int = 60,
 ) -> list[tuple[str, str]]:
-    """Same-host, non-excluded, de-duped (anchor_text, url) candidates to hand
-    the LLM page-selector — nav links first (they carry the best anchor text),
-    then sitemap URLs. Bounded so a link-heavy site can't blow up token cost."""
+    """Rank + bound (anchor_text, url) candidates to hand the LLM page-selector.
+
+    `anchors` are (url, anchor_text) pairs from `_extract_anchor_candidates`;
+    sitemap URLs carry no text. Returns (anchor_text, url) pairs — the shape
+    `llm_select_pages` expects — with leadership-signalled candidates FIRST so
+    the real team/leadership link survives the cap instead of being crowded out
+    by sitemap noise (the Figma repro: 300 sitemap color-swatch pages buried the
+    about link). Same-host, non-excluded, de-duped.
+    """
     base_host = urlparse(base).netloc.lower().removeprefix("www.")
     base_norm = base.rstrip("/")
-    out: list[tuple[str, str]] = []
+    scored: list[tuple[int, int, str, str]] = []
     seen: set[str] = set()
-    for text, url in [*anchors, *[("", u) for u in sitemap_urls]]:
+    # anchors are (url, text); sitemap urls have no anchor text.
+    for order, (url, text) in enumerate([*anchors, *[(u, "") for u in sitemap_urls]]):
         if not url or not url.startswith(("http://", "https://")):
             continue
         norm = url.rstrip("/")
@@ -559,10 +567,11 @@ def _prefilter_candidates(
         if _url_is_excluded(url):
             continue
         seen.add(norm)
-        out.append((text, url))
-        if len(out) >= limit:
-            break
-    return out
+        signal = max(_leadership_score(url), _leadership_text_score(text))
+        # higher signal first, then original order (nav before sitemap)
+        scored.append((-signal, order, text, url))
+    scored.sort()
+    return [(text, url) for _, _, text, url in scored[:limit]]
 
 
 def _extract_anchor_candidates(html: str, base: str) -> list[tuple[str, str]]:
@@ -620,6 +629,13 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
     all_links: list[str] = []
     sources: list[FetchResult] = []
 
+    # The homepage is the PRIMARY discovery source (nav + FOOTER links, where the
+    # "Leadership"/"Team"/"About" link usually lives) — so it gets the full
+    # intelligence render: footer links often only appear after scan_full_page
+    # scrolls the page (measured: a light render here regressed coverage on
+    # Cloudflare/Patagonia, whose leadership link is footer-only). Latency is
+    # trimmed on the SECONDARY fetches instead (about page = light, ≤2 candidate
+    # pages, shorter sitemap cap).
     homepage = await safe_scrape(crawler, base, intelligence_render=True)
     if homepage:
         src = evidence_from_scrape(base, homepage)
@@ -633,7 +649,9 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
         all_markdown += src.markdown + "\n"
         all_links.extend(src.links)
 
-    async def scrape_first(paths: list[str], *, require_signal: bool = False) -> None:
+    async def scrape_first(
+        paths: list[str], *, require_signal: bool = False, intelligence_render: bool = True
+    ) -> None:
         """Fetch candidate paths in order, keeping the first usable page.
 
         FX (BUILD-2): a path can return success=True with real markdown that
@@ -650,7 +668,7 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
         fallback: FetchResult | None = None
         for path in paths:
             url = urljoin(base + "/", path.lstrip("/"))
-            resp = await safe_scrape(crawler, url, intelligence_render=True)
+            resp = await safe_scrape(crawler, url, intelligence_render=intelligence_render)
             if not resp:
                 continue
             src = evidence_from_scrape(url, resp)
@@ -662,7 +680,8 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
         if fallback is not None:
             _adopt(fallback)
 
-    await scrape_first(_ABOUT_PATHS)
+    # About page: fetched for a description + more nav links → light render.
+    await scrape_first(_ABOUT_PATHS, intelligence_render=False)
 
     # MOAT Layer 2 — reach the REAL leadership page instead of only guessing.
     # Primary source: links harvested from the rendered homepage/about nav+footer
@@ -688,11 +707,15 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
     if llm_key:
         select_candidates = _prefilter_candidates(base, anchors, sitemap)
         if select_candidates:
+            # LATENCY: cap at 2 — each selected page gets a full intelligence
+            # render (~8s). The LLM selector returns most-likely-first, so 2
+            # covers the common "roster + overview" split (GitLab e-group +
+            # /company) without a third expensive fetch.
             leadership_urls = await llm_select_pages(
-                company, select_candidates, llm_key, target="leadership"
+                company, select_candidates, llm_key, target="leadership", limit=2
             )
     if not leadership_urls:
-        leadership_urls = _discover_leadership_urls(base, [*anchors, *sitemap], limit=3)
+        leadership_urls = _discover_leadership_urls(base, [*anchors, *sitemap], limit=2)
     adopted_candidate = False
     for url in leadership_urls:
         resp = await safe_scrape(crawler, url, intelligence_render=True)

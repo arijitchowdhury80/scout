@@ -8,9 +8,44 @@ from scout.core.use_cases.runners.company import (
     _extract_anchor_candidates,
     _leadership_score,
     _leadership_text_score,
+    _prefilter_candidates,
 )
 
 BASE = "https://www.acme.com"
+
+
+def test_prefilter_consumes_url_text_and_emits_text_url() -> None:
+    """Regression: _extract_anchor_candidates emits (url, text); the LLM selector
+    wants (text, url). A tuple-order mismatch here silently dropped EVERY nav
+    anchor (its 'url' was actually link text, failing the http check), leaving
+    only sitemap noise — the GitLab 0-execs bug."""
+    anchors = [
+        ("https://www.acme.com/company/team", "Leadership"),  # (url, text) as emitted
+        ("https://www.acme.com/pricing", "Pricing"),
+    ]
+    out = _prefilter_candidates(BASE, anchors, sitemap_urls=[])
+    # emitted as (anchor_text, url); leadership candidate ranked first
+    assert out[0] == ("Leadership", "https://www.acme.com/company/team")
+    assert all(url.startswith("http") for _, url in out)  # url is really the url
+
+
+def test_prefilter_ranks_leadership_above_sitemap_noise() -> None:
+    """The real team link must survive the cap even when sitemap noise is huge —
+    the Figma repro (300 color-swatch pages burying the about link)."""
+    anchors = [("https://www.acme.com/leadership", "Leadership")]
+    sitemap_noise = [f"https://www.acme.com/colors/shade-{i}" for i in range(200)]
+    out = _prefilter_candidates(BASE, anchors, sitemap_noise, limit=5)
+    assert out[0] == ("Leadership", "https://www.acme.com/leadership")
+
+
+def test_prefilter_drops_foreign_host_and_excluded() -> None:
+    anchors = [
+        ("https://linkedin.com/company/acme", "Acme on LinkedIn"),
+        ("https://www.acme.com/blog/leadership-post", "Leadership"),  # excluded segment
+        ("https://www.acme.com/team", "Team"),
+    ]
+    out = _prefilter_candidates(BASE, anchors, [])
+    assert out == [("Team", "https://www.acme.com/team")]
 
 
 def test_anchor_text_scoring() -> None:
