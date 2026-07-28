@@ -47,6 +47,59 @@ def test_no_domain_prefers_entity_with_website() -> None:
     assert _pick_company_qid(["Q1", "Q2"], entities, "") == "Q2"
 
 
+def test_former_officeholder_with_end_date_is_excluded() -> None:
+    """A CEO/director claim with a P582 end-time qualifier is a FORMER role
+    (the Siemens ex-CEO leak) and must be dropped."""
+    entity = {
+        "claims": {
+            "P169": [
+                {"mainsnak": {"datavalue": {"value": {"id": "QCURRENT"}}}},
+                {
+                    "mainsnak": {"datavalue": {"value": {"id": "QFORMER"}}},
+                    "qualifiers": {"P582": [{"snaktype": "value"}]},  # has end date
+                },
+            ]
+        }
+    }
+    refs = dict(_extract_person_refs(entity))
+    assert "QCURRENT" in refs
+    assert "QFORMER" not in refs
+
+
+@pytest.mark.asyncio
+async def test_deceased_person_is_excluded() -> None:
+    """A long-dead founder (Werner von Siemens, d.1892) must not appear as a
+    current leader — filtered by the person's P570 date-of-death claim."""
+    search_resp = {"search": [{"id": "Q_CO"}]}
+    entities_resp = {
+        "entities": {
+            "Q_CO": _entity(
+                "Q_CO",
+                website="https://siemens.com",
+                claims={"P112": [_person_claim("Q_DEAD")], "P169": [_person_claim("Q_ALIVE")]},
+            )
+        }
+    }
+    people_resp = {
+        "entities": {
+            "Q_DEAD": {"labels": {"en": {"value": "Werner von Siemens"}}, "claims": {"P570": [{}]}},
+            "Q_ALIVE": {"labels": {"en": {"value": "Roland Busch"}}, "claims": {}},
+        }
+    }
+
+    async def fake_fetch(url: str) -> dict:
+        if "wbsearchentities" in url:
+            return search_resp
+        if "sitelinks" in url:
+            return entities_resp
+        return people_resp
+
+    execs = await wikidata_executives("Siemens", "siemens.com", fetch=fake_fetch)
+    names = [e.name for e in execs]
+    assert "Roland Busch" in names
+    assert "Werner von Siemens" not in names
+
+
 def test_extract_person_refs_dedupes_by_highest_role() -> None:
     entity = _entity(
         "Q9",
@@ -83,9 +136,9 @@ async def test_wikidata_executives_end_to_end_with_domain() -> None:
     async def fake_fetch(url: str) -> dict:
         if "wbsearchentities" in url:
             return search_resp
-        if "claims" in url:  # props=claims|labels -> the entity-detail call
+        if "sitelinks" in url:  # claims|labels|sitelinks -> the company-entity call
             return entities_resp
-        return people_resp  # props=labels -> the person-label call
+        return people_resp  # labels|claims -> the person call (Q_CEO/Q_F have no P570)
 
     execs = await wikidata_executives("Acme", "acme.com", fetch=fake_fetch)
     names = {e.name: e.title for e in execs}

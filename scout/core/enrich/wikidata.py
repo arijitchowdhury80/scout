@@ -108,12 +108,24 @@ def _extract_person_refs(entity: dict) -> list[tuple[str, str]]:
     role_by_qid: dict[str, str] = {}
     for prop, role in _ROLE_PROPS:
         for claim in entity.get("claims", {}).get(prop, []):
+            # Skip FORMER officeholders: a CEO/chair/director claim with an
+            # end-time qualifier (P582) is a past role, not current leadership.
+            # This is what leaked Siemens' ex-CEOs (Löscher, Kleinfeld) as if
+            # they still ran the company.
+            if "P582" in (claim.get("qualifiers") or {}):
+                continue
             try:
                 pid = str(claim["mainsnak"]["datavalue"]["value"]["id"])
             except (KeyError, TypeError):
                 continue
             role_by_qid.setdefault(pid, role)  # first (highest-precedence) wins
     return list(role_by_qid.items())
+
+
+def _is_deceased(person_entity: dict) -> bool:
+    """True if the person has a date-of-death (P570) claim. Long-dead founders
+    (e.g. Werner von Siemens, d. 1892) are not current leadership."""
+    return bool(person_entity.get("claims", {}).get("P570"))
 
 
 def _label_of(entity: dict) -> str:
@@ -223,10 +235,14 @@ async def wikidata_executives(
         if not refs:
             return []
         person_qids = [qid for qid, _ in refs]
-        people = (await fetch(_entities_url(person_qids, "labels"))).get("entities", {})
+        # Fetch claims too so we can drop deceased people (P570 date of death).
+        people = (await fetch(_entities_url(person_qids, "labels|claims"))).get("entities", {})
         execs: list[WikidataExec] = []
         for qid, role in refs:
-            name = _label_of(people.get(qid, {}))
+            person = people.get(qid, {})
+            if _is_deceased(person):
+                continue
+            name = _label_of(person)
             if name:
                 execs.append(WikidataExec(name=name, title=role, qid=qid, company_qid=company_qid))
         logger.info(
