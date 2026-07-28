@@ -48,10 +48,10 @@ def _norm_company(name: str) -> str:
 
 
 def _reorder_sec_name(sec_name: str) -> str:
-    """SEC reports names as 'LAST FIRST MIDDLE' (all caps). Canonicalize to a
-    normal 'First Middle Last', particle-safe (Von Ahn stays a surname) — the
-    shared identity canonicalizer, not a naive token swap."""
-    return canonical(sec_name).display or sec_name.title()
+    """SEC reports names 'LAST FIRST MIDDLE' — but only SOMETIMES all-caps
+    ("Pomel Olivier" is title-case), so we tell the canonicalizer the order
+    explicitly rather than let it guess. Particle-safe (Von Ahn stays a surname)."""
+    return canonical(sec_name, last_first=True).display or sec_name.title()
 
 
 def _match_cik(company: str, tickers: dict) -> int | None:

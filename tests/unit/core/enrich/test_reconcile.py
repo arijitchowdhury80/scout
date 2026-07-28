@@ -145,3 +145,15 @@ def test_reconcile_orders_leadership_first() -> None:
     ]
     out = reconcile(cands)
     assert out[0].name == "Bob Boss"  # CEO before director
+
+
+def test_explicit_last_first_title_case() -> None:
+    # SEC title-case last-first ("Pomel Olivier") can't be auto-detected -> hint.
+    assert canonical("Pomel Olivier", last_first=True).display == "Olivier Pomel"
+    assert canonical("Le-quoc Alexis", last_first=True).display == "Alexis Le-quoc"
+
+
+def test_last_first_particle_surname() -> None:
+    p = canonical("VON AHN LUIS", last_first=True)
+    assert p.display == "Luis von Ahn"
+    assert same_name("VON AHN LUIS", "Luis von Ahn")  # SEC form matches natural form (via last_first auto on caps)

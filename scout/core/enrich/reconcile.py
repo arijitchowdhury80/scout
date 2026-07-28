@@ -145,11 +145,15 @@ def _fold(token: str) -> str:
 _SUFFIX_RE = re.compile(r",?\s*\b(jr|sr|ii|iii|iv|phd|md|esq)\b\.?", re.I)
 
 
-def canonical(raw: str) -> PersonName:
+def canonical(raw: str, last_first: bool | None = None) -> PersonName:
     """Parse a raw name (any source format) into a normalized PersonName.
 
-    Handles SEC 'LAST FIRST MIDDLE' (all-caps or comma), surname particles
-    (von/van/de...), suffixes (Jr/III/PhD), nickname quotes, and accents.
+    `last_first`: None = auto-detect order (comma or ALL-CAPS signals surname-
+    first); True/False = the caller KNOWS the order (SEC Form 4 is always
+    last-first, and its names are only sometimes all-caps — "Pomel Olivier" —
+    so detection can't be relied on). Handles surname particles (von/van/de bind
+    to the surname even in last-first), suffixes (Jr/III/PhD), nickname quotes,
+    and accents.
     """
     if not raw or not raw.strip():
         return PersonName()
@@ -171,13 +175,20 @@ def canonical(raw: str) -> PersonName:
     if not tokens:
         return PersonName()
 
-    all_caps = len(tokens) >= 2 and all(t.isupper() for t in tokens if t.isalpha())
-    last_first = comma or all_caps
     lower = [t.lower() for t in tokens]
+    if last_first is None:
+        all_caps = len(tokens) >= 2 and all(t.isupper() for t in tokens if t.isalpha())
+        last_first = comma or all_caps
 
     if last_first:
-        surname_tokens = [tokens[0]]
-        given_tokens = tokens[1:]
+        # Surname leads: consume leading particles + the first surname word,
+        # the rest is the given name. "VON AHN LUIS" -> surname "von Ahn",
+        # given "Luis" (NOT "Ahn Luis Von").
+        i = 0
+        while i < len(tokens) - 1 and lower[i] in _PARTICLES:
+            i += 1
+        surname_tokens = tokens[: i + 1]
+        given_tokens = tokens[i + 1 :]
     else:
         # First Middle ... Last, with leading particles gluing to the surname.
         surname_start = len(tokens) - 1
