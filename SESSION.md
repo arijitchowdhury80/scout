@@ -1,13 +1,17 @@
 # SESSION.md — Scout Launch-Readiness Program (updated 2026-07-27)
 
 ## Status (one line)
-Moat build IN PROGRESS. **Exec extraction PRECISION SOLVED this session (Layer 1 render + Layer 3 LLM adjudication — live gauntlet CLEAN 5/5, zero foreign-CEO leaks). RECALL/DISCOVERY (Layer 2) is now the bottleneck and the next job.** Changes uncommitted on branch `fix/launch-readiness-fx1-fx7`.
+Moat build IN PROGRESS — big strides this session, all COMMITTED (branch `fix/launch-readiness-fx1-fx7`, HEAD 4a19489). **Precision SOLVED (zero foreign-CEO leaks), page-selection now LLM-driven (no hardcoded keywords), discovery finds real leadership pages (GitLab 0→10), latency −35%. Scaled harness shows exec COVERAGE ~46-49% across 35 diverse cos — the real remaining gap.** 981 tests, pyright 0, ruff clean.
+
+## What shipped this session (5 commits: 5927e0f, 9639ecf, eb747a1, 4a19489)
+- Layer 1 render (scan_full_page/delay/block_images), Layer 3 LLM adjudication + company-identity guard (CLEAN 5/5), Layer 2 discovery (nav-anchor harvest + sitemap + anchor-text scoring), Pillar A LLM-driven page selection (killed keyword hardcoding), scaled auto-eval harness, tuple-order coverage bug fix (GitLab 0→10), latency −35%.
 
 ## RESUME ACTION (next session — do this)
-1. Read this file + memory `scout-extraction-fix-plan-seed.md` (now has verified Layer1/Layer3 progress) + the plan `docs/workspace/scout-core/moat-extraction-plan-2026-07-27.md`.
-2. **Build Layer 2: smart exec-page discovery** — harvest leadership links from the rendered homepage nav, broaden the guessed path list (add /company, /our-team, /people, /company/leadership...), and classify "is this THIS company's leadership page." This fixes the recall gap (Anthropic's roster is at /company, never fetched). For no-clean-page sites (Stripe/Vercel) decide on off-site enrichment (press/newsroom) — separate scope call.
-3. Then flip **products** the same way (products.py still empty-only fallback) + Layer 4 anti-bot via **ScraperAPI** (founder funds+key).
-4. **COMMIT the uncommitted moat work first** (branch is guard-blocked from push; founder pushes). Verified: 963 tests, pyright 0, ruff clean. Do NOT re-derive — gauntlet harness + result docs in `docs/test-results-2026-07-27/moat-gauntlet/`.
+1. Read this file + memory `scout-extraction-fix-plan-seed.md` (full verified progress + numbers) + plan `docs/workspace/scout-core/moat-extraction-plan-2026-07-27.md` (Production-Readiness Phase).
+2. **Close the coverage gap (~half of companies return 0 execs):** (a) **2-hop discovery** — after fetching /company or /about, harvest ITS links for a deeper /team roster (generalize the GitLab /company→/company/team pattern). (b) **off-site enrichment** for no-on-site-page cos (Stripe/Vercel/retail brands) — press/newsroom/Wikidata; scope+cost decision. (c) Figma-class: nav is all product links — needs footer/sitemap deep-dive.
+3. **Larger-N scaled eval** to beat the ±2-3/35 variance + build the golden set (~200, SEC/Wikidata) for real precision/recall. Harness: `docs/test-results-2026-07-27/moat-gauntlet/scaled_eval.py <domains.tsv>`.
+4. Then **products** flip (products.py still empty-only) + **Layer 4 anti-bot = ScraperAPI** (founder funds+key). Clean up asyncio cancel noise from sitemap timeout.
+5. Branch guard-blocked from push — founder pushes. Do NOT re-derive; harness + result docs in `docs/test-results-2026-07-27/moat-gauntlet/`.
 
 ## Where we stopped (EXACT)
 - Branch `fix/launch-readiness-fx1-fx7`, HEAD `df9632e`, ~11 fix commits, 952 unit tests pass, pyright 0, ruff clean. **Deployed to prod** (scout.chowmes.com) through `68a940a` (LLM layer df9632e committed but NOT yet deployed).
