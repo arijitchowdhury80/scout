@@ -12,7 +12,9 @@ import structlog
 from bs4 import BeautifulSoup, Tag
 
 from scout.core.crawler import ScoutCrawler
+from scout.core.enrich.sec import sec_executives
 from scout.core.enrich.wikidata import WikidataExec, wikidata_executives
+from scout.core.enrich.wikipedia import wikipedia_executives
 from scout.core.llm_extract import llm_extract_executives, llm_select_pages
 from scout.core.platform.types import Citation, FetchResult, RunRequest
 from scout.core.use_cases.prism import CompanyRecord, CompanySocialRecord, ExecutiveRecord
@@ -428,6 +430,54 @@ def _make_wikidata_exec_record(company: str, wexec: WikidataExec) -> ExecutiveRe
     )
 
 
+def _make_sec_exec_record(company: str, name: str, title: str) -> ExecutiveRecord:
+    """Map an SEC EDGAR officer/director onto an ExecutiveRecord with provenance."""
+    slug = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+    src = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany"
+    return ExecutiveRecord(
+        objectID=f"exec_{slug}",
+        company=company,
+        name=name,
+        title=title,
+        source_url=src,
+        confidence=0.8,  # authoritative structured filing
+        citations=[
+            Citation(
+                source_id="sec_edgar",
+                source_url=src,
+                field="name",
+                claim=name,
+                snippet=f"{name} — {title} (SEC Form 3/4)".strip(" —"),
+                confidence=0.8,
+            )
+        ],
+    )
+
+
+def _make_wikipedia_exec_record(company: str, name: str, title: str) -> ExecutiveRecord:
+    """Map a Wikipedia-sourced leader onto an ExecutiveRecord with provenance."""
+    slug = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+    article = "https://en.wikipedia.org/wiki/" + company.replace(" ", "_")
+    return ExecutiveRecord(
+        objectID=f"exec_{slug}",
+        company=company,
+        name=name,
+        title=title,
+        source_url=article,
+        confidence=0.65,
+        citations=[
+            Citation(
+                source_id="wikipedia",
+                source_url=article,
+                field="name",
+                claim=name,
+                snippet=f"{name} — {title} (Wikipedia)".strip(" —"),
+                confidence=0.65,
+            )
+        ],
+    )
+
+
 async def _extract_executives_via_llm(
     company: str, source: FetchResult, api_key: str, *, content: str = ""
 ) -> list[ExecutiveRecord]:
@@ -835,6 +885,32 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
             if key and key not in seen_names:
                 seen_names.add(key)
                 executives.append(_make_wikidata_exec_record(company, wexec))
+
+        # WATERFALL source #3 — SEC EDGAR (US public companies). Authoritative,
+        # structured officer/director data; no LLM, can't hallucinate a title.
+        # ADDS names not already present (on-site/Wikidata win on a clash).
+        for sexec in await sec_executives(company):
+            key = sexec.name.lower().strip()
+            if key and key not in seen_names:
+                seen_names.add(key)
+                executives.append(_make_sec_exec_record(company, sexec.name, sexec.title))
+
+        # WATERFALL source #4 — Wikipedia article extraction. Fires ONLY when the
+        # company is still uncovered after on-site + Wikidata (bounds the LLM
+        # cost to the gaps). Wikidata's structured claims are thin for many
+        # notable private firms (Notion has an entity but no CEO claim) — their
+        # Wikipedia prose names the founders/CEO. Reuses the domain-disambiguated
+        # entity + the company-guarded extractor. Grounded + keyless.
+        wiki_key = _fallback_llm_api_key(crawler)
+        if not executives and wiki_key:
+            for witem in await wikipedia_executives(company, domain, wiki_key):
+                name = witem.name.strip()
+                key = name.lower()
+                if name and key not in seen_names:
+                    seen_names.add(key)
+                    executives.append(
+                        _make_wikipedia_exec_record(company, name, witem.title.strip())
+                    )
 
     for exec_rec in executives:
         records.append(exec_rec.model_dump(mode="json"))

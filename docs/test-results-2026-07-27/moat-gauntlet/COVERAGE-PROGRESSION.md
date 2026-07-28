@@ -8,7 +8,23 @@ finance, healthcare, industrial, non-US). Coverage = % returning ≥1 executive.
 |---|---|---|---|
 | On-site only (initial) | 43% (15/35) | 71s / 204s | before any fixes |
 | + tuple-order bug fix + latency cuts | ~46-49% (16-17/35) | 46s / 134s | GitLab 0→10; ±2-3 co variance at N=35 |
-| **+ Wikidata enrichment (source #2)** | **83% (29/35)** | 69s / 174s | **the waterfall payoff** |
+| + Wikidata enrichment (source #2) | 83% (29/35) | 69s / 174s | the waterfall payoff |
+| **+ SEC EDGAR (#3) + Wikipedia (#4) + senior-guard** | **94% (33/35)** | 55s / 138s | **past the 90% launch bar** |
+
+## Final waterfall (94%)
+- Source #1 on-site → #2 Wikidata (structured) → #3 SEC EDGAR (authoritative
+  officers/directors for US public cos; MongoDB now correct: Chirantan Desai
+  President&CEO, Michael Berry CFO) → #4 Wikipedia (LLM over the article, gated
+  to fire only when still uncovered; adds Everlane/Plaid).
+- Exec extractor tightened to SENIOR leadership only (dropped the MongoDB "Head
+  of Product Security" false positive Wikipedia first produced).
+
+## Still zero after full waterfall (2): Vercel, Notion
+Both blocked by strict domain-disambiguation: Vercel collides with a French
+village on Wikidata; Notion's passed domain (notion.so) doesn't match its
+Wikidata official-website field. SEC can't help (both private). These are the
+deep long tail for **true paid web-search grounding** (Anthropic web_search or a
+search API) — a later, cost-gated increment. 94% already clears the bar.
 
 ## What Wikidata recovered (companies with no on-site leadership page)
 Stripe, Cloudflare, Figma, Shopify, Glossier, Klarna, Patagonia, Siemens, 3M,

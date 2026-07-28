@@ -156,6 +156,49 @@ def _entities_url(qids: list[str], props: str) -> str:
     )
 
 
+def enwiki_title(entity: dict) -> str:
+    """The English Wikipedia article title for a resolved company entity, or ''.
+
+    Lets the Wikipedia source reuse Wikidata's domain-disambiguation instead of
+    re-guessing the article by name (which hits the same 'Vercel village' trap).
+    """
+    try:
+        return str(entity["sitelinks"]["enwiki"]["title"]).strip()
+    except (KeyError, TypeError):
+        return ""
+
+
+async def resolve_company_entity(
+    company: str, domain: str = "", *, fetch=_default_fetch, search_limit: int = 5
+) -> tuple[str, dict]:
+    """Resolve `company` (+domain) to its Wikidata (qid, entity) or ('', {}).
+
+    Shared by the Wikidata and Wikipedia sources so both get the SAME
+    domain-disambiguated entity. Entity includes claims + labels + sitelinks.
+    Never raises.
+    """
+    if not company.strip():
+        return "", {}
+    try:
+        search = (await fetch(_search_url(company, search_limit))).get("search") or []
+        candidate_qids = [s["id"] for s in search if isinstance(s, dict) and s.get("id")]
+        if not candidate_qids:
+            return "", {}
+        entities = (await fetch(_entities_url(candidate_qids, "claims|labels|sitelinks"))).get(
+            "entities", {}
+        )
+        company_qid = _pick_company_qid(candidate_qids, entities, domain)
+        if not company_qid:
+            logger.info(
+                "[scout/wikidata] no confident entity match", company=company, domain=domain
+            )
+            return "", {}
+        return company_qid, entities.get(company_qid, {})
+    except Exception as exc:  # noqa: BLE001 - enrichment is best-effort
+        logger.info("[scout/wikidata] entity resolve skipped", company=company, error=str(exc))
+        return "", {}
+
+
 async def wikidata_executives(
     company: str,
     domain: str = "",
@@ -170,21 +213,13 @@ async def wikidata_executives(
     whenever known. `fetch` is injectable for testing. Never raises: any network
     or parse failure returns [] so the caller's waterfall continues.
     """
-    if not company.strip():
-        return []
     try:
-        search = (await fetch(_search_url(company, search_limit))).get("search") or []
-        candidate_qids = [s["id"] for s in search if isinstance(s, dict) and s.get("id")]
-        if not candidate_qids:
-            return []
-        entities = (await fetch(_entities_url(candidate_qids, "claims|labels"))).get("entities", {})
-        company_qid = _pick_company_qid(candidate_qids, entities, domain)
+        company_qid, entity = await resolve_company_entity(
+            company, domain, fetch=fetch, search_limit=search_limit
+        )
         if not company_qid:
-            logger.info(
-                "[scout/wikidata] no confident entity match", company=company, domain=domain
-            )
             return []
-        refs = _extract_person_refs(entities.get(company_qid, {}))[:max_execs]
+        refs = _extract_person_refs(entity)[:max_execs]
         if not refs:
             return []
         person_qids = [qid for qid, _ in refs]

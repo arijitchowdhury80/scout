@@ -109,12 +109,15 @@ _INSTRUCTIONS: dict[ExtractionTarget, str] = {
 # returning a DIFFERENT company's CEO (Stripe -> Lightspeed's CEO, Datadog ->
 # MongoDB's CEO) or an article author as if they led this company.
 _EXECUTIVE_COMPANY_GUARD = (
-    " This page belongs to the company '{company}'. Include ONLY people who are "
-    "executives, founders, or leadership of '{company}' ITSELF. EXCLUDE: article "
-    "authors and journalists; quoted customers, partners, or analysts; employees "
-    "of any OTHER company; and investors or board members of other firms "
-    "mentioned only in passing. If you are not confident a person leads "
-    "'{company}', do not include them."
+    " This page belongs to the company '{company}'. Include ONLY the SENIOR "
+    "leadership of '{company}' ITSELF: founders, C-level executives (CEO, CFO, "
+    "CTO, COO, CMO, CRO, and other 'Chief ... Officer' titles), the president, "
+    "EVPs/SVPs, and members of the board of directors. EXCLUDE: middle managers "
+    "and narrow-function heads (e.g. 'Head of Product Security', 'Engineering "
+    "Manager', 'Sourcing Lead'); article authors and journalists; quoted "
+    "customers, partners, or analysts; employees of any OTHER company; and "
+    "board members or investors of other firms mentioned only in passing. If you "
+    "are not confident a person is senior leadership at '{company}', omit them."
 )
 
 _SCHEMAS: dict[ExtractionTarget, dict] = {

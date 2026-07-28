@@ -63,7 +63,7 @@ def test_company_guard_appended_for_executives_with_company() -> None:
     and Datadog->MongoDB gauntlet failure)."""
     instruction = _instruction_for("executives", "Stripe")
     assert "Stripe" in instruction
-    assert "ONLY people who are" in instruction
+    assert "SENIOR leadership" in instruction
     assert "EXCLUDE" in instruction
 
 
