@@ -1,18 +1,22 @@
 # SESSION.md — Scout Launch-Readiness Program (updated 2026-07-27)
 
 ## Status (one line)
-Moat exec extraction **HITS 94% coverage across 35 diverse cos — PAST the 90% launch bar** (branch `fix/launch-readiness-fx1-fx7`, HEAD 47f0bc5). Precision solved (senior-only guard, no foreign leaks); 4-source waterfall (on-site→Wikidata→SEC→Wikipedia). 1005 tests, pyright 0, ruff clean. Remaining: PRECISION golden-set validation, last ~6% (Vercel/Notion) via paid web-search, latency (p50 55s), then products.
+Moat exec extraction: 4-source waterfall (on-site→Wikidata→SEC→Wikipedia) gives 94% COVERAGE, but the **golden set revealed coverage≠correctness — verified key-person RECALL ~60% (below 80% bar) → NOT launchable on quality yet.** Golden harness built; caught+fixed a trust-killing bug (dead/former execs, e.g. Werner von Siemens d.1892). Branch `fix/launch-readiness-fx1-fx7`, HEAD 727f278. 1007 tests, pyright 0, ruff clean.
 
 ## What shipped this session (5 commits: 5927e0f, 9639ecf, eb747a1, 4a19489)
 - Layer 1 render (scan_full_page/delay/block_images), Layer 3 LLM adjudication + company-identity guard (CLEAN 5/5), Layer 2 discovery (nav-anchor harvest + sitemap + anchor-text scoring), Pillar A LLM-driven page selection (killed keyword hardcoding), scaled auto-eval harness, tuple-order coverage bug fix (GitLab 0→10), latency −35%.
 
 ## RESUME ACTION (next session — do this)
-1. Read this file + memory `scout-extraction-fix-plan-seed.md` + `docs/test-results-2026-07-27/moat-gauntlet/COVERAGE-PROGRESSION.md`.
-2. **Validate PRECISION, not just coverage** (the critical next gate — 94% coverage ≠ 94% correct): build a ~200-co GOLDEN SET labeled via SEC/Wikidata cross-ref; run `scaled_eval.py` at larger N; measure precision/recall (no wrong execs, no junior/foreign names). Coverage variance is ±2-3 at N=35 — need bigger N.
-3. **Last ~6% (Vercel/Notion class):** true web-search grounding — Anthropic web_search tool via existing LLM_API_KEY (billable ~$10/1k searches) OR a search API key. Cost-gated — get founder nod.
-4. **Latency** (p50 55s): run the 4 enrichment sources CONCURRENTLY with the on-site fetch (asyncio.gather) instead of sequentially. Clean the asyncio sitemap-cancel "GeneratorExit" noise.
-5. Then **products** flip (products.py still empty-only) + **Layer 4 anti-bot = ScraperAPI** (founder funds+key).
-6. Branch guard-blocked from push — founder pushes. Enrich modules: `scout/core/enrich/{wikidata,wikipedia,sec}.py`; gated by `ScoutCrawler.enrichment_enabled`.
+1. Read this file + memory `scout-extraction-fix-plan-seed.md` + `docs/test-results-2026-07-27/moat-gauntlet/GOLDEN-SET-FINDINGS.md` (the honest quality picture) + COVERAGE-PROGRESSION.md.
+2. **CLOSE THE QUALITY GAP to precision≥90%/recall≥80% (the launch gate):**
+   - **Better ground truth for real PRECISION**: SEC DEF 14A officer/director tables (complete + authoritative) + per-company TRAP-name sets → then precision is honestly scorable (current labels = Wikipedia key_people only, too sparse; recall ~60% is partly a label artifact — Shopify label listed president not CEO Lütke which Scout got right).
+   - **RECALL diagnosis**: why is a listed CEO sometimes not returned? Improve cross-source merge; add FUZZY cross-source dedup (fixes Datadog "Olivier Pomel"×2; and "Joe Creed" vs "Joseph E. Creed").
+   - **Larger N** (23 labeled too few).
+3. Harness: `golden_build.py` (labels) + `golden_score.py` (score) + `scaled_eval.py` (coverage/latency), all in `docs/test-results-2026-07-27/moat-gauntlet/`.
+4. **Last ~6% coverage (Vercel/Notion):** true paid web-search grounding (Anthropic web_search via LLM_API_KEY, billable) — cost-gated, founder nod.
+5. **Latency** (p50 55s): run the 4 enrichment sources CONCURRENTLY (asyncio.gather); clean sitemap-cancel noise.
+6. Then **products** flip (products.py still empty-only) + **Layer 4 anti-bot = ScraperAPI** (founder funds+key).
+7. Branch guard-blocked from push — founder pushes. Enrich modules: `scout/core/enrich/{wikidata,wikipedia,sec}.py`; gated by `ScoutCrawler.enrichment_enabled`.
 
 ## Where we stopped (EXACT)
 - Branch `fix/launch-readiness-fx1-fx7`, HEAD `df9632e`, ~11 fix commits, 952 unit tests pass, pyright 0, ruff clean. **Deployed to prod** (scout.chowmes.com) through `68a940a` (LLM layer df9632e committed but NOT yet deployed).
