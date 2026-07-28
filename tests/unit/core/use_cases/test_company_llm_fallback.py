@@ -12,10 +12,64 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from scout.core.enrich.wikidata import WikidataExec
 from scout.core.llm_extract import LLMExecutiveItem
 from scout.core.platform.types import RunRequest
 from scout.core.types import ScoutMetadata, ScrapeResponse
 from scout.core.use_cases.runners.company import run_company
+
+
+@pytest.mark.asyncio
+async def test_wikidata_enrichment_adds_missing_execs_when_enabled() -> None:
+    """Waterfall source #2: on-site found nothing, Wikidata fills the gap."""
+    crawler = _mock_crawler(
+        {"acme.com": _scrape_ok("https://www.acme.com", "# Acme\n\nNo leadership here.\n")},
+        llm_api_key="",
+    )
+    crawler.enrichment_enabled = True
+    with patch(
+        "scout.core.use_cases.runners.company.wikidata_executives",
+        new_callable=AsyncMock,
+        return_value=[WikidataExec(name="Jane Park", title="CEO", qid="Q1", company_qid="Q2")],
+    ) as mock_wd:
+        records = await run_company(_req(), crawler)
+    mock_wd.assert_called_once()
+    execs = [r for r in records if r.get("record_type") == "executive"]
+    assert any(r["name"] == "Jane Park" and r["title"] == "CEO" for r in execs)
+
+
+@pytest.mark.asyncio
+async def test_wikidata_enrichment_skipped_when_crawler_not_enrichment_enabled() -> None:
+    """A bare MagicMock (unset enrichment_enabled) must NOT fire a live call."""
+    crawler = _mock_crawler(
+        {"acme.com": _scrape_ok("https://www.acme.com", "# Acme\n\nNo leadership here.\n")},
+        llm_api_key="",
+    )  # enrichment_enabled left unset -> child Mock, not `is True`
+    with patch(
+        "scout.core.use_cases.runners.company.wikidata_executives", new_callable=AsyncMock
+    ) as mock_wd:
+        await run_company(_req(), crawler)
+    mock_wd.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_wikidata_does_not_duplicate_onsite_execs() -> None:
+    """A name already found on-site is not re-added by Wikidata (dedup)."""
+    html = '<script type="application/ld+json">{"@type":"Person","name":"Jane Doe","jobTitle":"CEO"}</script>'
+    crawler = _mock_crawler(
+        {"acme.com": _scrape_ok("https://www.acme.com", "# Acme\n", raw_html=html)},
+        llm_api_key="",
+    )
+    crawler.enrichment_enabled = True
+    with patch(
+        "scout.core.use_cases.runners.company.wikidata_executives",
+        new_callable=AsyncMock,
+        return_value=[WikidataExec(name="Jane Doe", title="Founder", qid="Q1", company_qid="Q2")],
+    ):
+        records = await run_company(_req(), crawler)
+    janes = [r for r in records if r.get("record_type") == "executive" and r["name"] == "Jane Doe"]
+    assert len(janes) == 1  # on-site record kept, Wikidata dup dropped
+    assert janes[0]["title"] == "CEO"  # the on-site title, not Wikidata's "Founder"
 
 
 def _meta(url: str = "https://acme.com") -> ScoutMetadata:

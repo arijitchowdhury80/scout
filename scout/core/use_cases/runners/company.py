@@ -12,8 +12,9 @@ import structlog
 from bs4 import BeautifulSoup, Tag
 
 from scout.core.crawler import ScoutCrawler
+from scout.core.enrich.wikidata import WikidataExec, wikidata_executives
 from scout.core.llm_extract import llm_extract_executives, llm_select_pages
-from scout.core.platform.types import FetchResult, RunRequest
+from scout.core.platform.types import Citation, FetchResult, RunRequest
 from scout.core.use_cases.prism import CompanyRecord, CompanySocialRecord, ExecutiveRecord
 from scout.core.use_cases.runners.base import (
     evidence_from_scrape,
@@ -388,6 +389,43 @@ def _fallback_llm_api_key(crawler: ScoutCrawler) -> str:
     """
     key = getattr(crawler, "fallback_llm_api_key", "")
     return key if isinstance(key, str) else ""
+
+
+def _enrichment_on(crawler: ScoutCrawler) -> bool:
+    """Whether external exec enrichment is enabled for this crawler.
+
+    Defensively typed like `_fallback_llm_api_key`: unit tests pass a
+    `MagicMock()` whose unset attribute is a truthy Mock, which must NOT be read
+    as 'enrichment on' (that would fire a live Wikidata HTTP call from every
+    mock-crawler test). Only a real bool True counts.
+    """
+    return getattr(crawler, "enrichment_enabled", False) is True
+
+
+def _make_wikidata_exec_record(company: str, wexec: WikidataExec) -> ExecutiveRecord:
+    """Map a Wikidata leader onto an ExecutiveRecord with Wikidata provenance."""
+    slug = re.sub(r"[^a-z0-9]+", "_", wexec.name.lower()).strip("_")
+    entity_url = f"https://www.wikidata.org/wiki/{wexec.company_qid}" if wexec.company_qid else ""
+    person_url = f"https://www.wikidata.org/wiki/{wexec.qid}" if wexec.qid else ""
+    return ExecutiveRecord(
+        objectID=f"exec_{slug}",
+        company=company,
+        name=wexec.name,
+        title=wexec.title,
+        profile_url=person_url,
+        source_url=entity_url,
+        confidence=0.7,
+        citations=[
+            Citation(
+                source_id=wexec.company_qid or "wikidata",
+                source_url=entity_url,
+                field="name",
+                claim=wexec.name,
+                snippet=f"{wexec.name} — {wexec.title} (Wikidata)".strip(" —"),
+                confidence=0.7,
+            )
+        ],
+    )
 
 
 async def _extract_executives_via_llm(
@@ -783,6 +821,21 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
             )
         else:
             executives = _extract_executives(all_markdown, company, primary)
+
+    # WATERFALL source #2 — Wikidata enrichment. ~half of companies never
+    # publish leadership on their own site (Stripe, Vercel, most retail brands),
+    # so on-site alone caps coverage at ~50%. Wikidata (free, structured,
+    # domain-disambiguated) fills the gap AND adds founders/board the site omits.
+    # On-site records win on a name clash (freshest, most detailed); Wikidata
+    # only ADDS names not already present.
+    if _enrichment_on(crawler):
+        domain = urlparse(base).netloc
+        for wexec in await wikidata_executives(company, domain):
+            key = wexec.name.lower().strip()
+            if key and key not in seen_names:
+                seen_names.add(key)
+                executives.append(_make_wikidata_exec_record(company, wexec))
+
     for exec_rec in executives:
         records.append(exec_rec.model_dump(mode="json"))
 

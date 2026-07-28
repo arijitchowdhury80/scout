@@ -23,7 +23,12 @@ from scout.core.types import (
 
 
 class ScoutCrawler:
-    def __init__(self, llm_api_key: str = "", llm_extraction_fallback_enabled: bool = True) -> None:
+    def __init__(
+        self,
+        llm_api_key: str = "",
+        llm_extraction_fallback_enabled: bool = True,
+        enrichment_enabled: bool = True,
+    ) -> None:
         """Initialise ScoutCrawler.
 
         `llm_api_key` is required for extract mode, and also gates the LLM
@@ -34,6 +39,11 @@ class ScoutCrawler:
         """
         self.llm_api_key = llm_api_key
         self.llm_extraction_fallback_enabled = llm_extraction_fallback_enabled
+        # Gates external exec enrichment (Wikidata/SEC/search) in the company
+        # runner — the waterfall that lifts coverage beyond the ~50% of firms
+        # that publish leadership on their own site. Kept separate so it can be
+        # disabled without touching extraction/LLM behaviour.
+        self.enrichment_enabled = enrichment_enabled
 
     @property
     def fallback_llm_api_key(self) -> str:
