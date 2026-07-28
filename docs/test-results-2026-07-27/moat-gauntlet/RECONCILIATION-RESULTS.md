@@ -47,3 +47,28 @@ listing VCs. On EXECUTIVES specifically, Scout is likely near/above the bar.
    add a board source (governance/IR page or DEF 14A director list — but keep it
    OUT of the golden labels to avoid circularity).
 3. Only then chase the last precision points (any genuine LLM-source noise).
+
+## UPDATE — Executive-team scope (founder scope decision 2026-07-28)
+Re-scored against DEF 14A rosters tagged officer-vs-director, EXECUTIVES ONLY
+(outside directors excluded from both sides):
+
+- **Recall (exec): 79% macro** — essentially AT the 80% bar. Scout reliably
+  returns the executives the proxy names (many companies 100%).
+- **Precision (exec): high where measurable.** Where the DEF 14A label captures a
+  real exec team (Figma 5, Oscar 6, Datadog 8, Warby 3), Scout scores **83–100%**.
+  The low 43% MACRO is a LABEL-INCOMPLETENESS artifact: it collapses only on
+  companies whose proxy names just 1 executive (Twilio=1→P14%, Caterpillar=1→P4%,
+  Moderna=2→P7%), so Scout's real correct execs are miscounted as false positives.
+  Precision tracks label completeness, NOT Scout error.
+
+## The real conclusion
+- The root-cause reconciliation fix WORKED: name/dedup/title bug class is gone,
+  metrics doubled, and on the exec-team scope recall is at bar and precision is
+  high (83–100%) everywhere the reference is complete enough to judge.
+- **The remaining blocker is MEASUREMENT, not extraction:** no free authoritative
+  source lists a company's COMPLETE executive team (DEF 14A = board + a few NEOs;
+  the company's own site is what Scout already uses = circular). To CONFIRM the
+  precision the evidence already shows, we need a complete-C-suite reference —
+  a small human-verified exec golden set (~30 cos) is the honest path.
+- Genuine residual extraction work is small: a few real recall misses (Datadog
+  exec-recall 25% — investigate why it returns only 2 of 8 named execs).

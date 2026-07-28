@@ -58,20 +58,29 @@ async def score_one(entry: dict, key: str) -> dict:
     crawler = ScoutCrawler(llm_api_key=key, enrichment_enabled=True)
     records = await run_company(RunRequest(use_case="company", query=company, url=url, mode="auto"), crawler)
     scout = [r["name"] for r in records if r.get("record_type") == "executive"]
-    roster = [p["name"] for p in entry["true_execs"]]
-    tp_scout = [s for s in scout if any(_match(s, r) for r in roster)]  # scout names in roster
-    recalled = [r for r in roster if any(_match(r, s) for s in scout)]
-    fp = [s for s in scout if s not in tp_scout]  # scout names NOT in roster
-    precision = len(tp_scout) / len(scout) if scout else 0.0
-    recall = len(recalled) / len(roster) if roster else 0.0
+    # EXECUTIVE-TEAM-ONLY scope (founder decision 2026-07-28): score against the
+    # exec-officer roster, and treat OUTSIDE directors separately. A Scout name
+    # that is an outside director is neither a true-positive nor a false-positive
+    # for the exec metric (it's out of scope), so it's excluded from precision.
+    exec_roster = [p["name"] for p in entry["true_execs"] if p.get("role_type") != "director"]
+    dir_roster = [p["name"] for p in entry["true_execs"] if p.get("role_type") == "director"]
+
+    tp = [s for s in scout if any(_match(s, r) for r in exec_roster)]
+    is_dir = [s for s in scout if s not in tp and any(_match(s, r) for r in dir_roster)]
+    fp = [s for s in scout if s not in tp and s not in is_dir]  # genuinely unexplained
+    recalled = [r for r in exec_roster if any(_match(r, s) for s in scout)]
+    scored = len(tp) + len(fp)  # exclude out-of-scope directors from precision denom
+    precision = len(tp) / scored if scored else 0.0
+    recall = len(recalled) / len(exec_roster) if exec_roster else 0.0
     return {
         "company": company,
-        "roster_size": len(roster),
+        "roster_size": len(exec_roster),
         "scout_size": len(scout),
         "precision": precision,
         "recall": recall,
         "false_positives": fp,
-        "missed": [r for r in roster if r not in recalled],
+        "returned_directors": len(is_dir),
+        "missed": [r for r in exec_roster if r not in recalled],
     }
 
 
@@ -89,7 +98,8 @@ async def main() -> None:
             except Exception as exc:  # noqa: BLE001
                 return {"company": e["company"], "error": str(exc)[:100], "precision": 0, "recall": 0}
             print(f"  {r['company']:<16} P {r['precision']*100:3.0f}%  R {r['recall']*100:3.0f}%  "
-                  f"(scout {r['scout_size']}, roster {r['roster_size']}, +{len(r['false_positives'])} FP)",
+                  f"(scout {r['scout_size']}, exec-roster {r['roster_size']}, "
+                  f"{len(r['false_positives'])} FP, {r.get('returned_directors', 0)} dir)",
                   flush=True)
             return r
 
@@ -98,15 +108,15 @@ async def main() -> None:
     ok = [r for r in results if "error" not in r]
     macro_p = sum(r["precision"] for r in ok) / len(ok) if ok else 0
     macro_r = sum(r["recall"] for r in ok) / len(ok) if ok else 0
-    print("\n" + "=" * 62)
-    print("SEC DEF 14A GOLDEN SCORE (public companies, complete rosters)")
+    print("\n" + "=" * 66)
+    print("SEC DEF 14A GOLDEN SCORE — EXECUTIVE-TEAM scope (outside directors excluded)")
     print(f"  companies         : {len(ok)}")
     print(f"  PRECISION (macro) : {macro_p*100:.0f}%   [bar >=90%]")
     print(f"  RECALL    (macro) : {macro_r*100:.0f}%   [bar >=80%]")
     print(f"  verdict           : {'PASS' if macro_p>=0.9 and macro_r>=0.8 else 'BELOW BAR'}")
-    print("  NOTE: strict precision floor — a real non-NEO officer not named in the")
-    print("        proxy counts as a false positive. Review false_positives before acting.")
-    print("=" * 62)
+    print("  scope: precision denom excludes Scout-returned OUTSIDE directors (out of")
+    print("         scope, not errors); recall is over the exec-officer roster only.")
+    print("=" * 66)
 
 
 if __name__ == "__main__":

@@ -39,7 +39,7 @@ from scout.core.enrich.sec import (  # noqa: E402
 
 HERE = Path(__file__).parent
 _ANCHORS = ["Information about our Executive Officers", "Election of Directors", "Nominees", "Executive Officers"]
-_WINDOW = 48000
+_WINDOW = 70000  # wide enough to reach the full exec-officers section + the board
 
 
 def _load_key() -> str:
@@ -73,12 +73,16 @@ def _roster_window(text: str) -> str:
 async def _extract_roster(company: str, text: str, key: str) -> list[dict]:
     prompt = (
         f"The text below is from the SEC DEF 14A proxy statement of {company}. "
-        f"List EVERY person who is (a) an executive officer or (b) a member of the "
-        f"board of directors of {company}, exactly as named in this text. Return ONLY "
-        f"a JSON array of objects {{\"name\": str, \"title\": str}} — include all "
-        f"directors and all named executive officers; use their role/title as stated. "
-        f"Do NOT include auditors, legal advisors, proxy solicitors, or people from "
-        f"other companies. If unsure, include a director/officer rather than omit.\n\n"
+        f"List EVERY person who is (a) an EXECUTIVE OFFICER (CEO, CFO, CTO, COO, other "
+        f"'Chief' officers, President, EVP/SVP, General Counsel, and any other named "
+        f"executive officer) or (b) a member of the BOARD OF DIRECTORS of {company}, "
+        f"exactly as named in this text. Include the COMPLETE executive-officers list, "
+        f"not only the named-executive-officers in the compensation table. Return ONLY a "
+        f"JSON array of objects {{\"name\": str, \"title\": str, \"role_type\": str}} where "
+        f"role_type is 'executive' for company officers/management (including an executive "
+        f"chair) and 'director' for board members who are NOT also an executive officer. "
+        f"A person who is both an officer and a director is 'executive'. Do NOT include "
+        f"auditors, legal advisors, proxy solicitors, or people from other companies.\n\n"
         f"TEXT:\n{text}"
     )
     try:
@@ -97,7 +101,14 @@ async def _extract_roster(company: str, text: str, key: str) -> list[dict]:
         out = []
         for r in rows:
             if isinstance(r, dict) and str(r.get("name", "")).strip():
-                out.append({"name": str(r["name"]).strip(), "title": str(r.get("title", "")).strip()})
+                rt = str(r.get("role_type", "")).strip().lower()
+                out.append(
+                    {
+                        "name": str(r["name"]).strip(),
+                        "title": str(r.get("title", "")).strip(),
+                        "role_type": "director" if rt == "director" else "executive",
+                    }
+                )
         return out
     except Exception as exc:  # noqa: BLE001
         print(f"    extract error: {exc}", file=sys.stderr)
