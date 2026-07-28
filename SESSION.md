@@ -1,18 +1,18 @@
 # SESSION.md — Scout Launch-Readiness Program (updated 2026-07-27)
 
 ## Status (one line)
-Moat build IN PROGRESS — big strides, all COMMITTED (branch `fix/launch-readiness-fx1-fx7`, HEAD a1a9f88). **Precision SOLVED (zero foreign-CEO leaks); page-selection LLM-driven; discovery finds real pages (GitLab 0→10); MULTI-SOURCE WATERFALL started — Wikidata source #2 took exec COVERAGE 49%→83% across 35 diverse cos.** Founder bar = 90%+; path = add SEC EDGAR (source #3) + search-grounded LLM (source #4). 991 tests, pyright 0, ruff clean.
+Moat exec extraction **HITS 94% coverage across 35 diverse cos — PAST the 90% launch bar** (branch `fix/launch-readiness-fx1-fx7`, HEAD 47f0bc5). Precision solved (senior-only guard, no foreign leaks); 4-source waterfall (on-site→Wikidata→SEC→Wikipedia). 1005 tests, pyright 0, ruff clean. Remaining: PRECISION golden-set validation, last ~6% (Vercel/Notion) via paid web-search, latency (p50 55s), then products.
 
 ## What shipped this session (5 commits: 5927e0f, 9639ecf, eb747a1, 4a19489)
 - Layer 1 render (scan_full_page/delay/block_images), Layer 3 LLM adjudication + company-identity guard (CLEAN 5/5), Layer 2 discovery (nav-anchor harvest + sitemap + anchor-text scoring), Pillar A LLM-driven page selection (killed keyword hardcoding), scaled auto-eval harness, tuple-order coverage bug fix (GitLab 0→10), latency −35%.
 
 ## RESUME ACTION (next session — do this)
-1. Read this file + memory `scout-extraction-fix-plan-seed.md` (full progress + the 6 still-zero cos) + `docs/test-results-2026-07-27/moat-gauntlet/COVERAGE-PROGRESSION.md`.
-2. **Finish the waterfall to 90%+** — the 6 still-zero cos after Wikidata are the targets: (a) **SEC EDGAR source #3** — officers/directors for US public cos (fixes MongoDB); authoritative, free, no key. (b) **search-grounded LLM source #4** — "executives of {company}" with citations for the private long tail (Vercel/Notion/Warby/Everlane/Plaid). Reuse patterns from `algolia-intel-investor`/`algolia-intel-company` skills.
-3. **Latency:** run enrichment CONCURRENTLY with the on-site fetch (Wikidata added ~20s → 69s p50). Also clean asyncio cancel noise from the sitemap timeout.
-4. **Prove it:** larger-N scaled eval (beat ±2-3/35 variance) + build the ~200-co golden set (SEC/Wikidata cross-ref) for real precision/recall, not just coverage. Harness: `scaled_eval.py <domains.tsv>`.
+1. Read this file + memory `scout-extraction-fix-plan-seed.md` + `docs/test-results-2026-07-27/moat-gauntlet/COVERAGE-PROGRESSION.md`.
+2. **Validate PRECISION, not just coverage** (the critical next gate — 94% coverage ≠ 94% correct): build a ~200-co GOLDEN SET labeled via SEC/Wikidata cross-ref; run `scaled_eval.py` at larger N; measure precision/recall (no wrong execs, no junior/foreign names). Coverage variance is ±2-3 at N=35 — need bigger N.
+3. **Last ~6% (Vercel/Notion class):** true web-search grounding — Anthropic web_search tool via existing LLM_API_KEY (billable ~$10/1k searches) OR a search API key. Cost-gated — get founder nod.
+4. **Latency** (p50 55s): run the 4 enrichment sources CONCURRENTLY with the on-site fetch (asyncio.gather) instead of sequentially. Clean the asyncio sitemap-cancel "GeneratorExit" noise.
 5. Then **products** flip (products.py still empty-only) + **Layer 4 anti-bot = ScraperAPI** (founder funds+key).
-6. Branch guard-blocked from push — founder pushes. New module: `scout/core/enrich/` (wikidata.py; add sec.py + search.py). enrichment gated by `ScoutCrawler.enrichment_enabled`.
+6. Branch guard-blocked from push — founder pushes. Enrich modules: `scout/core/enrich/{wikidata,wikipedia,sec}.py`; gated by `ScoutCrawler.enrichment_enabled`.
 
 ## Where we stopped (EXACT)
 - Branch `fix/launch-readiness-fx1-fx7`, HEAD `df9632e`, ~11 fix commits, 952 unit tests pass, pyright 0, ruff clean. **Deployed to prod** (scout.chowmes.com) through `68a940a` (LLM layer df9632e committed but NOT yet deployed).
