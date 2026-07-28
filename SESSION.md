@@ -1,17 +1,18 @@
 # SESSION.md — Scout Launch-Readiness Program (updated 2026-07-27)
 
 ## Status (one line)
-Moat build IN PROGRESS — big strides this session, all COMMITTED (branch `fix/launch-readiness-fx1-fx7`, HEAD 4a19489). **Precision SOLVED (zero foreign-CEO leaks), page-selection now LLM-driven (no hardcoded keywords), discovery finds real leadership pages (GitLab 0→10), latency −35%. Scaled harness shows exec COVERAGE ~46-49% across 35 diverse cos — the real remaining gap.** 981 tests, pyright 0, ruff clean.
+Moat build IN PROGRESS — big strides, all COMMITTED (branch `fix/launch-readiness-fx1-fx7`, HEAD a1a9f88). **Precision SOLVED (zero foreign-CEO leaks); page-selection LLM-driven; discovery finds real pages (GitLab 0→10); MULTI-SOURCE WATERFALL started — Wikidata source #2 took exec COVERAGE 49%→83% across 35 diverse cos.** Founder bar = 90%+; path = add SEC EDGAR (source #3) + search-grounded LLM (source #4). 991 tests, pyright 0, ruff clean.
 
 ## What shipped this session (5 commits: 5927e0f, 9639ecf, eb747a1, 4a19489)
 - Layer 1 render (scan_full_page/delay/block_images), Layer 3 LLM adjudication + company-identity guard (CLEAN 5/5), Layer 2 discovery (nav-anchor harvest + sitemap + anchor-text scoring), Pillar A LLM-driven page selection (killed keyword hardcoding), scaled auto-eval harness, tuple-order coverage bug fix (GitLab 0→10), latency −35%.
 
 ## RESUME ACTION (next session — do this)
-1. Read this file + memory `scout-extraction-fix-plan-seed.md` (full verified progress + numbers) + plan `docs/workspace/scout-core/moat-extraction-plan-2026-07-27.md` (Production-Readiness Phase).
-2. **Close the coverage gap (~half of companies return 0 execs):** (a) **2-hop discovery** — after fetching /company or /about, harvest ITS links for a deeper /team roster (generalize the GitLab /company→/company/team pattern). (b) **off-site enrichment** for no-on-site-page cos (Stripe/Vercel/retail brands) — press/newsroom/Wikidata; scope+cost decision. (c) Figma-class: nav is all product links — needs footer/sitemap deep-dive.
-3. **Larger-N scaled eval** to beat the ±2-3/35 variance + build the golden set (~200, SEC/Wikidata) for real precision/recall. Harness: `docs/test-results-2026-07-27/moat-gauntlet/scaled_eval.py <domains.tsv>`.
-4. Then **products** flip (products.py still empty-only) + **Layer 4 anti-bot = ScraperAPI** (founder funds+key). Clean up asyncio cancel noise from sitemap timeout.
-5. Branch guard-blocked from push — founder pushes. Do NOT re-derive; harness + result docs in `docs/test-results-2026-07-27/moat-gauntlet/`.
+1. Read this file + memory `scout-extraction-fix-plan-seed.md` (full progress + the 6 still-zero cos) + `docs/test-results-2026-07-27/moat-gauntlet/COVERAGE-PROGRESSION.md`.
+2. **Finish the waterfall to 90%+** — the 6 still-zero cos after Wikidata are the targets: (a) **SEC EDGAR source #3** — officers/directors for US public cos (fixes MongoDB); authoritative, free, no key. (b) **search-grounded LLM source #4** — "executives of {company}" with citations for the private long tail (Vercel/Notion/Warby/Everlane/Plaid). Reuse patterns from `algolia-intel-investor`/`algolia-intel-company` skills.
+3. **Latency:** run enrichment CONCURRENTLY with the on-site fetch (Wikidata added ~20s → 69s p50). Also clean asyncio cancel noise from the sitemap timeout.
+4. **Prove it:** larger-N scaled eval (beat ±2-3/35 variance) + build the ~200-co golden set (SEC/Wikidata cross-ref) for real precision/recall, not just coverage. Harness: `scaled_eval.py <domains.tsv>`.
+5. Then **products** flip (products.py still empty-only) + **Layer 4 anti-bot = ScraperAPI** (founder funds+key).
+6. Branch guard-blocked from push — founder pushes. New module: `scout/core/enrich/` (wikidata.py; add sec.py + search.py). enrichment gated by `ScoutCrawler.enrichment_enabled`.
 
 ## Where we stopped (EXACT)
 - Branch `fix/launch-readiness-fx1-fx7`, HEAD `df9632e`, ~11 fix commits, 952 unit tests pass, pyright 0, ruff clean. **Deployed to prod** (scout.chowmes.com) through `68a940a` (LLM layer df9632e committed but NOT yet deployed).
