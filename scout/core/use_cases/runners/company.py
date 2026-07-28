@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from typing import Any
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import structlog
 from bs4 import BeautifulSoup, Tag
@@ -22,6 +23,9 @@ from scout.core.use_cases.runners.base import (
 
 logger = structlog.get_logger(__name__)
 
+# Hard cap on secondary sitemap discovery so a giant sitemap can't hang a scan.
+_SITEMAP_TIMEOUT_S = 15.0
+
 _ABOUT_PATHS = ["/about", "/about-us", "/company", "/our-story"]
 _TEAM_PATHS = [
     "/team",
@@ -31,7 +35,97 @@ _TEAM_PATHS = [
     "/our-team",
     "/company/leadership",
     "/about/management",
+    # MOAT Layer 2: broadened guess backstops (used only when link-harvest +
+    # sitemap surface no candidate). Real rosters live at many shapes.
+    "/company",
+    "/company/about",
+    "/company/team",
+    "/people",
+    "/our-people",
+    "/who-we-are",
+    "/management",
+    "/management-team",
+    "/meet-the-team",
+    "/leadership-team",
+    "/about/leadership-team",
 ]
+
+# MOAT Layer 2 — leadership-page link discovery. The homepage nav/footer is
+# where a human deliberately links "Leadership"/"Company"/"Team", so it is the
+# highest-signal, lowest-noise source for the ONE page we want — far better than
+# the sitemap, which either omits the page (small marketing sites: anthropic.com
+# has 12 sitemap URLs, none is /company) or buries it under hundreds of same-
+# keyword URLs (datadoghq.com: 213 sitemap matches, almost all press releases).
+# Verified live 2026-07-27.
+_LEADERSHIP_STRONG = (
+    "leadership",
+    "leadership-team",
+    "our-team",
+    "meet-the-team",
+    "management-team",
+    "our-people",
+    "executive",
+    "executives",
+    "board-of-directors",
+    "our-leadership",
+)
+_LEADERSHIP_MEDIUM = (
+    "team",
+    "people",
+    "management",
+    "who-we-are",
+    "company",
+    "about",
+    "our-story",
+    "mission",
+    "board",
+    "leaders",
+)
+# Segments that look leadership-ish by keyword but are noise for THIS page —
+# de-noises the sitemap (datadoghq.com press releases) and drops auth/utility.
+_DISCOVERY_EXCLUDE = (
+    "news",
+    "press",
+    "press-release",
+    "press-releases",
+    "latest-news",
+    "blog",
+    "careers",
+    "career",
+    "jobs",
+    "changelog",
+    "category",
+    "login",
+    "signin",
+    "sign-in",
+    "register",
+    "signup",
+    "dashboard",
+    "account",
+    "cart",
+    "checkout",
+    "privacy",
+    "terms",
+    "cookie",
+    "status",
+    "support",
+    "docs",
+    "documentation",
+    "pricing",
+    "download",
+    "search",
+    "legal",
+    "security",
+    "academy",
+    "help",
+    "contact",
+    "events",
+    "webinars",
+    "resources",
+    "customers",
+    "partners",
+    "investors",
+)
 _SOCIAL_PATTERNS = {
     "linkedin": re.compile(r"https?://(?:www\.)?linkedin\.com/company/[^\s\"')]+"),
     "twitter": re.compile(r"https?://(?:www\.)?(?:twitter|x)\.com/[^\s\"')]+"),
@@ -359,6 +453,134 @@ def _has_executive_signal(company: str, source: FetchResult) -> bool:
     return False
 
 
+def _url_is_excluded(url: str) -> bool:
+    """True when a path segment marks the URL as leadership-noise (press/blog/
+    careers/login/...) — de-noises the sitemap and blocks a strong anchor text
+    from rescuing a genuine blog/press URL."""
+    return any(seg in _DISCOVERY_EXCLUDE for seg in urlparse(url).path.lower().split("/") if seg)
+
+
+def _leadership_score(url: str) -> int:
+    """Score a URL PATH as a leadership-page candidate. 0 = reject.
+
+    Strong path segment (leadership/our-team/...) = 3; medium (company/about/
+    team/...) = 1; any excluded segment (press/blog/careers/login/...) = 0 even
+    if it also matched a keyword — this is what de-noises a sitemap that buries
+    the real /leadership under press releases.
+    """
+    segments = [s for s in urlparse(url).path.lower().split("/") if s]
+    if not segments or _url_is_excluded(url):
+        return 0
+    if any(seg in _LEADERSHIP_STRONG for seg in segments):
+        return 3
+    if any(seg in _LEADERSHIP_MEDIUM for seg in segments):
+        return 1
+    return 0
+
+
+def _leadership_text_score(text: str) -> int:
+    """Score a link's VISIBLE ANCHOR TEXT as a leadership signal. Often more
+    reliable than the URL slug: a site may link "Our People" or "Meet the team"
+    to a cryptic URL the path-scorer would miss. This is the cheap, DOM-native
+    version of "read the nav" — no vision/screenshot needed, since the rendered
+    HTML already carries the anchor text.
+    """
+    joined = re.sub(r"[^a-z]+", "-", text.lower()).strip("-")
+    if not joined:
+        return 0
+    words = set(joined.split("-"))
+    if any(kw in joined for kw in _LEADERSHIP_STRONG) or (words & set(_LEADERSHIP_STRONG)):
+        return 3
+    if words & set(_LEADERSHIP_MEDIUM):
+        return 1
+    return 0
+
+
+def _discover_leadership_urls(
+    base: str, candidates: list[str | tuple[str, str]], limit: int = 3
+) -> list[str]:
+    """Rank candidates for the real leadership/team page. Each candidate is a
+    URL, or a (url, anchor_text) pair — anchor text is scored alongside the URL
+    path (whichever is stronger wins), so a nav link that SAYS "Leadership" but
+    points to a keyword-less URL still ranks. Same-host only; excludes the
+    homepage; strongest signal + shallowest path first. Pass nav candidates
+    before sitemap ones so a human-curated nav link wins ties (stable order).
+    """
+    base_host = urlparse(base).netloc.lower().removeprefix("www.")
+    base_norm = base.rstrip("/")
+    scored: list[tuple[int, int, int, str]] = []
+    seen: set[str] = set()
+    for order, candidate in enumerate(candidates):
+        url, text = candidate if isinstance(candidate, tuple) else (candidate, "")
+        if not url or not url.startswith(("http://", "https://")):
+            continue
+        norm = url.rstrip("/")
+        if norm == base_norm or norm in seen:
+            continue
+        host = urlparse(url).netloc.lower().removeprefix("www.")
+        if host != base_host:
+            continue
+        # An excluded URL (blog/press/careers) is never a roster page, no matter
+        # what its link text claims.
+        if _url_is_excluded(url):
+            continue
+        score = max(_leadership_score(url), _leadership_text_score(text))
+        if score <= 0:
+            continue
+        seen.add(norm)
+        depth = len([s for s in urlparse(url).path.split("/") if s])
+        # sort key: higher score, shallower path, earlier input order (nav-first)
+        scored.append((-score, depth, order, norm))
+    scored.sort()
+    return [url for _, _, _, url in scored[:limit]]
+
+
+def _extract_anchor_candidates(html: str, base: str) -> list[tuple[str, str]]:
+    """Harvest (absolute_url, anchor_text) pairs from a page's <a> tags. This is
+    the nav/footer link list a human reads to find "Leadership" — captured from
+    the rendered DOM, which is strictly richer and cheaper than a screenshot."""
+    if not html:
+        return []
+    pairs: list[tuple[str, str]] = []
+    soup = BeautifulSoup(html, "html.parser")
+    for a in soup.find_all("a", href=True):
+        if not isinstance(a, Tag):
+            continue
+        href = a.get("href")
+        if not isinstance(href, str) or not href.strip():
+            continue
+        text = re.sub(r"\s+", " ", a.get_text() or "").strip()
+        pairs.append((urljoin(base + "/", href.strip()), text))
+    return pairs
+
+
+async def _sitemap_urls(crawler: ScoutCrawler, base: str, *, max_pages: int = 300) -> list[str]:
+    """Best-effort sitemap/URL discovery for leadership-page hunting.
+
+    Routed through the injected `crawler.map_urls` (NOT the module-level
+    map_urls) so it honours the DI boundary and unit tests with a mock crawler
+    never hit the network. Tolerant: any failure — including a mock whose
+    map_urls isn't awaitable — returns [] so the runner falls back to
+    link-harvest + guessed paths.
+    """
+    try:
+        from scout.core.types import MapRequest
+
+        # PRODUCTION robustness: a huge sitemap index (e.g. adobe.com,
+        # datadoghq.com's 14-way index → thousands of URLs) must NEVER hang a
+        # company scan. Bound the discovery hard; on timeout, fall back to
+        # nav-link harvest + guessed paths. Sitemap is the SECONDARY source
+        # here, so losing it degrades gracefully.
+        resp = await asyncio.wait_for(
+            crawler.map_urls(MapRequest(url=base, max_pages=max_pages)),
+            timeout=_SITEMAP_TIMEOUT_S,
+        )
+        return resp.urls if resp.success else []
+    except (Exception, asyncio.TimeoutError) as exc:  # noqa: BLE001 - best-effort
+        logger.info("[scout/company] sitemap discovery skipped", base=base, error=str(exc))
+        return []
+
+
 async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
     base = _base_url(req)
     company = _company_name(req)
@@ -411,7 +633,29 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
             _adopt(fallback)
 
     await scrape_first(_ABOUT_PATHS)
-    await scrape_first(_TEAM_PATHS, require_signal=True)
+
+    # MOAT Layer 2 — reach the REAL leadership page instead of only guessing.
+    # Primary source: links harvested from the rendered homepage/about nav+footer
+    # (where humans link "Leadership"/"Company"/"Team"). Secondary: the sitemap,
+    # hard-ranked and de-noised (it either omits the page or buries it). Fetch
+    # the top candidates and adopt ALL of them — the LLM adjudicator (company-
+    # identity guarded) reads every fetched page, so extra right pages lift
+    # recall without hurting precision. Guessed _TEAM_PATHS remain a backstop
+    # only when link-harvest + sitemap surface nothing.
+    sitemap = await _sitemap_urls(crawler, base)
+    anchors: list[tuple[str, str]] = []
+    for src in sources:  # homepage + about fetched so far — richest nav coverage
+        anchors.extend(_extract_anchor_candidates(src.html, base))
+    candidates: list[str | tuple[str, str]] = [*anchors, *sitemap]
+    leadership_urls = _discover_leadership_urls(base, candidates, limit=3)
+    adopted_candidate = False
+    for url in leadership_urls:
+        resp = await safe_scrape(crawler, url, intelligence_render=True)
+        if resp:
+            _adopt(evidence_from_scrape(url, resp))
+            adopted_candidate = True
+    if not adopted_candidate:
+        await scrape_first(_TEAM_PATHS, require_signal=True)
 
     if not sources:
         return []
