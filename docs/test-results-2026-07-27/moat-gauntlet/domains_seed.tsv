@@ -1,0 +1,37 @@
+# Diverse real-company seed for scaled eval. Name<TAB>URL. Coverage/latency
+# auto-measured; this is NOT ground-truth for precision (that needs the golden set).
+Stripe	https://stripe.com
+Datadog	https://www.datadoghq.com
+Anthropic	https://www.anthropic.com
+Vercel	https://vercel.com
+Algolia	https://www.algolia.com
+Notion	https://www.notion.so
+Figma	https://www.figma.com
+GitLab	https://about.gitlab.com
+HashiCorp	https://www.hashicorp.com
+Snowflake	https://www.snowflake.com
+MongoDB	https://www.mongodb.com
+Twilio	https://www.twilio.com
+Cloudflare	https://www.cloudflare.com
+Patagonia	https://www.patagonia.com
+Allbirds	https://www.allbirds.com
+Warby Parker	https://www.warbyparker.com
+Glossier	https://www.glossier.com
+Everlane	https://www.everlane.com
+Ramp	https://ramp.com
+Brex	https://www.brex.com
+Plaid	https://plaid.com
+Wise	https://wise.com
+Robinhood	https://robinhood.com
+Moderna	https://www.modernatx.com
+Oscar Health	https://www.hioscar.com
+Caterpillar	https://www.caterpillar.com
+3M	https://www.3m.com
+Siemens	https://www.siemens.com
+Spotify	https://www.spotify.com
+Shopify	https://www.shopify.com
+Canva	https://www.canva.com
+Klarna	https://www.klarna.com
+Asana	https://asana.com
+Databricks	https://www.databricks.com
+Airtable	https://www.airtable.com

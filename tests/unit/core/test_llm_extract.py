@@ -13,7 +13,48 @@ from scout.core.llm_extract import (
     llm_extract_executives,
     llm_extract_products,
     llm_extract_records,
+    llm_select_pages,
 )
+
+
+@pytest.mark.asyncio
+async def test_llm_select_pages_returns_only_input_urls() -> None:
+    """The selector must never fabricate a URL — only ones present verbatim."""
+    candidates = [
+        ("Home", "https://acme.com"),
+        ("Leadership", "https://acme.com/leadership"),
+        ("Pricing", "https://acme.com/pricing"),
+    ]
+
+    def _fake(url, ix, content):
+        return [
+            {"url": "https://acme.com/leadership", "error": False},
+            {"url": "https://acme.com/HALLUCINATED", "error": False},  # not in input -> dropped
+        ]
+
+    with patch("scout.core.llm_extract.LLMExtractionStrategy.extract", side_effect=_fake):
+        picked = await llm_select_pages("Acme", candidates, "fake-key")
+    assert picked == ["https://acme.com/leadership"]
+
+
+@pytest.mark.asyncio
+async def test_llm_select_pages_no_key_or_no_candidates_skips_call() -> None:
+    with patch("scout.core.llm_extract.LLMExtractionStrategy.extract") as m:
+        assert await llm_select_pages("Acme", [("x", "https://acme.com/x")], "") == []
+        assert await llm_select_pages("Acme", [], "fake-key") == []
+    m.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_llm_select_pages_respects_limit() -> None:
+    candidates = [("t%d" % i, "https://acme.com/p%d" % i) for i in range(6)]
+
+    def _fake(url, ix, content):
+        return [{"url": u, "error": False} for _, u in candidates]
+
+    with patch("scout.core.llm_extract.LLMExtractionStrategy.extract", side_effect=_fake):
+        picked = await llm_select_pages("Acme", candidates, "fake-key", limit=2)
+    assert len(picked) == 2
 
 
 def test_company_guard_appended_for_executives_with_company() -> None:

@@ -205,6 +205,113 @@ async def llm_extract_records(
     return items
 
 
+_PAGE_SELECT_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {"url": {"type": "string"}},
+        "required": ["url"],
+    },
+}
+
+_PAGE_SELECT_TARGETS: dict[str, str] = {
+    "leadership": (
+        "the page that lists {company}'s OWN executives, founders, leadership, "
+        "management team, or board — a team/leadership/about-us/company page"
+    ),
+    "products": (
+        "the page(s) that list {company}'s OWN products for sale or a product "
+        "category/catalog listing — not blog, support, or press pages"
+    ),
+}
+
+# Cap how many candidate links we describe to the model — bounds tokens/cost on
+# link-heavy sites (stripe.com exposes ~180 links) while covering the nav/footer.
+_MAX_SELECT_CANDIDATES = 60
+
+
+async def llm_select_pages(
+    company: str,
+    candidates: list[tuple[str, str]],
+    api_key: str,
+    *,
+    target: str = "leadership",
+    limit: int = 3,
+    max_tokens: int = 400,
+) -> list[str]:
+    """Pick the best on-site page(s) for a target from a site's link inventory.
+
+    This is the language- and structure-agnostic replacement for hardcoded URL
+    keyword lists: instead of guessing paths or scoring against an English
+    keyword set, hand the model the site's ACTUAL links — (anchor_text, url)
+    pairs harvested from the rendered nav/footer + sitemap — and let it choose
+    which URLs are `{company}`'s leadership/product page.
+
+    Never fabricates a URL: any returned URL not present verbatim in the input
+    candidate set is dropped. Returns [] on empty key/candidates or any failure,
+    so callers fall back to keyword ranking.
+    """
+    if not api_key or not candidates:
+        return []
+    # De-dup by url, preserve order (nav-first), and bound the count sent.
+    seen: set[str] = set()
+    trimmed: list[tuple[str, str]] = []
+    for text, url in candidates:
+        if url and url not in seen:
+            seen.add(url)
+            trimmed.append((text, url))
+        if len(trimmed) >= _MAX_SELECT_CANDIDATES:
+            break
+    valid_urls = {url for _, url in trimmed}
+    content = "\n".join(f"- {(text or '(no text)').strip()[:80]} -> {url}" for text, url in trimmed)
+    target_desc = _PAGE_SELECT_TARGETS.get(target, _PAGE_SELECT_TARGETS["leadership"]).format(
+        company=company.strip() or "the company"
+    )
+    instruction = (
+        f"Below is a list of links (anchor text -> URL) from the website of "
+        f"'{company or 'the company'}'. Identify which URLs point to {target_desc}. "
+        f"Return a JSON array of objects each with a single field 'url', copied "
+        f"EXACTLY from the list, most likely first, at most {limit} items. Only "
+        f"choose URLs that appear verbatim in the list above. If none of the "
+        f"links point to such a page, return an empty list []."
+    )
+    strategy = LLMExtractionStrategy(
+        llm_config=LLMConfig(
+            provider=LLM_PROVIDER, api_token=api_key, max_tokens=max_tokens, temperature=0
+        ),
+        schema=_PAGE_SELECT_SCHEMA,
+        extraction_type="schema",
+        instruction=instruction,
+        input_format="markdown",
+        apply_chunking=False,
+        verbose=False,
+    )
+    try:
+        blocks = await asyncio.to_thread(strategy.extract, company or "site", 0, content)
+    except Exception as exc:  # pragma: no cover - network/library errors
+        logger.warning("[scout/llm_extract] page-select raised", company=company, error=str(exc))
+        return []
+    if not isinstance(blocks, list):
+        return []
+    picked: list[str] = []
+    for block in blocks:
+        if not isinstance(block, dict) or block.get("error"):
+            continue
+        url = str(block.get("url") or "").strip()
+        if url in valid_urls and url not in picked:  # never trust a fabricated URL
+            picked.append(url)
+        if len(picked) >= limit:
+            break
+    logger.info(
+        "[scout/llm_extract] page-select",
+        company=company,
+        target=target,
+        candidates=len(trimmed),
+        picked=len(picked),
+    )
+    return picked
+
+
 async def llm_extract_products(
     content: str,
     api_key: str,

@@ -12,7 +12,7 @@ import structlog
 from bs4 import BeautifulSoup, Tag
 
 from scout.core.crawler import ScoutCrawler
-from scout.core.llm_extract import llm_extract_executives
+from scout.core.llm_extract import llm_extract_executives, llm_select_pages
 from scout.core.platform.types import FetchResult, RunRequest
 from scout.core.use_cases.prism import CompanyRecord, CompanySocialRecord, ExecutiveRecord
 from scout.core.use_cases.runners.base import (
@@ -535,6 +535,36 @@ def _discover_leadership_urls(
     return [url for _, _, _, url in scored[:limit]]
 
 
+def _prefilter_candidates(
+    base: str,
+    anchors: list[tuple[str, str]],
+    sitemap_urls: list[str],
+    limit: int = 60,
+) -> list[tuple[str, str]]:
+    """Same-host, non-excluded, de-duped (anchor_text, url) candidates to hand
+    the LLM page-selector — nav links first (they carry the best anchor text),
+    then sitemap URLs. Bounded so a link-heavy site can't blow up token cost."""
+    base_host = urlparse(base).netloc.lower().removeprefix("www.")
+    base_norm = base.rstrip("/")
+    out: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for text, url in [*anchors, *[("", u) for u in sitemap_urls]]:
+        if not url or not url.startswith(("http://", "https://")):
+            continue
+        norm = url.rstrip("/")
+        if norm == base_norm or norm in seen:
+            continue
+        if urlparse(url).netloc.lower().removeprefix("www.") != base_host:
+            continue
+        if _url_is_excluded(url):
+            continue
+        seen.add(norm)
+        out.append((text, url))
+        if len(out) >= limit:
+            break
+    return out
+
+
 def _extract_anchor_candidates(html: str, base: str) -> list[tuple[str, str]]:
     """Harvest (absolute_url, anchor_text) pairs from a page's <a> tags. This is
     the nav/footer link list a human reads to find "Leadership" — captured from
@@ -646,8 +676,23 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
     anchors: list[tuple[str, str]] = []
     for src in sources:  # homepage + about fetched so far — richest nav coverage
         anchors.extend(_extract_anchor_candidates(src.html, base))
-    candidates: list[str | tuple[str, str]] = [*anchors, *sitemap]
-    leadership_urls = _discover_leadership_urls(base, candidates, limit=3)
+
+    # Production-general page selection: when a key is available, let the LLM
+    # pick the leadership page from the site's ACTUAL link inventory (anchor
+    # text + URL), language- and structure-agnostic — no hardcoded path/keyword
+    # list. The deterministic keyword ranker (_discover_leadership_urls) is the
+    # offline/no-key fallback, and also catches the case where the LLM selector
+    # returns nothing.
+    llm_key = _fallback_llm_api_key(crawler)
+    leadership_urls: list[str] = []
+    if llm_key:
+        select_candidates = _prefilter_candidates(base, anchors, sitemap)
+        if select_candidates:
+            leadership_urls = await llm_select_pages(
+                company, select_candidates, llm_key, target="leadership"
+            )
+    if not leadership_urls:
+        leadership_urls = _discover_leadership_urls(base, [*anchors, *sitemap], limit=3)
     adopted_candidate = False
     for url in leadership_urls:
         resp = await safe_scrape(crawler, url, intelligence_render=True)

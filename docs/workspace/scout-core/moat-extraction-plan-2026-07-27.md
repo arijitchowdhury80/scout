@@ -111,6 +111,46 @@ Each phase is TDD (RED before GREEN), pyright clean, ruff clean, three test laye
 
 ---
 
+## PRODUCTION-READINESS PHASE (added 2026-07-27 after founder challenge)
+The 5-company gauntlet + Layers 1-3 validated the ARCHITECTURE and fixed the
+dominant failure (wrong-company execs) — but that is directional proof, NOT
+production reliability. Two pillars remain before this is production-grade:
+
+### Pillar A — Remove the keyword hardcoding (LLM-driven page selection)
+Today, page *ranking* still leans on English keyword lists (`_LEADERSHIP_STRONG/
+MEDIUM`). Brittle for a global, any-structure, any-language web. Fix: feed the
+LLM the site's ACTUAL link inventory — the (anchor_text, url) pairs we already
+harvest + sitemap — and ask "which of these is THIS company's leadership/team
+page?" Language- and structure-agnostic; the keyword list drops to a cheap
+pre-filter/cost-saver, not the decision-maker. Same pattern generalises to
+product category/PLP selection.
+
+### Pillar B — Scaled auto-eval harness (not 5 hand-picked companies)
+Hand-labeling 20k companies is infeasible; scoring must be AUTOMATED:
+- **Dataset:** pull real company domains at scale — SEC EDGAR (~800k filers; for
+  public cos the officers are KNOWN → automatic precision scoring), People Data
+  Labs Free Company Dataset (~7M w/ domains), Crunchbase, Common Crawl.
+- **Auto-scored metrics (no human labels needed):** coverage % (non-empty),
+  crash rate, **leak rate** (a returned exec whose real employer ≠ target —
+  cross-checkable), latency, cost/company.
+- **Golden set (~200, hand + external-ref labeled):** true precision/recall,
+  using SEC officer lists / Wikidata to scale precision measurement.
+- **Sequence:** generalise page-selection (Pillar A) FIRST, then run a few
+  HUNDRED to surface failure classes cheaply, THEN scale to thousands with a
+  budget. Scale-testing the current keyword ranker on 20k would burn crawl time
+  + proxy money measuring a mechanism we're already replacing.
+- **Scale cost reality:** ~$0.01-0.05 LLM + proxy per company × 20k ≈ $200-1,000
+  and many crawl-hours even at high concurrency. A deliberate spend to authorise.
+
+### Pillar C — Production hardening surfaced this session
+- Intelligence render adds latency (~8s/page, several pages → ~30-60s/company).
+  Needs concurrency + caching + a per-request budget for at-scale runs.
+- Sitemap discovery on giant sites (adobe/datadog) can hang a scan → already
+  hard-capped at 15s this session; the class (unbounded external I/O in the scan
+  path) needs a sweep.
+- Live-network tests mislabeled as unit tests (CLI company tests hit adobe.com)
+  — should be mocked or moved to an integration tier.
+
 ## Risks
 - **Render still misses truly SPA-gated content** (auth-walled or heavily client-routed rosters). Mitigate: content-signal `wait_for`, and CDP/live-browser capture already exists in-repo (`cdp_acquire.py`) as a last rung.
 - **LLM adjudication latency** adds seconds/dossier. Bounded by page cap + Haiku speed; acceptable for an intelligence product.
