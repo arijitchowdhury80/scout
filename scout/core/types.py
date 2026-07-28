@@ -51,6 +51,14 @@ class ScrapeRequest(BaseModel):
     # FX-10a: respect robots.txt by default (maps to CrawlerRunConfig.check_robots_txt,
     # which crawl4ai itself defaults to False). Explicit False opts out.
     respect_robots_txt: bool = True
+    # --- MOAT: intelligence-render knobs (the exec/product moat depends on the
+    # RIGHT page being FULLY rendered before extraction). All opt-in; defaults
+    # keep crawl4ai's own behaviour so existing callers render unchanged.
+    # Map onto crawl4ai 0.7.7 CrawlerRunConfig (read receipt 2026-07-27).
+    scan_full_page: bool = False  # scroll page to flush lazy-loaded team/product content
+    wait_until: str = ""  # "" keeps crawl4ai default (domcontentloaded); e.g. "networkidle"
+    delay_before_return_html: float | None = None  # seconds to let client-side hydration paint
+    block_images: bool = False  # drop images (exclude_all + external) for speed on ad-heavy pages
 
 
 class PdfMetadata(BaseModel):

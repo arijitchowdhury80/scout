@@ -9,10 +9,32 @@ import pytest
 from scout.core.llm_extract import (
     LLMExecutiveItem,
     LLMProductItem,
+    _instruction_for,
     llm_extract_executives,
     llm_extract_products,
     llm_extract_records,
 )
+
+
+def test_company_guard_appended_for_executives_with_company() -> None:
+    """MOAT: naming the company activates the identity guard so the model
+    excludes other companies' execs and article authors (the Stripe->Lightspeed
+    and Datadog->MongoDB gauntlet failure)."""
+    instruction = _instruction_for("executives", "Stripe")
+    assert "Stripe" in instruction
+    assert "ONLY people who are" in instruction
+    assert "EXCLUDE" in instruction
+
+
+def test_no_company_guard_without_company_name() -> None:
+    base = _instruction_for("executives", "")
+    assert "EXCLUDE" not in base
+    assert base == _instruction_for("executives", "   ")  # whitespace-only = no guard
+
+
+def test_company_guard_never_applied_to_products() -> None:
+    """The guard is exec-specific; products don't get a company-identity clause."""
+    assert _instruction_for("products", "Stripe") == _instruction_for("products", "")
 
 
 def _fake_extract_products(url, ix, html):

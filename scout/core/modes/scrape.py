@@ -210,9 +210,23 @@ def _build_run_config(req: ScrapeRequest, *, want_screenshot: bool) -> CrawlerRu
         # FX-10a: crawl4ai defaults check_robots_txt to False. Scout defaults to
         # respecting robots.txt; respect_robots_txt=False on the request opts out.
         "check_robots_txt": req.respect_robots_txt,
+        # MOAT intelligence render: scroll to flush lazy-loaded exec/product
+        # content. Inert by default (crawl4ai default False).
+        "scan_full_page": req.scan_full_page,
     }
     if req.mean_delay is not None:
         kwargs["mean_delay"] = req.mean_delay
+    # MOAT: only override crawl4ai's own sane defaults when the caller opts in.
+    # Empty wait_until keeps crawl4ai's default ("domcontentloaded"); None delay
+    # keeps its default (0.1s). Setting them unconditionally would regress the
+    # common path (e.g. forcing an empty string is not a valid wait_until).
+    if req.wait_until:
+        kwargs["wait_until"] = req.wait_until
+    if req.delay_before_return_html is not None:
+        kwargs["delay_before_return_html"] = req.delay_before_return_html
+    if req.block_images:
+        kwargs["exclude_all_images"] = True
+        kwargs["exclude_external_images"] = True
     return CrawlerRunConfig(**kwargs)
 
 

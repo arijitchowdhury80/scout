@@ -296,15 +296,27 @@ def _fallback_llm_api_key(crawler: ScoutCrawler) -> str:
 
 
 async def _extract_executives_via_llm(
-    company: str, source: FetchResult, api_key: str
+    company: str, source: FetchResult, api_key: str, *, content: str = ""
 ) -> list[ExecutiveRecord]:
-    """LLM fallback for executives — only called when the 3-tier heuristic
-    (JSON-LD Person nodes, team cards, regex-on-markdown) found zero
-    executives for this run. Never fabricates: any item the model returns
-    that doesn't parse into a real name is dropped.
+    """LLM adjudication for executives — called when the structured heuristics
+    (JSON-LD Person nodes, team cards) found zero executives for this run, in
+    place of the noisy regex. Company-identity guarded (only THIS company's
+    leaders). Never fabricates: any item the model returns that doesn't parse
+    into a real name is dropped.
+
+    `content` overrides which text the model adjudicates. Callers pass the
+    combined rendered markdown of every page fetched (team/leadership page
+    first, then about/homepage) so the model sees the roster wherever it
+    actually lives — a guessed /team path often 200s without listing anyone,
+    while the real leaders sit on the homepage or an unguessed page (the Stripe
+    repro: /team had 0, the CEO was on the homepage). Defaults to the single
+    source's markdown for backward compatibility.
     """
     items = await llm_extract_executives(
-        source.markdown, api_key, page_url=source.evidence.source_url
+        content or source.markdown,
+        api_key,
+        page_url=source.evidence.source_url,
+        company=company,
     )
     records: list[ExecutiveRecord] = []
     for item in items:
@@ -356,7 +368,7 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
     all_links: list[str] = []
     sources: list[FetchResult] = []
 
-    homepage = await safe_scrape(crawler, base)
+    homepage = await safe_scrape(crawler, base, intelligence_render=True)
     if homepage:
         src = evidence_from_scrape(base, homepage)
         sources.append(src)
@@ -386,7 +398,7 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
         fallback: FetchResult | None = None
         for path in paths:
             url = urljoin(base + "/", path.lstrip("/"))
-            resp = await safe_scrape(crawler, url)
+            resp = await safe_scrape(crawler, url, intelligence_render=True)
             if not resp:
                 continue
             src = evidence_from_scrape(url, resp)
@@ -436,17 +448,29 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
                 seen_names.add(key)
                 executives.append(exec_rec)
     if not executives:
-        executives = _extract_executives(all_markdown, company, primary)
-    if not executives:
-        # FX: the 3-tier heuristic (JSON-LD Person / team cards / regex)
-        # found nothing for this company — try the LLM fallback once, over
-        # the best team/leadership page fetched, before giving up.
+        # MOAT (Layer 3): JSON-LD Person nodes + team cards (both structured
+        # and reasonably precise) found nothing. Prefer LLM adjudication over
+        # the noisy regex-over-concatenated-markdown path — the gauntlet proved
+        # that regex is the dominant garbage source, returning OTHER companies'
+        # CEOs (Stripe -> Lightspeed, Datadog -> MongoDB) and article authors,
+        # because it matched any "Name, Title" string anywhere across the
+        # homepage+about+team markdown. The LLM adjudicator is company-identity
+        # guarded (see llm_extract._EXECUTIVE_COMPANY_GUARD). GATE 1 proved the
+        # exec content is present in the intelligence-rendered pages, so the
+        # adjudicator has the raw material it needs. The regex survives only as
+        # the no-LLM-key legacy path.
         llm_api_key = _fallback_llm_api_key(crawler)
         if llm_api_key:
-            # sources[-1] is the most specific page fetched (team/leadership
-            # path if one was found, else the about page) — the best
-            # candidate for actually containing an exec roster.
-            executives = await _extract_executives_via_llm(company, sources[-1], llm_api_key)
+            # Adjudicate over ALL fetched pages, most-specific first: the
+            # team/leadership page leads (so it survives the model's content
+            # cap), followed by about + homepage, where the roster often
+            # actually lives when a guessed /team path 200s but lists no one.
+            combined = "\n\n".join(src.markdown for src in reversed(sources) if src.markdown)
+            executives = await _extract_executives_via_llm(
+                company, sources[-1], llm_api_key, content=combined
+            )
+        else:
+            executives = _extract_executives(all_markdown, company, primary)
     for exec_rec in executives:
         records.append(exec_rec.model_dump(mode="json"))
 

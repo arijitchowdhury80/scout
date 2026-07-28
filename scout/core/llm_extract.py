@@ -104,6 +104,19 @@ _INSTRUCTIONS: dict[ExtractionTarget, str] = {
     ),
 }
 
+# MOAT company-identity guard: appended when the caller knows which company the
+# page belongs to. This is what stops the gauntlet's dominant failure —
+# returning a DIFFERENT company's CEO (Stripe -> Lightspeed's CEO, Datadog ->
+# MongoDB's CEO) or an article author as if they led this company.
+_EXECUTIVE_COMPANY_GUARD = (
+    " This page belongs to the company '{company}'. Include ONLY people who are "
+    "executives, founders, or leadership of '{company}' ITSELF. EXCLUDE: article "
+    "authors and journalists; quoted customers, partners, or analysts; employees "
+    "of any OTHER company; and investors or board members of other firms "
+    "mentioned only in passing. If you are not confident a person leads "
+    "'{company}', do not include them."
+)
+
 _SCHEMAS: dict[ExtractionTarget, dict] = {
     "products": _PRODUCT_SCHEMA,
     "executives": _EXECUTIVE_SCHEMA,
@@ -115,20 +128,31 @@ _ITEM_MODELS: dict[ExtractionTarget, type[BaseModel]] = {
 }
 
 
+def _instruction_for(target: ExtractionTarget, company: str) -> str:
+    """Build the extraction instruction, appending the company-identity guard
+    for executives when the caller knows which company the page belongs to."""
+    instruction = _INSTRUCTIONS[target]
+    if target == "executives" and company.strip():
+        instruction += _EXECUTIVE_COMPANY_GUARD.format(company=company.strip())
+    return instruction
+
+
 async def llm_extract_records(
     content: str,
     target: ExtractionTarget,
     api_key: str,
     *,
     page_url: str = "",
+    company: str = "",
     max_tokens: int = 1500,
 ) -> list[LLMProductItem] | list[LLMExecutiveItem]:
-    """Run the LLM fallback extractor over already-rendered page content.
+    """Run the LLM extractor over already-rendered page content.
 
-    Callers must only invoke this after heuristic extraction returned zero
-    records for the run (see module docstring) — this function itself does
-    not re-check that; it only guards against doing an LLM call with nothing
-    to work with (`api_key` or `content` empty).
+    `company`, when given, activates the company-identity guard for executive
+    extraction (only return leaders of THIS company). It guards against the
+    gauntlet's dominant failure: returning another company's CEO or an article
+    author. This function does not re-check the caller's gating; it only guards
+    against an LLM call with nothing to work with (`api_key` or `content` empty).
     """
     if not api_key or not content.strip():
         return []
@@ -143,7 +167,7 @@ async def llm_extract_records(
         ),
         schema=_SCHEMAS[target],
         extraction_type="schema",
-        instruction=_INSTRUCTIONS[target],
+        instruction=_instruction_for(target, company),
         input_format="markdown",
         apply_chunking=False,
         verbose=False,
@@ -200,10 +224,14 @@ async def llm_extract_executives(
     api_key: str,
     *,
     page_url: str = "",
+    company: str = "",
     max_tokens: int = 1200,
 ) -> list[LLMExecutiveItem]:
-    """Convenience wrapper: LLM fallback for executive records."""
+    """Convenience wrapper: LLM adjudication for executive records.
+
+    Pass `company` to activate the identity guard (only this company's leaders).
+    """
     items = await llm_extract_records(
-        content, "executives", api_key, page_url=page_url, max_tokens=max_tokens
+        content, "executives", api_key, page_url=page_url, company=company, max_tokens=max_tokens
     )
     return [item for item in items if isinstance(item, LLMExecutiveItem)]

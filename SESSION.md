@@ -1,106 +1,63 @@
-# SESSION.md — Scout (updated 2026-07-06 pm)
+# SESSION.md — Scout Launch-Readiness Program (updated 2026-07-27)
 
-## Status
-**NEW SITE + PLG BACKEND LIVE IN PROD** — commit `908f6d9`, deploy snapshot `20260706-2001`, all
-surfaces live-verified. **Beta invites HELD until fully e2e ready** (Arijit's call, no fixed date).
-Design phase complete (language + logo + pricing locked); build phase shipped its first drop; next =
-enablement wiring + docs + GTM.
+## Status (one line)
+Moat build IN PROGRESS. **Exec extraction PRECISION SOLVED this session (Layer 1 render + Layer 3 LLM adjudication — live gauntlet CLEAN 5/5, zero foreign-CEO leaks). RECALL/DISCOVERY (Layer 2) is now the bottleneck and the next job.** Changes uncommitted on branch `fix/launch-readiness-fx1-fx7`.
 
-## Resume action (do in order)
-1. Read this file + `docs/product/launch-readiness-roadmap.md` (living tracker) +
-   `docs/product/design-system.md` + `docs/product/pricing-model-2026-07-06.md` +
-   `docs/product/plg-playground-ux.md`. These are LOCKED specs — don't re-litigate.
-2. Ask Arijit for Lane C status: (a) ImprovMX + Hostinger DNS for support@scout.chowmes.com —
-   records given: MX `scout`→mx1.improvmx.com(10)/mx2.improvmx.com(20) + TXT `scout`
-   "v=spf1 include:spf.improvmx.com ~all"; verify with `dig +short MX scout.chowmes.com` + live test
-   email to support@ → his Gmail. (b) Mintlify signup + repo connect. (c) I can check Stripe test
-   keys on VPS myself (`ssh chowmes-vps`).
-3. Wire the branded enablement email into the key-delivery sender (TDD). Approved design = scratchpad
-   artifact `scout-email.html` (published https://claude.ai/code/artifact/fb6a8614-cd12-4c59-bdcc-80802d4cacb2):
-   flat email-safe brand, key in dark code block, "first 5 minutes" curl steps, evidence angle,
-   docs+playground buttons, "try this first" story, support line, signed Arijit. Rebuild as a proper
-   template in the scout/core/platform/ key-delivery path.
-4. Then in order: Mintlify docs migration · GTM plan → `docs/product/gtm-and-site-launch-plan.md`
-   (NOT yet written) · prod e2e of new signup→playground→run→download→destination flow · visual QA
-   pass of the LIVE site with Arijit (he hasn't reviewed the live build in detail yet).
+## RESUME ACTION (next session — do this)
+1. Read this file + memory `scout-extraction-fix-plan-seed.md` (now has verified Layer1/Layer3 progress) + the plan `docs/workspace/scout-core/moat-extraction-plan-2026-07-27.md`.
+2. **Build Layer 2: smart exec-page discovery** — harvest leadership links from the rendered homepage nav, broaden the guessed path list (add /company, /our-team, /people, /company/leadership...), and classify "is this THIS company's leadership page." This fixes the recall gap (Anthropic's roster is at /company, never fetched). For no-clean-page sites (Stripe/Vercel) decide on off-site enrichment (press/newsroom) — separate scope call.
+3. Then flip **products** the same way (products.py still empty-only fallback) + Layer 4 anti-bot via **ScraperAPI** (founder funds+key).
+4. **COMMIT the uncommitted moat work first** (branch is guard-blocked from push; founder pushes). Verified: 963 tests, pyright 0, ruff clean. Do NOT re-derive — gauntlet harness + result docs in `docs/test-results-2026-07-27/moat-gauntlet/`.
 
-## Where we stopped (exact)
-Deployed + live-verified the rebuilt site; ran /persist (this file). Last open ask to Arijit: Lane C
-status (DNS + Mintlify). Branded email TEMPLATE approved but NOT wired into the backend sender —
-key-delivery emails still send the old plain copy.
+## Where we stopped (EXACT)
+- Branch `fix/launch-readiness-fx1-fx7`, HEAD `df9632e`, ~11 fix commits, 952 unit tests pass, pyright 0, ruff clean. **Deployed to prod** (scout.chowmes.com) through `68a940a` (LLM layer df9632e committed but NOT yet deployed).
+- 18-company exec gauntlet: **9/18 returned execs but MOST ARE WRONG** (Stripe→Lightspeed CEO, Datadog→MongoDB CEO, mis-parsed names/titles). Clean ≈ algolia only (~2-3/18). Products: 0 on lacoste/eyebuydirect (Akamai blocks the datacenter IP).
+- LLM validation: Anthropic account was $0 (now funded). LLM returned 0 on Stripe/Datadog because exec content wasn't in the fetched markdown (JS-render / wrong page / networkidle timeout). **Bottleneck is fetching+rendering the right page, NOT the extractor.**
 
-## Decisions locked this session (full rationale in the named docs)
-- **Invites HELD until e2e ready** — no launch-date pressure; quality gate first.
-- **Design language:** premium MINT neumorphism + demo-first (E) IA + crisp dark data-screen rule +
-  green accent (forest fills, emerald inline) + **amber reserved for evidence marks only** →
-  `docs/product/design-system.md`. Rejected: Poster Modernist, grey/violet neumorphism, Firecrawl
-  clone; A/C round-1 were one language in two modes (Arijit caught it).
-- **Logo:** "Scout" wordmark, the "o" = full-reticle target with amber core; reticle = favicon.
-  (3 rounds; bracketed-[Scout] and mono `[scout·]` rejected — latter as "AI-output" look.)
-- **Pricing:** Free GA 5,000 · Monthly $12 = 50,000/mo (NEVER "unlimited" — brand honesty) · pay-go
-  demoted + repriced $10/10k · $25/30k · $100/150k · dossier ≈ 200 credits · Monthly mix "20k pages +
-  10k products + 100 dossiers" (sums exactly; both cards use "+" mix logic) · beta cohort stays 10k ·
-  higher tier ($49/$99) penciled, not launched → `docs/product/pricing-model-2026-07-06.md`.
-- **Market the subscription** (MRR engine); free = PLG hook; pay-go = quiet fallback.
-- **PLG funnel:** anon demo (scrape+map only, 5 runs/IP/day + global ceiling, preview-only) → free
-  signup (all endpoints, downloads, saved runs) → paid (Destinations) → `docs/product/plg-playground-ux.md`.
-- **Destinations are GENERIC:** Webhook (universal) + Algolia connectors behind one interface;
-  public copy = "your search index, warehouse, or webhook" — never leads with Algolia.
-- **Support model:** NO self-serve reissue UI; support@scout.chowmes.com (→ Arijit's Gmail) is the
-  path; backend reissue endpoint KEPT for operator use.
-- **Email ≠ neumorphic:** clients strip shadows → flat brand variant for email.
-- Earlier today (commit 70c7e07, also deployed): beta grant 1k→10k + simple email-only /beta page.
+## THE MOAT PROBLEM — root diagnosis (gold for the plan; do not re-derive)
+- **EXECS:** works only when the leadership page is server-rendered with tidy team-card markup (algolia: 11 clean live). Fails when (a) exec content is JS-rendered and not captured; (b) discovery lands on the WRONG page (blog/article listing random people → garbage); (c) `networkidle` times out on ad/analytics-heavy sites (datadog). Heuristic name/title parsing mis-splits.
+- **PRODUCTS:** extraction+discovery logic correct (Common Crawl discovery finds URLs when sitemap/BFS blocked). BUT big brands (lacoste/nike) are behind **Akamai anti-bot** → every VPS-datacenter-IP fetch is 301/blocked. No code fix solves this; needs **residential proxy / unblocker** (Zyte/ScraperAPI/Bright Data, ~$0.005-0.02/hard fetch, ~$100/mo beta). Product data often JS-rendered (not JSON-LD, not in CC snapshot).
+- **LLM layer (committed df9632e):** `scout/core/llm_extract.py` — Haiku (`anthropic/claude-haiku-4-5` via litellm, no new dep), heuristic-first, fires only on ZERO heuristic results, gated by `hosted_llm_policy` + `LLM_EXTRACTION_FALLBACK_ENABLED`. LIMITATION: empty-only trigger won't fix GARBAGE (non-zero-but-wrong); and can't extract un-fetched content.
 
-## Remaining work (order)
-1. Lane C verify (Arijit: DNS, Mintlify) → live test email to support@.
-2. Branded enablement email wired into the sender (TDD) + Resend smoke.
-3. Mintlify docs at docs.scout.chowmes.com + llms.txt.
-4. GTM strategy + launch/execution plan doc (HITL with Arijit).
-5. Prod e2e: new signup→run→download→destination flow (real user journey).
-6. Load-test finish / GA capacity characterization (Redis+workers scaling documented, not built).
-7. Visual QA + per-element copy review of the LIVE pages with Arijit.
-8. Remaining app screens as real pages: per-capability marketing pages, Your runs, API keys, Usage,
-   Account/Destinations-connect (app.html is the shell/reference).
-9. Deferred backlog: operator dashboard; purge ~4.2k test tenants; XSS-name escaping check; signup
-   abuse hardening (email verify); rotate exposed Resend key; swap Stripe sandbox before LIVE;
-   non-root container patch (see prod-architecture-security-review-2026-07-04.md).
+## FIX APPROACH (likely plan spine — validate + detail next session)
+1. **Robust full-JS render** for intelligence pages: replace `networkidle` with `scan_full_page` + bounded `delay_before_return_html` + content-signal wait; block images. Prove exec/product content lands in markdown.
+2. **Smart page discovery**: find the REAL leadership/team + product listing pages; reject blog/article pages listing random people (LLM/classifier judges "is this a leadership page").
+3. **LLM-PRIMARY extraction** (not empty-fallback) for execs+products over well-rendered content — gauntlet proved heuristics too noisy. Meter via credits (~200/dossier covers ~$0.01-0.05 Haiku).
+4. **Residential-proxy/unblocker fallback** for anti-bot product sites (founder picks provider + funds).
+5. **Validate with multi-company gauntlets** (exec-gauntlet.sh pattern + a product gauntlet) — measure CLEAN hit rate, not just non-empty.
 
-## What has NOT been done (do not claim)
-Branded email NOT wired (template only). support@ DNS NOT set (mailto live on site but bounces).
-Mintlify NOT started. GTM doc NOT written. New-flow prod e2e NOT run. Load test NOT 100% (stability +
-isolation proven; sustained mixed soak not done). Higher tier NOT built. Fable5 prompt exists
-(~/.claude/prompt-library/2026-07-06-scout-site-build-fable5.md) but the build ran as an in-session
-workflow instead; remaining screens above NOT built.
+## Decisions LOCKED this session
+- Pricing: **$12/mo → 20,000 credits** (fungible: 1 credit = 1 op; example 5k pages + 5k products + 50 dossiers), **$10 one-time → 15,000 credits**. Removed $25/$100 packs. "unlimited"→"monthly" everywhere. Beta = 5,000.
+- Capacity target **150 → 50 testers**. Box handles it (HOSTED_MAX_ACTIVE_REQUESTS=6). No new hardware for beta.
+- Scout = HTTP API + Claude/Codex skill only. `/app` deleted. Skill via email→support→download link.
+- Container non-root `scoutadmin:scoutgroup` (uid 10001), HOME=/app, CRAWL4AI_BASE_DIRECTORY=/app/.crawl4ai.
+- Legal: draft + MANDATED lawyer review.
+- **Do NOT launch on the "any company execs+products" promise until the moat works.**
+
+## DONE & VERIFIED LIVE this session
+- Signup/email/duplicate/status/reissue (root-caused; never broken — example.com rejected by Resend by design; domain verified; gmail delivers).
+- **Real $12 Stripe payment PROVEN**: charge succeeded, $11.35 in balance, webhook invoice.paid → tenant auto-upgraded hosted_monthly + 20,000 credits. Live prices+webhook created via API. sk_live in prod .env.
+- Non-root deploy, lxml 6.1.1 (CVE clear), 2-tier pricing live, /app gone (403), cap=100, plain copy, robots-respect default, error-hygiene.
+- Exec extraction on structured sites (algolia 11 live). Algolia push works. Scrape/crawl/map/screenshot work single-request.
+- DB: no card data, keys hashed, localhost-bound, non-root. Backup at /opt/prism/scout/backups/hosted_accounts.20260727-195352.sqlite.
+
+## What has NOT been done (prevents false-completion)
+- **Moat: reliable exec + product extraction across sites — NOT DONE (the whole next-session job).**
+- Junk-tenant purge NOT run (4,279 tenants; founder has the self-contained tightened command → keeps ~13 real + e2e key; backup exists).
+- LLM layer committed but NOT deployed + NOT validated live (Anthropic now funded).
+- Residential-proxy/unblocker for anti-bot products — NOT chosen/wired.
+- PR #2 not merged. Lawyer not engaged. Mintlify docs/llms.txt not finished. Track B comms drafted-not-posted.
+- Signup abuse protection (captcha/email-verify) NOT built.
 
 ## Reference files
-| Path | Purpose |
-|---|---|
-| docs/product/design-system.md | LOCKED design language + logo spec (tokens, reticle SVG, crisp-screen rule) |
-| docs/product/pricing-model-2026-07-06.md | LOCKED pricing + unit economics |
-| docs/product/plg-playground-ux.md | PLG funnel, anon-demo limits, Destinations, support model |
-| docs/product/launch-readiness-roadmap.md | Living tracker: phases, gates, % |
-| docs/competitor-crawl/firecrawl/ | Scout-dogfooded Firecrawl teardown (urls, pages/, shots/, analysis.md) |
-| docs/product/design-language-verdict.md | Why the old Flux brutalism was replaced |
-| ~/.claude/prompt-library/2026-07-06-scout-launch-enablement.md | Approved engagement shape |
-| scout/core/platform/destinations.py, scout/api/routers/{destinations,demo}.py | New backend (this build) |
-| website/app.html | New signed-in app shell (reference implementation) |
+- Branch `fix/launch-readiness-fx1-fx7`, PR https://github.com/arijitchowdhury80/scout/pull/2
+- `docs/test-results-2026-07-26/` (FAILURE-REPORT, FIX-PLAN, DEPLOY-AND-REVERIFY) + `docs/test-results-2026-07-27/`
+- `docs/launch/` (ph-gap-analysis, ph-run-plan, comms-pack, launch-calendar) — 50-tester scoped
+- `docs/legal/launch/` (9 drafts + lawyer-sourcing-and-cost)
+- Extraction code: `scout/core/use_cases/runners/company.py`, `scout/core/modes/products.py`, `scout/core/products/discovery.py`, `scout/core/modes/map.py`, `scout/core/llm_extract.py`
+- Plan: `~/.claude/plans/this-is-scout-i-shimmering-backus.md`
+- SSH `ssh chowmes-vps` (chowmesadmin, passwordless sudo docker). Deploy: `/opt/prism/scout` git checkout + `sudo docker compose build && up -d`.
+- Test creds: session scratchpad `test-creds.env` (SCOUT_API_KEY; Algolia AppID V8R7CVBC8Y).
 
-## Files written this session (beyond repo commits 70c7e07 + 908f6d9)
-- Repo docs: design-system.md, pricing-model-2026-07-06.md, plg-playground-ux.md,
-  launch-readiness-roadmap.md, design-language-verdict.md, competitor-crawl/firecrawl/*
-- Prompt library: 2026-07-06-scout-launch-enablement.md, 2026-07-06-scout-site-build-fable5.md
-- Memory: scout-saas-launch-state.md (rewritten), scout-design-decisions-hitl.md (new),
-  session_pointer.md, MEMORY.md
-- Scratchpad artifacts (design iterations, all published as claude.ai artifacts): scout-A/B/C/D/E,
-  scout-neu*, scout-logos, scout-logo-v2, scout-logo-A, scout-wordmarks, scout-app-playground,
-  scout-pricing(-v2), **scout-email.html ← approved email template (lives ONLY in scratchpad +
-  artifact URL — copy into repo when wiring)**
-
-## Session context worth knowing
-- The build ran as an 11-agent workflow (~2.2M tokens, 85 min). Its final self-reports were garbage
-  (agents wedged in a hook loop at the end) but the work was real — all gates re-verified by the
-  main loop (zero-trust relay): 888 tests, pyright 0, ruff clean, live checks green.
-- VPS ssh alias `chowmes-vps` (user chowmesadmin); deploy = stash docker-compose.yml → pull --ff-only
-  → pop → `sudo docker/scout-deploy.sh`; rollback image kept (20260706-1513).
-- chowmes.com DNS = Hostinger (dns-parking NS); NO MX records exist anywhere on the domain yet.
-- Old SESSION content (pre-4am state: dual-path beta, "Monday launch") is SUPERSEDED by this file.
+## Files written this session
+Many across scout/, tests/, docs/launch/, docs/legal/launch/, docs/test-results-2026-07-2[67]/, website/, docker/, pyproject.toml, .env.example. 11 commits eee3c9e→df9632e on the branch.

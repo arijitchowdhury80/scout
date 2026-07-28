@@ -1,0 +1,54 @@
+{
+  "_note": "Labeled moat gauntlet. known_exec_surnames = high-confidence CURRENT execs used to score CLEAN recall (surname presence in rendered content). Ground truth dated 2026-07-27; re-verify on a cadence (execs change). regime: server=server-rendered control, js=client-rendered, antibot=WAF/Akamai (needs Layer 4 proxy).",
+  "companies": [
+    {
+      "name": "Algolia",
+      "homepage": "https://www.algolia.com",
+      "leadership_url": "https://www.algolia.com/about/leadership",
+      "regime": "server",
+      "known_exec_surnames": ["Lynch", "Whitfield"],
+      "confidence": "control - prior session got 11 clean execs live"
+    },
+    {
+      "name": "Anthropic",
+      "homepage": "https://www.anthropic.com",
+      "leadership_url": "https://www.anthropic.com/company",
+      "regime": "js",
+      "known_exec_surnames": ["Amodei"],
+      "confidence": "founder-CEO Dario Amodei, President Daniela Amodei - stable"
+    },
+    {
+      "name": "Vercel",
+      "homepage": "https://vercel.com",
+      "leadership_url": "",
+      "regime": "js",
+      "known_exec_surnames": ["Rauch"],
+      "confidence": "founder-CEO Guillermo Rauch - stable"
+    },
+    {
+      "name": "Datadog",
+      "homepage": "https://www.datadoghq.com",
+      "leadership_url": "https://www.datadoghq.com/about/leadership/",
+      "regime": "js",
+      "known_exec_surnames": ["Pomel", "Obstler"],
+      "confidence": "founder-CEO Olivier Pomel, CFO David Obstler - stable; ad/analytics heavy (networkidle timeout repro)"
+    },
+    {
+      "name": "Stripe",
+      "homepage": "https://stripe.com",
+      "leadership_url": "",
+      "regime": "js",
+      "known_exec_surnames": ["Collison"],
+      "confidence": "founder-CEO Patrick Collison, President John Collison - stable; no clean public leadership page (discovery-hard repro)"
+    }
+  ],
+  "products": [
+    {
+      "name": "Lacoste",
+      "site": "https://www.lacoste.com",
+      "regime": "antibot",
+      "known_product_tokens": ["polo"],
+      "confidence": "Akamai - expected blocked until Layer 4 (ScraperAPI)"
+    }
+  ]
+}

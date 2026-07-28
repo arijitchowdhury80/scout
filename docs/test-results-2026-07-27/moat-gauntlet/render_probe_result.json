@@ -1,0 +1,172 @@
+[
+  {
+    "name": "Algolia",
+    "url": "https://www.algolia.com/about/leadership",
+    "regime": "server",
+    "surnames": [
+      "Lynch",
+      "Whitfield"
+    ],
+    "bare": {
+      "success": true,
+      "status": 200,
+      "md_words": 2542,
+      "hits_md": {
+        "Lynch": true,
+        "Whitfield": false
+      },
+      "hits_html": {
+        "Lynch": true,
+        "Whitfield": false
+      },
+      "error": ""
+    },
+    "moat": {
+      "success": true,
+      "status": 200,
+      "md_words": 2871,
+      "hits_md": {
+        "Lynch": true,
+        "Whitfield": false
+      },
+      "hits_html": {
+        "Lynch": true,
+        "Whitfield": false
+      },
+      "error": ""
+    }
+  },
+  {
+    "name": "Anthropic",
+    "url": "https://www.anthropic.com/company",
+    "regime": "js",
+    "surnames": [
+      "Amodei"
+    ],
+    "bare": {
+      "success": true,
+      "status": 200,
+      "md_words": 1037,
+      "hits_md": {
+        "Amodei": true
+      },
+      "hits_html": {
+        "Amodei": true
+      },
+      "error": ""
+    },
+    "moat": {
+      "success": true,
+      "status": 200,
+      "md_words": 1037,
+      "hits_md": {
+        "Amodei": true
+      },
+      "hits_html": {
+        "Amodei": true
+      },
+      "error": ""
+    }
+  },
+  {
+    "name": "Vercel",
+    "url": "https://vercel.com",
+    "regime": "js",
+    "surnames": [
+      "Rauch"
+    ],
+    "bare": {
+      "success": true,
+      "status": 307,
+      "md_words": 156,
+      "hits_md": {
+        "Rauch": false
+      },
+      "hits_html": {
+        "Rauch": false
+      },
+      "error": ""
+    },
+    "moat": {
+      "success": true,
+      "status": 307,
+      "md_words": 156,
+      "hits_md": {
+        "Rauch": false
+      },
+      "hits_html": {
+        "Rauch": true
+      },
+      "error": ""
+    }
+  },
+  {
+    "name": "Datadog",
+    "url": "https://www.datadoghq.com/about/leadership/",
+    "regime": "js",
+    "surnames": [
+      "Pomel",
+      "Obstler"
+    ],
+    "bare": {
+      "success": true,
+      "status": 200,
+      "md_words": 4757,
+      "hits_md": {
+        "Pomel": true,
+        "Obstler": true
+      },
+      "hits_html": {
+        "Pomel": true,
+        "Obstler": true
+      },
+      "error": ""
+    },
+    "moat": {
+      "success": true,
+      "status": 200,
+      "md_words": 4757,
+      "hits_md": {
+        "Pomel": true,
+        "Obstler": true
+      },
+      "hits_html": {
+        "Pomel": true,
+        "Obstler": true
+      },
+      "error": ""
+    }
+  },
+  {
+    "name": "Stripe",
+    "url": "https://stripe.com",
+    "regime": "js",
+    "surnames": [
+      "Collison"
+    ],
+    "bare": {
+      "success": true,
+      "status": 200,
+      "md_words": 1890,
+      "hits_md": {
+        "Collison": true
+      },
+      "hits_html": {
+        "Collison": true
+      },
+      "error": ""
+    },
+    "moat": {
+      "success": true,
+      "status": 200,
+      "md_words": 2570,
+      "hits_md": {
+        "Collison": true
+      },
+      "hits_html": {
+        "Collison": true
+      },
+      "error": ""
+    }
+  }
+]
