@@ -52,6 +52,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+      - run: pip install -e .
       - run: python scripts/launch_readiness_check.py
       - run: python scripts/launch_readiness_check.py --json
       - run: python scripts/founder_decision_record_check.py --root . --check-existing

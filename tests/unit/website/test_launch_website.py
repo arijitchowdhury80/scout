@@ -74,9 +74,7 @@ def test_launch_website_keeps_paid_checkout_gated_behind_readiness_without_secre
 
 
 def test_beta_signup_copy_does_not_claim_duplicate_accounts_were_emailed() -> None:
-    hosted_keygen = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(
-        encoding="utf-8"
-    )
+    hosted_keygen = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(encoding="utf-8")
 
     assert 'payload.delivery_status === "account_exists"' in hosted_keygen
     assert "This email is already registered" in hosted_keygen
@@ -111,7 +109,10 @@ def test_homepage_explains_outcome_before_endpoint_details() -> None:
 
     assert "What do you get after Scout runs?" in normalized_html
     assert "URL in, clean reusable data out" in normalized_html
-    assert "Scout saves you from manually copying, cleaning, and checking website data." in normalized_html
+    assert (
+        "Scout saves you from manually copying, cleaning, and checking website data."
+        in normalized_html
+    )
     assert "Watch a URL become a citable record" in normalized_html
     assert 'aria-label="60 second Scout product walkthrough"' in html
     assert 'class="demo-video-frame"' in html
@@ -146,7 +147,10 @@ def test_homepage_has_phone_specific_journey_instead_of_stacked_desktop_console(
     assert ".mobile-proof-section { display: none; }" in normalized_css
     assert "@media (max-width: 640px)" in css
     assert ".mobile-proof-section { display: block; }" in normalized_css
-    assert ".desktop-console-section, .desktop-outcome-section, .desktop-capability-section { display: none; }" in normalized_css
+    assert (
+        ".desktop-console-section, .desktop-outcome-section, .desktop-capability-section { display: none; }"
+        in normalized_css
+    )
     assert ".site-header .btn {" in normalized_css
     assert "width: auto;" in css
     assert ".nav-link, .tab, .input-well" in normalized_css
@@ -352,8 +356,8 @@ def test_rebuilt_pages_share_site_header_and_beta_cta() -> None:
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
         assert '<header class="site-header">' in html
         assert '<nav class="nav-primary" aria-label="Primary navigation">' in html
-        assert '>Pricing</a>' in html
-        assert '>Docs</a>' in html
+        assert ">Pricing</a>" in html
+        assert ">Docs</a>" in html
 
 
 def test_homepage_has_streamlined_primary_nav_and_reticle_hero() -> None:
@@ -479,8 +483,6 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         assert "sk_test_" not in html
 
 
-
-
 def test_pricing_page_reflects_locked_2026_07_06_pricing_model() -> None:
     """Pricing copy matches the 2026-07-27 two-tier simplification: Free
     5,000 one-time, Monthly $12/20,000 (never called "unlimited"), one $10
@@ -562,7 +564,6 @@ def test_account_page_lets_hosted_users_inspect_usage_without_login() -> None:
     assert "sessionStorage" not in account_js
     assert "sk_live_" not in html
     assert "sk_live_" not in account_js
-
 
 
 def test_homepage_has_anonymous_console_gated_to_fast_endpoints_only() -> None:
@@ -657,7 +658,6 @@ def test_homepage_console_company_and_screenshot_stay_sample_only() -> None:
     assert "Get your free API key" in html
 
 
-
 def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
     client = TestClient(app)
 
@@ -681,7 +681,6 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
         assert text in response.text
-
 
 
 def test_api_serves_third_party_notices_without_auth() -> None:
@@ -759,7 +758,7 @@ def test_canonical_nav_is_identical_across_home_beta_pricing_account() -> None:
         normalized_html = " ".join(html.split())
         assert canonical_nav in normalized_html, f"{page_name} nav drifted from canonical"
         assert 'class="wm wm--lg"' in html
-        assert '>Get API key</a>' in html
+        assert ">Get API key</a>" in html
         assert 'href="https://docs.scout.chowmes.com"' in html
         assert 'href="/quickstart">Read docs' not in html
         assert ">Join beta<" not in html
@@ -770,7 +769,7 @@ def test_canonical_nav_is_identical_across_home_beta_pricing_account() -> None:
     # Pricing keeps the same nav shell, just with Pricing marked active.
     pricing_html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
     assert 'class="wm wm--lg"' in pricing_html
-    assert '>Get API key</a>' in pricing_html
+    assert ">Get API key</a>" in pricing_html
     assert '<a class="nav-link" href="/">Product</a>' in pricing_html
     assert '<a class="nav-link" href="https://docs.scout.chowmes.com">Docs</a>' in pricing_html
     assert 'class="nav-link is-active" href="/pricing"' in pricing_html
@@ -793,7 +792,7 @@ def test_account_page_has_canonical_footer() -> None:
     assert 'href="/legal">Legal' in html
     assert 'href="/terms">Terms' in html
     assert 'href="/privacy">Privacy' in html
-    assert 'mailto:support@scout.chowmes.com' in html
+    assert "mailto:support@scout.chowmes.com" in html
 
 
 def test_footer_link_set_is_identical_across_home_beta_pricing_account() -> None:
@@ -840,7 +839,7 @@ def test_console_reevaluates_mobile_desktop_mode_on_resize() -> None:
     debounced window resize handler."""
     html = _WEBSITE_INDEX.read_text(encoding="utf-8")
 
-    assert "window.addEventListener(\"resize\"" in html
+    assert 'window.addEventListener("resize"' in html
     assert "applyViewportMode(false)" in html
     assert "applyViewportMode(true)" in html
     assert "resetConsoleToReady" in html
@@ -860,7 +859,6 @@ def test_focus_ring_uses_high_contrast_forest_token() -> None:
 def test_no_em_dashes_in_customer_facing_copy() -> None:
     """Arijit's standing rule: no em dashes anywhere customer-facing (an AI-writing
     tell). Guards every public HTML page + JS/CSS assets against regression."""
-    import pathlib
 
     surfaces = list(_WEBSITE_DIR.glob("*.html")) + list((_WEBSITE_DIR / "assets").glob("*.js"))
     offenders = []
@@ -886,24 +884,26 @@ def test_console_fallback_echoes_typed_url_instead_of_fake_acme_result() -> None
     assert "function buildFallbackPayload(endpoint, typedUrl)" in html
     assert "function renderFallback(endpoint, note, typedUrl)" in html
     assert "const payload = buildFallbackPayload(endpoint, typedUrl);" in html
-    assert 'evidence.source = host;' in html
+    assert "evidence.source = host;" in html
 
     # Both fallback trigger sites (non-2xx response, network/CSP failure)
     # must pass the visitor's typed url through, not call renderFallback bare.
-    assert 'renderFallback(activeEndpoint, detail + " · couldn\'t run it live, showing a sample shape instead", url);' in html
+    assert (
+        'renderFallback(activeEndpoint, detail + " · couldn\'t run it live, showing a sample shape instead", url);'
+        in html
+    )
     normalized = " ".join(html.split())
     assert (
-        'renderFallback( activeEndpoint, "Couldn\'t reach the live demo right now · showing a sample shape, '
-        'not your real result", url );'
-        in normalized
+        "renderFallback( activeEndpoint, \"Couldn't reach the live demo right now · showing a sample shape, "
+        'not your real result", url );' in normalized
     )
 
     # The rendered fallback must never present the sample as real data: it
     # always carries an explicit "not a real result" comment.
-    assert "this is a sample shape for \" + payload.evidence.source + \", not a real result" in html
+    assert 'this is a sample shape for " + payload.evidence.source + ", not a real result' in html
     assert "this is a sample shape, not a real result" in html
 
     # The status line must go loud (amber, bold) on fallback, not a quiet
     # gray note that reads like a normal successful run.
-    assert "statusMeta.classList.add(\"screen__meta--warn\");" in html
+    assert 'statusMeta.classList.add("screen__meta--warn");' in html
     assert ".screen__meta--warn" in (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")

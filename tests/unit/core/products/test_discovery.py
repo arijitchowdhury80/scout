@@ -141,8 +141,6 @@ def test_select_category_urls_restricts_to_given_domain() -> None:
         "https://shop.example.com/us/lacoste/men/clothing/polos",
     ]
 
-    categories = select_category_urls(
-        urls, query="men", limit=5, domain="shop.example.com"
-    )
+    categories = select_category_urls(urls, query="men", limit=5, domain="shop.example.com")
 
     assert categories == ["https://shop.example.com/us/lacoste/men/clothing/polos"]

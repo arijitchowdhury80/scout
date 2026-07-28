@@ -95,9 +95,7 @@ def test_filter_roles_within_hours_keeps_recent_and_dateless_drops_stale():
         posted_at_reason="no_date_on_page",
     )
 
-    kept = _filter_roles_within_hours(
-        [fresh, stale, dateless], posted_within_hours=24, now=_now()
-    )
+    kept = _filter_roles_within_hours([fresh, stale, dateless], posted_within_hours=24, now=_now())
 
     kept_titles = {role.title for role in kept}
     assert "Fresh Role" in kept_titles
@@ -126,7 +124,11 @@ def _meta(url: str = "https://example.com") -> ScoutMetadata:
 
 def _scrape_ok(url: str, markdown: str, links: list[str] | None = None) -> ScrapeResponse:
     return ScrapeResponse(
-        success=True, url=url, markdown=markdown, links=links or [], metadata=_meta(url),
+        success=True,
+        url=url,
+        markdown=markdown,
+        links=links or [],
+        metadata=_meta(url),
         duration_ms=100,
     )
 
@@ -139,8 +141,12 @@ def _mock_crawler(responses: dict[str, ScrapeResponse]) -> MagicMock:
             if pattern in req.url:
                 return resp
         return ScrapeResponse(
-            success=False, url=req.url, markdown="", metadata=_meta(req.url),
-            error="404", duration_ms=10,
+            success=False,
+            url=req.url,
+            markdown="",
+            metadata=_meta(req.url),
+            error="404",
+            duration_ms=10,
         )
 
     crawler.scrape = AsyncMock(side_effect=_scrape)
@@ -165,7 +171,10 @@ async def test_run_careers_applies_posted_within_hours_filter_to_roles():
     )
 
     req = RunRequest(
-        use_case="careers", query="Acme Corp", url="https://www.acme.com", mode="auto",
+        use_case="careers",
+        query="Acme Corp",
+        url="https://www.acme.com",
+        mode="auto",
         posted_within_hours=24,
     )
     records = await run_careers(req, crawler)

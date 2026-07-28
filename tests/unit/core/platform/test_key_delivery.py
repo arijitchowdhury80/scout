@@ -387,9 +387,17 @@ def test_delivery_email_has_no_em_dashes() -> None:
     from scout.core.platform.hosted import HostedPlan
 
     request = HostedApiKeyDeliveryRequest(
-        email="t@example.com", name="Tester", tenant_id="t", key_id="k",
-        raw_api_key="scout_live_x", checkout_session_id="x", plan=HostedPlan.HOSTED_BETA_PASS,
-        standard_credits=5000, browser_credits=100, trial_days=30, package_id="beta_trial",
+        email="t@example.com",
+        name="Tester",
+        tenant_id="t",
+        key_id="k",
+        raw_api_key="scout_live_x",
+        checkout_session_id="x",
+        plan=HostedPlan.HOSTED_BETA_PASS,
+        standard_credits=5000,
+        browser_credits=100,
+        trial_days=30,
+        package_id="beta_trial",
     )
     _subject, text_body, html_body = build_beta_key_email(request)
     assert "—" not in html_body

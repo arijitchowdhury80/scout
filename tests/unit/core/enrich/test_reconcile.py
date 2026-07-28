@@ -3,7 +3,7 @@ concrete failure the DEF 14A golden set exposed on 2026-07-28."""
 
 from __future__ import annotations
 
-from scout.core.enrich.reconcile import canonical, same_name, same_person
+from scout.core.enrich.reconcile import canonical, same_name
 
 
 # --- reorder (SEC LAST-FIRST) -------------------------------------------------
@@ -156,4 +156,6 @@ def test_explicit_last_first_title_case() -> None:
 def test_last_first_particle_surname() -> None:
     p = canonical("VON AHN LUIS", last_first=True)
     assert p.display == "Luis von Ahn"
-    assert same_name("VON AHN LUIS", "Luis von Ahn")  # SEC form matches natural form (via last_first auto on caps)
+    assert same_name(
+        "VON AHN LUIS", "Luis von Ahn"
+    )  # SEC form matches natural form (via last_first auto on caps)
