@@ -21,6 +21,8 @@ import httpx
 import structlog
 from pydantic import BaseModel
 
+from scout.core.enrich.reconcile import canonical
+
 logger = structlog.get_logger(__name__)
 
 _TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
@@ -46,13 +48,10 @@ def _norm_company(name: str) -> str:
 
 
 def _reorder_sec_name(sec_name: str) -> str:
-    """SEC reports names as 'LAST FIRST MIDDLE' (all caps). Reorder to a normal
-    'First Middle Last' and title-case. Best-effort: multi-word surnames may not
-    reorder perfectly, but the title (the high-value field) is unaffected."""
-    tokens = [t for t in re.split(r"\s+", sec_name.strip()) if t]
-    if len(tokens) >= 2:
-        tokens = tokens[1:] + tokens[:1]  # move surname to the end
-    return " ".join(t.capitalize() for t in tokens)
+    """SEC reports names as 'LAST FIRST MIDDLE' (all caps). Canonicalize to a
+    normal 'First Middle Last', particle-safe (Von Ahn stays a surname) — the
+    shared identity canonicalizer, not a naive token swap."""
+    return canonical(sec_name).display or sec_name.title()
 
 
 def _match_cik(company: str, tickers: dict) -> int | None:

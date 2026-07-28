@@ -3,45 +3,17 @@ network. Verified against live findings 2026-07-27 (Anthropic's /company is only
 reachable via nav-harvest; Datadog's sitemap buries /leadership under 213 press
 releases)."""
 
-from scout.core.use_cases.prism import ExecutiveRecord
 from scout.core.use_cases.runners.company import (
-    _dedupe_execs,
     _discover_leadership_urls,
     _extract_anchor_candidates,
     _leadership_score,
     _leadership_text_score,
     _prefilter_candidates,
-    _same_person,
 )
 
-
-def _exec(name: str, title: str = "") -> ExecutiveRecord:
-    return ExecutiveRecord(objectID=f"exec_{name}", company="X", name=name, title=title)
-
-
-def test_same_person_fuzzy() -> None:
-    assert _same_person("Olivier Pomel", "Olivier Pomel")  # exact
-    assert _same_person("Tim Cook", "Timothy Cook")  # first-name prefix
-    assert _same_person("Andrew Bonfield", "Andrew R.J. Bonfield")  # middle initials
-    # CONSERVATIVE: never merge different people (would lose a real exec).
-    assert not _same_person("John Smith", "Jane Smith")  # same surname, diff first
-    assert not _same_person("Joe Creed", "Joseph Creed")  # nickname != prefix; kept apart
-    assert not _same_person("Olivier Pomel", "Amit Agarwal")
-
-
-def test_dedupe_execs_drops_cross_source_dups_and_backfills_title() -> None:
-    execs = [
-        _exec("Olivier Pomel", "CEO"),  # on-site
-        _exec("Olivier Pomel", ""),  # SEC exact dup -> dropped
-        _exec("Andrew Bonfield", ""),  # kept
-        _exec("Andrew R.J. Bonfield", "CFO"),  # dup (middle initials) -> dropped, backfills title
-        _exec("Amit Agarwal", "Director"),
-    ]
-    out = _dedupe_execs(execs)
-    names = [e.name for e in out]
-    assert names == ["Olivier Pomel", "Andrew Bonfield", "Amit Agarwal"]
-    bonfield = next(e for e in out if e.name == "Andrew Bonfield")
-    assert bonfield.title == "CFO"  # backfilled from the dropped dup
+# Note: cross-source exec dedup now lives in scout/core/enrich/reconcile.py
+# (test_reconcile.py) — the old _same_person/_dedupe_execs helpers were removed
+# in the 2026-07-28 identity-reconciliation refactor.
 
 BASE = "https://www.acme.com"
 

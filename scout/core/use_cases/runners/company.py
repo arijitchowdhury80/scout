@@ -12,8 +12,9 @@ import structlog
 from bs4 import BeautifulSoup, Tag
 
 from scout.core.crawler import ScoutCrawler
+from scout.core.enrich.reconcile import ExecCandidate, ReconciledExec, reconcile
 from scout.core.enrich.sec import sec_executives
-from scout.core.enrich.wikidata import WikidataExec, wikidata_executives
+from scout.core.enrich.wikidata import wikidata_executives
 from scout.core.enrich.wikipedia import wikipedia_executives
 from scout.core.llm_extract import llm_extract_executives, llm_select_pages
 from scout.core.platform.types import Citation, FetchResult, RunRequest
@@ -404,104 +405,27 @@ def _enrichment_on(crawler: ScoutCrawler) -> bool:
     return getattr(crawler, "enrichment_enabled", False) is True
 
 
-def _make_wikidata_exec_record(company: str, wexec: WikidataExec) -> ExecutiveRecord:
-    """Map a Wikidata leader onto an ExecutiveRecord with Wikidata provenance."""
-    slug = re.sub(r"[^a-z0-9]+", "_", wexec.name.lower()).strip("_")
-    entity_url = f"https://www.wikidata.org/wiki/{wexec.company_qid}" if wexec.company_qid else ""
-    person_url = f"https://www.wikidata.org/wiki/{wexec.qid}" if wexec.qid else ""
+def _reconciled_to_record(company: str, rex: ReconciledExec) -> ExecutiveRecord:
+    """Map a reconciled (cross-source clustered) exec onto an ExecutiveRecord.
+    Provenance is the set of sources that agreed on the person."""
+    slug = re.sub(r"[^a-z0-9]+", "_", rex.name.lower()).strip("_")
+    prov = "/".join(rex.sources)
     return ExecutiveRecord(
         objectID=f"exec_{slug}",
         company=company,
-        name=wexec.name,
-        title=wexec.title,
-        profile_url=person_url,
-        source_url=entity_url,
-        confidence=0.7,
+        name=rex.name,
+        title=rex.title,
+        profile_url=rex.profile_url,
+        source_url=rex.source_url,
+        confidence=rex.confidence,
         citations=[
             Citation(
-                source_id=wexec.company_qid or "wikidata",
-                source_url=entity_url,
+                source_id=prov or "scout",
+                source_url=rex.source_url,
                 field="name",
-                claim=wexec.name,
-                snippet=f"{wexec.name} — {wexec.title} (Wikidata)".strip(" —"),
-                confidence=0.7,
-            )
-        ],
-    )
-
-
-def _name_tokens(name: str) -> list[str]:
-    cleaned = "".join(c if c.isalnum() or c.isspace() else " " for c in name.lower())
-    return [t for t in cleaned.split() if len(t) > 1]
-
-
-def _same_person(a: str, b: str) -> bool:
-    """Fuzzy same-person: surnames match and first name (or initial) agrees.
-    Catches cross-source format drift — 'Joe Creed' vs 'Joseph E. Creed',
-    'Olivier Pomel' vs 'Olivier Pomel'."""
-    ta, tb = _name_tokens(a), _name_tokens(b)
-    if not ta or not tb or ta[-1] != tb[-1]:
-        return False
-    return ta[0] == tb[0] or ta[0].startswith(tb[0]) or tb[0].startswith(ta[0])
-
-
-def _dedupe_execs(execs: list[ExecutiveRecord]) -> list[ExecutiveRecord]:
-    """Drop cross-source duplicates of the same person, keeping the first
-    (source-priority order: on-site → Wikidata → SEC → Wikipedia). Prefers the
-    kept record's longer/ more specific title when the later dup has more detail."""
-    kept: list[ExecutiveRecord] = []
-    for e in execs:
-        match = next((k for k in kept if _same_person(k.name, e.name)), None)
-        if match is None:
-            kept.append(e)
-        elif not match.title and e.title:
-            match.title = e.title  # backfill a missing title from the dup
-    return kept
-
-
-def _make_sec_exec_record(company: str, name: str, title: str) -> ExecutiveRecord:
-    """Map an SEC EDGAR officer/director onto an ExecutiveRecord with provenance."""
-    slug = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
-    src = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany"
-    return ExecutiveRecord(
-        objectID=f"exec_{slug}",
-        company=company,
-        name=name,
-        title=title,
-        source_url=src,
-        confidence=0.8,  # authoritative structured filing
-        citations=[
-            Citation(
-                source_id="sec_edgar",
-                source_url=src,
-                field="name",
-                claim=name,
-                snippet=f"{name} — {title} (SEC Form 3/4)".strip(" —"),
-                confidence=0.8,
-            )
-        ],
-    )
-
-
-def _make_wikipedia_exec_record(company: str, name: str, title: str) -> ExecutiveRecord:
-    """Map a Wikipedia-sourced leader onto an ExecutiveRecord with provenance."""
-    slug = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
-    article = "https://en.wikipedia.org/wiki/" + company.replace(" ", "_")
-    return ExecutiveRecord(
-        objectID=f"exec_{slug}",
-        company=company,
-        name=name,
-        title=title,
-        source_url=article,
-        confidence=0.65,
-        citations=[
-            Citation(
-                source_id="wikipedia",
-                source_url=article,
-                field="name",
-                claim=name,
-                snippet=f"{name} — {title} (Wikipedia)".strip(" —"),
-                confidence=0.65,
+                claim=rex.name,
+                snippet=f"{rex.name} — {rex.title} ({prov})".strip(" —"),
+                confidence=rex.confidence,
             )
         ],
     )
@@ -862,92 +786,87 @@ async def run_company(req: RunRequest, crawler: ScoutCrawler) -> list[dict]:
     )
     records.append(company_rec.model_dump(mode="json"))
 
-    executives: list[ExecutiveRecord] = []
-    seen_names: set[str] = set()
+    # EXEC EXTRACTION — every source produces raw ExecCandidates; one reconcile()
+    # layer canonicalizes names, clusters identities across sources, and merges by
+    # authority. This replaced the old per-source "append + dedupe by string"
+    # scatter that caused mangled names, duplicates, and wrong titles (2026-07-28
+    # root-cause fix; see scout/core/enrich/reconcile.py).
+    candidates: list[ExecCandidate] = []
+
+    # --- on-site (JSON-LD Person / team cards; else LLM adjudication) ----------
+    onsite: list[ExecutiveRecord] = []
     for src in sources:
-        for exec_rec in _extract_jsonld_people(src.html, company, src):
-            key = exec_rec.name.lower()
-            if key not in seen_names:
-                seen_names.add(key)
-                executives.append(exec_rec)
+        onsite.extend(_extract_jsonld_people(src.html, company, src))
     for src in sources:
-        for exec_rec in _extract_team_cards(src.html, company, src):
-            key = exec_rec.name.lower()
-            if key not in seen_names:
-                seen_names.add(key)
-                executives.append(exec_rec)
-    if not executives:
-        # MOAT (Layer 3): JSON-LD Person nodes + team cards (both structured
-        # and reasonably precise) found nothing. Prefer LLM adjudication over
-        # the noisy regex-over-concatenated-markdown path — the gauntlet proved
-        # that regex is the dominant garbage source, returning OTHER companies'
-        # CEOs (Stripe -> Lightspeed, Datadog -> MongoDB) and article authors,
-        # because it matched any "Name, Title" string anywhere across the
-        # homepage+about+team markdown. The LLM adjudicator is company-identity
-        # guarded (see llm_extract._EXECUTIVE_COMPANY_GUARD). GATE 1 proved the
-        # exec content is present in the intelligence-rendered pages, so the
-        # adjudicator has the raw material it needs. The regex survives only as
-        # the no-LLM-key legacy path.
+        onsite.extend(_extract_team_cards(src.html, company, src))
+    if not onsite:
+        # Structured markup found nothing → LLM adjudication (company-identity
+        # guarded) over all fetched pages, team-page-first. Regex is the no-key
+        # legacy fallback only (it was the dominant garbage source pre-fix).
         llm_api_key = _fallback_llm_api_key(crawler)
         if llm_api_key:
-            # Adjudicate over ALL fetched pages, most-specific first: the
-            # team/leadership page leads (so it survives the model's content
-            # cap), followed by about + homepage, where the roster often
-            # actually lives when a guessed /team path 200s but lists no one.
             combined = "\n\n".join(src.markdown for src in reversed(sources) if src.markdown)
-            executives = await _extract_executives_via_llm(
+            onsite = await _extract_executives_via_llm(
                 company, sources[-1], llm_api_key, content=combined
             )
         else:
-            executives = _extract_executives(all_markdown, company, primary)
+            onsite = _extract_executives(all_markdown, company, primary)
+    for rec in onsite:
+        candidates.append(
+            ExecCandidate(
+                raw_name=rec.name,
+                title=rec.title,
+                source="onsite",
+                confidence=rec.confidence,
+                profile_url=rec.profile_url,
+                source_url=rec.source_url,
+            )
+        )
 
-    # Rebuild the dedup set from whatever on-site path populated `executives`
-    # (the LLM/regex paths above assign the list without touching seen_names) so
-    # enrichment doesn't RE-ADD an on-site exec — the "Olivier Pomel x2" bug.
-    seen_names = {rec.name.lower().strip() for rec in executives}
-
-    # WATERFALL source #2 — Wikidata enrichment. ~half of companies never
-    # publish leadership on their own site (Stripe, Vercel, most retail brands),
-    # so on-site alone caps coverage at ~50%. Wikidata (free, structured,
-    # domain-disambiguated) fills the gap AND adds founders/board the site omits.
-    # On-site records win on a name clash (freshest, most detailed); Wikidata
-    # only ADDS names not already present.
+    # --- external enrichment sources (Wikidata → SEC → Wikipedia) --------------
     if _enrichment_on(crawler):
         domain = urlparse(base).netloc
         for wexec in await wikidata_executives(company, domain):
-            key = wexec.name.lower().strip()
-            if key and key not in seen_names:
-                seen_names.add(key)
-                executives.append(_make_wikidata_exec_record(company, wexec))
-
-        # WATERFALL source #3 — SEC EDGAR (US public companies). Authoritative,
-        # structured officer/director data; no LLM, can't hallucinate a title.
-        # ADDS names not already present (on-site/Wikidata win on a clash).
+            entity_url = (
+                f"https://www.wikidata.org/wiki/{wexec.company_qid}" if wexec.company_qid else ""
+            )
+            candidates.append(
+                ExecCandidate(
+                    raw_name=wexec.name,
+                    title=wexec.title,
+                    source="wikidata",
+                    confidence=0.7,
+                    profile_url=f"https://www.wikidata.org/wiki/{wexec.qid}" if wexec.qid else "",
+                    source_url=entity_url,
+                )
+            )
         for sexec in await sec_executives(company):
-            key = sexec.name.lower().strip()
-            if key and key not in seen_names:
-                seen_names.add(key)
-                executives.append(_make_sec_exec_record(company, sexec.name, sexec.title))
-
-        # WATERFALL source #4 — Wikipedia article extraction. Fires ONLY when the
-        # company is still uncovered after on-site + Wikidata (bounds the LLM
-        # cost to the gaps). Wikidata's structured claims are thin for many
-        # notable private firms (Notion has an entity but no CEO claim) — their
-        # Wikipedia prose names the founders/CEO. Reuses the domain-disambiguated
-        # entity + the company-guarded extractor. Grounded + keyless.
+            candidates.append(
+                ExecCandidate(
+                    raw_name=sexec.name,
+                    title=sexec.title,
+                    source="sec",
+                    confidence=0.8,
+                    source_url="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany",
+                )
+            )
+        # Wikipedia fires only when nothing else found the company (cost-bounded).
         wiki_key = _fallback_llm_api_key(crawler)
-        if not executives and wiki_key:
+        if not candidates and wiki_key:
+            article = "https://en.wikipedia.org/wiki/" + company.replace(" ", "_")
             for witem in await wikipedia_executives(company, domain, wiki_key):
-                name = witem.name.strip()
-                key = name.lower()
-                if name and key not in seen_names:
-                    seen_names.add(key)
-                    executives.append(
-                        _make_wikipedia_exec_record(company, name, witem.title.strip())
+                candidates.append(
+                    ExecCandidate(
+                        raw_name=witem.name,
+                        title=witem.title,
+                        source="wikipedia",
+                        confidence=0.65,
+                        source_url=article,
                     )
+                )
 
-    for exec_rec in _dedupe_execs(executives):
-        records.append(exec_rec.model_dump(mode="json"))
+    for rex in reconcile(candidates):
+        records.append(_reconciled_to_record(company, rex).model_dump(mode="json"))
 
     socials = _extract_socials(all_markdown, all_links, company, primary)
     for social_rec in socials:
