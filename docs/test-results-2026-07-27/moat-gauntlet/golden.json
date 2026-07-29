@@ -1,0 +1,477 @@
+[
+  {
+    "company": "Stripe",
+    "domain": "stripe.com",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "en.wikipedia.org infobox key_people (Stripe, Inc.)",
+    "status": "unlabeled_no_key_people"
+  },
+  {
+    "company": "Datadog",
+    "domain": "www.datadoghq.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Olivier Pomel",
+        "title": "CEO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Datadog)",
+    "status": "labeled"
+  },
+  {
+    "company": "Anthropic",
+    "domain": "www.anthropic.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Dario Amodei",
+        "title": "CEO"
+      },
+      {
+        "name": "Daniela Amodei",
+        "title": "President"
+      },
+      {
+        "name": "Mike Krieger",
+        "title": "CPO"
+      },
+      {
+        "name": "Reed Hastings",
+        "title": "board member"
+      },
+      {
+        "name": "Chris Liddell",
+        "title": "board member"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Anthropic)",
+    "status": "labeled"
+  },
+  {
+    "company": "Vercel",
+    "domain": "vercel.com",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "",
+    "status": "unlabeled_no_article"
+  },
+  {
+    "company": "Algolia",
+    "domain": "www.algolia.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Bernadette Nixon",
+        "title": "CEO"
+      },
+      {
+        "name": "Xavier Grand",
+        "title": "CTO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Algolia)",
+    "status": "labeled"
+  },
+  {
+    "company": "Notion",
+    "domain": "www.notion.so",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "",
+    "status": "unlabeled_no_article"
+  },
+  {
+    "company": "Figma",
+    "domain": "www.figma.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Dylan Field",
+        "title": "chairman and CEO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Figma)",
+    "status": "labeled"
+  },
+  {
+    "company": "GitLab",
+    "domain": "about.gitlab.com",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "en.wikipedia.org infobox key_people (GitLab)",
+    "status": "unlabeled_no_key_people"
+  },
+  {
+    "company": "HashiCorp",
+    "domain": "www.hashicorp.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "David McJannet",
+        "title": "CEO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (HashiCorp)",
+    "status": "labeled"
+  },
+  {
+    "company": "Snowflake",
+    "domain": "www.snowflake.com",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "",
+    "status": "unlabeled_no_article"
+  },
+  {
+    "company": "MongoDB",
+    "domain": "www.mongodb.com",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "en.wikipedia.org infobox key_people (MongoDB)",
+    "status": "unlabeled_no_key_people"
+  },
+  {
+    "company": "Twilio",
+    "domain": "www.twilio.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Khozema Shipchandler",
+        "title": "CEO"
+      },
+      {
+        "name": "Mark Simms",
+        "title": "CTO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Twilio)",
+    "status": "labeled"
+  },
+  {
+    "company": "Cloudflare",
+    "domain": "www.cloudflare.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Matthew Prince",
+        "title": "co-chair & CEO"
+      },
+      {
+        "name": "Michelle Zatlyn",
+        "title": "co-chair & president"
+      },
+      {
+        "name": "Dane Knecht",
+        "title": "CTO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Cloudflare)",
+    "status": "labeled"
+  },
+  {
+    "company": "Patagonia",
+    "domain": "www.patagonia.com",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "en.wikipedia.org infobox key_people (Patagonia, Inc.)",
+    "status": "unlabeled_no_key_people"
+  },
+  {
+    "company": "Allbirds",
+    "domain": "www.allbirds.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Nadia Carlsten",
+        "title": "CEO"
+      },
+      {
+        "name": "Ann Mitchell",
+        "title": "CFO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Allbirds)",
+    "status": "labeled"
+  },
+  {
+    "company": "Warby Parker",
+    "domain": "www.warbyparker.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Neil Blumenthal",
+        "title": "co-CEO"
+      },
+      {
+        "name": "David Gilboa",
+        "title": "co-CEO"
+      },
+      {
+        "name": "Steve Miller",
+        "title": "CFO"
+      },
+      {
+        "name": "Ron Williams",
+        "title": "lead director"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Warby Parker)",
+    "status": "labeled"
+  },
+  {
+    "company": "Glossier",
+    "domain": "www.glossier.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Colin Walsh",
+        "title": "CEO"
+      },
+      {
+        "name": "Emily Weiss",
+        "title": "executive chairwoman"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Glossier)",
+    "status": "labeled"
+  },
+  {
+    "company": "Everlane",
+    "domain": "www.everlane.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Alfred Chang",
+        "title": "CEO"
+      },
+      {
+        "name": "Rebekka Bay",
+        "title": "head of product and design"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Everlane)",
+    "status": "labeled"
+  },
+  {
+    "company": "Ramp",
+    "domain": "ramp.com",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "",
+    "status": "unlabeled_no_article"
+  },
+  {
+    "company": "Brex",
+    "domain": "www.brex.com",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "",
+    "status": "unlabeled_no_article"
+  },
+  {
+    "company": "Plaid",
+    "domain": "plaid.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Zach Perret",
+        "title": "CEO"
+      },
+      {
+        "name": "Jean-Denis Greze",
+        "title": "CTO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Plaid Inc.)",
+    "status": "labeled"
+  },
+  {
+    "company": "Wise",
+    "domain": "wise.com",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "en.wikipedia.org infobox key_people (Wise (company))",
+    "status": "unlabeled_no_key_people"
+  },
+  {
+    "company": "Robinhood",
+    "domain": "robinhood.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Vladimir Tenev",
+        "title": "CEO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Robinhood Markets)",
+    "status": "labeled"
+  },
+  {
+    "company": "Moderna",
+    "domain": "www.modernatx.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Noubar Afeyan",
+        "title": "chairman"
+      },
+      {
+        "name": "Stephen Hoge",
+        "title": "president"
+      },
+      {
+        "name": "Jamey Mock",
+        "title": "CFO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Moderna)",
+    "status": "labeled"
+  },
+  {
+    "company": "Oscar Health",
+    "domain": "www.hioscar.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Mark Bertolini",
+        "title": "CEO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Oscar Health)",
+    "status": "labeled"
+  },
+  {
+    "company": "Caterpillar",
+    "domain": "www.caterpillar.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Joe Creed",
+        "title": "chairman & CEO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Caterpillar Inc.)",
+    "status": "labeled"
+  },
+  {
+    "company": "3M",
+    "domain": "www.3m.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "William M. Brown",
+        "title": "chairman and CEO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (3M)",
+    "status": "labeled"
+  },
+  {
+    "company": "Siemens",
+    "domain": "www.siemens.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Roland Busch",
+        "title": "CEO"
+      },
+      {
+        "name": "Jim Hagemann Snabe",
+        "title": "chairman"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Siemens)",
+    "status": "labeled"
+  },
+  {
+    "company": "Spotify",
+    "domain": "www.spotify.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Daniel Ek",
+        "title": "executive chairman"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Spotify)",
+    "status": "labeled"
+  },
+  {
+    "company": "Shopify",
+    "domain": "www.shopify.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Harley Finkelstein",
+        "title": "president"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Shopify)",
+    "status": "labeled"
+  },
+  {
+    "company": "Canva",
+    "domain": "www.canva.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Melanie Perkins",
+        "title": "CEO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Canva)",
+    "status": "labeled"
+  },
+  {
+    "company": "Klarna",
+    "domain": "www.klarna.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Michael Moritz",
+        "title": "Chairman"
+      },
+      {
+        "name": "Sebastian Siemiatkowski",
+        "title": "CEO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Klarna)",
+    "status": "labeled"
+  },
+  {
+    "company": "Asana",
+    "domain": "asana.com",
+    "segment": {},
+    "true_execs": [
+      {
+        "name": "Dustin Moskovitz",
+        "title": "chairman"
+      },
+      {
+        "name": "Dan Rogers",
+        "title": "CEO"
+      }
+    ],
+    "label_source": "en.wikipedia.org infobox key_people (Asana (software))",
+    "status": "labeled"
+  },
+  {
+    "company": "Databricks",
+    "domain": "www.databricks.com",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "en.wikipedia.org infobox key_people (Databricks)",
+    "status": "unlabeled_no_key_people"
+  },
+  {
+    "company": "Airtable",
+    "domain": "www.airtable.com",
+    "segment": {},
+    "true_execs": [],
+    "label_source": "en.wikipedia.org infobox key_people (Airtable)",
+    "status": "unlabeled_no_key_people"
+  }
+]

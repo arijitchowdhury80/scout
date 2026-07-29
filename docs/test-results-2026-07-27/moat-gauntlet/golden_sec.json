@@ -1,0 +1,950 @@
+[
+  {
+    "company": "Stripe",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Datadog",
+    "cik": 1561550,
+    "true_execs": [
+      {
+        "name": "Olivier Pomel",
+        "title": "Chief Executive Officer, Co-Founder and Director",
+        "role_type": "executive"
+      },
+      {
+        "name": "Alexis L\u00ea-Qu\u00f4c",
+        "title": "Chief Technology Officer, Co-Founder and Director",
+        "role_type": "executive"
+      },
+      {
+        "name": "David Obstler",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Kerry Acocella",
+        "title": "General Counsel and Secretary",
+        "role_type": "executive"
+      },
+      {
+        "name": "Adam Blitzer",
+        "title": "Chief Operating Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "David Galloreese",
+        "title": "Chief People Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Yanbing Li",
+        "title": "Chief Product Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Sean Walters",
+        "title": "Chief Revenue Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Dev Ittycheria",
+        "title": "Lead Independent Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Shardul Shah",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Ami Vora",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Amit Agarwal",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Michael Callahan",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Dominic Phillips",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Titi Cole",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Matthew Jacobson",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Julie G. Richardson",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "Anthropic",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Vercel",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Algolia",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Notion",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Figma",
+    "cik": 1579878,
+    "true_execs": [
+      {
+        "name": "Dylan Field",
+        "title": "Chair of the Board of Directors, Chief Executive Officer, and President",
+        "role_type": "executive"
+      },
+      {
+        "name": "Kelly A. Kramer",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "John Lilly",
+        "title": "Director and Lead Independent Director",
+        "role_type": "director"
+      },
+      {
+        "name": "William R. McDermott",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Andrew Reed",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Danny Rimer",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Lynn Vojvodich Radakovich",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Luis von Ahn",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Praveer Melwani",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Brendan Mulligan",
+        "title": "General Counsel and Secretary",
+        "role_type": "executive"
+      },
+      {
+        "name": "Kris Rasmussen",
+        "title": "Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Shaunt Voskanian",
+        "title": "Chief Revenue Officer",
+        "role_type": "executive"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "GitLab",
+    "cik": 1653482,
+    "true_execs": [
+      {
+        "name": "William Staples",
+        "title": "Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Sytse Sijbrandij",
+        "title": "Executive Chair",
+        "role_type": "executive"
+      },
+      {
+        "name": "Karen Blasing",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Godfrey Sullivan",
+        "title": "Lead Independent Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Sundeep Bedi",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Sue Bostrom",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Matthew Jacobson",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "David Henshall",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "HashiCorp",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Snowflake",
+    "cik": 1640147,
+    "true_execs": [
+      {
+        "name": "Sridhar Ramaswamy",
+        "title": "Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Frank Slootman",
+        "title": "Chairman of the Board",
+        "role_type": "executive"
+      },
+      {
+        "name": "Benoit Dageville",
+        "title": "Founder & Chief Architect",
+        "role_type": "executive"
+      },
+      {
+        "name": "Teresa Briggs",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Mark D. McLaughlin",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Mark S. Garrett",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "William F. Scannell",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Jayshree V. Ullal",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Kelly A. Kramer",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Michael L. Speiser",
+        "title": "Lead Independent Director",
+        "role_type": "director"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "MongoDB",
+    "cik": 1441816,
+    "true_execs": [
+      {
+        "name": "Chirantan J. Desai",
+        "title": "President and Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Tom Killalea",
+        "title": "Chairperson",
+        "role_type": "executive"
+      },
+      {
+        "name": "Dev Ittycheria",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Archana Agrawal",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Roelof Botha",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Hope Cochran",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Francisco D'Souza",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Charles M. Hazard, Jr.",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Ann Lewnes",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Dwight Merriman",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "Twilio",
+    "cik": 1447669,
+    "true_execs": [
+      {
+        "name": "Charles Bell",
+        "title": "Executive Vice President, Engineer at Microsoft",
+        "role_type": "director"
+      },
+      {
+        "name": "Jeffrey Immelt",
+        "title": "Venture Partner at New Enterprise Associates",
+        "role_type": "director"
+      },
+      {
+        "name": "Douglas Robinson",
+        "title": "Co-President at Workday, Inc. (former)",
+        "role_type": "director"
+      },
+      {
+        "name": "Erika Rottenberg",
+        "title": "Strategic Advisor at Chan Zuckerberg Initiative (former)",
+        "role_type": "director"
+      },
+      {
+        "name": "Donna Dubinsky",
+        "title": "Chief Executive Officer at Numenta, Inc. (former)",
+        "role_type": "director"
+      },
+      {
+        "name": "Jeff Epstein",
+        "title": "Operating Partner at Bessemer Venture Partners; Board Chair",
+        "role_type": "director"
+      },
+      {
+        "name": "Deval Patrick",
+        "title": "Senior Partner at The Vistria Group",
+        "role_type": "director"
+      },
+      {
+        "name": "Khozema Shipchandler",
+        "title": "Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Andrew Stafman",
+        "title": "Partner at Sachem Head Capital Management LP",
+        "role_type": "director"
+      },
+      {
+        "name": "Miyuki Suzuki",
+        "title": "President, Asia Pacific, Japan and China at Cisco Systems, Inc. (former)",
+        "role_type": "director"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "Cloudflare",
+    "cik": 1477333,
+    "true_execs": [
+      {
+        "name": "Matthew Prince",
+        "title": "Chief Executive Officer and Co-Chair of the Board of Directors",
+        "role_type": "executive"
+      },
+      {
+        "name": "Michelle Zatlyn",
+        "title": "President and Co-Chair of the Board of Directors",
+        "role_type": "executive"
+      },
+      {
+        "name": "John Graham-Cumming",
+        "title": "Director",
+        "role_type": "executive"
+      },
+      {
+        "name": "Scott Sandell",
+        "title": "Lead Independent Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Karim Lakhani",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Stacey Cunningham",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Mark Hawkins",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Carl Ledbetter",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Katrin Suder",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "Patagonia",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Allbirds",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Warby Parker",
+    "cik": 1504776,
+    "true_execs": [
+      {
+        "name": "Neil Blumenthal",
+        "title": "Co-Chief Executive Officer and Co-Chair of the Board",
+        "role_type": "executive"
+      },
+      {
+        "name": "Dave Gilboa",
+        "title": "Co-Chief Executive Officer and Co-Chair of the Board",
+        "role_type": "executive"
+      },
+      {
+        "name": "Steve Miller",
+        "title": "Former Senior Vice President, Chief Financial Officer and Treasurer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Teresa Briggs",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Joel Cutler",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Andrew Hunt",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Youngme Moon",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Jeffrey Raider",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Bradley Singer",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Ronald Williams",
+        "title": "Director and Lead Director",
+        "role_type": "director"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "Glossier",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Everlane",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Ramp",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Brex",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Plaid",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Wise",
+    "cik": 2099039,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_def14a"
+  },
+  {
+    "company": "Robinhood",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Moderna",
+    "cik": 1682852,
+    "true_execs": [
+      {
+        "name": "St\u00e9phane Bancel",
+        "title": "Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Noubar Afeyan, Ph.D.",
+        "title": "Chairman",
+        "role_type": "executive"
+      },
+      {
+        "name": "Sandra Horning, M.D.",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Abbas Hussain",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Elizabeth Nabel, M.D.",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Fran\u00e7ois Nader, M.D.",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "David Rubenstein",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Elizabeth Tallett",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Paul Sagan",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "Oscar Health",
+    "cik": 1568651,
+    "true_execs": [
+      {
+        "name": "Mark T. Bertolini",
+        "title": "Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Mario Schlosser",
+        "title": "Co-Founder, President of Technology and Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Joshua Kushner",
+        "title": "Co-Founder and Vice Chair of the Board",
+        "role_type": "executive"
+      },
+      {
+        "name": "Richard Scott Blackley",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Janet Liang",
+        "title": "President of Oscar Insurance",
+        "role_type": "executive"
+      },
+      {
+        "name": "Adam McAnaney",
+        "title": "Chief Legal Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "William (Bill) J. Gassen III",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Laura Lang",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "David Alexander Plouffe",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Siddhartha Sankaran",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Vanessa Ames Wittman",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "Caterpillar",
+    "cik": 18230,
+    "true_execs": [
+      {
+        "name": "Joseph E. Creed",
+        "title": "Chairman of the Board and CEO",
+        "role_type": "executive"
+      },
+      {
+        "name": "James C. Fish, Jr.",
+        "title": "President and CEO of Waste Management, Inc.",
+        "role_type": "director"
+      },
+      {
+        "name": "Lynn J. Good",
+        "title": "Former CEO of Duke Energy Corporation",
+        "role_type": "director"
+      },
+      {
+        "name": "Gerald Johnson",
+        "title": "Retired Executive Vice President, Global Manufacturing and Sustainability of General Motors Company",
+        "role_type": "director"
+      },
+      {
+        "name": "Nazzic S. Keene",
+        "title": "Former CEO of Science Applications International Corp.",
+        "role_type": "director"
+      },
+      {
+        "name": "David W. MacLennan",
+        "title": "Former Chair and CEO of Cargill, Inc.",
+        "role_type": "director"
+      },
+      {
+        "name": "Judith F. Marks",
+        "title": "Chair, CEO and President of Otis Worldwide Corporation",
+        "role_type": "director"
+      },
+      {
+        "name": "Debra L. Reed-Klages",
+        "title": "Lead Independent Director; Former Chairman and CEO of Sempra Energy",
+        "role_type": "director"
+      },
+      {
+        "name": "Susan C. Schwab",
+        "title": "Professor Emerita at the University of Maryland School of Public Policy and Strategic Advisor for Mayer Brown LLP",
+        "role_type": "director"
+      },
+      {
+        "name": "Rayford Wilkins, Jr.",
+        "title": "Former CEO of Diversified Businesses at AT&T Inc.",
+        "role_type": "director"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "3M",
+    "cik": 66740,
+    "true_execs": [
+      {
+        "name": "William M. Brown",
+        "title": "Chairman and Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "David P. Bozeman",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Thomas \"Tony\" K. Brown",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Audrey Choi",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Anne H. Chow",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "James R. Fitterling",
+        "title": "Lead Independent Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Suzan Kereere",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Neil G. Mitchill, Jr.",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Pedro J. Pizarro",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Thomas W. Sweet",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "Siemens",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Spotify",
+    "cik": 1639920,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_def14a"
+  },
+  {
+    "company": "Shopify",
+    "cik": 1594805,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_def14a"
+  },
+  {
+    "company": "Canva",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Klarna",
+    "cik": 2003292,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_def14a"
+  },
+  {
+    "company": "Asana",
+    "cik": 1477720,
+    "true_execs": [
+      {
+        "name": "Katie Colendich",
+        "title": "General Counsel & Corporate Secretary",
+        "role_type": "executive"
+      },
+      {
+        "name": "Krista Anderson-Copperman",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Sydney Carey",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Dan Rogers",
+        "title": "Chief Executive Officer, Director",
+        "role_type": "executive"
+      },
+      {
+        "name": "Andrew Lindsay",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Justin Rosenstein",
+        "title": "Co-Founder, Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Marc Boroditsky",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Dustin Moskovitz",
+        "title": "Co-Founder, Chair of the Board",
+        "role_type": "executive"
+      },
+      {
+        "name": "Matthew Cohler",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Adam D'Angelo",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Lorrie Norrington",
+        "title": "Lead Independent Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Aziz Megji",
+        "title": "Proxy Holder",
+        "role_type": "executive"
+      }
+    ],
+    "label_source": "SEC DEF 14A",
+    "status": "labeled"
+  },
+  {
+    "company": "Databricks",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  },
+  {
+    "company": "Airtable",
+    "cik": null,
+    "true_execs": [],
+    "label_source": "",
+    "status": "no_cik_not_public"
+  }
+]

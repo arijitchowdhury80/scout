@@ -26,10 +26,19 @@
   {
     "name": "Anthropic",
     "regime": "js",
-    "exec_count": 0,
-    "names": [],
-    "recall": "0/1",
-    "recall_hits": [],
+    "exec_count": 6,
+    "names": [
+      "Dario Amodei \u2014 Board of Directors",
+      "Daniela Amodei \u2014 Board of Directors",
+      "Yasmin Razavi \u2014 Board of Directors",
+      "Reed Hastings \u2014 Board of Directors",
+      "Chris Liddell \u2014 Board of Directors",
+      "Vas Narasimhan \u2014 Board of Directors"
+    ],
+    "recall": "1/1",
+    "recall_hits": [
+      "Amodei"
+    ],
     "leaks": [],
     "clean": true
   },

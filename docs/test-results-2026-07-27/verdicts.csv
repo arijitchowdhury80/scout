@@ -1,0 +1,45 @@
+site,capability,verdict,http_codes,evidence_path,notes
+algolia.com,scrape,pass,"202,200,200",docs/test-results-2026-07-27/algolia.com/scrape.json,word_count=904
+algolia.com,crawl,pass,"202,200,200,200,200",docs/test-results-2026-07-27/algolia.com/crawl.json,total_pages=30
+algolia.com,map,pass,"202,200,200",docs/test-results-2026-07-27/algolia.com/map.json,total=100
+algolia.com,screenshot,pass,"202,200,200",docs/test-results-2026-07-27/algolia.com/screenshot.json,1280x800
+adobe.com,scrape,fail,"202,200,200",docs/test-results-2026-07-27/adobe.com/scrape.json,success=False word_count=0
+adobe.com,crawl,fail,"202,200,200",docs/test-results-2026-07-27/adobe.com/crawl.json,total_pages=1 (need >=10) any_page_ok=False
+adobe.com,map,pass,"202,200,200",docs/test-results-2026-07-27/adobe.com/map.json,total=1
+adobe.com,screenshot,fail,"202,200,200",docs/test-results-2026-07-27/adobe.com/screenshot.json,empty screenshot_base64
+salesforce.com,scrape,fail,"202,200,200",docs/test-results-2026-07-27/salesforce.com/scrape.json,success=False word_count=0
+salesforce.com,crawl,fail,"202,200,200",docs/test-results-2026-07-27/salesforce.com/crawl.json,total_pages=1 (need >=10) any_page_ok=False
+salesforce.com,map,pass,"202,200,200",docs/test-results-2026-07-27/salesforce.com/map.json,total=100
+salesforce.com,screenshot,fail,"202,200,200",docs/test-results-2026-07-27/salesforce.com/screenshot.json,empty screenshot_base64
+lacoste.com,scrape,fail,"202,200,200",docs/test-results-2026-07-27/lacoste.com/scrape.json,success=False word_count=0
+lacoste.com,crawl,fail,"202,200,200",docs/test-results-2026-07-27/lacoste.com/crawl.json,total_pages=1 (need >=10) any_page_ok=False
+lacoste.com,map,pass,"202,200,200,200",docs/test-results-2026-07-27/lacoste.com/map.json,total=1
+lacoste.com,screenshot,fail,"202,200,200",docs/test-results-2026-07-27/lacoste.com/screenshot.json,empty screenshot_base64
+eyebuydirect.com,scrape,fail,"202,200,200",docs/test-results-2026-07-27/eyebuydirect.com/scrape.json,success=False word_count=0
+eyebuydirect.com,crawl,fail,"202,200,200",docs/test-results-2026-07-27/eyebuydirect.com/crawl.json,total_pages=1 (need >=10) any_page_ok=False
+eyebuydirect.com,map,pass,"202,200,200",docs/test-results-2026-07-27/eyebuydirect.com/map.json,total=100
+eyebuydirect.com,screenshot,fail,"202,200,200",docs/test-results-2026-07-27/eyebuydirect.com/screenshot.json,empty screenshot_base64
+algolia.com,company,pass,"202,200,200,200,200",docs/test-results-2026-07-27/algolia.com/company.json,total_records=4
+algolia.com,careers,pass,"202,200,200,200",docs/test-results-2026-07-27/algolia.com/careers.json,total_records=1
+adobe.com,company,fail,"202,200,200,200,200,200",docs/test-results-2026-07-27/adobe.com/company.json,success=False total_records=0 (need >=1)
+adobe.com,careers,fail,"202,200,200,200",docs/test-results-2026-07-27/adobe.com/careers.json,success=False total_records=0 (need >=1)
+salesforce.com,company,fail,"202,200,200,200",docs/test-results-2026-07-27/salesforce.com/company.json,success=False total_records=0 (need >=1)
+salesforce.com,careers,fail,"202,200,200",docs/test-results-2026-07-27/salesforce.com/careers.json,success=False total_records=0 (need >=1)
+lacoste.com,products,fail,"202,200,200",docs/test-results-2026-07-27/lacoste.com/products.json,total_products=0 (need >=100)
+eyebuydirect.com,products,fail,"202,200,200,200",docs/test-results-2026-07-27/eyebuydirect.com/products.json,total_products=0 (need >=100)
+algolia.com,prism,pass,"202,200,200,200,200,200,200",docs/test-results-2026-07-27/algolia.com/prism.json,total_records=11
+algolia.com,extract,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+algolia.com,harvest,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+algolia.com,app,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+adobe.com,extract,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+adobe.com,harvest,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+adobe.com,app,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+salesforce.com,extract,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+salesforce.com,harvest,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+salesforce.com,app,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+lacoste.com,extract,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+lacoste.com,harvest,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+lacoste.com,app,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+eyebuydirect.com,extract,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+eyebuydirect.com,harvest,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+eyebuydirect.com,app,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)

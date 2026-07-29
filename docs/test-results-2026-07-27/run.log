@@ -1,0 +1,49 @@
+Running AUTHED MATRIX against https://scout.chowmes.com
+[PASS] algolia.com          scrape       http=202,200,200 word_count=904
+[PASS] algolia.com          crawl        http=202,200,200,200,200 total_pages=30
+[PASS] algolia.com          map          http=202,200,200 total=100
+[PASS] algolia.com          screenshot   http=202,200,200 1280x800
+[FAIL] adobe.com            scrape       http=202,200,200 success=False word_count=0
+[FAIL] adobe.com            crawl        http=202,200,200 total_pages=1 (need >=10) any_page_ok=False
+[PASS] adobe.com            map          http=202,200,200 total=1
+[FAIL] adobe.com            screenshot   http=202,200,200 empty screenshot_base64
+[FAIL] salesforce.com       scrape       http=202,200,200 success=False word_count=0
+[FAIL] salesforce.com       crawl        http=202,200,200 total_pages=1 (need >=10) any_page_ok=False
+[PASS] salesforce.com       map          http=202,200,200 total=100
+[FAIL] salesforce.com       screenshot   http=202,200,200 empty screenshot_base64
+[FAIL] lacoste.com          scrape       http=202,200,200 success=False word_count=0
+[FAIL] lacoste.com          crawl        http=202,200,200 total_pages=1 (need >=10) any_page_ok=False
+[PASS] lacoste.com          map          http=202,200,200,200 total=1
+[FAIL] lacoste.com          screenshot   http=202,200,200 empty screenshot_base64
+[FAIL] eyebuydirect.com     scrape       http=202,200,200 success=False word_count=0
+[FAIL] eyebuydirect.com     crawl        http=202,200,200 total_pages=1 (need >=10) any_page_ok=False
+[PASS] eyebuydirect.com     map          http=202,200,200 total=100
+[FAIL] eyebuydirect.com     screenshot   http=202,200,200 empty screenshot_base64
+[PASS] algolia.com          company      http=202,200,200,200,200 total_records=4
+[PASS] algolia.com          careers      http=202,200,200,200 total_records=1
+[FAIL] adobe.com            company      http=202,200,200,200,200,200 success=False total_records=0 (need >=1)
+[FAIL] adobe.com            careers      http=202,200,200,200 success=False total_records=0 (need >=1)
+[FAIL] salesforce.com       company      http=202,200,200,200 success=False total_records=0 (need >=1)
+[FAIL] salesforce.com       careers      http=202,200,200 success=False total_records=0 (need >=1)
+[FAIL] lacoste.com          products     http=202,200,200 total_products=0 (need >=100)
+[FAIL] eyebuydirect.com     products     http=202,200,200,200 total_products=0 (need >=100)
+[PASS] algolia.com          prism        http=202,200,200,200,200,200,200 total_records=11
+[NA  ] algolia.com          extract      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] algolia.com          harvest      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] algolia.com          app          http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] adobe.com            extract      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] adobe.com            harvest      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] adobe.com            app          http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] salesforce.com       extract      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] salesforce.com       harvest      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] salesforce.com       app          http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] lacoste.com          extract      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] lacoste.com          harvest      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] lacoste.com          app          http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] eyebuydirect.com     extract      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] eyebuydirect.com     harvest      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] eyebuydirect.com     app          http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+
+Verdicts written to docs/test-results-2026-07-27/verdicts.csv
+
+44 rows: 11 pass, 18 fail, 15 na
