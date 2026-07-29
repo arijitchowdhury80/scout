@@ -445,9 +445,9 @@ class HostedPaymentProvisioningService:
                 success=True,
                 already_processed=True,
                 tenant_id=tenant_id,
-                plan=HostedPlan.HOSTED_UNLIMITED,
+                plan=HostedPlan.HOSTED_MONTHLY,
             )
-        grant = get_credit_package("unlimited_monthly")
+        grant = get_credit_package("monthly")
         self.account_service.set_balance(
             tenant_id,
             standard_credits=grant.standard_credits,
@@ -456,7 +456,7 @@ class HostedPaymentProvisioningService:
         return HostedCheckoutProvisioningResult(
             success=True,
             tenant_id=tenant_id,
-            plan=HostedPlan.HOSTED_UNLIMITED,
+            plan=HostedPlan.HOSTED_MONTHLY,
         )
 
     def process_subscription_deleted(

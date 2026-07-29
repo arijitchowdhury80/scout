@@ -340,5 +340,6 @@ async def test_products_uses_browser_fallback_only_after_blocked_regular_scrape(
     regular_req = mock_scrape.await_args_list[0].args[0]
     browser_req = mock_scrape.await_args_list[1].args[0]
     assert regular_req.headless is True
-    assert browser_req.headless is False
+    # FX-1: hosted container has no X server — fallback defaults to headless.
+    assert browser_req.headless is True
     assert browser_req.stealth is True

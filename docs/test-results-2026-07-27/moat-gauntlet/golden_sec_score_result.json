@@ -1,0 +1,255 @@
+[
+  {
+    "company": "Datadog",
+    "roster_size": 8,
+    "scout_size": 5,
+    "precision": 1.0,
+    "recall": 0.25,
+    "false_positives": [],
+    "returned_directors": 3,
+    "missed": [
+      "David Obstler",
+      "Kerry Acocella",
+      "Adam Blitzer",
+      "David Galloreese",
+      "Yanbing Li",
+      "Sean Walters"
+    ]
+  },
+  {
+    "company": "Figma",
+    "roster_size": 5,
+    "scout_size": 8,
+    "precision": 0.8333333333333334,
+    "recall": 1.0,
+    "false_positives": [
+      "Tyler Herb"
+    ],
+    "returned_directors": 2,
+    "missed": []
+  },
+  {
+    "company": "GitLab",
+    "roster_size": 2,
+    "scout_size": 10,
+    "precision": 0.2,
+    "recall": 0.5,
+    "false_positives": [
+      "Ian Steward",
+      "Robin Schulman",
+      "Simon Mundy",
+      "Thomas J. Lloyd"
+    ],
+    "returned_directors": 5,
+    "missed": [
+      "Sytse Sijbrandij"
+    ]
+  },
+  {
+    "company": "Snowflake",
+    "roster_size": 3,
+    "scout_size": 24,
+    "precision": 0.17647058823529413,
+    "recall": 1.0,
+    "false_positives": [
+      "Thierry Cruanes",
+      "Arnnon Geshuri",
+      "Brian Robins",
+      "Denise Persson",
+      "Jon Beaulier",
+      "Mayank Upadhyay",
+      "Mike Blandina",
+      "S. Muralidhar",
+      "Stella Low",
+      "Christian Kleinerman",
+      "Vivek Raghunathan",
+      "Ann Marie Lavigne",
+      "Jeff True",
+      "Jeremy Burton"
+    ],
+    "returned_directors": 7,
+    "missed": []
+  },
+  {
+    "company": "MongoDB",
+    "roster_size": 2,
+    "scout_size": 19,
+    "precision": 0.16666666666666666,
+    "recall": 1.0,
+    "false_positives": [
+      "Andrew Stephens",
+      "Benjamin Cefalo",
+      "Deepa Gopinath",
+      "Erica Volini",
+      "Harsha Jalihal",
+      "Jim Scharf",
+      "May Petry",
+      "Michael J Berry",
+      "Pablo Stern-plaza",
+      "Ryan mac Ban"
+    ],
+    "returned_directors": 7,
+    "missed": []
+  },
+  {
+    "company": "Twilio",
+    "roster_size": 1,
+    "scout_size": 16,
+    "precision": 0.14285714285714285,
+    "recall": 1.0,
+    "false_positives": [
+      "Jeff Lawson",
+      "Aidan Viggiano",
+      "Chris Koehler",
+      "Christy Lake",
+      "Inbal Shani",
+      "Thomas Wyatt"
+    ],
+    "returned_directors": 9,
+    "missed": []
+  },
+  {
+    "company": "Cloudflare",
+    "roster_size": 3,
+    "scout_size": 13,
+    "precision": 0.42857142857142855,
+    "recall": 1.0,
+    "false_positives": [
+      "Lee Holloway",
+      "Thomas J Seifert",
+      "Maria Eitel",
+      "Mark Anderson"
+    ],
+    "returned_directors": 6,
+    "missed": []
+  },
+  {
+    "company": "Warby Parker",
+    "roster_size": 3,
+    "scout_size": 7,
+    "precision": 1.0,
+    "recall": 0.6666666666666666,
+    "false_positives": [],
+    "returned_directors": 5,
+    "missed": [
+      "Steve Miller"
+    ]
+  },
+  {
+    "company": "Moderna",
+    "roster_size": 2,
+    "scout_size": 19,
+    "precision": 0.06666666666666667,
+    "recall": 0.5,
+    "false_positives": [
+      "Henri A. Termeer",
+      "Stephen Hoge",
+      "James M Mock",
+      "Jamey Mock",
+      "Michael R. Mcdonnell",
+      "Shannon Thyme Klinger",
+      "Soria Ester Banque",
+      "Tracey Franklin",
+      "Elizabeth Nabel",
+      "Israel Ruiz",
+      "Moncef Slaoui",
+      "Noubar Afeyan",
+      "Robert S. Langer Jr",
+      "Tal Zaks"
+    ],
+    "returned_directors": 4,
+    "missed": [
+      "Noubar Afeyan, Ph.D."
+    ]
+  },
+  {
+    "company": "Oscar Health",
+    "roster_size": 6,
+    "scout_size": 7,
+    "precision": 1.0,
+    "recall": 0.3333333333333333,
+    "false_positives": [],
+    "returned_directors": 5,
+    "missed": [
+      "Joshua Kushner",
+      "Richard Scott Blackley",
+      "Janet Liang",
+      "Adam McAnaney"
+    ]
+  },
+  {
+    "company": "Caterpillar",
+    "roster_size": 1,
+    "scout_size": 32,
+    "precision": 0.037037037037037035,
+    "recall": 1.0,
+    "false_positives": [
+      "Jim Umpleby",
+      "Bob de Lange",
+      "Denise C. Johnson",
+      "Jason E. Kaiser",
+      "Rod Shurman",
+      "Andrew R.j. Bonfield",
+      "Christy Pambianchi",
+      "Derek Owens",
+      "Ebban M. Clause",
+      "Jamie L. Engstrom",
+      "Kyle Joseph Epley",
+      "Brian E. Edwards",
+      "Damien Giraud",
+      "Gregory R. Hepler",
+      "Maarten de Haas",
+      "Melissa A. Busen",
+      "Pam Heminger",
+      "Stephan J. Downing",
+      "Stephanie A. Baughman",
+      "Steven M. Ferguson",
+      "Wendi Gentry",
+      "Dan Dickinson",
+      "Dave Calhoun",
+      "Debra L Reed",
+      "Edward B. Rust Jr",
+      "Kelly Ayotte"
+    ],
+    "returned_directors": 5,
+    "missed": []
+  },
+  {
+    "company": "3M",
+    "roster_size": 1,
+    "scout_size": 18,
+    "precision": 0.09090909090909091,
+    "recall": 1.0,
+    "false_positives": [
+      "Christian T Goralski Jr",
+      "Wendy A Bauer",
+      "Kevin H Rhodes",
+      "Theresa E Reinseth",
+      "John Patrick Banovetz",
+      "Amy Hood",
+      "David Dillon",
+      "Gregory R. Page",
+      "Jennifer Rumsey",
+      "Mike Roman"
+    ],
+    "returned_directors": 7,
+    "missed": []
+  },
+  {
+    "company": "Asana",
+    "roster_size": 4,
+    "scout_size": 15,
+    "precision": 0.4,
+    "recall": 1.0,
+    "false_positives": [
+      "Amritansh Raghav",
+      "Arnab Bose",
+      "Josh Abdulla",
+      "Kevin Knieriem",
+      "Prachi Gore",
+      "Veronica Sosa"
+    ],
+    "returned_directors": 5,
+    "missed": []
+  }
+]

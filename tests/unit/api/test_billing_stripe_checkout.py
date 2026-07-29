@@ -383,8 +383,7 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
     monkeypatch.setattr(settings, "stripe_cancel_url", "")
     monkeypatch.setattr(settings, "stripe_portal_return_url", "")
     monkeypatch.setattr(settings, "stripe_standard_1000_price_id", "")
-    monkeypatch.setattr(settings, "stripe_standard_3000_price_id", "")
-    monkeypatch.setattr(settings, "stripe_standard_15000_price_id", "")
+    monkeypatch.setattr(settings, "stripe_monthly_price_id", "")
     monkeypatch.setattr(settings, "hosted_key_delivery_smtp_host", "")
     monkeypatch.setattr(settings, "hosted_key_delivery_smtp_from_email", "")
     monkeypatch.setattr(settings, "hosted_key_delivery_smtp_username", "")
@@ -419,8 +418,7 @@ def test_stripe_status_exposes_self_service_path_and_exact_missing_env_keys(
         "STRIPE_PORTAL_RETURN_URL",
         "STRIPE_WEBHOOK_SECRET",
         "STRIPE_STANDARD_1000_PRICE_ID",
-        "STRIPE_STANDARD_3000_PRICE_ID",
-        "STRIPE_STANDARD_15000_PRICE_ID",
+        "STRIPE_MONTHLY_PRICE_ID",
         "HOSTED_KEY_DELIVERY_SMTP_HOST",
         "HOSTED_KEY_DELIVERY_SMTP_FROM_EMAIL",
         "HOSTED_KEY_DELIVERY_SMTP_USERNAME",
@@ -623,7 +621,7 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
     assert "browser_100" in package_ids
     assert standard_1000["amount_cents"] == 1000
     assert standard_1000["hosted_plan"] == "hosted_starter"
-    assert standard_1000["standard_credits"] == 10000
+    assert standard_1000["standard_credits"] == 15000
     assert standard_1000["browser_credits"] == 0
     assert data["credit_costs"]["scrape"] == "1 standard credit"
     assert data["credit_costs"]["screenshot"] == "3 standard credits"
@@ -633,7 +631,7 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
             "credit_type": "standard",
             "credits_per_unit": 1,
             "metered_unit": "request",
-            "included_in_standard_1000": 10000,
+            "included_in_standard_1000": 15000,
             "customer_description": "Fetch one public URL and return the requested hosted scrape formats.",
         },
         {
@@ -641,7 +639,7 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
             "credit_type": "standard",
             "credits_per_unit": 1,
             "metered_unit": "returned page",
-            "included_in_standard_1000": 10000,
+            "included_in_standard_1000": 15000,
             "customer_description": "Return one discovered crawl/map page within hosted plan limits.",
         },
         {
@@ -649,7 +647,7 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
             "credit_type": "standard",
             "credits_per_unit": 3,
             "metered_unit": "screenshot",
-            "included_in_standard_1000": 3333,
+            "included_in_standard_1000": 5000,
             "customer_description": "Capture one screenshot artifact for a public URL.",
         },
         {
@@ -669,8 +667,8 @@ def test_billing_packages_returns_credit_meanings_and_unit_economics_without_sec
             "customer_description": "Consume one minute of hosted browser execution when browser credits are enabled.",
         },
     ]
-    assert data["unit_economics"]["standard_1000"]["gross_margin_percent"] == 79.1
-    assert data["unit_economics"]["standard_1000"]["break_even_packages_per_month"] == 16
+    assert data["unit_economics"]["standard_1000"]["gross_margin_percent"] == 74.1
+    assert data["unit_economics"]["standard_1000"]["break_even_packages_per_month"] == 17
     assert data["unit_economics_assumptions"] == {
         "fixed_monthly_cost_cents": 12000,
         "standard_credit_cost_cents": 0.01,

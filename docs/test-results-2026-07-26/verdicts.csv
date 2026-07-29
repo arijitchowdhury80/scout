@@ -1,0 +1,45 @@
+site,capability,verdict,http_codes,evidence_path,notes
+adobe.com,crawl,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/adobe.com/crawl.json,total_pages=1 (need >=10) any_page_ok=False
+adobe.com,map,pass,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/adobe.com/map.json,total=1
+adobe.com,scrape,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/adobe.com/scrape.json,success=False word_count=0
+adobe.com,screenshot,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/adobe.com/screenshot.json,empty screenshot_base64
+algolia.com,crawl,pass,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/algolia.com/crawl.json,total_pages=30
+algolia.com,map,pass,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/algolia.com/map.json,total=25
+algolia.com,scrape,pass,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/algolia.com/scrape.json,word_count=904
+algolia.com,screenshot,pass,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/algolia.com/screenshot.json,1280x800
+eyebuydirect.com,crawl,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/eyebuydirect.com/crawl.json,total_pages=1 (need >=10) any_page_ok=False
+eyebuydirect.com,map,pass,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/eyebuydirect.com/map.json,total=25
+eyebuydirect.com,products,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/eyebuydirect.com/products.json,total_products=0 (need >=100) — root cause confirmed via diagnostic scrape (see scrape_category_diagnostic.json / crawl.json): crawler blocked from rendering site content
+eyebuydirect.com,scrape,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/eyebuydirect.com/scrape.json,success=False word_count=0
+eyebuydirect.com,screenshot,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/eyebuydirect.com/screenshot.json,empty screenshot_base64
+lacoste.com,crawl,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/lacoste.com/crawl.json,total_pages=1 (need >=10) any_page_ok=False
+lacoste.com,map,pass,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/lacoste.com/map.json,total=1
+lacoste.com,products,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/lacoste.com/products.json,total_products=0 (need >=100) — root cause confirmed via diagnostic scrape (see scrape_category_diagnostic.json / crawl.json): crawler blocked from rendering site content
+lacoste.com,scrape,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/lacoste.com/scrape.json,success=False word_count=0
+lacoste.com,screenshot,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/lacoste.com/screenshot.json,empty screenshot_base64
+salesforce.com,crawl,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/salesforce.com/crawl.json,total_pages=1 (need >=10) any_page_ok=False
+salesforce.com,map,pass,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/salesforce.com/map.json,total=25
+salesforce.com,scrape,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/salesforce.com/scrape.json,success=False word_count=0
+salesforce.com,screenshot,fail,(seeded — see evidence file),/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/salesforce.com/screenshot.json,empty screenshot_base64
+algolia.com,company,pass,"202,200,200,200,200,200,200,200,200,200,200",/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/algolia.com/company.json,total_records=4
+algolia.com,careers,pass,"202,200,200,200,200,200,200,200,200,200,200,200",/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/algolia.com/careers.json,total_records=1
+adobe.com,company,fail,"202,200,200,200,200,200",/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/adobe.com/company.json,success=False total_records=0 (need >=1)
+adobe.com,careers,fail,"202,200,200,200",/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/adobe.com/careers.json,success=False total_records=0 (need >=1)
+salesforce.com,company,fail,"202,200,200,200,200,200,200",/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/salesforce.com/company.json,success=False total_records=0 (need >=1)
+salesforce.com,careers,fail,"202,200,200,200,200",/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/salesforce.com/careers.json,success=False total_records=0 (need >=1)
+algolia.com,prism,pass,"202,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,200",/Users/arijitchowdhury/Dropbox/AI-Development/Scout/docs/test-results-2026-07-26/algolia.com/prism.json,total_records=11
+algolia.com,extract,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+algolia.com,harvest,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+algolia.com,app,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+adobe.com,extract,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+adobe.com,harvest,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+adobe.com,app,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+salesforce.com,extract,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+salesforce.com,harvest,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+salesforce.com,app,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+lacoste.com,extract,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+lacoste.com,harvest,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+lacoste.com,app,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+eyebuydirect.com,extract,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+eyebuydirect.com,harvest,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+eyebuydirect.com,app,na,,.,N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)

@@ -34,7 +34,7 @@ Recommended website spine:
 5. **Evidence model:** source pages, blocked pages, citations, screenshots,
    extraction report.
 6. **Record outputs:** products, company, PRISM, investor, careers, news,
-   research/docs, website quality.
+   research/docs, social, locations.
 7. **Local-first section:** runs on your machine, artifacts in your workdir,
    optional keys, no forced hosted dependency.
 8. **Hosted option:** convenience API with limits and fair-use credits.

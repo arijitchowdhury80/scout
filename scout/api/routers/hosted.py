@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+import structlog
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
@@ -61,16 +62,28 @@ from scout.core.types import (
     ScreenshotResponse,
 )
 
+logger = structlog.get_logger(__name__)
+
 router = APIRouter(prefix="/v1/hosted", tags=["hosted"])
 
 # Beta trial length in days. Credits are sourced from plan_limits(HOSTED_BETA_PASS)
 # so the granted balance and the email copy can never drift apart.
 _BETA_TRIAL_DAYS = 30
 
+# FX-5a: the client must never see raw provider delivery errors (e.g. a literal
+# SMTP response like "SMTP delivery failed: (550, b'Invalid `to` field...')").
+# The real reason is logged server-side via structlog and stored on the signup
+# event; only this generic message crosses the API boundary.
+_BETA_KEY_DELIVERY_CLIENT_ERROR = (
+    "We could not send your key right now. Please try again shortly or "
+    "contact support@scout.chowmes.com."
+)
+
 _HOSTED_ARTIFACT_FIELDS = {
     "manifest",
     "records_json",
     "records_jsonl",
+    "records_csv",
     "source_pages_json",
     "blocked_pages_json",
     "validation_json",
@@ -487,7 +500,15 @@ async def hosted_beta_key(
                 reason=delivery.reason,
             )
         )
-        raise HTTPException(status_code=502, detail=delivery.reason)
+        # FX-5a: log the real provider error server-side; never return it to the client.
+        logger.error(
+            "[hosted] beta key delivery failed",
+            tenant_id=provisioned.tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            delivery_status=delivery.delivery_status,
+            reason=delivery.reason,
+        )
+        raise HTTPException(status_code=502, detail=_BETA_KEY_DELIVERY_CLIENT_ERROR)
 
     balance = account_service.get_balance(provisioned.tenant.tenant_id)
     account_service.record_signup_event(
@@ -600,7 +621,15 @@ async def hosted_beta_key_reissue(
                 reason=delivery.reason,
             )
         )
-        raise HTTPException(status_code=502, detail=delivery.reason)
+        # FX-5a: log the real provider error server-side; never return it to the client.
+        logger.error(
+            "[hosted] beta key reissue delivery failed",
+            tenant_id=tenant.tenant_id,
+            key_id=provisioned.api_key.key_id,
+            delivery_status=delivery.delivery_status,
+            reason=delivery.reason,
+        )
+        raise HTTPException(status_code=502, detail=_BETA_KEY_DELIVERY_CLIENT_ERROR)
     if previous_key_id:
         account_service.disable_api_key(previous_key_id)
     account_service.record_signup_event(
@@ -1557,6 +1586,8 @@ def _artifact_media_type(path: Path) -> str:
         return "application/json"
     if path.suffix == ".jsonl":
         return "application/x-ndjson"
+    if path.suffix == ".csv":
+        return "text/csv"
     if path.suffix == ".md":
         return "text/markdown"
     return "application/octet-stream"

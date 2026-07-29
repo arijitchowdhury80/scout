@@ -14,11 +14,17 @@ def _meta(url: str = "https://example.com") -> ScoutMetadata:
     return ScoutMetadata(url=url, crawled_at="2026-06-22T00:00:00Z")
 
 
-def _scrape_ok(url: str, markdown: str, links: list[str] | None = None) -> ScrapeResponse:
+def _scrape_ok(
+    url: str,
+    markdown: str,
+    links: list[str] | None = None,
+    raw_html: str = "",
+) -> ScrapeResponse:
     return ScrapeResponse(
         success=True,
         url=url,
         markdown=markdown,
+        raw_html=raw_html,
         links=links or [],
         metadata=_meta(url),
         duration_ms=100,
@@ -54,6 +60,31 @@ def _mock_exact_crawler(responses: dict[str, ScrapeResponse]) -> MagicMock:
 
     async def _scrape(req):
         return responses.get(req.url, _scrape_fail(req.url))
+
+    crawler.scrape = AsyncMock(side_effect=_scrape)
+    return crawler
+
+
+def _mock_format_aware_crawler(responses: dict[str, ScrapeResponse]) -> MagicMock:
+    """FX-3: unlike `_mock_crawler`, this mock honors `req.formats` the way the
+    real scrape() mode does — raw_html is only returned when
+    ScoutFormats.RAW_HTML was actually requested. This is what would have
+    caught the FX-3 bug: `scrape_request()` in base.py only asked for
+    ScoutFormats.MARKDOWN, so every runner's `resp.raw_html` was always ""
+    against a real server, even though the fixture in `_mock_crawler` handed
+    back canned raw_html regardless of what was requested.
+    """
+    from scout.core.types import ScoutFormats
+
+    crawler = MagicMock()
+
+    async def _scrape(req):
+        for pattern, resp in responses.items():
+            if pattern in req.url:
+                if ScoutFormats.RAW_HTML not in req.formats:
+                    return resp.model_copy(update={"raw_html": ""})
+                return resp
+        return _scrape_fail(req.url)
 
     crawler.scrape = AsyncMock(side_effect=_scrape)
     return crawler
@@ -125,6 +156,156 @@ async def test_company_runner_extracts_executives() -> None:
 
 
 @pytest.mark.asyncio
+async def test_company_runner_extracts_execs_from_jsonld_person() -> None:
+    from scout.core.use_cases.runners.company import run_company
+
+    jsonld_html = """
+    <html><body>
+    <h1>Acme Corp</h1>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {"@type": "Person", "name": "Priya Raman", "jobTitle": "Chief Executive Officer",
+         "url": "https://www.acme.com/team/priya-raman"},
+        {"@type": "Person", "name": "Sam Lee", "jobTitle": "Chief Technology Officer"}
+      ]
+    }
+    </script>
+    </body></html>
+    """
+    crawler = _mock_crawler(
+        {
+            "acme.com": _scrape_ok(
+                "https://www.acme.com",
+                "# Acme Corp\n\nWe build great products.\n",
+                raw_html=jsonld_html,
+            ),
+        }
+    )
+
+    records = await run_company(_req("company"), crawler)
+
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    names = {r["name"] for r in exec_recs}
+    assert "Priya Raman" in names
+    assert "Sam Lee" in names
+    priya = next(r for r in exec_recs if r["name"] == "Priya Raman")
+    assert priya["title"] == "Chief Executive Officer"
+    assert priya["profile_url"] == "https://www.acme.com/team/priya-raman"
+    assert priya["citations"]
+
+
+@pytest.mark.asyncio
+async def test_company_runner_extracts_execs_from_team_card_markup() -> None:
+    from scout.core.use_cases.runners.company import run_company
+
+    team_card_html = """
+    <html><body>
+    <div class="team-grid">
+      <div class="team-member">
+        <img src="/img/jane.jpg" alt="photo">
+        <h3 class="member-name">Jane Whitfield</h3>
+        <p class="member-title">VP of Engineering</p>
+        <a href="/team/jane-whitfield">Profile</a>
+      </div>
+      <div class="team-member">
+        <h3 class="member-name">Marcus Ito</h3>
+        <p class="member-title">Head of Product</p>
+      </div>
+    </div>
+    </body></html>
+    """
+    crawler = _mock_crawler(
+        {
+            "acme.com": _scrape_ok(
+                "https://www.acme.com",
+                "# Acme Corp\n\nOur people.\n",
+                raw_html=team_card_html,
+            ),
+        }
+    )
+
+    records = await run_company(_req("company"), crawler)
+
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    names = {r["name"] for r in exec_recs}
+    assert "Jane Whitfield" in names
+    assert "Marcus Ito" in names
+    jane = next(r for r in exec_recs if r["name"] == "Jane Whitfield")
+    assert jane["title"] == "VP of Engineering"
+    assert jane["profile_url"] == "https://www.acme.com/team/jane-whitfield"
+    assert jane["citations"]
+
+
+@pytest.mark.asyncio
+async def test_company_runner_extracts_execs_when_scrape_only_returns_raw_html_on_request() -> None:
+    """FX-3 regression: against a crawler that only populates raw_html when
+    ScoutFormats.RAW_HTML is explicitly requested (the real scrape() mode's
+    behavior — see scout/core/modes/scrape.py `want_raw_html`), the company
+    runner must still extract executives from realistic team-page markup
+    (an algolia.com-style team-cards page). This fails if `scrape_request()`
+    in base.py doesn't ask for RAW_HTML, because every runner's `resp.raw_html`
+    would silently come back empty and the JSON-LD/team-card parsers would
+    never see real HTML.
+    """
+    from scout.core.use_cases.runners.company import run_company
+
+    team_card_html = """
+    <html><body>
+    <div class="team-grid">
+      <div class="team-member">
+        <h3 class="member-name">Nicolas Dessaigne</h3>
+        <p class="member-title">Co-founder</p>
+      </div>
+      <div class="team-member">
+        <h3 class="member-name">Julien Lemoine</h3>
+        <p class="member-title">Co-founder & CTO</p>
+      </div>
+    </div>
+    </body></html>
+    """
+    crawler = _mock_format_aware_crawler(
+        {
+            "algolia.com": _scrape_ok(
+                "https://www.algolia.com",
+                "# Algolia\n\nSearch and discovery API.\n",
+                raw_html=team_card_html,
+            ),
+        }
+    )
+
+    records = await run_company(
+        _req("company", query="Algolia", url="https://www.algolia.com"), crawler
+    )
+
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    names = {r["name"] for r in exec_recs}
+    assert "Nicolas Dessaigne" in names
+    assert "Julien Lemoine" in names
+
+
+@pytest.mark.asyncio
+async def test_company_runner_returns_zero_execs_when_no_people_on_page() -> None:
+    from scout.core.use_cases.runners.company import run_company
+
+    crawler = _mock_crawler(
+        {
+            "acme.com": _scrape_ok(
+                "https://www.acme.com",
+                "# Acme Corp\n\nWe build great products for the web. No team listed here.\n",
+                raw_html="<html><body><h1>Acme Corp</h1><p>We build great products.</p></body></html>",
+            ),
+        }
+    )
+
+    records = await run_company(_req("company"), crawler)
+
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    assert exec_recs == []
+
+
+@pytest.mark.asyncio
 async def test_company_runner_returns_empty_on_total_failure() -> None:
     from scout.core.use_cases.runners.company import run_company
 
@@ -158,6 +339,93 @@ async def test_company_runner_stops_after_first_about_and_team_success() -> None
     assert "https://www.acme.com/about-us" not in requested_urls
     assert "https://www.acme.com/team" in requested_urls
     assert "https://www.acme.com/leadership" not in requested_urls
+
+
+@pytest.mark.asyncio
+async def test_company_runner_skips_team_path_with_no_executive_signal() -> None:
+    """BUILD-2 regression: algolia.com/team returns success=True with real
+    markdown (a login prompt), not the actual exec roster — which lives at
+    /about/leadership. The runner must keep trying candidate team paths
+    until it finds one with real executive data instead of locking onto the
+    first successful-but-irrelevant fetch.
+    """
+    from scout.core.use_cases.runners.company import run_company
+
+    leadership_html = """
+    <html><body>
+    <div class="people">
+        <h4><span class="people-firstName">Stephen</span><span class="people-lastName"> Lynch</span></h4>
+        <span class="people-function">Chief Executive Officer</span>
+    </div>
+    </body></html>
+    """
+    crawler = _mock_format_aware_crawler(
+        {
+            # Longer/more specific path patterns must be listed before their
+            # prefixes below — _mock_format_aware_crawler matches by
+            # substring-in-url, first match wins, so "algolia.com/about"
+            # would otherwise also swallow "/about/team" and
+            # "/about/leadership" requests.
+            "algolia.com/about/leadership": _scrape_ok(
+                "https://www.algolia.com/about/leadership",
+                "# Leadership\n",
+                raw_html=leadership_html,
+            ),
+            "algolia.com/about/team": _scrape_fail("https://www.algolia.com/about/team"),
+            "algolia.com/leadership": _scrape_fail("https://www.algolia.com/leadership"),
+            "algolia.com/team": _scrape_ok(
+                "https://www.algolia.com/team",
+                "# Log in\n\nOr log in with SSO.\n",
+            ),
+            "algolia.com/about": _scrape_ok(
+                "https://www.algolia.com/about", "# About Algolia\n\nSearch API.\n"
+            ),
+        }
+    )
+
+    records = await run_company(
+        _req("company", query="Algolia", url="https://www.algolia.com"), crawler
+    )
+    requested_urls = [call.args[0].url for call in crawler.scrape.await_args_list]
+
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    assert "https://www.algolia.com/team" in requested_urls
+    assert "https://www.algolia.com/about/leadership" in requested_urls
+    assert len(exec_recs) == 1
+    assert exec_recs[0]["name"] == "Stephen Lynch"
+    assert exec_recs[0]["title"] == "Chief Executive Officer"
+
+
+@pytest.mark.asyncio
+async def test_company_runner_extracts_execs_with_split_name_spans_and_function_title() -> None:
+    """Some leadership pages (e.g. the real algolia.com/about/leadership
+    markup) split a person's name across sibling spans rather than a single
+    element, and label the title element with a "function" class instead of
+    title/role/position/job. Both must still resolve to a usable exec record.
+    """
+    from scout.core.use_cases.runners.company import run_company
+
+    html = """
+    <html><body>
+    <div class="people">
+        <h4><span class="people-firstName">Carlton</span><span class="people-lastName"> H. Baab</span></h4>
+        <span class="people-function">Chief Financial Officer</span>
+    </div>
+    </body></html>
+    """
+    crawler = _mock_crawler(
+        {
+            "acme.com/leadership": _scrape_ok(
+                "https://www.acme.com/leadership", "# Leadership\n", raw_html=html
+            ),
+        }
+    )
+
+    records = await run_company(_req("company"), crawler)
+    exec_recs = [r for r in records if r["record_type"] == "executive"]
+    assert len(exec_recs) == 1
+    assert exec_recs[0]["name"] == "Carlton H. Baab"
+    assert exec_recs[0]["title"] == "Chief Financial Officer"
 
 
 # ---------------------------------------------------------------------------

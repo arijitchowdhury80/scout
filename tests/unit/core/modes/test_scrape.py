@@ -67,6 +67,31 @@ async def test_scrape_returns_failure_on_crawl_error():
 
 
 @pytest.mark.asyncio
+async def test_scrape_surfaces_robots_txt_block_honestly():
+    """FX-10a: a robots.txt-disallowed URL returns crawl4ai's own blocked result
+    (success=False, status_code=403, 'robots.txt' in error) — not a silent empty
+    response. This is the same honest-failure path as FX-1c."""
+    mock_result = MagicMock()
+    mock_result.success = False
+    mock_result.url = "https://example.com/disallowed"
+    mock_result.status_code = 403
+    mock_result.error_message = "Access denied by robots.txt"
+
+    with patch("scout.core.modes.scrape.AsyncWebCrawler") as MockCrawler:
+        instance = AsyncMock()
+        instance.arun.return_value = mock_result
+        MockCrawler.return_value.__aenter__.return_value = instance
+
+        req = ScrapeRequest(url="https://example.com/disallowed")
+        resp = await scrape(req)
+
+    assert resp.success is False
+    assert resp.status_code == 403
+    assert "robots.txt" in resp.error.lower()
+    assert resp.markdown == ""
+
+
+@pytest.mark.asyncio
 async def test_scrape_includes_links():
     """scrape() extracts internal links from the crawl result."""
     mock_result = MagicMock()

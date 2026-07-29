@@ -21,9 +21,11 @@ import pytest
 from pydantic import ValidationError
 
 from scout.core.products.exports import (
+    CSV_FIELDS,
     ProductExportFormat,
     ProductExportRequest,
     export_product_records,
+    flatten_record_dict,
 )
 from scout.core.types import AlgoliaProductRecord, ProductSource
 
@@ -165,6 +167,31 @@ def test_export_product_records_empty_records_writes_empty_artifacts(tmp_path) -
     assert result.record_count == 0
     assert json.loads(result.files["json"].read_text(encoding="utf-8")) == []
     assert "objectID" in result.files["csv"].read_text(encoding="utf-8").splitlines()[0]
+
+
+def test_flatten_record_dict_reused_by_generic_csv_artifact_writer() -> None:
+    """FX-11 Build 2: flatten_record_dict is the public function reused by
+    scout.core.platform.artifacts to write records.csv for HTTP-downloaded
+    run artifacts, so it must work directly on a JSON-mode dict (not just
+    an AlgoliaProductRecord instance)."""
+    data = _record().model_dump(mode="json", by_alias=True)
+
+    row = flatten_record_dict(data)
+
+    assert row["objectID"] == "prod_1"
+    assert row["source_url"] == "https://shop.example.com/skin-care"
+    assert json.loads(row["categories"]) == ["Skin Care"]
+    assert set(row.keys()) == set(CSV_FIELDS)
+
+
+def test_flatten_record_dict_tolerates_missing_fields() -> None:
+    """Non-product vertical records (careers/news/etc.) won't have every
+    product column — missing keys must produce blanks, not crash."""
+    row = flatten_record_dict({"objectID": "career_1", "type": "generic_page_fact"})
+
+    assert row["objectID"] == "career_1"
+    assert row["name"] == ""
+    assert row["source_url"] == ""
 
 
 def test_product_export_request_rejects_unsupported_format(tmp_path) -> None:

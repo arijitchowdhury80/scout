@@ -1,0 +1,60 @@
+{
+  "success": true,
+  "job_id": "job_26ffccce438341fc",
+  "kind": "map",
+  "status": "complete",
+  "retry_after_seconds": 10,
+  "hosted": {
+    "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+    "key_id": "key_115674082548492f9e56a1b0127f4e82",
+    "credits_charged": 0,
+    "credit_type": "standard"
+  },
+  "created_at": "2026-07-27T03:34:52.554657+00:00",
+  "started_at": "2026-07-27T03:34:52.554868+00:00",
+  "finished_at": "2026-07-27T03:35:04.733836+00:00",
+  "result": {
+    "success": true,
+    "hosted": {
+      "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+      "key_id": "key_115674082548492f9e56a1b0127f4e82",
+      "credits_charged": 25,
+      "credit_type": "standard"
+    },
+    "map": {
+      "success": true,
+      "start_url": "https://salesforce.com",
+      "urls": [
+        "https://www.salesforce.com/partners/",
+        "https://www.salesforce.com/design/",
+        "https://www.salesforce.com/",
+        "https://www.salesforce.com/products/secure-development-environments/",
+        "https://www.salesforce.com/products/expert-guidance-and-support/",
+        "https://www.salesforce.com/communities/",
+        "https://www.salesforce.com/resources/industries/",
+        "https://www.salesforce.com/resources/roles/",
+        "https://www.salesforce.com/resources/topics/",
+        "https://www.salesforce.com/blog-hub/",
+        "https://www.salesforce.com/resources/content-type/",
+        "https://www.salesforce.com/company/our-brands/",
+        "https://www.salesforce.com/company/our-values/",
+        "https://www.salesforce.com/sales/cloud/",
+        "https://www.salesforce.com/sales/",
+        "https://www.salesforce.com/sales/ai/",
+        "https://www.salesforce.com/sales/revenue-intelligence/",
+        "https://www.salesforce.com/sales/performance-management/",
+        "https://www.salesforce.com/sales/mapping-software/",
+        "https://www.salesforce.com/sales/engagement-platform/",
+        "https://www.salesforce.com/sales/cpq/",
+        "https://www.salesforce.com/sales/analytics/",
+        "https://www.salesforce.com/sales/conversation-intelligence/",
+        "https://www.salesforce.com/sales/enablement/",
+        "https://www.salesforce.com/sales/all-products/"
+      ],
+      "total": 25,
+      "error": "",
+      "duration_ms": 12170
+    }
+  },
+  "error": ""
+}

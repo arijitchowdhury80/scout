@@ -1,0 +1,50 @@
+{
+  "success": true,
+  "job_id": "job_4125c208f9e04f7c",
+  "kind": "crawl",
+  "status": "complete",
+  "retry_after_seconds": 10,
+  "hosted": {
+    "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+    "key_id": "key_115674082548492f9e56a1b0127f4e82",
+    "credits_charged": 0,
+    "credit_type": "standard"
+  },
+  "created_at": "2026-07-27T03:30:02.681675+00:00",
+  "started_at": "2026-07-27T03:30:02.681963+00:00",
+  "finished_at": "2026-07-27T03:30:04.930371+00:00",
+  "result": {
+    "success": true,
+    "hosted": {
+      "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+      "key_id": "key_115674082548492f9e56a1b0127f4e82",
+      "credits_charged": 1,
+      "credit_type": "standard"
+    },
+    "crawl": {
+      "success": true,
+      "start_url": "https://adobe.com",
+      "pages": [
+        {
+          "url": "https://adobe.com",
+          "markdown": "",
+          "metadata": {
+            "url": "https://adobe.com",
+            "crawled_at": "2026-07-27T03:30:02.682318+00:00",
+            "title": "",
+            "description": "",
+            "language": "",
+            "word_count": 0,
+            "token_estimate": 1
+          },
+          "success": false,
+          "error": "Unexpected error in _crawl_web at line 778 in _crawl_web (../usr/local/lib/python3.11/site-packages/crawl4ai/async_crawler_strategy.py):\nError: Failed on navigating ACS-GOTO:\nPage.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://adobe.com/\nCall log:\n  - navigating to \"https://adobe.com/\", waiting until \"domcontentloaded\"\n\n\nCode context:\n 773                                   tag=\"GOTO\",\n 774                                   params={\"url\": url},\n 775                               )\n 776                               response = None\n 777                           else:\n 778 \u2192                             raise RuntimeError(f\"Failed on navigating ACS-GOTO:\\n{str(e)}\")\n 779   \n 780                       # \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n 781                       # Walk the redirect chain.  Playwright returns only the last\n 782                       # hop, so we trace the `request.redirected_from` links until the\n 783                       # first response that differs from the final one and surface its"
+        }
+      ],
+      "total_pages": 1,
+      "error": "",
+      "duration_ms": 2215
+    }
+  },
+  "error": ""
+}

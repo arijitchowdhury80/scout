@@ -55,6 +55,26 @@ async def map_urls(req: MapRequest) -> MapResponse:
                 url=req.url,
             )
             urls = await _bfs_link_follow(req)
+            if len(urls) < _SITEMAP_MIN_THRESHOLD:
+                # FX (BUILD-1a): BFS starts by fetching req.url itself — on a
+                # WAF-protected homepage (e.g. lacoste.com returns a 403 body
+                # with zero links to a plain crawl4ai fetch, confirmed live)
+                # that first fetch yields nothing to follow, so BFS silently
+                # returns just [req.url]. Neither sitemap nor BFS touches the
+                # blocked domain for this fallback — Common Crawl's index
+                # already has the site's URLs from its own prior crawls, so
+                # it recovers category/listing pages without ever hitting
+                # the WAF. Verified live: lacoste.com sitemap=0, BFS=1,
+                # CC-index=50+ real category/product URLs.
+                cc_urls = await _cc_discovery(req)
+                if len(cc_urls) > len(urls):
+                    logger.info(
+                        "[scout/map] BFS sparse, recovered via Common Crawl index",
+                        bfs_count=len(urls),
+                        cc_count=len(cc_urls),
+                        url=req.url,
+                    )
+                    urls = cc_urls
 
         # Respect max_pages cap
         if req.max_pages and len(urls) > req.max_pages:
@@ -122,6 +142,39 @@ async def _sitemap_discovery(req: MapRequest) -> tuple[list[str], int]:
         filtered=len(filtered_urls),
     )
     return filtered_urls, raw_count
+
+
+async def _cc_discovery(req: MapRequest) -> list[str]:
+    """Discover URLs via the Common Crawl index — a last-resort fallback that
+    never touches the target domain directly.
+
+    Used when both sitemap discovery and BFS link-following come back
+    sparse, which typically means a WAF (Akamai, Cloudflare, etc.) is
+    blocking direct fetches of the homepage/robots.txt/sitemap.xml. Common
+    Crawl's index is built from its own independent crawls, so it can
+    surface a site's category and product URLs even when this process
+    cannot reach the domain itself.
+    """
+    domain = urlparse(req.url).netloc
+    try:
+        seed_cfg = SeedingConfig(
+            source="cc",
+            max_urls=req.max_pages if req.max_pages > 0 else 200,
+            hits_per_sec=5,
+            filter_nonsense_urls=True,
+        )
+        async with AsyncWebCrawler() as crawler:
+            raw = await crawler.aseed_urls(domain, config=seed_cfg)
+    except Exception as exc:
+        logger.warning("[scout/map] Common Crawl discovery failed", url=req.url, exc=str(exc))
+        return []
+
+    urls: list[str] = [
+        u["url"] if isinstance(u, dict) and "url" in u else str(u) for u in cast(list, raw) if u
+    ]
+    if req.url_pattern:
+        urls = [u for u in urls if req.url_pattern in u]
+    return urls
 
 
 async def _bfs_link_follow(req: MapRequest) -> list[str]:

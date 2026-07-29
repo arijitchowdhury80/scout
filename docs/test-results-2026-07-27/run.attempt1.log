@@ -1,0 +1,65 @@
+Running AUTHED MATRIX against https://scout.chowmes.com
+[PASS] algolia.com          scrape       http=202,200,200,200 word_count=904
+[PASS] algolia.com          crawl        http=202,200,200,200,200,200,200,200,200,200 total_pages=30
+[PASS] algolia.com          map          http=202,200,200,200,200 total=100
+[PASS] algolia.com          screenshot   http=202,200,200,200,200 1280x800
+[FAIL] adobe.com            scrape       http=202,200,200 success=False word_count=0
+[FAIL] adobe.com            crawl        http=202,200,200 total_pages=1 (need >=10) any_page_ok=False
+[PASS] adobe.com            map          http=202,200,200,200,200 total=1
+[FAIL] adobe.com            screenshot   http=202,200,200 empty screenshot_base64
+[FAIL] salesforce.com       scrape       http=202,200,200 success=False word_count=0
+[FAIL] salesforce.com       crawl        http=202,200,200 total_pages=1 (need >=10) any_page_ok=False
+[PASS] salesforce.com       map          http=202,200,200,200,200,200 total=100
+[FAIL] salesforce.com       screenshot   http=202,200,200 empty screenshot_base64
+[FAIL] lacoste.com          scrape       http=202,200,200 success=False word_count=0
+[FAIL] lacoste.com          crawl        http=202,429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/jobs/job_e642c9c98f2f43b8'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] lacoste.com          map          http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/map'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] lacoste.com          screenshot   http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/screenshot'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] eyebuydirect.com     scrape       http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/scrape'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] eyebuydirect.com     crawl        http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/crawl'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] eyebuydirect.com     map          http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/map'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] eyebuydirect.com     screenshot   http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/screenshot'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] algolia.com          company      http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/run/company'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] algolia.com          careers      http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/run/careers'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] adobe.com            company      http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/run/company'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] adobe.com            careers      http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/run/careers'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] salesforce.com       company      http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/run/company'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] salesforce.com       careers      http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/run/careers'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] lacoste.com          products     http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/products'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] eyebuydirect.com     products     http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/products'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[FAIL] algolia.com          prism        http=429 exception: Client error '429 Too Many Requests' for url 'https://scout.chowmes.com/v1/hosted/run/prism'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+[NA  ] algolia.com          extract      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] algolia.com          harvest      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] algolia.com          app          http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] adobe.com            extract      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] adobe.com            harvest      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] adobe.com            app          http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] salesforce.com       extract      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] salesforce.com       harvest      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] salesforce.com       app          http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] lacoste.com          extract      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] lacoste.com          harvest      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] lacoste.com          app          http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] eyebuydirect.com     extract      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] eyebuydirect.com     harvest      http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+[NA  ] eyebuydirect.com     app          http=- N/A on hosted per matrix scope — never call against prod (see 00-test-matrix.md)
+
+Verdicts written to docs/test-results-2026-07-27/verdicts.csv
+
+44 rows: 6 pass, 23 fail, 15 na

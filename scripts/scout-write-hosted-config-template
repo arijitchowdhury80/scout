@@ -33,8 +33,7 @@ HOSTED_KEY_DELIVERY_SMTP_USE_TLS=true
 # Stripe Checkout for paid credit packages.
 STRIPE_SECRET_KEY=
 STRIPE_STANDARD_1000_PRICE_ID=
-STRIPE_STANDARD_3000_PRICE_ID=
-STRIPE_STANDARD_15000_PRICE_ID=
+STRIPE_MONTHLY_PRICE_ID=
 STRIPE_BROWSER_100_PRICE_ID=
 STRIPE_SUCCESS_URL=https://scout.chowmes.com/pricing?checkout=success
 STRIPE_CANCEL_URL=https://scout.chowmes.com/pricing?checkout=cancelled

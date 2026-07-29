@@ -76,7 +76,7 @@ Scout can be better for users who need:
 - citations per extracted claim;
 - blocked-page evidence instead of silent failure;
 - vertical workflows such as product catalog, PRISM/company intelligence,
-  investor, careers/jobs, docs, news/blogs, website quality;
+  investor, careers/jobs, docs, news/blogs, research, social, locations;
 - downstream export preparation for search, intelligence, spreadsheets, and
   local databases.
 

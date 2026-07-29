@@ -1,0 +1,809 @@
+[
+  {
+    "company": "Datadog",
+    "golden": [
+      "Olivier Pomel"
+    ],
+    "scout": [
+      "Olivier Pomel",
+      "Olivier Pomel",
+      "Amit Agarwal",
+      "Alexis Le-quoc",
+      "Michael James Callahan",
+      "Dominic Phillips"
+    ],
+    "recalled": [
+      "Olivier Pomel"
+    ],
+    "recall": 1.0,
+    "confirmed": 2,
+    "unconfirmed_extra": [
+      "Amit Agarwal",
+      "Alexis Le-quoc",
+      "Michael James Callahan",
+      "Dominic Phillips"
+    ]
+  },
+  {
+    "company": "Anthropic",
+    "golden": [
+      "Dario Amodei",
+      "Daniela Amodei",
+      "Mike Krieger",
+      "Reed Hastings",
+      "Chris Liddell"
+    ],
+    "scout": [
+      "Dario Amodei",
+      "Daniela Amodei",
+      "Chris Olah",
+      "Jared Kaplan"
+    ],
+    "recalled": [
+      "Dario Amodei",
+      "Daniela Amodei"
+    ],
+    "recall": 0.4,
+    "confirmed": 2,
+    "unconfirmed_extra": [
+      "Chris Olah",
+      "Jared Kaplan"
+    ]
+  },
+  {
+    "company": "Algolia",
+    "golden": [
+      "Bernadette Nixon",
+      "Xavier Grand"
+    ],
+    "scout": [
+      "Stephen Lynch",
+      "Carlton H. Baab",
+      "Xavier Grand",
+      "Katie Goodwin",
+      "Adanech Getachew",
+      "Rachel Cochran",
+      "Piyush Patel",
+      "Laura Hamilton",
+      "Metin Ergener",
+      "Peter Minev",
+      "Tom Ascroft",
+      "Julien Lemoine"
+    ],
+    "recalled": [
+      "Xavier Grand"
+    ],
+    "recall": 0.5,
+    "confirmed": 1,
+    "unconfirmed_extra": [
+      "Stephen Lynch",
+      "Carlton H. Baab",
+      "Katie Goodwin",
+      "Adanech Getachew",
+      "Rachel Cochran",
+      "Piyush Patel",
+      "Laura Hamilton",
+      "Metin Ergener",
+      "Peter Minev",
+      "Tom Ascroft",
+      "Julien Lemoine"
+    ]
+  },
+  {
+    "company": "Figma",
+    "golden": [
+      "Dylan Field"
+    ],
+    "scout": [
+      "Dylan Field",
+      "Shaunt Voskanian",
+      "Praveer Melwani",
+      "Brendan Mulligan",
+      "Kris Rasmussen",
+      "Tyler Herb",
+      "Ahn Luis Von",
+      "William R Mcdermott"
+    ],
+    "recalled": [
+      "Dylan Field"
+    ],
+    "recall": 1.0,
+    "confirmed": 1,
+    "unconfirmed_extra": [
+      "Shaunt Voskanian",
+      "Praveer Melwani",
+      "Brendan Mulligan",
+      "Kris Rasmussen",
+      "Tyler Herb",
+      "Ahn Luis Von",
+      "William R Mcdermott"
+    ]
+  },
+  {
+    "company": "HashiCorp",
+    "golden": [
+      "David McJannet"
+    ],
+    "scout": [
+      "Mitchell Hashimoto",
+      "Armon Dadgar",
+      "Ash Nangia",
+      "Freddy Vaquero",
+      "Michael Weingartner",
+      "Mitchell Hashimoto",
+      "Armon Dadgar"
+    ],
+    "recalled": [],
+    "recall": 0.0,
+    "confirmed": 0,
+    "unconfirmed_extra": [
+      "Mitchell Hashimoto",
+      "Armon Dadgar",
+      "Ash Nangia",
+      "Freddy Vaquero",
+      "Michael Weingartner",
+      "Mitchell Hashimoto",
+      "Armon Dadgar"
+    ]
+  },
+  {
+    "company": "Twilio",
+    "golden": [
+      "Khozema Shipchandler",
+      "Mark Simms"
+    ],
+    "scout": [
+      "Khozema Shipchandler",
+      "Aidan Viggiano",
+      "Christy Lake",
+      "Thomas Wyatt",
+      "Inbal Shani",
+      "Chris Koehler",
+      "Charlie Bell",
+      "Doug Robinson",
+      "Andy Stafman",
+      "Jeff Epstein",
+      "Donna Dubinsky",
+      "Deval Patrick",
+      "Erika Rottenberg",
+      "Miyuki Suzuki",
+      "Jeff Lawson",
+      "Khozema Shipchandler",
+      "Aidan Viggiano",
+      "Andrew Stafman",
+      "Miyuki Suzuki",
+      "Erika Rottenberg",
+      "Douglas A. Robinson",
+      "Deval L Patrick",
+      "Jeffrey R Immelt",
+      "Jeff Epstein",
+      "Donna Dubinsky"
+    ],
+    "recalled": [
+      "Khozema Shipchandler"
+    ],
+    "recall": 0.5,
+    "confirmed": 2,
+    "unconfirmed_extra": [
+      "Aidan Viggiano",
+      "Christy Lake",
+      "Thomas Wyatt",
+      "Inbal Shani",
+      "Chris Koehler",
+      "Charlie Bell",
+      "Doug Robinson",
+      "Andy Stafman",
+      "Jeff Epstein",
+      "Donna Dubinsky",
+      "Deval Patrick",
+      "Erika Rottenberg",
+      "Miyuki Suzuki",
+      "Jeff Lawson",
+      "Aidan Viggiano",
+      "Andrew Stafman",
+      "Miyuki Suzuki",
+      "Erika Rottenberg",
+      "Douglas A. Robinson",
+      "Deval L Patrick",
+      "Jeffrey R Immelt",
+      "Jeff Epstein",
+      "Donna Dubinsky"
+    ]
+  },
+  {
+    "company": "Cloudflare",
+    "golden": [
+      "Matthew Prince",
+      "Michelle Zatlyn",
+      "Dane Knecht"
+    ],
+    "scout": [
+      "Matthew Prince",
+      "Lee Holloway",
+      "Michelle Zatlyn",
+      "Scott Sandell",
+      "Mark Anderson",
+      "Maria Eitel",
+      "Carl Ledbetter",
+      "Stanley Meresman",
+      "Katrin Suder",
+      "Mark Hawkins",
+      "Thomas J Seifert",
+      "John Graham-cumming",
+      "Karim Lakhani",
+      "Stacey Cunningham",
+      "Mark J Hawkins"
+    ],
+    "recalled": [
+      "Matthew Prince",
+      "Michelle Zatlyn"
+    ],
+    "recall": 0.6666666666666666,
+    "confirmed": 2,
+    "unconfirmed_extra": [
+      "Lee Holloway",
+      "Scott Sandell",
+      "Mark Anderson",
+      "Maria Eitel",
+      "Carl Ledbetter",
+      "Stanley Meresman",
+      "Katrin Suder",
+      "Mark Hawkins",
+      "Thomas J Seifert",
+      "John Graham-cumming",
+      "Karim Lakhani",
+      "Stacey Cunningham",
+      "Mark J Hawkins"
+    ]
+  },
+  {
+    "company": "Allbirds",
+    "golden": [
+      "Nadia Carlsten",
+      "Ann Mitchell"
+    ],
+    "scout": [
+      "Tim Brown",
+      "Joey Zwillinger",
+      "Tim Brown"
+    ],
+    "recalled": [],
+    "recall": 0.0,
+    "confirmed": 0,
+    "unconfirmed_extra": [
+      "Tim Brown",
+      "Joey Zwillinger",
+      "Tim Brown"
+    ]
+  },
+  {
+    "company": "Warby Parker",
+    "golden": [
+      "Neil Blumenthal",
+      "David Gilboa",
+      "Steve Miller",
+      "Ron Williams"
+    ],
+    "scout": [
+      "Neil Harris Blumenthal",
+      "David Abraham Gilboa",
+      "Jeffrey Jacob Raider",
+      "Teresa Briggs",
+      "Youngme E Moon",
+      "Ronald A Williams",
+      "Bradley E Singer"
+    ],
+    "recalled": [
+      "Neil Blumenthal",
+      "David Gilboa",
+      "Ron Williams"
+    ],
+    "recall": 0.75,
+    "confirmed": 3,
+    "unconfirmed_extra": [
+      "Jeffrey Jacob Raider",
+      "Teresa Briggs",
+      "Youngme E Moon",
+      "Bradley E Singer"
+    ]
+  },
+  {
+    "company": "Glossier",
+    "golden": [
+      "Colin Walsh",
+      "Emily Weiss"
+    ],
+    "scout": [
+      "Emily Weiss"
+    ],
+    "recalled": [
+      "Emily Weiss"
+    ],
+    "recall": 0.5,
+    "confirmed": 1,
+    "unconfirmed_extra": []
+  },
+  {
+    "company": "Everlane",
+    "golden": [
+      "Alfred Chang",
+      "Rebekka Bay"
+    ],
+    "scout": [
+      "Michael Preysman",
+      "Jesse Farmer"
+    ],
+    "recalled": [],
+    "recall": 0.0,
+    "confirmed": 0,
+    "unconfirmed_extra": [
+      "Michael Preysman",
+      "Jesse Farmer"
+    ]
+  },
+  {
+    "company": "Plaid",
+    "golden": [
+      "Zach Perret",
+      "Jean-Denis Greze"
+    ],
+    "scout": [
+      "Zach Perret",
+      "William Hockey"
+    ],
+    "recalled": [
+      "Zach Perret"
+    ],
+    "recall": 0.5,
+    "confirmed": 1,
+    "unconfirmed_extra": [
+      "William Hockey"
+    ]
+  },
+  {
+    "company": "Robinhood",
+    "golden": [
+      "Vladimir Tenev"
+    ],
+    "scout": [
+      "Vlad Tenev",
+      "Baiju Bhatt"
+    ],
+    "recalled": [
+      "Vladimir Tenev"
+    ],
+    "recall": 1.0,
+    "confirmed": 1,
+    "unconfirmed_extra": [
+      "Baiju Bhatt"
+    ]
+  },
+  {
+    "company": "Moderna",
+    "golden": [
+      "Noubar Afeyan",
+      "Stephen Hoge",
+      "Jamey Mock"
+    ],
+    "scout": [
+      "Ester Banque",
+      "Tracey Franklin",
+      "Shannon Thyme Klinger",
+      "Jamey Mock",
+      "Abbas Hussain",
+      "Michael McDonnell",
+      "David M. Rubenstein",
+      "Elizabeth Tallett",
+      "Henri A. Termeer",
+      "St\u00e9phane Bancel",
+      "Tal Zaks",
+      "Noubar Afeyan",
+      "Robert S. Langer, Jr.",
+      "Elizabeth Nabel",
+      "Israel Ruiz",
+      "Paul Sagan",
+      "Moncef Slaoui",
+      "Stephen Hoge",
+      "Michael R. Mcdonnell",
+      "Soria Ester Banque",
+      "James M Mock"
+    ],
+    "recalled": [
+      "Noubar Afeyan",
+      "Stephen Hoge",
+      "Jamey Mock"
+    ],
+    "recall": 1.0,
+    "confirmed": 4,
+    "unconfirmed_extra": [
+      "Ester Banque",
+      "Tracey Franklin",
+      "Shannon Thyme Klinger",
+      "Abbas Hussain",
+      "Michael McDonnell",
+      "David M. Rubenstein",
+      "Elizabeth Tallett",
+      "Henri A. Termeer",
+      "St\u00e9phane Bancel",
+      "Tal Zaks",
+      "Robert S. Langer, Jr.",
+      "Elizabeth Nabel",
+      "Israel Ruiz",
+      "Paul Sagan",
+      "Moncef Slaoui",
+      "Michael R. Mcdonnell",
+      "Soria Ester Banque"
+    ]
+  },
+  {
+    "company": "Oscar Health",
+    "golden": [
+      "Mark Bertolini"
+    ],
+    "scout": [
+      "Mario Schlosser",
+      "William Gassen",
+      "Sid Sankaran",
+      "David Plouffe",
+      "Mario Schlosser",
+      "Mark T Bertolini",
+      "Laura W Lang",
+      "Vanessa Ames Wittman"
+    ],
+    "recalled": [
+      "Mark Bertolini"
+    ],
+    "recall": 1.0,
+    "confirmed": 1,
+    "unconfirmed_extra": [
+      "Mario Schlosser",
+      "William Gassen",
+      "Sid Sankaran",
+      "David Plouffe",
+      "Mario Schlosser",
+      "Laura W Lang",
+      "Vanessa Ames Wittman"
+    ]
+  },
+  {
+    "company": "Caterpillar",
+    "golden": [
+      "Joe Creed"
+    ],
+    "scout": [
+      "Joseph E. Creed",
+      "Bob De Lange",
+      "Kyle J. Epley",
+      "Denise C. Johnson",
+      "Jason E. Kaiser",
+      "Derek Owens",
+      "Christy Pambianchi",
+      "Rod Shurman",
+      "Andrew R.J. Bonfield",
+      "Stephanie A. Baughman",
+      "Melissa A. Busen",
+      "Ebban M. Clause",
+      "Maarten de Haas",
+      "Stephan J. Downing",
+      "Brian E. Edwards",
+      "Jamie L. Engstrom",
+      "Steven M. Ferguson",
+      "Wendi Gentry",
+      "Damien Giraud",
+      "Pam Heminger",
+      "Gregory R. Hepler",
+      "Jim Umpleby",
+      "Joseph E. Creed",
+      "Kelly Ayotte",
+      "Dave Calhoun",
+      "Dan Dickinson",
+      "Gerald Johnson",
+      "David MacLennan",
+      "Debra Reed",
+      "Edward B. Rust, Jr.",
+      "Susan Schwab",
+      "Ray Wilkins",
+      "Kyle Joseph Epley",
+      "Jason Kaiser",
+      "Joseph E Creed",
+      "Rayford Jr Wilkins",
+      "Susan C Schwab",
+      "Debra L Reed",
+      "Judith Fran Marks"
+    ],
+    "recalled": [
+      "Joe Creed"
+    ],
+    "recall": 1.0,
+    "confirmed": 3,
+    "unconfirmed_extra": [
+      "Bob De Lange",
+      "Kyle J. Epley",
+      "Denise C. Johnson",
+      "Jason E. Kaiser",
+      "Derek Owens",
+      "Christy Pambianchi",
+      "Rod Shurman",
+      "Andrew R.J. Bonfield",
+      "Stephanie A. Baughman",
+      "Melissa A. Busen",
+      "Ebban M. Clause",
+      "Maarten de Haas",
+      "Stephan J. Downing",
+      "Brian E. Edwards",
+      "Jamie L. Engstrom",
+      "Steven M. Ferguson",
+      "Wendi Gentry",
+      "Damien Giraud",
+      "Pam Heminger",
+      "Gregory R. Hepler",
+      "Jim Umpleby",
+      "Kelly Ayotte",
+      "Dave Calhoun",
+      "Dan Dickinson",
+      "Gerald Johnson",
+      "David MacLennan",
+      "Debra Reed",
+      "Edward B. Rust, Jr.",
+      "Susan Schwab",
+      "Ray Wilkins",
+      "Kyle Joseph Epley",
+      "Jason Kaiser",
+      "Rayford Jr Wilkins",
+      "Susan C Schwab",
+      "Debra L Reed",
+      "Judith Fran Marks"
+    ]
+  },
+  {
+    "company": "3M",
+    "golden": [
+      "William M. Brown"
+    ],
+    "scout": [
+      "Mike Roman",
+      "William M. Brown",
+      "John Dwan",
+      "Thomas Brown",
+      "Pamela Craig",
+      "David Dillon",
+      "Michael Eskew",
+      "Jim Fitterling",
+      "Amy Hood",
+      "Muhtar Kent",
+      "Suzan Kereere",
+      "Dambisa Moyo, Baroness Moyo",
+      "Gregory R. Page",
+      "Audrey Choi",
+      "Anne H. Chow",
+      "Theresa E Reinseth",
+      "John Patrick Banovetz",
+      "Kevin H Rhodes",
+      "Christian T Jr Goralski",
+      "Wendy A Bauer",
+      "Jennifer Rumsey",
+      "Thomas W Sweet",
+      "Anne H Chow",
+      "Thomas K Brown",
+      "James R Fitterling"
+    ],
+    "recalled": [
+      "William M. Brown"
+    ],
+    "recall": 1.0,
+    "confirmed": 1,
+    "unconfirmed_extra": [
+      "Mike Roman",
+      "John Dwan",
+      "Thomas Brown",
+      "Pamela Craig",
+      "David Dillon",
+      "Michael Eskew",
+      "Jim Fitterling",
+      "Amy Hood",
+      "Muhtar Kent",
+      "Suzan Kereere",
+      "Dambisa Moyo, Baroness Moyo",
+      "Gregory R. Page",
+      "Audrey Choi",
+      "Anne H. Chow",
+      "Theresa E Reinseth",
+      "John Patrick Banovetz",
+      "Kevin H Rhodes",
+      "Christian T Jr Goralski",
+      "Wendy A Bauer",
+      "Jennifer Rumsey",
+      "Thomas W Sweet",
+      "Anne H Chow",
+      "Thomas K Brown",
+      "James R Fitterling"
+    ]
+  },
+  {
+    "company": "Siemens",
+    "golden": [
+      "Roland Busch",
+      "Jim Hagemann Snabe"
+    ],
+    "scout": [
+      "Roland Busch",
+      "Peter L\u00f6scher",
+      "Heinrich von Pierer",
+      "Klaus Kleinfeld",
+      "Karlheinz Kaske",
+      "Werner von Siemens",
+      "Georg Wilhelm von Siemens",
+      "Carl Friedrich von Siemens"
+    ],
+    "recalled": [
+      "Roland Busch"
+    ],
+    "recall": 0.5,
+    "confirmed": 1,
+    "unconfirmed_extra": [
+      "Peter L\u00f6scher",
+      "Heinrich von Pierer",
+      "Klaus Kleinfeld",
+      "Karlheinz Kaske",
+      "Werner von Siemens",
+      "Georg Wilhelm von Siemens",
+      "Carl Friedrich von Siemens"
+    ]
+  },
+  {
+    "company": "Spotify",
+    "golden": [
+      "Daniel Ek"
+    ],
+    "scout": [
+      "Gustav S\u00f6derstr\u00f6m",
+      "Daniel Ek",
+      "Martin Lorentzon",
+      "Alex Norstrom",
+      "Gustav Soderstrom",
+      "Dustee Jenkins",
+      "Anna Lundstrom",
+      "Christopher P Marshall",
+      "Barry Mccarthy"
+    ],
+    "recalled": [
+      "Daniel Ek"
+    ],
+    "recall": 1.0,
+    "confirmed": 1,
+    "unconfirmed_extra": [
+      "Gustav S\u00f6derstr\u00f6m",
+      "Martin Lorentzon",
+      "Alex Norstrom",
+      "Gustav Soderstrom",
+      "Dustee Jenkins",
+      "Anna Lundstrom",
+      "Christopher P Marshall",
+      "Barry Mccarthy"
+    ]
+  },
+  {
+    "company": "Shopify",
+    "golden": [
+      "Harley Finkelstein"
+    ],
+    "scout": [
+      "Tobias L\u00fctke"
+    ],
+    "recalled": [],
+    "recall": 0.0,
+    "confirmed": 0,
+    "unconfirmed_extra": [
+      "Tobias L\u00fctke"
+    ]
+  },
+  {
+    "company": "Canva",
+    "golden": [
+      "Melanie Perkins"
+    ],
+    "scout": [
+      "Melanie Perkins",
+      "Cliff Obrecht"
+    ],
+    "recalled": [
+      "Melanie Perkins"
+    ],
+    "recall": 1.0,
+    "confirmed": 1,
+    "unconfirmed_extra": [
+      "Cliff Obrecht"
+    ]
+  },
+  {
+    "company": "Klarna",
+    "golden": [
+      "Michael Moritz",
+      "Sebastian Siemiatkowski"
+    ],
+    "scout": [
+      "Sebastian Siemiatkowski",
+      "Niklas Adalberth",
+      "Niclas Neglen",
+      "Anthony Greenway",
+      "David Sykes",
+      "David Sandstrom",
+      "Yaron Shaer",
+      "Camilla Giesecke",
+      "David Fock"
+    ],
+    "recalled": [
+      "Sebastian Siemiatkowski"
+    ],
+    "recall": 0.5,
+    "confirmed": 1,
+    "unconfirmed_extra": [
+      "Niklas Adalberth",
+      "Niclas Neglen",
+      "Anthony Greenway",
+      "David Sykes",
+      "David Sandstrom",
+      "Yaron Shaer",
+      "Camilla Giesecke",
+      "David Fock"
+    ]
+  },
+  {
+    "company": "Asana",
+    "golden": [
+      "Dustin Moskovitz",
+      "Dan Rogers"
+    ],
+    "scout": [
+      "Dan Rogers",
+      "Aziz Megji",
+      "Arnab Bose",
+      "Prachi Gore",
+      "Kevin Knieriem",
+      "Amritansh Raghav",
+      "Katie Colendich",
+      "Josh Abdulla",
+      "Krista Anderson-Copperman",
+      "Marc Boroditsky",
+      "Sydney Carey",
+      "Andrew Lindsay",
+      "Dustin Moskovitz",
+      "Justin Rosenstein",
+      "Justin Rosenstein",
+      "Daniel Mark Rogers",
+      "Katie Marie Colendich",
+      "Aziz Megji",
+      "Veronica Sosa",
+      "Marc Boroditsky",
+      "Sydney Carey",
+      "Krista Anderson-copperman"
+    ],
+    "recalled": [
+      "Dustin Moskovitz",
+      "Dan Rogers"
+    ],
+    "recall": 1.0,
+    "confirmed": 3,
+    "unconfirmed_extra": [
+      "Aziz Megji",
+      "Arnab Bose",
+      "Prachi Gore",
+      "Kevin Knieriem",
+      "Amritansh Raghav",
+      "Katie Colendich",
+      "Josh Abdulla",
+      "Krista Anderson-Copperman",
+      "Marc Boroditsky",
+      "Sydney Carey",
+      "Andrew Lindsay",
+      "Justin Rosenstein",
+      "Justin Rosenstein",
+      "Katie Marie Colendich",
+      "Aziz Megji",
+      "Veronica Sosa",
+      "Marc Boroditsky",
+      "Sydney Carey",
+      "Krista Anderson-copperman"
+    ]
+  }
+]

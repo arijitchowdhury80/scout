@@ -75,31 +75,7 @@ def test_process_checkout_standard_1000_payment_provisions_1000_credits(
     assert result.plan is HostedPlan.HOSTED_STARTER
     assert tenant is not None
     assert tenant.plan is HostedPlan.HOSTED_STARTER
-    assert balance.standard_credits_remaining == 10000
-    assert balance.browser_credits_remaining == 0
-
-
-def test_process_checkout_standard_15000_payment_provisions_pro_plan(
-    tmp_path: Path,
-) -> None:
-    db_path = tmp_path / "hosted.sqlite"
-    account_service = HostedAccountService(SQLiteHostedAccountStore(db_path))
-    service = HostedPaymentProvisioningService(
-        account_service,
-        SQLiteHostedPaymentStore(db_path),
-    )
-
-    result = service.process_checkout(
-        _standard_15000_checkout(checkout_session_id="cs_test_pro_001")
-    )
-    balance = account_service.get_balance(result.tenant_id)
-    tenant = account_service.get_tenant(result.tenant_id)
-
-    assert result.success is True
-    assert result.plan is HostedPlan.HOSTED_PRO
-    assert tenant is not None
-    assert tenant.plan is HostedPlan.HOSTED_PRO
-    assert balance.standard_credits_remaining == 150000
+    assert balance.standard_credits_remaining == 15000
     assert balance.browser_credits_remaining == 0
 
 
@@ -139,7 +115,7 @@ def test_process_checkout_standard_1000_tops_up_existing_beta_account_without_ne
     assert tenant is not None
     assert tenant.plan is HostedPlan.HOSTED_STARTER
     assert result.raw_api_key == ""
-    assert balance.standard_credits_remaining == 10075
+    assert balance.standard_credits_remaining == 15075
     assert balance.browser_credits_remaining == 0
     assert stored_event is not None
     assert stored_event.tenant_id == beta.tenant.tenant_id
@@ -333,7 +309,7 @@ def test_sqlite_payment_store_lists_checkout_purchase_records(
     assert second.raw_api_key not in db_path.read_text(encoding="utf-8", errors="ignore")
 
 
-def test_process_checkout_unlimited_subscription_provisions_unlimited_plan(
+def test_process_checkout_monthly_subscription_provisions_monthly_plan(
     tmp_path: Path,
 ) -> None:
     db_path = tmp_path / "hosted.sqlite"
@@ -342,7 +318,7 @@ def test_process_checkout_unlimited_subscription_provisions_unlimited_plan(
     service = HostedPaymentProvisioningService(account_service, payment_store)
 
     result = service.process_checkout(
-        _unlimited_subscription_checkout(checkout_session_id="cs_sub_001")
+        _monthly_subscription_checkout(checkout_session_id="cs_sub_001")
     )
     balance = account_service.get_balance(result.tenant_id)
     tenant = account_service.get_tenant(result.tenant_id)
@@ -352,18 +328,18 @@ def test_process_checkout_unlimited_subscription_provisions_unlimited_plan(
     )
 
     assert result.success is True
-    assert result.plan is HostedPlan.HOSTED_UNLIMITED
+    assert result.plan is HostedPlan.HOSTED_MONTHLY
     assert tenant is not None
-    assert tenant.plan is HostedPlan.HOSTED_UNLIMITED
-    assert balance.standard_credits_remaining == 50000
+    assert tenant.plan is HostedPlan.HOSTED_MONTHLY
+    assert balance.standard_credits_remaining == 20000
     assert balance.browser_credits_remaining == 0
     assert stored is not None
-    assert stored.package_id == "unlimited_monthly"
+    assert stored.package_id == "monthly"
     assert stored.customer_id == "cus_sub_001"
     assert stored.subscription_id == "sub_test_001"
 
 
-def test_process_checkout_unlimited_upgrades_existing_beta_and_sets_credits(
+def test_process_checkout_monthly_upgrades_existing_beta_and_sets_credits(
     tmp_path: Path,
 ) -> None:
     db_path = tmp_path / "hosted.sqlite"
@@ -380,22 +356,22 @@ def test_process_checkout_unlimited_upgrades_existing_beta_and_sets_credits(
     account_service.set_balance(beta.tenant.tenant_id, standard_credits=42, browser_credits=7)
 
     result = service.process_checkout(
-        _unlimited_subscription_checkout(checkout_session_id="cs_sub_002")
+        _monthly_subscription_checkout(checkout_session_id="cs_sub_002")
     )
     balance = account_service.get_balance(beta.tenant.tenant_id)
     tenant = account_service.get_tenant(beta.tenant.tenant_id)
 
     assert result.success is True
     assert result.tenant_id == beta.tenant.tenant_id
-    assert result.plan is HostedPlan.HOSTED_UNLIMITED
+    assert result.plan is HostedPlan.HOSTED_MONTHLY
     assert tenant is not None
-    assert tenant.plan is HostedPlan.HOSTED_UNLIMITED
-    # SET (not add): exactly 50000, browser bucket zeroed to the plan grant.
-    assert balance.standard_credits_remaining == 50000
+    assert tenant.plan is HostedPlan.HOSTED_MONTHLY
+    # SET (not add): exactly 20000, browser bucket zeroed to the plan grant.
+    assert balance.standard_credits_remaining == 20000
     assert balance.browser_credits_remaining == 0
 
 
-def test_process_invoice_paid_resets_standard_credits_to_fifty_thousand(
+def test_process_invoice_paid_resets_standard_credits_to_twenty_thousand(
     tmp_path: Path,
 ) -> None:
     db_path = tmp_path / "hosted.sqlite"
@@ -403,7 +379,7 @@ def test_process_invoice_paid_resets_standard_credits_to_fifty_thousand(
     payment_store = SQLiteHostedPaymentStore(db_path)
     service = HostedPaymentProvisioningService(account_service, payment_store)
     checkout = service.process_checkout(
-        _unlimited_subscription_checkout(checkout_session_id="cs_sub_003")
+        _monthly_subscription_checkout(checkout_session_id="cs_sub_003")
     )
     # Burn most of the month down to a partial balance.
     account_service.set_balance(checkout.tenant_id, standard_credits=12345, browser_credits=0)
@@ -413,8 +389,8 @@ def test_process_invoice_paid_resets_standard_credits_to_fifty_thousand(
 
     assert result.success is True
     assert result.tenant_id == checkout.tenant_id
-    # RESET, not add: 12345 -> 50000 exactly, NOT 62345.
-    assert balance.standard_credits_remaining == 50000
+    # RESET, not add: 12345 -> 20000 exactly, NOT 62345.
+    assert balance.standard_credits_remaining == 20000
     assert balance.browser_credits_remaining == 0
 
 
@@ -424,7 +400,7 @@ def test_process_invoice_paid_is_idempotent_per_invoice_id(tmp_path: Path) -> No
     payment_store = SQLiteHostedPaymentStore(db_path)
     service = HostedPaymentProvisioningService(account_service, payment_store)
     checkout = service.process_checkout(
-        _unlimited_subscription_checkout(checkout_session_id="cs_sub_004")
+        _monthly_subscription_checkout(checkout_session_id="cs_sub_004")
     )
 
     first = service.process_invoice_paid(_invoice(invoice_id="in_dup_001"))
@@ -448,7 +424,7 @@ def test_process_invoice_paid_persists_processed_id_across_fresh_store(
     account_service = HostedAccountService(SQLiteHostedAccountStore(db_path))
     service = HostedPaymentProvisioningService(account_service, SQLiteHostedPaymentStore(db_path))
     checkout = service.process_checkout(
-        _unlimited_subscription_checkout(checkout_session_id="cs_sub_005")
+        _monthly_subscription_checkout(checkout_session_id="cs_sub_005")
     )
     service.process_invoice_paid(_invoice(invoice_id="in_persist_001"))
     account_service.set_balance(checkout.tenant_id, standard_credits=9, browser_credits=0)
@@ -467,7 +443,7 @@ def test_process_subscription_deleted_downgrades_and_zeros_grant(tmp_path: Path)
     payment_store = SQLiteHostedPaymentStore(db_path)
     service = HostedPaymentProvisioningService(account_service, payment_store)
     checkout = service.process_checkout(
-        _unlimited_subscription_checkout(checkout_session_id="cs_sub_006")
+        _monthly_subscription_checkout(checkout_session_id="cs_sub_006")
     )
 
     result = service.process_subscription_deleted(_subscription_deleted())
@@ -477,7 +453,7 @@ def test_process_subscription_deleted_downgrades_and_zeros_grant(tmp_path: Path)
     assert result.success is True
     assert result.tenant_id == checkout.tenant_id
     assert tenant is not None
-    assert tenant.plan is not HostedPlan.HOSTED_UNLIMITED
+    assert tenant.plan is not HostedPlan.HOSTED_MONTHLY
     assert balance.standard_credits_remaining == 0
     assert balance.browser_credits_remaining == 0
 
@@ -488,7 +464,7 @@ def test_process_subscription_deleted_is_idempotent(tmp_path: Path) -> None:
     payment_store = SQLiteHostedPaymentStore(db_path)
     service = HostedPaymentProvisioningService(account_service, payment_store)
     checkout = service.process_checkout(
-        _unlimited_subscription_checkout(checkout_session_id="cs_sub_007")
+        _monthly_subscription_checkout(checkout_session_id="cs_sub_007")
     )
 
     first = service.process_subscription_deleted(_subscription_deleted())
@@ -503,7 +479,7 @@ def test_process_subscription_deleted_is_idempotent(tmp_path: Path) -> None:
     assert balance.standard_credits_remaining == 5
 
 
-def test_unlimited_subscriber_hard_stops_when_exhausted_until_next_invoice(
+def test_monthly_subscriber_hard_stops_when_exhausted_until_next_invoice(
     tmp_path: Path,
 ) -> None:
     db_path = tmp_path / "hosted.sqlite"
@@ -511,7 +487,7 @@ def test_unlimited_subscriber_hard_stops_when_exhausted_until_next_invoice(
     payment_store = SQLiteHostedPaymentStore(db_path)
     service = HostedPaymentProvisioningService(account_service, payment_store)
     checkout = service.process_checkout(
-        _unlimited_subscription_checkout(checkout_session_id="cs_sub_008")
+        _monthly_subscription_checkout(checkout_session_id="cs_sub_008")
     )
     account_service.set_balance(checkout.tenant_id, standard_credits=1, browser_credits=0)
     tenant = account_service.get_tenant(checkout.tenant_id)
@@ -532,17 +508,17 @@ def test_unlimited_subscriber_hard_stops_when_exhausted_until_next_invoice(
     refilled = account_service.consume_action(raw_key, HostedAction.SCRAPE, "runs:create")
 
     assert refilled.allowed is True
-    assert account_service.get_balance(checkout.tenant_id).standard_credits_remaining == 49999
+    assert account_service.get_balance(checkout.tenant_id).standard_credits_remaining == 19999
 
 
-def _unlimited_subscription_checkout(
+def _monthly_subscription_checkout(
     *,
     checkout_session_id: str = "cs_sub_001",
     email: str = "builder@example.com",
     customer_id: str = "cus_sub_001",
     subscription_id: str = "sub_test_001",
 ) -> HostedCheckoutProvisioningRequest:
-    """Build a valid unlimited-subscription checkout.session.completed request."""
+    """Build a valid monthly-subscription checkout.session.completed request."""
     return HostedCheckoutProvisioningRequest(
         provider=HostedPaymentProvider.STRIPE,
         checkout_session_id=checkout_session_id,
@@ -551,10 +527,10 @@ def _unlimited_subscription_checkout(
         payment_intent_id="",
         email=email,
         name="Builder Person",
-        package_id="unlimited_monthly",
+        package_id="monthly",
         amount_total_cents=1200,
         currency="usd",
-        plan=HostedPlan.HOSTED_UNLIMITED,
+        plan=HostedPlan.HOSTED_MONTHLY,
         scopes=["runs:create"],
         status=HostedCheckoutPaymentStatus.PAID,
     )
@@ -618,25 +594,6 @@ def _standard_1000_checkout(
     """Build a valid paid standard credit package request for tests."""
     return _checkout(
         package_id="standard_1000",
-        checkout_session_id=checkout_session_id,
-        email=email,
-        amount_total_cents=amount_total_cents,
-        currency=currency,
-        status=status,
-    )
-
-
-def _standard_15000_checkout(
-    *,
-    checkout_session_id: str = "cs_test_beta_001",
-    email: str = "builder@example.com",
-    amount_total_cents: int = 10000,
-    currency: str = "usd",
-    status: HostedCheckoutPaymentStatus = HostedCheckoutPaymentStatus.PAID,
-) -> HostedCheckoutProvisioningRequest:
-    """Build a valid paid pro-volume standard credit package request for tests."""
-    return _checkout(
-        package_id="standard_15000",
         checkout_session_id=checkout_session_id,
         email=email,
         amount_total_cents=amount_total_cents,

@@ -62,6 +62,9 @@ async def crawl(req: CrawlRequest) -> CrawlResponse:
         page_timeout=req.timeout_ms,
         simulate_user=req.stealth,
         magic=req.stealth,
+        # FX-10a: crawl4ai defaults check_robots_txt to False. Scout defaults to
+        # respecting robots.txt; respect_robots_txt=False on the request opts out.
+        check_robots_txt=req.respect_robots_txt,
     )
 
     pages: list[CrawlPage] = []

@@ -1,0 +1,56 @@
+# Pilot corpus — stratified sample to validate the XL harness end-to-end.
+# NOT ground-truth for precision (labels live in golden_sec_xl.json / golden_private.json).
+# cols: name	url	ownership	vertical	render_regime	geo	size	label_tier
+# --- Public tech / dev-tools (SEC-labelable) ---
+Datadog	https://www.datadoghq.com	public	saas	js	us	enterprise	sec
+MongoDB	https://www.mongodb.com	public	saas	js	us	enterprise	sec
+Snowflake	https://www.snowflake.com	public	saas	js	us	enterprise	sec
+Cloudflare	https://www.cloudflare.com	public	saas	js	us	enterprise	sec
+Twilio	https://www.twilio.com	public	saas	js	us	enterprise	sec
+GitLab	https://about.gitlab.com	public	saas	js	us	midmarket	sec
+HashiCorp	https://www.hashicorp.com	public	saas	js	us	midmarket	sec
+Salesforce	https://www.salesforce.com	public	saas	js	us	enterprise	sec
+Adobe	https://www.adobe.com	public	saas	antibot	us	enterprise	sec
+# --- Private tech / startups (human-verify tier) ---
+Stripe	https://stripe.com	private	fintech	js	us	enterprise	human
+Anthropic	https://www.anthropic.com	private	saas	js	us	midmarket	human
+OpenAI	https://openai.com	private	saas	js	us	midmarket	human
+Databricks	https://www.databricks.com	private	saas	js	us	enterprise	human
+Notion	https://www.notion.so	private	saas	js	us	midmarket	human
+Figma	https://www.figma.com	private	saas	js	us	midmarket	human
+Vercel	https://vercel.com	private	saas	js	us	startup	human
+Ramp	https://ramp.com	private	fintech	js	us	midmarket	human
+Brex	https://www.brex.com	private	fintech	js	us	midmarket	human
+Plaid	https://plaid.com	private	fintech	js	us	midmarket	human
+# --- Public consumer / retail ---
+Nike	https://www.nike.com	public	ecommerce	antibot	us	enterprise	sec
+Lululemon	https://shop.lululemon.com	public	ecommerce	antibot	us	enterprise	sec
+Warby Parker	https://www.warbyparker.com	public	ecommerce	js	us	midmarket	sec
+Allbirds	https://www.allbirds.com	public	ecommerce	js	us	midmarket	sec
+# --- Private DTC / retail ---
+Patagonia	https://www.patagonia.com	private	ecommerce	antibot	us	midmarket	human
+Glossier	https://www.glossier.com	private	ecommerce	js	us	startup	human
+Everlane	https://www.everlane.com	private	ecommerce	js	us	startup	human
+# --- Public industrial / manufacturing ---
+Caterpillar	https://www.caterpillar.com	public	industrial	server	us	enterprise	sec
+3M	https://www.3m.com	public	industrial	server	us	enterprise	sec
+# --- Public healthcare / pharma ---
+Moderna	https://www.modernatx.com	public	healthcare	js	us	enterprise	sec
+Oscar Health	https://www.hioscar.com	public	healthcare	js	us	midmarket	sec
+# --- Public fintech / crypto ---
+Robinhood	https://robinhood.com	public	fintech	js	us	midmarket	sec
+Coinbase	https://www.coinbase.com	public	crypto	js	us	enterprise	sec
+# --- International (name-complexity + non-US filings) ---
+Spotify	https://www.spotify.com	public	media	js	eu	enterprise	sec
+Klarna	https://www.klarna.com	private	fintech	js	eu	enterprise	human
+SAP	https://www.sap.com	public	saas	js	eu	enterprise	wikipedia
+Adyen	https://www.adyen.com	public	fintech	js	eu	enterprise	wikipedia
+Wise	https://wise.com	public	fintech	js	uk	midmarket	wikipedia
+Shopify	https://www.shopify.com	public	saas	js	ca	enterprise	sec
+Siemens	https://www.siemens.com	public	industrial	js	eu	enterprise	wikipedia
+# --- Hard cases ---
+Canva	https://www.canva.com	private	saas	js	au	enterprise	human
+Kraken	https://www.kraken.com	private	crypto	js	us	midmarket	human
+Airtable	https://www.airtable.com	private	saas	js	us	midmarket	human
+Asana	https://asana.com	public	saas	js	us	midmarket	sec
+Palantir	https://www.palantir.com	public	saas	js	us	enterprise	sec

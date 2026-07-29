@@ -1,0 +1,1484 @@
+[
+  {
+    "company": "Datadog",
+    "true_execs": [
+      {
+        "name": "Olivier Pomel",
+        "title": "CEO & Co-Founder",
+        "role_type": "executive"
+      },
+      {
+        "name": "Alexis Lê-Quôc",
+        "title": "CTO & Co-Founder",
+        "role_type": "executive"
+      },
+      {
+        "name": "David Obstler",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Sara Varni",
+        "title": "Chief Marketing Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Adam Blitzer",
+        "title": "Chief Operating Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Yanbing Li",
+        "title": "Chief Product Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "David Galloreese",
+        "title": "Chief People Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Sean Walters",
+        "title": "Chief Revenue Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Emilio Escobar",
+        "title": "Chief Information Security Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Kerry Acocella",
+        "title": "General Counsel",
+        "role_type": "executive"
+      },
+      {
+        "name": "Shardul Shah",
+        "title": "Director (Partner, Index Ventures)",
+        "role_type": "director"
+      },
+      {
+        "name": "Dev Ittycheria",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Michael Callahan",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Julie Richardson",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Matt Jacobson",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Titilope Cole",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Ami Vora",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Dominic Phillips",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Amit Agarwal",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://www.datadoghq.com/about/leadership/",
+      "https://investors.datadoghq.com/static-files/737a728e-396b-4fd7-b932-c4bbf3106360"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Snowflake",
+    "true_execs": [
+      {
+        "name": "Sridhar Ramaswamy",
+        "title": "Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Benoit Dageville",
+        "title": "Co-Founder & Chief Architect",
+        "role_type": "executive"
+      },
+      {
+        "name": "Brian Robins",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jonathan Beaulier",
+        "title": "Chief Revenue Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Denise Persson",
+        "title": "Chief Marketing Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Arnnon Geshuri",
+        "title": "Chief People Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "S. Muralidhar",
+        "title": "Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Mike Blandina",
+        "title": "Chief Information Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jeff True",
+        "title": "General Counsel",
+        "role_type": "executive"
+      },
+      {
+        "name": "Thierry Cruanes",
+        "title": "Co-Founder",
+        "role_type": "executive"
+      },
+      {
+        "name": "Christian Kleinerman",
+        "title": "EVP, Product",
+        "role_type": "executive"
+      },
+      {
+        "name": "Vivek Raghunathan",
+        "title": "SVP of Engineering",
+        "role_type": "executive"
+      },
+      {
+        "name": "Stella Low",
+        "title": "Chief Communications Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Mayank Upadhyay",
+        "title": "Chief Security and Trust Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jeremy Burton",
+        "title": "General Manager, Observability Business Unit",
+        "role_type": "executive"
+      },
+      {
+        "name": "Ann Marie Lavigne",
+        "title": "SVP, Strategic Initiatives & Government Affairs",
+        "role_type": "executive"
+      },
+      {
+        "name": "Frank Slootman",
+        "title": "Chairman of the Board",
+        "role_type": "director"
+      },
+      {
+        "name": "Mike Speiser",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Kelly Kramer",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Teresa Briggs",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Mark Garrett",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Jayshree Ullal",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Mark McLaughlin",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Bill Scannell",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://www.snowflake.com/en/company/overview/leadership-and-board/"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "MongoDB",
+    "true_execs": [
+      {
+        "name": "Chirantan \"CJ\" Desai",
+        "title": "President & Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Mike Berry",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jim Scharf",
+        "title": "Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Benjamin Cefalo",
+        "title": "Chief Product Officer, Core Products",
+        "role_type": "executive"
+      },
+      {
+        "name": "Pablo Stern-Plaza",
+        "title": "Chief Product Officer, AI and Emerging Products",
+        "role_type": "executive"
+      },
+      {
+        "name": "Ryan Mac Ban",
+        "title": "Chief Revenue Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Erica Volini",
+        "title": "Chief Customer Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "May Petry",
+        "title": "Chief Marketing Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Deepa Gopinath",
+        "title": "Chief Information Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Harsha Jalihal",
+        "title": "Chief People Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Andrew Stephens",
+        "title": "Chief Legal Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Dev Ittycheria",
+        "title": "Director (former President & CEO)",
+        "role_type": "director"
+      },
+      {
+        "name": "Roelof Botha",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Ann Lewnes",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Francisco D'Souza",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Charles M. Hazard, Jr.",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Tom Killalea",
+        "title": "Chairperson of the Board",
+        "role_type": "director"
+      },
+      {
+        "name": "Archana Agrawal",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Hope Cochran",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Dwight Merriman",
+        "title": "Co-Founder and Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://www.mongodb.com/company/leadership",
+      "https://investors.mongodb.com/corporate-governance/board-of-directors",
+      "https://www.sec.gov/Archives/edgar/data/0001441816/000162828026036415/mdb-20260513.htm"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Twilio",
+    "true_execs": [
+      {
+        "name": "Khozema Shipchandler",
+        "title": "Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Aidan Viggiano",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Christy Lake",
+        "title": "Chief Administrative Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Thomas Wyatt",
+        "title": "Chief Revenue Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Inbal Shani",
+        "title": "Chief Product Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Chris Koehler",
+        "title": "Chief Marketing Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Dana R. Wagner",
+        "title": "Chief Legal Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jeff Epstein",
+        "title": "Chair of the Board",
+        "role_type": "director"
+      },
+      {
+        "name": "Charlie Bell",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Donna Dubinsky",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Jeff Immelt",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Deval Patrick",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Doug Robinson",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Erika Rottenberg",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Andy Stafman",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Miyuki Suzuki",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://www.twilio.com/en-us/company/leadership",
+      "https://www.sec.gov/Archives/edgar/data/1447669/000144766926000027/exhibit991-dougrobinsonapp.htm"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Cloudflare",
+    "true_execs": [
+      {
+        "name": "Matthew Prince",
+        "title": "Co-founder, CEO & Co-Chair of the Board",
+        "role_type": "executive"
+      },
+      {
+        "name": "Michelle Zatlyn",
+        "title": "Co-founder, President & Co-Chair of the Board",
+        "role_type": "executive"
+      },
+      {
+        "name": "Thomas Seifert",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Dane Knecht",
+        "title": "Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Grant Bourzikas",
+        "title": "Chief Security Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Stephanie Cohen",
+        "title": "Chief Strategy Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Alissa Starzak",
+        "title": "Chief Legal Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Scott Sandell",
+        "title": "Lead Independent Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Carl Ledbetter",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Stacey Cunningham",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "John Graham-Cumming",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Karim Lakhani",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://www.cloudflare.com/press/press-kit/",
+      "https://www.sec.gov/Archives/edgar/data/0001477333/000119312526263809/d160227ddef14a.htm"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "GitLab",
+    "true_execs": [
+      {
+        "name": "Bill Staples",
+        "title": "Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jessica Ross",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Ian Steward",
+        "title": "Chief Revenue Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Thomas Lloyd",
+        "title": "Chief Business and Legal Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Manav Khurana",
+        "title": "Chief Product and Marketing Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Siva Padisetty",
+        "title": "Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Manu Narayan",
+        "title": "Chief Information Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Chaim Mazal",
+        "title": "Chief Information Security Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Rob Allen",
+        "title": "Chief People Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Sherrod Patching",
+        "title": "Chief Customer Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Sundeep Bedi",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Sue Bostrom",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Sytse Sijbrandij",
+        "title": "Director (Co-Founder, former CEO)",
+        "role_type": "director"
+      },
+      {
+        "name": "Matthew Jacobson",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "David Henshall",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Godfrey Sullivan",
+        "title": "Lead Independent Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Karen Blasing",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://about.gitlab.com/company/team/e-group/",
+      "https://www.stocktitan.net/sec-filings/GTLB/def-14a-gitlab-inc-definitive-proxy-statement-7a70cc51ff09.html"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "3M",
+    "true_execs": [
+      {
+        "name": "William M. Brown",
+        "title": "Chairman and Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "John Banovetz",
+        "title": "Executive Vice President, Chief Technology Officer and Environmental Responsibility",
+        "role_type": "executive"
+      },
+      {
+        "name": "Wendy Bauer",
+        "title": "Group President, Transportation & Electronics",
+        "role_type": "executive"
+      },
+      {
+        "name": "Karina Chavez",
+        "title": "Group President, Consumer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Paul Gallagher",
+        "title": "Group President, Enterprise Supply Chain",
+        "role_type": "executive"
+      },
+      {
+        "name": "Chris Goralski",
+        "title": "Group President, Safety & Industrial",
+        "role_type": "executive"
+      },
+      {
+        "name": "Anurag Maheshwari",
+        "title": "Executive Vice President, Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Kevin Rhodes",
+        "title": "Executive Vice President, Chief Legal Affairs Officer and Secretary",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jon Van Wyck",
+        "title": "Executive Vice President & Chief Strategy Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "David P. Bozeman",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Thomas K. Brown",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Audrey Choi",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Anne H. Chow",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "James R. Fitterling",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Suzan Kereere",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Neil G. Mitchill, Jr.",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Pedro J. Pizarro",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Jennifer W. Rumsey",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Thomas W. Sweet",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://investors.3m.com/governance/corporate-officers",
+      "https://investors.3m.com/governance/board-of-directors"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Moderna",
+    "true_execs": [
+      {
+        "name": "Stéphane Bancel",
+        "title": "Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Stephen Hoge",
+        "title": "President",
+        "role_type": "executive"
+      },
+      {
+        "name": "Ester Banque",
+        "title": "Chief Commercial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "David Berman",
+        "title": "Chief Development Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jerh Collins",
+        "title": "Chief Technical Operations and Quality Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Tracey Franklin",
+        "title": "Chief People and Digital Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Shannon Thyme Klinger",
+        "title": "Chief Legal Officer and Corporate Secretary",
+        "role_type": "executive"
+      },
+      {
+        "name": "Rose Loughlin",
+        "title": "Executive Vice President, Research",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jamey Mock",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Noubar Afeyan",
+        "title": "Chairman of the Board",
+        "role_type": "director"
+      },
+      {
+        "name": "Sandra Horning",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Abbas Hussain",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Michael McDonnell",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Elizabeth Nabel",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "François Nader",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "David M. Rubenstein",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Elizabeth Tallett",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://investors.modernatx.com/leadership-team"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Asana",
+    "true_execs": [
+      {
+        "name": "Dan Rogers",
+        "title": "Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Aziz Megji",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Arnab Bose",
+        "title": "Chief Product Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Prachi Gore",
+        "title": "Chief Marketing Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Kevin Knieriem",
+        "title": "Chief Revenue Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Amritansh Raghav",
+        "title": "Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Katie Colendich",
+        "title": "General Counsel & Corporate Secretary",
+        "role_type": "executive"
+      },
+      {
+        "name": "Josh Abdulla",
+        "title": "Chief Customer Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Dustin Moskovitz",
+        "title": "Board Chair and Co-Founder",
+        "role_type": "director"
+      },
+      {
+        "name": "Justin Rosenstein",
+        "title": "Board Member & Advisor",
+        "role_type": "director"
+      },
+      {
+        "name": "Krista Anderson-Copperman",
+        "title": "Board Member",
+        "role_type": "director"
+      },
+      {
+        "name": "Marc Boroditsky",
+        "title": "Board Member",
+        "role_type": "director"
+      },
+      {
+        "name": "Sydney Carey",
+        "title": "Board Member",
+        "role_type": "director"
+      },
+      {
+        "name": "Andrew Lindsay",
+        "title": "Board Member",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://asana.com/leadership"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Oscar Health",
+    "true_execs": [
+      {
+        "name": "Mark T. Bertolini",
+        "title": "Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Mario Schlosser",
+        "title": "Co-Founder & Advisor to the CEO",
+        "role_type": "executive"
+      },
+      {
+        "name": "R. Scott Blackley",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Janet Liang",
+        "title": "EVP and President of Oscar Insurance",
+        "role_type": "executive"
+      },
+      {
+        "name": "Adam McAnaney",
+        "title": "Chief Legal Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Rebecca Krouse",
+        "title": "Executive Vice President, Chief People Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Victoria Baltrus",
+        "title": "Chief Accounting Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Steve Kelmar",
+        "title": "Executive Vice President and Chief of Staff to the CEO",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jesse Horowitz",
+        "title": "SVP, Member Experience",
+        "role_type": "executive"
+      },
+      {
+        "name": "Siddhartha Sankaran",
+        "title": "Independent Chair of the Board",
+        "role_type": "director"
+      },
+      {
+        "name": "Joshua Kushner",
+        "title": "Vice Chair of the Board, Co-Founder",
+        "role_type": "director"
+      },
+      {
+        "name": "William Gassen III",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Laura Lang",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "David Plouffe",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Vanessa A. Wittman",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://www.hioscar.com/about/team",
+      "https://ir.hioscar.com/news-events-presentations/news-press-releases/news-details/2026/Oscar-Health-Inc--Appoints-Director-Siddhartha-Sankaran-as-Independent-Chair-of-the-Board/default.aspx",
+      "https://www.sec.gov/Archives/edgar/data/0001568651/000114036126016119/ny20059895x771_def14a.pdf"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Stripe",
+    "true_execs": [
+      {
+        "name": "Patrick Collison",
+        "title": "Cofounder and CEO",
+        "role_type": "executive"
+      },
+      {
+        "name": "John Collison",
+        "title": "Cofounder and President",
+        "role_type": "executive"
+      },
+      {
+        "name": "Will Gaybrick",
+        "title": "President, Technology and Business",
+        "role_type": "executive"
+      },
+      {
+        "name": "Steffan Tomlinson",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Tyler Bryson",
+        "title": "Chief Revenue Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Eileen O'Mara",
+        "title": "Vice Chair",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jeff Titterton",
+        "title": "Chief Marketing Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Rob McIntosh",
+        "title": "Chief People Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Trish Walsh",
+        "title": "General Counsel",
+        "role_type": "executive"
+      },
+      {
+        "name": "Mark Carney",
+        "title": "Board Member",
+        "role_type": "director"
+      },
+      {
+        "name": "Luciana Lixandru",
+        "title": "Board Member",
+        "role_type": "director"
+      },
+      {
+        "name": "Kevin Kelly",
+        "title": "Board Member",
+        "role_type": "director"
+      },
+      {
+        "name": "Matt Huang",
+        "title": "Board Member",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://stripe.com/newsroom/information",
+      "https://stripe.com/newsroom/news/eileen-omara-named-vice-chair-of-stripe-tyler-bryson-appointed-chief-revenue-officer"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Anthropic",
+    "true_execs": [
+      {
+        "name": "Dario Amodei",
+        "title": "Chief Executive Officer and Co-Founder",
+        "role_type": "executive"
+      },
+      {
+        "name": "Daniela Amodei",
+        "title": "President and Co-Founder",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jared Kaplan",
+        "title": "Chief Science Officer and Co-Founder",
+        "role_type": "executive"
+      },
+      {
+        "name": "Rahul Patil",
+        "title": "Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Krishna Rao",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Ami Vora",
+        "title": "Chief Product Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Paul Smith",
+        "title": "Chief Commercial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Sam McCandlish",
+        "title": "Chief Architect",
+        "role_type": "executive"
+      },
+      {
+        "name": "Yasmin Razavi",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Reed Hastings",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Chris Liddell",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Vas Narasimhan",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://www.anthropic.com/company",
+      "https://www.anthropic.com/news/rahul-patil-joins-anthropic",
+      "https://www.anthropic.com/news/narasimhan-board"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Figma",
+    "true_execs": [
+      {
+        "name": "Dylan Field",
+        "title": "CEO, President, Chair & Co-Founder",
+        "role_type": "executive"
+      },
+      {
+        "name": "Praveer Melwani",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Kris Rasmussen",
+        "title": "Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Yuhki Yamashita",
+        "title": "Chief Product Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Amanda Kleha",
+        "title": "Chief Customer Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Nadia Singer",
+        "title": "Chief People Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "John Lilly",
+        "title": "Lead Independent Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Mamoon Hamid",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Kelly Kramer",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Andrew Reed",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Danny Rimer",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Lynn Vojvodich Radakovich",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "William McDermott",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Luis von Ahn",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://www.figma.com/about-us/",
+      "https://investor.figma.com/governance/board-of-directors/default.aspx",
+      "https://investor.figma.com/governance/executive-management/default.aspx",
+      "https://www.figma.com/blog/mike-krieger-and-luis-von-anh-join-board/",
+      "https://www.cnbc.com/2025/07/31/figma-fig-starts-trading-on-nyse-after-ipo.html",
+      "https://www.tipranks.com/news/company-announcements/figma-announces-resignation-of-board-member-mike-krieger"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Databricks",
+    "true_execs": [
+      {
+        "name": "Ali Ghodsi",
+        "title": "Co-Founder & Chief Executive Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Dave Conte",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Matei Zaharia",
+        "title": "Co-Founder & Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Reynold Xin",
+        "title": "Co-Founder & Chief Architect",
+        "role_type": "executive"
+      },
+      {
+        "name": "Ron Gabrisko",
+        "title": "Chief Revenue Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Rick Schultz",
+        "title": "Chief Marketing Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Hatim Shafique",
+        "title": "Chief Operating Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Naveen Zutshi",
+        "title": "Chief Information Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Andy Kofoid",
+        "title": "President, Global Field Operations",
+        "role_type": "executive"
+      },
+      {
+        "name": "Ion Stoica",
+        "title": "Co-Founder & Executive Chairman",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://www.databricks.com/company/leadership-team",
+      "https://www.databricks.com/company/founders",
+      "https://www.databricks.com/company/newsroom/press-releases/databricks-appoints-naveen-zutshi-as-chief-information-officer",
+      "https://techcrunch.com/2026/04/08/databricks-matei-zaharia-wins-acm-computing-prize-agi/"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Notion",
+    "true_execs": [
+      {
+        "name": "Ivan Zhao",
+        "title": "Co-Founder & CEO",
+        "role_type": "executive"
+      },
+      {
+        "name": "Akshay Kothari",
+        "title": "Co-Founder & Chief Operating Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Rama Katkar",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Simon Last",
+        "title": "Co-Founder",
+        "role_type": "executive"
+      },
+      {
+        "name": "Erica Anderson",
+        "title": "Chief Revenue Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jonathan Chadwick",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Pat Grady",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Gretchen Howard",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Christopher Payne",
+        "title": "Director",
+        "role_type": "director"
+      },
+      {
+        "name": "Patrick Hsu",
+        "title": "Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://www.notion.com/about",
+      "https://www.notion.com/careers",
+      "https://www.notion.com/blog/welcome-rama-katkar-notions-new-cfo",
+      "https://www.notion.com/blog/meet-notions-board-of-directors"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Ramp",
+    "true_execs": [
+      {
+        "name": "Eric Glyman",
+        "title": "Co-Founder & Co-CEO",
+        "role_type": "executive"
+      },
+      {
+        "name": "Karim Atiyeh",
+        "title": "Co-Founder & Co-CEO",
+        "role_type": "executive"
+      },
+      {
+        "name": "Rahul Sengottuvelu",
+        "title": "Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Will Petrie",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Geoff Charles",
+        "title": "Chief Product Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Nik Koblov",
+        "title": "EVP of Engineering",
+        "role_type": "executive"
+      }
+    ],
+    "source_urls": [
+      "https://ramp.com/blog/welcoming-my-co-founder-karim-as-co-ceo-of-ramp",
+      "https://ramp.com/blog/strengthening-our-leadership-bench",
+      "https://www.bankingdive.com/news/ramp-names-karim-atiyeh-co-ceo-glyman-cto-Rahul-Sengottuvelu/824229/"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Brex",
+    "true_execs": [
+      {
+        "name": "Pedro Franceschi",
+        "title": "Co-Founder & CEO",
+        "role_type": "executive"
+      },
+      {
+        "name": "Ben Gammell",
+        "title": "President",
+        "role_type": "executive"
+      },
+      {
+        "name": "Erica Dorfman",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "James Reggio",
+        "title": "Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Henrique Dubugras",
+        "title": "Co-Founder & Board Chair",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://www.brex.com/journal/capital-one-completes-acquisition-of-brex",
+      "https://www.paymentsdive.com/news/brex-cfo-erica-dorfman-capital-one-deal-acquisition/810427/",
+      "https://www.cfo.com/news/the-6-am-cfo-how-brexs-erica-dorfman-starts-her-day/823034/",
+      "https://www.latent.space/p/brexs-ai-hail-mary-with-cto-james",
+      "https://investor.capitalone.com/news-releases/news-release-details/capital-one-acquire-brex"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  },
+  {
+    "company": "Plaid",
+    "true_execs": [
+      {
+        "name": "Zachary Perret",
+        "title": "Co-Founder & CEO",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jen Taylor",
+        "title": "President",
+        "role_type": "executive"
+      },
+      {
+        "name": "Eric Hart",
+        "title": "Chief Financial Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Eric Sager",
+        "title": "Chief Operating Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Michael Del Monte",
+        "title": "Chief Technology Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Meredith Fuchs",
+        "title": "Chief Legal Officer, General Counsel & Corporate Secretary",
+        "role_type": "executive"
+      },
+      {
+        "name": "Meghan Welch",
+        "title": "Chief People Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Emily Haahr",
+        "title": "Chief Customer Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Hannah Hughes",
+        "title": "Chief Marketing Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "Jason Pate",
+        "title": "Chief Strategy Officer",
+        "role_type": "executive"
+      },
+      {
+        "name": "William Hockey",
+        "title": "Co-Founder & Director",
+        "role_type": "director"
+      }
+    ],
+    "source_urls": [
+      "https://plaid.com/about/",
+      "https://plaid.com/blog/plaid-announces-jen-taylor-as-first-president/",
+      "https://techcrunch.com/2024/02/08/plaids-new-president-hails-from-cloudflare-has-ipo-experience/",
+      "https://www.bankingdive.com/news/plaid-president-jen-taylor-zach-perret-ipo-cloudflare-facebook-fintech-visa/707520/"
+    ],
+    "status": "labeled",
+    "label_source": "complete-leadership-verified-2026-07-28"
+  }
+]

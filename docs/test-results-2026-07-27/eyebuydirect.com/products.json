@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "job_id": "job_afe3cb74d92647d0",
+  "kind": "products",
+  "status": "complete",
+  "retry_after_seconds": 10,
+  "hosted": {
+    "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+    "key_id": "key_115674082548492f9e56a1b0127f4e82",
+    "credits_charged": 0,
+    "credit_type": "standard"
+  },
+  "created_at": "2026-07-27T20:03:05.759600+00:00",
+  "started_at": "2026-07-27T20:03:05.759865+00:00",
+  "finished_at": "2026-07-27T20:03:15.262872+00:00",
+  "result": {
+    "success": true,
+    "hosted": {
+      "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+      "key_id": "key_115674082548492f9e56a1b0127f4e82",
+      "credits_charged": 0,
+      "credit_type": "standard"
+    },
+    "products": {
+      "success": true,
+      "query": "",
+      "site": "",
+      "start_url": "https://eyebuydirect.com",
+      "output_dir": "",
+      "records": [],
+      "total_records": 0,
+      "categories": [
+        "Products"
+      ],
+      "blocked_pages": [
+        {
+          "url": "https://www.eyebuydirect.com/product/similar-styles",
+          "reason": "fetch_failed",
+          "category_url": "https://www.eyebuydirect.com/product",
+          "category_name": "Products",
+          "title": "",
+          "fallback_attempted": true,
+          "fallback_used": false,
+          "fallback_error": "BrowserType.launch: Target page, context or browser has been closed\nBrowser logs:\n\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Looks like you launched a headed browser without having a XServer running.                     \u2551\n\u2551 Set either 'headless: true' or use 'xvfb-run <your-playwright-app>' before running Playwright. \u2551\n\u2551                                                                                                \u2551\n\u2551 <3 Playwright Team                                                                             \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d\nCall log:\n  - <launching> /app/.playwright-browsers/chromium-1228/chrome-linux64/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --no-sandbox --disable-gpu --disable-gpu-compositing --disable-software-rasterizer --no-sandbox --disable-dev-shm-usage --no-first-run --no-default-browser-check --disable-infobars --window-position=0,0 --ignore-certificate-errors --ignore-certificate-errors-spki-list --disable-blink-features=AutomationControlled --window-position=400,0 --disable-renderer-backgrounding --disable-ipc-flooding-protection --force-color-profile=srgb --mute-audio --disable-background-timer-throttling --disable-features=OptimizationHints,MediaRouter,DialMediaRouteProvider --disable-component-update --disable-domain-reliability --window-size=1080,600 --user-data-dir=/tmp/playwright_chromiumdev_profile-YGVgd5 --remote-debugging-pipe --no-startup-window\n  - <launched> pid=6307\n  - [pid=6307][err] [6307:6321:0727/200314.084411:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory\n  - [pid=6307][err] [6307:6307:0727/200314.087921:ERROR:ui/ozone/platform/x11/ozone_platform_x11.cc:257] Missing X server or $DISPLAY\n  - [pid=6307][err] [6307:6307:0727/200314.087946:ERROR:ui/aura/env.cc:246] The platform failed to initialize.  Exiting.\n  - [pid=6307] <gracefully close start>\n  - [pid=6307] <kill>\n  - [pid=6307] <will force kill>\n  - [pid=6307] <process did exit: exitCode=1, signal=null>\n  - [pid=6307] starting temporary directories cleanup\n  - [pid=6307] finished temporary directories cleanup\n  - [pid=6307] <gracefully close end>\n"
+        }
+      ],
+      "total_blocked_pages": 1,
+      "files": {
+        "manifest": "",
+        "urls": "",
+        "raw_products": "",
+        "products_json": "",
+        "products_ndjson": "",
+        "settings_json": "",
+        "blocked_pages_json": "",
+        "report": ""
+      },
+      "error": "",
+      "duration_ms": 9502
+    }
+  },
+  "error": ""
+}

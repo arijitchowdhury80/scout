@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "job_id": "job_17302b3365c24ec8",
+  "kind": "run:company",
+  "status": "complete",
+  "retry_after_seconds": 10,
+  "hosted": {
+    "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+    "key_id": "key_115674082548492f9e56a1b0127f4e82",
+    "credits_charged": 0,
+    "credit_type": "standard"
+  },
+  "created_at": "2026-07-27T03:40:51.717475+00:00",
+  "started_at": "2026-07-27T03:40:51.717726+00:00",
+  "finished_at": "2026-07-27T03:41:17.220717+00:00",
+  "result": {
+    "success": true,
+    "hosted": {
+      "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+      "key_id": "key_115674082548492f9e56a1b0127f4e82",
+      "credits_charged": 4,
+      "credit_type": "standard"
+    },
+    "run": {
+      "success": true,
+      "use_case": "company",
+      "output_dir": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-company-20260727-034051",
+      "manifest": {
+        "run_id": "run_9bc3f52609bb",
+        "use_case": "company",
+        "query": "",
+        "started_at": "2026-07-27T03:40:51.724746+00:00",
+        "finished_at": "2026-07-27T03:41:17.199799+00:00",
+        "providers_attempted": [
+          "crawl4ai",
+          "api",
+          "saved",
+          "host_webfetch",
+          "websearch",
+          "host_browser"
+        ],
+        "output_dir": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-company-20260727-034051",
+        "total_records": 4,
+        "total_sources": 1,
+        "total_blocked": 0,
+        "artifacts": {
+          "manifest": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-company-20260727-034051/manifest.json",
+          "records_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-company-20260727-034051/records.json",
+          "records_jsonl": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-company-20260727-034051/records.jsonl",
+          "source_pages_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-company-20260727-034051/source_pages.json",
+          "blocked_pages_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-company-20260727-034051/blocked_pages.json",
+          "validation_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-company-20260727-034051/validation.json",
+          "report_md": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-company-20260727-034051/extraction_report.md"
+        },
+        "warnings": [],
+        "errors": []
+      },
+      "total_records": 4,
+      "error": ""
+    }
+  },
+  "error": ""
+}

@@ -1,0 +1,59 @@
+{
+  "success": true,
+  "job_id": "job_8fdc70d267dc4c9a",
+  "kind": "scrape",
+  "status": "complete",
+  "retry_after_seconds": 10,
+  "hosted": {
+    "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+    "key_id": "key_115674082548492f9e56a1b0127f4e82",
+    "credits_charged": 0,
+    "credit_type": "standard"
+  },
+  "created_at": "2026-07-27T03:29:59.305518+00:00",
+  "started_at": "2026-07-27T03:29:59.305768+00:00",
+  "finished_at": "2026-07-27T03:30:00.439683+00:00",
+  "result": {
+    "success": false,
+    "hosted": {
+      "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+      "key_id": "key_115674082548492f9e56a1b0127f4e82",
+      "credits_charged": 1,
+      "credit_type": "standard"
+    },
+    "scrape": {
+      "success": false,
+      "url": "https://adobe.com",
+      "markdown": "",
+      "raw_markdown": "",
+      "clean_markdown": "",
+      "raw_html": "",
+      "screenshot_base64": "",
+      "links": [],
+      "metadata": {
+        "url": "https://adobe.com",
+        "crawled_at": "2026-07-27T03:29:59.313256+00:00",
+        "title": "",
+        "description": "",
+        "language": "",
+        "word_count": 0,
+        "token_estimate": 0
+      },
+      "final_url": "",
+      "fetched_at": "2026-07-27T03:29:59.313256+00:00",
+      "provider": "crawl4ai",
+      "content_hash": "",
+      "cleanup_rules_applied": [],
+      "quality_score": 0.0,
+      "quality_reasons": [
+        "fetch_failed",
+        "content_sparse"
+      ],
+      "recommended_collector": "direct_http_or_feed",
+      "recommended_collector_reason": "Rendered content was sparse or blocked; consider direct HTTP, RSS/feed, or browser capture.",
+      "error": "Unexpected error in _crawl_web at line 778 in _crawl_web (../usr/local/lib/python3.11/site-packages/crawl4ai/async_crawler_strategy.py):\nError: Failed on navigating ACS-GOTO:\nPage.goto: net::ERR_HTTP2_PROTOCOL_ERROR at https://adobe.com/\nCall log:\n  - navigating to \"https://adobe.com/\", waiting until \"domcontentloaded\"\n\n\nCode context:\n 773                                   tag=\"GOTO\",\n 774                                   params={\"url\": url},\n 775                               )\n 776                               response = None\n 777                           else:\n 778 \u2192                             raise RuntimeError(f\"Failed on navigating ACS-GOTO:\\n{str(e)}\")\n 779   \n 780                       # \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n 781                       # Walk the redirect chain.  Playwright returns only the last\n 782                       # hop, so we trace the `request.redirected_from` links until the\n 783                       # first response that differs from the final one and surface its",
+      "duration_ms": 1125
+    }
+  },
+  "error": ""
+}

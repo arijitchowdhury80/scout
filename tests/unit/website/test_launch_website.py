@@ -3,8 +3,9 @@
 Reconciled to docs/product/design-system.md, docs/product/plg-playground-ux.md,
 and docs/product/pricing-model-2026-07-06.md. The homepage is now the live
 demo console (direction E): reticle wordmark, mint neumorphic shell, anonymous
-scrape+map demo wired to /v1/demo/*, authed app shell at /app, and pricing
-copy that names the credit number instead of claiming "unlimited".
+scrape+map demo wired to /v1/demo/*, and pricing copy that names the credit
+number instead of claiming "unlimited". FX-7 (founder decision): Scout is HTTP
+API + Claude/Codex skill only — the standalone /app surface has been removed.
 """
 
 from __future__ import annotations
@@ -73,9 +74,7 @@ def test_launch_website_keeps_paid_checkout_gated_behind_readiness_without_secre
 
 
 def test_beta_signup_copy_does_not_claim_duplicate_accounts_were_emailed() -> None:
-    hosted_keygen = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(
-        encoding="utf-8"
-    )
+    hosted_keygen = (_WEBSITE_DIR / "assets" / "hosted-keygen.js").read_text(encoding="utf-8")
 
     assert 'payload.delivery_status === "account_exists"' in hosted_keygen
     assert "This email is already registered" in hosted_keygen
@@ -100,7 +99,7 @@ def test_homepage_capability_grid_states_current_shipped_primitives_only() -> No
     assert "Launch status" not in normalized_html
     assert "Production-ready multi-tenant SaaS" not in html
     assert "Unlimited hosted scraping" not in html
-    assert "unlimited" not in html.lower().replace("unlimited_monthly", "")
+    assert "unlimited" not in html.lower()
 
 
 def test_homepage_explains_outcome_before_endpoint_details() -> None:
@@ -110,7 +109,10 @@ def test_homepage_explains_outcome_before_endpoint_details() -> None:
 
     assert "What do you get after Scout runs?" in normalized_html
     assert "URL in, clean reusable data out" in normalized_html
-    assert "Scout saves you from manually copying, cleaning, and checking website data." in normalized_html
+    assert (
+        "Scout saves you from manually copying, cleaning, and checking website data."
+        in normalized_html
+    )
     assert "Watch a URL become a citable record" in normalized_html
     assert 'aria-label="60 second Scout product walkthrough"' in html
     assert 'class="demo-video-frame"' in html
@@ -145,7 +147,10 @@ def test_homepage_has_phone_specific_journey_instead_of_stacked_desktop_console(
     assert ".mobile-proof-section { display: none; }" in normalized_css
     assert "@media (max-width: 640px)" in css
     assert ".mobile-proof-section { display: block; }" in normalized_css
-    assert ".desktop-console-section, .desktop-outcome-section, .desktop-capability-section { display: none; }" in normalized_css
+    assert (
+        ".desktop-console-section, .desktop-outcome-section, .desktop-capability-section { display: none; }"
+        in normalized_css
+    )
     assert ".site-header .btn {" in normalized_css
     assert "width: auto;" in css
     assert ".nav-link, .tab, .input-well" in normalized_css
@@ -199,19 +204,14 @@ def test_public_site_responses_are_reload_safe_after_deploys() -> None:
         assert response.headers["cache-control"] == "public, max-age=0, must-revalidate"
 
 
-def test_app_shell_is_now_a_shipped_authed_playground_surface() -> None:
-    """/app was previously a removed surface; design-system.md now locks in an
-    authed app shell (sidebar: Playground / Your runs / Destinations / API
-    keys / Usage / Docs + credit meter). It must be served, and other
-    surfaces that were NOT reintroduced stay 403."""
+def test_app_surface_is_removed_and_stays_unauthorized() -> None:
+    """FX-7: Scout is HTTP API + Claude/Codex skill only — there is no
+    standalone web app. The /app shell has been deleted entirely; any /app*
+    or other unknown path must fall through to the default auth gate (403),
+    never serve HTML."""
     client = TestClient(app)
 
-    app_response = client.get("/app")
-    assert app_response.status_code == 200
-    assert "text/html" in app_response.headers["content-type"]
-    assert "Scout App" in app_response.text
-
-    for path in ("/api/config", "/app/live-browser"):
+    for path in ("/app", "/app.html", "/api/config", "/app/live-browser"):
         response = client.get(path)
         assert response.status_code == 403
         assert "text/html" not in response.headers.get("content-type", "")
@@ -356,8 +356,8 @@ def test_rebuilt_pages_share_site_header_and_beta_cta() -> None:
         html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
         assert '<header class="site-header">' in html
         assert '<nav class="nav-primary" aria-label="Primary navigation">' in html
-        assert '>Pricing</a>' in html
-        assert '>Docs</a>' in html
+        assert ">Pricing</a>" in html
+        assert ">Docs</a>" in html
 
 
 def test_homepage_has_streamlined_primary_nav_and_reticle_hero() -> None:
@@ -432,14 +432,10 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
             "Free",
             "5,000 credits",
             "$12",
-            "50,000 credits",
+            "20,000 credits",
             "Prefer no commitment?",
             "$10",
-            "10k",
-            "$25",
-            "30k",
-            "$100",
-            "150k",
+            "15,000 credits",
             "Never expire.",
         ],
         "beta.html": [
@@ -487,12 +483,10 @@ def test_launch_website_has_beta_onboarding_pages() -> None:
         assert "sk_test_" not in html
 
 
-
-
 def test_pricing_page_reflects_locked_2026_07_06_pricing_model() -> None:
-    """Pricing copy matches docs/product/pricing-model-2026-07-06.md: Free
-    5,000 one-time, Monthly $12/50,000 (never called "unlimited"), pay-go
-    packs demoted/secondary, dossier ~200 credits."""
+    """Pricing copy matches the 2026-07-27 two-tier simplification: Free
+    5,000 one-time, Monthly $12/20,000 (never called "unlimited"), one $10
+    one-time pack for 15,000 credits, dossier ~200 credits."""
     html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
     normalized_html = " ".join(html.split())
 
@@ -501,19 +495,24 @@ def test_pricing_page_reflects_locked_2026_07_06_pricing_model() -> None:
         "$0",
         "5,000 credits",
         "$12",
-        "50,000 credits",
+        "20,000 credits",
         "resets monthly",
         "dossiers",
         "$10",
-        "$25",
-        "$100",
+        "15,000 credits",
         "Never expire.",
     ]
     for expected in expected_strings:
         assert expected in normalized_html
 
+    # Founder decision (2026-07-27): the $25/30k and $100/150k packs are
+    # retired entirely, not merely hidden — only two paid tiers remain.
+    assert "$25" not in normalized_html
+    assert "$100" not in normalized_html
+    assert "50,000 credits" not in normalized_html
+
     # Brand-integrity rule: never say "unlimited" for a capped plan.
-    assert "unlimited" not in normalized_html.lower().replace("unlimited_monthly", "")
+    assert "unlimited" not in normalized_html.lower()
     assert "sk_live_" not in html
     assert "sk_test_" not in html
 
@@ -565,7 +564,6 @@ def test_account_page_lets_hosted_users_inspect_usage_without_login() -> None:
     assert "sessionStorage" not in account_js
     assert "sk_live_" not in html
     assert "sk_live_" not in account_js
-
 
 
 def test_homepage_has_anonymous_console_gated_to_fast_endpoints_only() -> None:
@@ -660,7 +658,6 @@ def test_homepage_console_company_and_screenshot_stay_sample_only() -> None:
     assert "Get your free API key" in html
 
 
-
 def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
     client = TestClient(app)
 
@@ -677,8 +674,6 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         "/legal.html": "Scout Legal And Third-Party Notices",
         "/terms.html": "Scout Beta Terms Placeholder",
         "/privacy.html": "Scout Beta Privacy Placeholder",
-        "/app": "Scout App",
-        "/app.html": "Scout App",
     }
 
     for path, text in expected.items():
@@ -686,7 +681,6 @@ def test_api_serves_launch_website_beta_onboarding_pages_without_auth() -> None:
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
         assert text in response.text
-
 
 
 def test_api_serves_third_party_notices_without_auth() -> None:
@@ -740,48 +734,6 @@ def test_no_vendor_locked_destinations_copy_on_public_pages() -> None:
         assert "Push to Algolia" not in html
 
 
-def test_app_shell_has_result_tabs_and_destinations_panel() -> None:
-    """The authed app shell (design-system.md IA: Playground / Your runs /
-    Destinations / API keys / Usage / Docs + credit meter) renders results
-    inline with tabs (Preview/JSON/JSONL/Table-CSV/cURL) and an evidence
-    panel, and Destinations (Algolia/webhook) is only offered here, never on
-    the public homepage."""
-    html = (_WEBSITE_DIR / "app.html").read_text(encoding="utf-8")
-
-    assert "key-gate" in html
-    assert 'id="apiKeyInput"' in html
-    assert 'id="appShell"' in html
-    assert 'class="app-sidebar"' in html
-    assert "Playground" in html
-    assert "Your runs" in html
-    assert "Destinations" in html
-    assert "API keys" in html
-    assert "Usage" in html
-    assert 'class="credit-meter"' in html
-
-    # Result tabs: Preview / JSON / JSONL / Table-CSV / cURL.
-    assert 'data-rtab="preview"' in html
-    assert 'data-rtab="json"' in html
-    assert 'data-rtab="jsonl"' in html
-    assert 'data-rtab="table"' in html
-    assert 'data-rtab="curl"' in html
-
-    # Evidence panel + destination send, authed-only.
-    assert "Evidence" in html
-    assert "Send to a destination" in html
-    assert 'id="destinationSelect"' in html
-    assert "Algolia" in html
-    assert "Webhook" in html
-
-    # Bearer-token session auth, never persisted to disk.
-    assert "sessionStorage" in html
-    assert "localStorage" not in html
-    assert "Authorization" in html
-    assert "Bearer" in html
-    assert "sk_live_" not in html
-    assert "sk_test_" not in html
-
-
 def test_docs_routes_redirect_to_hosted_documentation() -> None:
     """Old docs page removed (2026-07-07): /docs and legacy aliases 308-redirect
     to the Mintlify-hosted documentation at docs.scout.chowmes.com."""
@@ -792,10 +744,121 @@ def test_docs_routes_redirect_to_hosted_documentation() -> None:
         assert response.headers["location"] == "https://docs.scout.chowmes.com"
 
 
+def test_canonical_nav_is_identical_across_home_beta_pricing_account() -> None:
+    """FX-8/R4a: one canonical nav (Product/Docs/Pricing + Get API key CTA +
+    text wordmark, Docs always pointing at the docs subdomain) across every
+    GTM-facing page. No more three-different-navbars drift."""
+    canonical_nav = (
+        '<nav class="nav-primary" aria-label="Primary navigation"> '
+        '<a class="nav-link" href="/">Product</a> '
+        '<a class="nav-link" href="https://docs.scout.chowmes.com">Docs</a>'
+    )
+    for page_name in ("index.html", "beta.html", "account.html"):
+        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
+        normalized_html = " ".join(html.split())
+        assert canonical_nav in normalized_html, f"{page_name} nav drifted from canonical"
+        assert 'class="wm wm--lg"' in html
+        assert ">Get API key</a>" in html
+        assert 'href="https://docs.scout.chowmes.com"' in html
+        assert 'href="/quickstart">Read docs' not in html
+        assert ">Join beta<" not in html
+        assert ">Overview<" not in html
+        assert ">Features<" not in html
+        assert ">Demo<" not in html
+
+    # Pricing keeps the same nav shell, just with Pricing marked active.
+    pricing_html = (_WEBSITE_DIR / "pricing.html").read_text(encoding="utf-8")
+    assert 'class="wm wm--lg"' in pricing_html
+    assert ">Get API key</a>" in pricing_html
+    assert '<a class="nav-link" href="/">Product</a>' in pricing_html
+    assert '<a class="nav-link" href="https://docs.scout.chowmes.com">Docs</a>' in pricing_html
+    assert 'class="nav-link is-active" href="/pricing"' in pricing_html
+
+
+def test_account_page_has_no_dead_anchor_links() -> None:
+    """FX-8/R4b: /account previously linked Demo -> /#demo and
+    Pricing -> /#purchase, neither of which exists on the homepage. The
+    canonical nav drops those anchors entirely."""
+    html = (_WEBSITE_DIR / "account.html").read_text(encoding="utf-8")
+    assert "/#demo" not in html
+    assert "/#purchase" not in html
+
+
+def test_account_page_has_canonical_footer() -> None:
+    """FX-8/R4c: /account previously shipped with no footer/contentinfo at
+    all. It now carries the same footer as every other GTM page."""
+    html = (_WEBSITE_DIR / "account.html").read_text(encoding="utf-8")
+    assert '<footer class="site-footer">' in html
+    assert 'href="/legal">Legal' in html
+    assert 'href="/terms">Terms' in html
+    assert 'href="/privacy">Privacy' in html
+    assert "mailto:support@scout.chowmes.com" in html
+
+
+def test_footer_link_set_is_identical_across_home_beta_pricing_account() -> None:
+    """FX-8/P4: footer link set (and the support mailto) matches across
+    home/beta/pricing/account, instead of home having the full set while
+    beta/pricing carry a reduced one and account has none."""
+    canonical_links = [
+        'href="/">Product',
+        'href="/pricing">Pricing',
+        'href="https://docs.scout.chowmes.com">Docs',
+        'href="/beta">Beta',
+        'href="/legal">Legal',
+        'href="/terms">Terms',
+        'href="/privacy">Privacy',
+        'href="mailto:support@scout.chowmes.com">Support',
+        'href="https://github.com/unclecode/crawl4ai">Crawl4AI',
+    ]
+    for page_name in ("index.html", "beta.html", "pricing.html", "account.html"):
+        html = (_WEBSITE_DIR / page_name).read_text(encoding="utf-8")
+        assert '<footer class="site-footer">' in html, f"{page_name} missing footer"
+        for link in canonical_links:
+            assert link in html, f"{page_name} footer missing {link!r}"
+
+
+def test_locked_console_tabs_cta_routes_to_beta_not_a_no_op() -> None:
+    """FX-8/P1: selecting a locked tab (company/screenshot) swaps the Run
+    button to 'Get your free API key'; clicking it must navigate to /beta,
+    not silently no-op. The submit handler now calls preventDefault()
+    unconditionally before deciding whether to redirect or run the demo."""
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+    normalized = " ".join(html.split())
+
+    assert (
+        'form.addEventListener("submit", async (event) => { event.preventDefault(); '
+        'if (!(activeEndpoint in DEMO_ENDPOINTS)) { window.location.href = "/beta"; return; }'
+        in normalized
+    )
+
+
+def test_console_reevaluates_mobile_desktop_mode_on_resize() -> None:
+    """FX-8/P3: the live console previously decided mobile-vs-desktop mode
+    once at page load and never re-checked, so resizing from 375px to
+    desktop left it stuck on the static example. It now re-evaluates on a
+    debounced window resize handler."""
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+
+    assert 'window.addEventListener("resize"' in html
+    assert "applyViewportMode(false)" in html
+    assert "applyViewportMode(true)" in html
+    assert "resetConsoleToReady" in html
+
+
+def test_focus_ring_uses_high_contrast_forest_token() -> None:
+    """FX-8/P2: the shared --focus-ring token was a washed-out
+    emerald-on-pale-mint ring (rgba(14,138,97,.55)). Bumped to the darker
+    forest token at high opacity for WCAG-visible contrast while staying
+    on-brand (forest/emerald are locked design-system tokens)."""
+    css = (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")
+
+    assert "rgba(14,138,97,.55)" not in css
+    assert "--focus-ring: 0 0 0 3px rgba(20,60,43,.9);" in css
+
+
 def test_no_em_dashes_in_customer_facing_copy() -> None:
     """Arijit's standing rule: no em dashes anywhere customer-facing (an AI-writing
     tell). Guards every public HTML page + JS/CSS assets against regression."""
-    import pathlib
 
     surfaces = list(_WEBSITE_DIR.glob("*.html")) + list((_WEBSITE_DIR / "assets").glob("*.js"))
     offenders = []
@@ -804,3 +867,43 @@ def test_no_em_dashes_in_customer_facing_copy() -> None:
         if "—" in text:
             offenders.append(path.name)
     assert not offenders, f"em dash (—) found in: {offenders}"
+
+
+def test_console_fallback_echoes_typed_url_instead_of_fake_acme_result() -> None:
+    """Founder-caught bug: when the live demo API is unreachable or errors,
+    the console used to fall back to a STATIC acme.com sample regardless of
+    what the visitor typed, so typing "algolia.com" showed acme.com data as
+    if it were their result. Fix: the fallback now derives a host from the
+    visitor's typed URL and rewrites the sample's url/title/source fields to
+    reflect it, and it never silently claims the canned data is real."""
+    html = _WEBSITE_INDEX.read_text(encoding="utf-8")
+
+    # A host-extraction + payload-rewrite step must exist and be wired into
+    # renderFallback so the typed URL actually reaches the rendered sample.
+    assert "function extractTypedHost(rawUrl)" in html
+    assert "function buildFallbackPayload(endpoint, typedUrl)" in html
+    assert "function renderFallback(endpoint, note, typedUrl)" in html
+    assert "const payload = buildFallbackPayload(endpoint, typedUrl);" in html
+    assert "evidence.source = host;" in html
+
+    # Both fallback trigger sites (non-2xx response, network/CSP failure)
+    # must pass the visitor's typed url through, not call renderFallback bare.
+    assert (
+        'renderFallback(activeEndpoint, detail + " · couldn\'t run it live, showing a sample shape instead", url);'
+        in html
+    )
+    normalized = " ".join(html.split())
+    assert (
+        "renderFallback( activeEndpoint, \"Couldn't reach the live demo right now · showing a sample shape, "
+        'not your real result", url );' in normalized
+    )
+
+    # The rendered fallback must never present the sample as real data: it
+    # always carries an explicit "not a real result" comment.
+    assert 'this is a sample shape for " + payload.evidence.source + ", not a real result' in html
+    assert "this is a sample shape, not a real result" in html
+
+    # The status line must go loud (amber, bold) on fallback, not a quiet
+    # gray note that reads like a normal successful run.
+    assert 'statusMeta.classList.add("screen__meta--warn");' in html
+    assert ".screen__meta--warn" in (_WEBSITE_DIR / "styles.css").read_text(encoding="utf-8")

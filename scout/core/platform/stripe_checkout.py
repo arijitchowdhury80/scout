@@ -19,10 +19,8 @@ class StripeCheckoutConfig(BaseModel):
     secret_key: str = Field(default="", exclude=True)
     beta_price_id: str = ""
     standard_1000_price_id: str = ""
-    standard_3000_price_id: str = ""
-    standard_15000_price_id: str = ""
     browser_100_price_id: str = ""
-    unlimited_price_id: str = ""
+    monthly_price_id: str = ""
     success_url: str = ""
     cancel_url: str = ""
     beta_success_url: str = ""
@@ -45,10 +43,8 @@ class StripeCheckoutConfig(BaseModel):
         """Return the configured Stripe price id for a paid package."""
         price_ids = {
             "standard_1000": self.standard_1000_price_id,
-            "standard_3000": self.standard_3000_price_id,
-            "standard_15000": self.standard_15000_price_id,
             "browser_100": self.browser_100_price_id,
-            "unlimited_monthly": self.unlimited_price_id,
+            "monthly": self.monthly_price_id,
         }
         return price_ids.get(package_id, "")
 

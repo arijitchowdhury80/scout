@@ -13,8 +13,6 @@ from scout.api.middleware.auth import AuthMiddleware
 from scout.api import launch_site
 from scout.api.routers import (
     algolia,
-    app_browser,
-    app_runs,
     billing,
     crawl,
     demo,
@@ -66,7 +64,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         StripeCustomerPortalService,
     )
 
-    app.state.crawler = ScoutCrawler(llm_api_key=resolve_hosted_llm_api_key(settings))
+    app.state.crawler = ScoutCrawler(
+        llm_api_key=resolve_hosted_llm_api_key(settings),
+        llm_extraction_fallback_enabled=settings.llm_extraction_fallback_enabled,
+    )
     db_path = settings.resolve_db_path()
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
     run_db = RunDB(db_path)
@@ -121,10 +122,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             secret_key=settings.stripe_secret_key,
             beta_price_id=settings.stripe_beta_price_id,
             standard_1000_price_id=settings.stripe_standard_1000_price_id,
-            standard_3000_price_id=settings.stripe_standard_3000_price_id,
-            standard_15000_price_id=settings.stripe_standard_15000_price_id,
             browser_100_price_id=settings.stripe_browser_100_price_id,
-            unlimited_price_id=settings.stripe_unlimited_price_id,
+            monthly_price_id=settings.stripe_monthly_price_id,
             success_url=settings.stripe_success_url,
             cancel_url=settings.stripe_cancel_url,
             beta_success_url=settings.stripe_beta_success_url,
@@ -167,8 +166,6 @@ app.include_router(playground.router)
 app.include_router(run.router)
 app.include_router(runs.router)
 app.include_router(algolia.router)
-app.include_router(app_browser.router)
-app.include_router(app_runs.router)
 app.include_router(map_router.router)
 app.include_router(screenshot.router)
 app.include_router(workdir.router)

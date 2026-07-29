@@ -6,7 +6,7 @@
     <title>Scout Pricing. Start free, pay only when you scale</title>
     <meta
       name="description"
-      content="Scout pricing: 5,000 credits free, $12/mo for 50,000 credits, or one-time pay-as-you-go packs. Every plan is the full product, evidence on every record."
+      content="Scout pricing: 5,000 credits free, $12/mo for 20,000 credits, or a $10 one-time pack for 15,000 credits. Every plan is the full product, evidence on every record."
     />
     <link rel="icon" href="./assets/scout-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./assets/flux-design-system/fonts.css" />
@@ -17,22 +17,15 @@
     <div class="site-shell">
       <header class="site-header">
         <div class="wrap site-header__row">
-          <a href="/" aria-label="Scout home" class="wm wm--lg">
-            Sc<svg viewBox="0 0 40 40" width="24" height="24" aria-hidden="true">
-              <circle cx="20" cy="20" r="15" fill="none" stroke="#143C2B" stroke-width="5" />
-              <line x1="20" y1="1.5" x2="20" y2="9" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
-              <line x1="20" y1="31" x2="20" y2="38.5" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
-              <line x1="1.5" y1="20" x2="9" y2="20" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
-              <line x1="31" y1="20" x2="38.5" y2="20" stroke="#143C2B" stroke-width="5" stroke-linecap="round" />
-              <circle cx="20" cy="20" r="5.5" fill="#C77A1E" />
-            </svg>ut
+          <a href="/" aria-label="Scout home" class="row gap-sm">
+            <span class="wm wm--lg" aria-hidden="true">Sc<svg width="0.82em" height="0.82em" viewBox="0 0 40 40" role="img" aria-label="Scout reticle mark"><circle cx="20" cy="20" r="15" stroke="#143C2B" stroke-width="4" fill="none"/><line x1="20" y1="1.5" x2="20" y2="9" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/><line x1="20" y1="31" x2="20" y2="38.5" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/><line x1="1.5" y1="20" x2="9" y2="20" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/><line x1="31" y1="20" x2="38.5" y2="20" stroke="#143C2B" stroke-width="4" stroke-linecap="round"/><circle cx="20" cy="20" r="4.2" fill="#C77A1E"/></svg>ut</span>
           </a>
           <nav class="nav-primary" aria-label="Primary navigation">
             <a class="nav-link" href="/">Product</a>
             <a class="nav-link" href="https://docs.scout.chowmes.com">Docs</a>
             <a class="nav-link is-active" href="/pricing" aria-current="true">Pricing</a>
           </nav>
-          <a href="/beta" class="btn btn-primary btn-inline">Get API key</a>
+          <a class="btn btn-primary" href="/beta">Get API key</a>
         </div>
       </header>
 
@@ -41,7 +34,7 @@
           <p class="lab lab--acc">Pricing</p>
           <h1 class="h1" style="margin:14px auto 0;max-width:16em">Start free. Pay only when you scale.</h1>
           <p class="lede" style="max-width:34em;margin-left:auto;margin-right:auto">
-            Every plan is the full product, all endpoints, evidence on every record. Credits are
+            Every plan is the full product, every feature, evidence on every record. Credits are
             the only meter.
           </p>
         </section>
@@ -57,7 +50,7 @@
               </div>
               <div class="m text-acc" style="font-size:12.5px;margin-top:6px">≈ 2k pages + 1k products + 10 dossiers</div>
               <div style="margin:20px 0"><a href="/beta" class="btn btn-block">Get your API key</a></div>
-              <div class="feat"><span class="feat__check">✓</span> All endpoints, evidence on every record</div>
+              <div class="feat"><span class="feat__check">✓</span> Every feature, evidence on every record</div>
               <div class="feat"><span class="feat__check">✓</span> Download JSON / CSV, save runs</div>
               <div class="feat"><span class="feat__check">✓</span> No credit card required</div>
             </div>
@@ -67,13 +60,14 @@
               <span class="lab lab--acc">Monthly</span>
               <div class="row" style="align-items:baseline;gap:8px;margin:14px 0 2px">
                 <span style="font-size:44px;font-weight:800;letter-spacing:-.03em">$12</span>
-                <span class="text-mut" style="font-size:15px">/mo · 50,000 credits</span>
+                <span class="text-mut" style="font-size:15px">/mo · 20,000 credits</span>
               </div>
-              <div class="m text-acc" style="font-size:12.5px;margin-top:6px">≈ 20k pages + 10k products + 100 dossiers / month</div>
-              <div style="margin:20px 0"><button type="button" class="btn btn-primary btn-block" data-checkout="unlimited_monthly">Start monthly, $12/mo</button></div>
-              <div class="feat"><span class="feat__check">✓</span> 50,000 credits, resets monthly</div>
-              <div class="feat"><span class="feat__check">✓</span> Exports and destinations, webhooks, and saved runs</div>
+              <div class="m text-acc" style="font-size:12.5px;margin-top:6px">Example: 5k pages + 5k products + 50 dossiers / month</div>
+              <div style="margin:20px 0"><button type="button" class="btn btn-primary btn-block" data-checkout="monthly">Start monthly, $12/mo</button></div>
+              <div class="feat"><span class="feat__check">✓</span> 20,000 credits, resets monthly</div>
+              <div class="feat"><span class="feat__check">✓</span> Download your results, send them to Algolia or your own app, and keep every run saved</div>
               <div class="feat"><span class="feat__check">✓</span> Hard cap, no surprise bills</div>
+              <div class="feat"><span class="feat__check">✓</span> 1 credit = 1 operation, spend it however you want</div>
             </div>
           </div>
         </section>
@@ -95,6 +89,11 @@
             So the free 5,000 credits are roughly five thousand pages, or 25 company reports,
             or a couple of full catalogs, plenty to know if Scout works for you.
           </p>
+          <p class="text-mut" style="text-align:center;margin-top:10px;font-size:14px">
+            1 credit = 1 operation, whether that's a page, a product, or a record. The mixes
+            above are just examples, not fixed buckets. Spend your credits on any combination
+            of pages, products, and dossiers you want.
+          </p>
         </section>
 
         <section class="section section--tight wrap">
@@ -102,16 +101,15 @@
             <div>
               <span class="lab">Prefer no commitment?</span>
               <p class="text-mut" style="margin-top:5px;font-size:14.5px">
-                One-time credit packs, <b style="color:var(--fg)">$10</b>/10k ·
-                <b style="color:var(--fg)">$25</b>/30k ·
-                <b style="color:var(--fg)">$100</b>/150k. Never expire.
-                (Cheaper per credit on Monthly.)
+                One-time credit pack, <b style="color:var(--fg)">$10</b> for 15,000 credits.
+                Never expire. Example: 15,000 pages, or 75 dossiers, spend them however you
+                want. (Cheaper per credit on Monthly.)
               </p>
             </div>
             <button type="button" class="btn btn-inline" data-checkout="standard_1000">Buy a pack</button>
           </div>
           <p class="m text-mut text-xs center" style="margin-top:16px">
-            Heavy usage. 250k+ / month? A higher tier is coming.
+            Heavy usage. 100k+ / month? A higher tier is coming.
             <a href="mailto:support@scout.chowmes.com" class="text-acc">Talk to us →</a>
           </p>
         </section>
@@ -128,15 +126,19 @@
       </main>
 
       <footer class="site-footer">
-        <div class="wrap site-footer__row m">
-          <span>Scout · evidence before extraction claims</span>
-          <span class="site-footer__links">
+        <div class="wrap site-footer__row">
+          <span>© 2026 Scout</span>
+          <div class="site-footer__links">
+            <a href="/">Product</a>
+            <a href="/pricing">Pricing</a>
             <a href="https://docs.scout.chowmes.com">Docs</a>
+            <a href="/beta">Beta</a>
             <a href="/legal">Legal</a>
             <a href="/terms">Terms</a>
             <a href="/privacy">Privacy</a>
-            <a href="mailto:support@scout.chowmes.com">support@scout.chowmes.com</a>
-          </span>
+            <a href="mailto:support@scout.chowmes.com">Support</a>
+            <a href="https://github.com/unclecode/crawl4ai">Crawl4AI</a>
+          </div>
         </div>
       </footer>
     </div>
@@ -151,10 +153,8 @@
           <label class="lab" for="coEmail" style="display:block;margin-bottom:6px">Email</label>
           <input class="input-well" id="coEmail" name="email" type="email" required placeholder="you@example.com" style="width:100%;margin-bottom:8px" />
           <select class="input-well" id="coPackage" name="package_id" aria-label="Package" style="width:100%;margin:6px 0 18px">
-            <option value="unlimited_monthly">Monthly. 50,000 credits · $12/mo</option>
-            <option value="standard_1000">One-time pack. 10,000 credits · $10</option>
-            <option value="standard_3000">One-time pack. 30,000 credits · $25</option>
-            <option value="standard_15000">One-time pack. 150,000 credits · $100</option>
+            <option value="monthly">Monthly. 20,000 credits · $12/mo</option>
+            <option value="standard_1000">One-time pack. 15,000 credits · $10</option>
           </select>
           <button class="btn btn-primary btn-block" type="submit">Continue to payment</button>
           <button class="btn btn-block" type="button" id="checkoutCancel" style="margin-top:10px">Cancel</button>
@@ -173,7 +173,7 @@
         document.querySelectorAll("[data-checkout]").forEach((btn) => {
           btn.addEventListener("click", () => {
             pkg.value = btn.dataset.checkout;
-            title.textContent = pkg.value === "unlimited_monthly" ? "Start monthly" : "Buy a credit pack";
+            title.textContent = pkg.value === "monthly" ? "Start monthly" : "Buy a credit pack";
             status.textContent = "";
             modal.style.display = "flex";
             document.getElementById("coName").focus();

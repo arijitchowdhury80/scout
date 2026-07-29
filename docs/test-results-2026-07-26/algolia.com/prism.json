@@ -1,0 +1,63 @@
+{
+  "success": true,
+  "job_id": "job_cde0c5fc8de740e3",
+  "kind": "run:prism",
+  "status": "complete",
+  "retry_after_seconds": 10,
+  "hosted": {
+    "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+    "key_id": "key_115674082548492f9e56a1b0127f4e82",
+    "credits_charged": 0,
+    "credit_type": "standard"
+  },
+  "created_at": "2026-07-27T03:42:59.382347+00:00",
+  "started_at": "2026-07-27T03:42:59.382520+00:00",
+  "finished_at": "2026-07-27T03:43:44.955454+00:00",
+  "result": {
+    "success": true,
+    "hosted": {
+      "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+      "key_id": "key_115674082548492f9e56a1b0127f4e82",
+      "credits_charged": 11,
+      "credit_type": "standard"
+    },
+    "run": {
+      "success": true,
+      "use_case": "prism",
+      "output_dir": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-prism-20260727-034259",
+      "manifest": {
+        "run_id": "run_0f578bd22fab",
+        "use_case": "prism",
+        "query": "",
+        "started_at": "2026-07-27T03:42:59.389743+00:00",
+        "finished_at": "2026-07-27T03:43:44.945151+00:00",
+        "providers_attempted": [
+          "crawl4ai",
+          "api",
+          "saved",
+          "host_webfetch",
+          "websearch",
+          "host_browser"
+        ],
+        "output_dir": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-prism-20260727-034259",
+        "total_records": 11,
+        "total_sources": 7,
+        "total_blocked": 0,
+        "artifacts": {
+          "manifest": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-prism-20260727-034259/manifest.json",
+          "records_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-prism-20260727-034259/records.json",
+          "records_jsonl": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-prism-20260727-034259/records.jsonl",
+          "source_pages_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-prism-20260727-034259/source_pages.json",
+          "blocked_pages_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-prism-20260727-034259/blocked_pages.json",
+          "validation_json": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-prism-20260727-034259/validation.json",
+          "report_md": "/data/runs/hosted-tenant-ba3608342ea9475f96d15ae737bf9c13-prism-20260727-034259/extraction_report.md"
+        },
+        "warnings": [],
+        "errors": []
+      },
+      "total_records": 11,
+      "error": ""
+    }
+  },
+  "error": ""
+}

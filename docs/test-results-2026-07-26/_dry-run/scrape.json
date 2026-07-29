@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "preview": true,
+  "truncated": false,
+  "record": {
+    "record_type": "scrape_preview",
+    "url": "https://example.com",
+    "final_url": "https://example.com",
+    "title": "Example Domain",
+    "markdown": "# Example Domain\nThis domain is for use in documentation examples without needing permission. Avoid use in operations.\n[Learn more](https://iana.org/domains/example)\n",
+    "word_count": 20,
+    "success": true
+  },
+  "evidence": {
+    "source": "https://example.com",
+    "fetched_at": "2026-07-27T03:26:03.228559+00:00",
+    "content_hash": "60953d3366ca03ce6d01559ea7975888a28ba1f0fd6bfa686888027fceee2ae2",
+    "verified": true,
+    "blocked": false
+  },
+  "upsell_message": "Sign up to unlock crawl, products, download, and saving.",
+  "error": ""
+}

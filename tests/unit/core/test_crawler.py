@@ -133,5 +133,5 @@ async def test_products_delegates_to_products_mode(product_req: ProductCrawlRequ
         return_value=mock_response,
     ) as mock:
         result = await ScoutCrawler().products(product_req)
-    mock.assert_called_once_with(product_req)
+    mock.assert_called_once_with(product_req, llm_api_key="")
     assert result is mock_response

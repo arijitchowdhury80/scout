@@ -24,6 +24,36 @@ _UTILITY_SEGMENTS = {
     "signin",
     "terms-conditions",
 }
+# FX (BUILD-1a): a bare-domain products crawl (e.g. lacoste.com) falls back
+# to BFS-discovered links when there's no sitemap, and BFS pulls in every
+# internal href on a page — including image/asset URLs and links out to
+# unrelated subdomains (e.g. corporate.lacoste.com, a WordPress press-blog
+# microsite, not the storefront). Those asset URLs then out-ranked the real
+# category pages in `select_category_urls`'s query-token scoring (a product
+# image filename like "Polo-KAI-2-scaled.jpg" contains the literal query
+# token "polo"), so the crawl "discovered" an image instead of
+# /men/clothing/polos. Confirmed live against lacoste.com.
+_ASSET_EXTENSIONS = {
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "svg",
+    "webp",
+    "ico",
+    "css",
+    "js",
+    "json",
+    "xml",
+    "pdf",
+    "woff",
+    "woff2",
+    "ttf",
+    "eot",
+    "mp4",
+    "mp3",
+    "zip",
+}
 
 
 @dataclass(frozen=True)
@@ -93,10 +123,20 @@ def group_product_urls(
     return grouped
 
 
-def select_category_urls(urls: list[str], query: str, limit: int) -> list[str]:
-    """Return likely category URLs for second-stage product link discovery."""
+def select_category_urls(urls: list[str], query: str, limit: int, domain: str = "") -> list[str]:
+    """Return likely category URLs for second-stage product link discovery.
+
+    `domain`, when given, restricts candidates to that exact host — BFS
+    discovery pulls in links to unrelated subdomains/microsites (a
+    corporate blog, a CDN) that should never be treated as a product
+    category of the site being crawled.
+    """
     query_tokens = [token for token in _slug_words(query) if len(token) > 2]
-    candidates = [_normalise_url(url) for url in urls if _is_category_candidate(url)]
+    candidates = [
+        _normalise_url(url)
+        for url in urls
+        if _is_category_candidate(url) and (not domain or urlparse(url).netloc == domain)
+    ]
 
     def score(url: str) -> tuple[int, int]:
         path_words = set(_slug_words(urlparse(url).path))
@@ -190,6 +230,9 @@ def _is_category_candidate(url: str) -> bool:
     if any(part in _UTILITY_SEGMENTS for part in parts):
         return False
     if any(part.startswith(("blog-", "customer_")) for part in parts):
+        return False
+    last = parts[-1]
+    if "." in last and last.rsplit(".", 1)[-1] in _ASSET_EXTENSIONS:
         return False
     return 1 <= len(parts) <= 6
 

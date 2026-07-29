@@ -51,7 +51,7 @@ def test_stripe_checkout_creates_beta_trial_setup_session_with_expected_payload(
             "url": "https://api.stripe.com/v1/checkout/sessions",
             "data": {
                 "mode": "setup",
-                        "payment_method_types[0]": "card",
+                "payment_method_types[0]": "card",
                 "success_url": "https://scout.example/beta?checkout=success",
                 "cancel_url": "https://scout.example/beta?checkout=cancelled",
                 "customer_email": "builder@example.com",
@@ -126,12 +126,12 @@ def test_stripe_checkout_creates_standard_credit_payment_session() -> None:
     }
 
 
-def test_stripe_checkout_creates_unlimited_subscription_session() -> None:
+def test_stripe_checkout_creates_monthly_subscription_session() -> None:
     transport = RecordingStripeCheckoutTransport()
     service = StripeCheckoutService(
         StripeCheckoutConfig(
             secret_key="sk_test_secret",
-            unlimited_price_id="price_unlimited_monthly",
+            monthly_price_id="price_monthly",
             success_url="https://scout.example/success",
             cancel_url="https://scout.example/cancel",
         ),
@@ -142,26 +142,26 @@ def test_stripe_checkout_creates_unlimited_subscription_session() -> None:
         StripeCheckoutRequest(
             email="builder@example.com",
             name="Builder Person",
-            package_id="unlimited_monthly",
+            package_id="monthly",
         )
     )
 
     assert result.success is True
     assert transport.calls[0]["data"] == {
         "mode": "subscription",
-        "line_items[0][price]": "price_unlimited_monthly",
+        "line_items[0][price]": "price_monthly",
         "line_items[0][quantity]": "1",
         "success_url": "https://scout.example/success",
         "cancel_url": "https://scout.example/cancel",
         "customer_email": "builder@example.com",
         "metadata[name]": "Builder Person",
-        "metadata[package_id]": "unlimited_monthly",
-        "metadata[plan]": "hosted_unlimited",
+        "metadata[package_id]": "monthly",
+        "metadata[plan]": "hosted_monthly",
         "metadata[product]": "scout_hosted",
     }
 
 
-def test_stripe_checkout_rejects_unlimited_subscription_without_price_id() -> None:
+def test_stripe_checkout_rejects_monthly_subscription_without_price_id() -> None:
     transport = RecordingStripeCheckoutTransport()
     service = StripeCheckoutService(
         StripeCheckoutConfig(
@@ -173,11 +173,11 @@ def test_stripe_checkout_rejects_unlimited_subscription_without_price_id() -> No
     )
 
     result = service.create_checkout_session(
-        StripeCheckoutRequest(email="builder@example.com", package_id="unlimited_monthly")
+        StripeCheckoutRequest(email="builder@example.com", package_id="monthly")
     )
 
     assert result.success is False
-    assert result.reason == "Stripe price is not configured for package unlimited_monthly."
+    assert result.reason == "Stripe price is not configured for package monthly."
     assert transport.calls == []
 
 

@@ -15,10 +15,8 @@ class Settings(BaseSettings):
     stripe_secret_key: str = ""
     stripe_beta_price_id: str = ""
     stripe_standard_1000_price_id: str = ""
-    stripe_standard_3000_price_id: str = ""
-    stripe_standard_15000_price_id: str = ""
     stripe_browser_100_price_id: str = ""
-    stripe_unlimited_price_id: str = ""
+    stripe_monthly_price_id: str = ""
     stripe_success_url: str = ""
     stripe_cancel_url: str = ""
     stripe_beta_success_url: str = ""
@@ -43,6 +41,13 @@ class Settings(BaseSettings):
     hosted_beta_signup_enabled: bool = True
     hosted_llm_mode: str = "disabled"
     hosted_llm_provider_allowlist: str = ""
+    # Independent cost-control switch for the LLM extraction FALLBACK only
+    # (products + company-executives — see scout/core/llm_extract.py). This
+    # never enables LLM use on its own: the effective key still passes
+    # through resolve_hosted_llm_api_key()'s hosted_llm_mode/allowlist gate
+    # first. Set false to keep an LLM key configured (e.g. for POST
+    # /extract) while turning the heuristics-first fallback off entirely.
+    llm_extraction_fallback_enabled: bool = True
     scout_public_hosted_only: bool = False
     host: str = "0.0.0.0"
     port: int = 8421

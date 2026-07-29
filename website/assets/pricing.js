@@ -89,9 +89,7 @@
   function renderPricing(data) {
     const packages = Array.isArray(data.packages) ? data.packages : [];
     const publicPackages = packages.filter((pkg) =>
-      ["beta_trial", "standard_1000", "standard_3000", "standard_15000"].includes(
-        String(pkg.package_id || ""),
-      ),
+      ["beta_trial", "standard_1000", "monthly"].includes(String(pkg.package_id || "")),
     );
     if (publicPackages.length > 0) {
       packageGrid.innerHTML = publicPackages.map(packageCard).join("");

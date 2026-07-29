@@ -48,11 +48,38 @@ class ScrapeRequest(BaseModel):
     user_agent_mode: str | None = None  # "random" rotates a realistic UA per run
     override_navigator: bool = False  # patch navigator.* to defeat headless fingerprinting
     mean_delay: float | None = None  # human-like pacing between actions (seconds)
+    # FX-10a: respect robots.txt by default (maps to CrawlerRunConfig.check_robots_txt,
+    # which crawl4ai itself defaults to False). Explicit False opts out.
+    respect_robots_txt: bool = True
+    # --- MOAT: intelligence-render knobs (the exec/product moat depends on the
+    # RIGHT page being FULLY rendered before extraction). All opt-in; defaults
+    # keep crawl4ai's own behaviour so existing callers render unchanged.
+    # Map onto crawl4ai 0.7.7 CrawlerRunConfig (read receipt 2026-07-27).
+    scan_full_page: bool = False  # scroll page to flush lazy-loaded team/product content
+    wait_until: str = ""  # "" keeps crawl4ai default (domcontentloaded); e.g. "networkidle"
+    delay_before_return_html: float | None = None  # seconds to let client-side hydration paint
+    block_images: bool = False  # drop images (exclude_all + external) for speed on ad-heavy pages
+
+
+class PdfMetadata(BaseModel):
+    """Metadata extracted from a PDF document (FX-11 Build 1).
+
+    Populated only when ScrapeResponse.provider == "pdf" — i.e. the scraped
+    URL resolved to a PDF byte stream and was routed through the pypdf
+    extraction path instead of Crawl4AI's browser pipeline.
+    """
+
+    model_config = {"frozen": True}
+
+    page_count: int = 0
+    title: str = ""
+    encrypted: bool = False
 
 
 class ScrapeResponse(BaseModel):
     success: bool
     url: str
+    status_code: int | None = None
     markdown: str = ""
     raw_markdown: str = ""
     clean_markdown: str = ""
@@ -71,6 +98,7 @@ class ScrapeResponse(BaseModel):
     recommended_collector_reason: str = ""
     error: str = ""
     duration_ms: int
+    pdf: PdfMetadata | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -87,6 +115,8 @@ class CrawlRequest(BaseModel):
     use_js: bool = False
     timeout_ms: int = 60000
     stealth: bool = False
+    # FX-10a: respect robots.txt by default (maps to CrawlerRunConfig.check_robots_txt).
+    respect_robots_txt: bool = True
 
 
 class CrawlPage(BaseModel):
@@ -219,7 +249,15 @@ class ProductCrawlRequest(BaseModel):
     timeout_ms: int = 60000
     stealth: bool = False
     browser_fallback: bool = True
-    browser_fallback_headless: bool = False
+    # FX-1: the hosted container has no X server / $DISPLAY. A headed
+    # ("browser_fallback_headless=False") launch crashes with
+    # "Missing X server or $DISPLAY" (the eyebuydirect repro). Default to
+    # headless so any caller that doesn't explicitly opt into a visible
+    # browser (e.g. the CLI, run by a human on their own machine) gets a
+    # fallback that actually works in the hosted/products context.
+    browser_fallback_headless: bool = True
+    # FX-10a: respect robots.txt by default for every fetch this crawl issues.
+    respect_robots_txt: bool = True
 
 
 class ProductSource(BaseModel):

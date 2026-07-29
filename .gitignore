@@ -28,3 +28,9 @@ tests/validation.json
 dist/
 build/
 *.egg-info/
+
+.env.local.bak
+*.bak
+.DS_Store
+artifacts/
+mobile-*.png

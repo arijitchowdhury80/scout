@@ -1,5 +1,10 @@
 # Scout Platform Foundation Implementation Plan
 
+> **Superseded (FX-11, 2026-07-27):** `website-quality` and `jobs`, mentioned
+> below as planned use cases, were dropped and are not implemented — see
+> `docs/test-results-2026-07-26/FIX-PLAN.md` FX-11. This plan is kept as a
+> historical record of what was originally scoped.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the shared Scout platform foundation needed for all required use cases: products, jobs, PRISM company intelligence, investor intelligence, research, website quality, docs, news, social normalization, and locations.

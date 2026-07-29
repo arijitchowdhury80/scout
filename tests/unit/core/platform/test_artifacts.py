@@ -1,3 +1,4 @@
+import csv
 import json
 
 from scout.core.platform.artifacts import write_run_artifacts
@@ -51,14 +52,80 @@ def test_write_run_artifacts_creates_standard_files(tmp_path) -> None:
     assert (tmp_path / "manifest.json").exists()
     assert (tmp_path / "records.json").exists()
     assert (tmp_path / "records.jsonl").exists()
+    assert (tmp_path / "records.csv").exists()
     assert (tmp_path / "source_pages.json").exists()
     assert (tmp_path / "blocked_pages.json").exists()
     assert (tmp_path / "validation.json").exists()
     assert (tmp_path / "extraction_report.md").exists()
     assert files.records_jsonl.endswith("records.jsonl")
+    assert files.records_csv.endswith("records.csv")
 
     jsonl_lines = (tmp_path / "records.jsonl").read_text().splitlines()
     assert json.loads(jsonl_lines[0])["objectID"] == "example_1"
+
+
+def test_write_run_artifacts_csv_reuses_product_flatten_logic(tmp_path) -> None:
+    """FX-11 Build 2: records.csv headers/rows come from the same
+    flatten_record_dict()/CSV_FIELDS used by product exports — not a
+    second hand-rolled flattener."""
+    from scout.core.products.exports import CSV_FIELDS
+
+    manifest = RunManifest(
+        run_id="run_csv",
+        use_case="products",
+        started_at="2026-05-15T12:00:00Z",
+        output_dir=str(tmp_path),
+    )
+
+    write_run_artifacts(
+        output_dir=tmp_path,
+        manifest=manifest,
+        records=[
+            {
+                "objectID": "prod_1",
+                "name": "Widget",
+                "url": "https://shop.example.com/widget",
+                "brand": "Acme",
+                "price": 9.99,
+                "currency": "USD",
+                "categories": ["Widgets"],
+            }
+        ],
+        sources=[],
+        blocked=[],
+        findings=[],
+        report="Done.",
+    )
+
+    rows = list(csv.DictReader((tmp_path / "records.csv").open(encoding="utf-8")))
+    assert rows[0]["objectID"] == "prod_1"
+    assert rows[0]["name"] == "Widget"
+    assert set(rows[0].keys()) == set(CSV_FIELDS)
+
+
+def test_write_run_artifacts_csv_tolerates_non_product_records(tmp_path) -> None:
+    """A careers/company/etc. record missing product columns still writes
+    a valid CSV row (blanks, never a crash)."""
+    manifest = RunManifest(
+        run_id="run_csv_generic",
+        use_case="careers",
+        started_at="2026-05-15T12:00:00Z",
+        output_dir=str(tmp_path),
+    )
+
+    write_run_artifacts(
+        output_dir=tmp_path,
+        manifest=manifest,
+        records=[{"objectID": "career_1", "type": "generic_page_fact"}],
+        sources=[],
+        blocked=[],
+        findings=[],
+        report="Done.",
+    )
+
+    rows = list(csv.DictReader((tmp_path / "records.csv").open(encoding="utf-8")))
+    assert rows[0]["objectID"] == "career_1"
+    assert rows[0]["name"] == ""
 
 
 def test_write_run_artifacts_updates_manifest_counts(tmp_path) -> None:

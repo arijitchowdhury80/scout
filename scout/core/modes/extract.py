@@ -20,6 +20,7 @@ from crawl4ai import LLMExtractionStrategy, LLMConfig, JsonCssExtractionStrategy
 from crawl4ai.content_filter_strategy import PruningContentFilter
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 
+from scout.core.pdf import extract_pdf_text, fetch_pdf_bytes, looks_like_pdf_url
 from scout.core.types import ExtractRequest, ExtractResponse, ScoutMetadata
 
 logger = structlog.get_logger(__name__)
@@ -37,6 +38,42 @@ async def extract(req: ExtractRequest, llm_api_key: str) -> ExtractResponse:
 
     def _empty_meta() -> ScoutMetadata:
         return ScoutMetadata(url=req.url, crawled_at=crawled_at)
+
+    if looks_like_pdf_url(req.url):
+        # FX-11 Build 1: PDFs don't need (and can't use) the browser crawl
+        # pipeline. Return the extracted text as markdown so the call
+        # succeeds instead of failing on an un-renderable content type.
+        # NOTE: running the LLM/CSS extraction_schema against PDF text is
+        # out of scope here — `data` is intentionally empty for PDF URLs.
+        try:
+            pdf_bytes = await fetch_pdf_bytes(req.url, timeout_ms=req.timeout_ms)
+            clean_md, pdf_meta = extract_pdf_text(pdf_bytes)
+        except Exception as exc:
+            duration_ms = int((time.monotonic() - started) * 1000)
+            logger.warning("[scout/extract] pdf extraction failed", url=req.url, error=str(exc))
+            return ExtractResponse(
+                success=False,
+                url=req.url,
+                metadata=_empty_meta(),
+                error=str(exc),
+                duration_ms=duration_ms,
+            )
+        duration_ms = int((time.monotonic() - started) * 1000)
+        metadata = ScoutMetadata(
+            url=req.url,
+            crawled_at=crawled_at,
+            title=pdf_meta.title,
+            word_count=len(clean_md.split()),
+            token_estimate=_estimate_tokens(clean_md),
+        )
+        return ExtractResponse(
+            success=True,
+            url=req.url,
+            data={},
+            markdown=clean_md,
+            metadata=metadata,
+            duration_ms=duration_ms,
+        )
 
     if llm_api_key:
         extraction_strategy = LLMExtractionStrategy(

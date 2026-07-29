@@ -609,10 +609,8 @@ def _missing_paid_package_environment_keys() -> list[str]:
     missing: list[str] = []
     if not settings.stripe_standard_1000_price_id:
         missing.append("STRIPE_STANDARD_1000_PRICE_ID")
-    if not settings.stripe_standard_3000_price_id:
-        missing.append("STRIPE_STANDARD_3000_PRICE_ID")
-    if not settings.stripe_standard_15000_price_id:
-        missing.append("STRIPE_STANDARD_15000_PRICE_ID")
+    if not settings.stripe_monthly_price_id:
+        missing.append("STRIPE_MONTHLY_PRICE_ID")
     return missing
 
 

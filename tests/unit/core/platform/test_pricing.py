@@ -20,35 +20,23 @@ def test_pay_as_you_go_1000_credit_pack_defines_customer_value() -> None:
     assert package.amount_cents == 1000
     assert package.hosted_plan is HostedPlan.HOSTED_STARTER
     assert package.currency == "usd"
-    assert package.standard_credits == 10000
+    assert package.standard_credits == 15000
     assert package.browser_credits == 0
     assert package.customer_summary == (
-        "10,000 standard credits for $10: roughly 10,000 scrapes, 10,000 returned crawl "
-        "pages, 3,333 screenshots, 10,000 product/intelligence records, or 50 company "
-        "dossiers before heavier browser work."
+        "15,000 standard credits for $10: 1 credit = 1 operation, so spend them "
+        "however you want. Example: roughly 15,000 pages (scrapes, crawl pages, or "
+        "product/intelligence records), or 75 company dossiers at ~200 credits each."
     )
 
 
-def test_standard_3000_pack_reprices_to_thirty_thousand_credits() -> None:
-    package = get_credit_package("standard_3000")
+def test_only_two_paid_packages_exist_after_the_2026_07_27_simplification() -> None:
+    """Founder decision (2026-07-27): two paid tiers only — monthly and one-time.
+    The $25/30k and $100/150k packs are retired entirely, not merely hidden."""
+    package_ids = {package.package_id for package in credit_packages()}
 
-    assert package.amount_cents == 2500
-    assert package.standard_credits == 30000
-    assert package.customer_summary == (
-        "30,000 standard credits for $25 — a volume discount for recurring API users "
-        "(150 company dossiers at ~200 credits each)."
-    )
-
-
-def test_standard_15000_pack_reprices_to_one_hundred_fifty_thousand_credits() -> None:
-    package = get_credit_package("standard_15000")
-
-    assert package.amount_cents == 10000
-    assert package.standard_credits == 150000
-    assert package.customer_summary == (
-        "150,000 standard credits for $100 for heavier teams once support and abuse "
-        "controls are proven (750 company dossiers at ~200 credits each)."
-    )
+    assert "standard_3000" not in package_ids
+    assert "standard_15000" not in package_ids
+    assert {"standard_1000", "monthly"} <= package_ids
 
 
 def test_free_ga_package_is_the_public_zero_cost_acquisition_tier() -> None:
@@ -67,7 +55,7 @@ def test_free_ga_package_is_the_public_zero_cost_acquisition_tier() -> None:
     assert package.customer_summary == (
         "5,000 standard credits, free, one-time: roughly 5,000 pages, 25 company "
         "dossiers at ~200 credits each, or 2 product catalogs. Scout's public GA "
-        "acquisition tier — no subscription required."
+        "acquisition tier. No subscription required."
     )
 
 
@@ -90,35 +78,31 @@ def test_beta_trial_package_is_free_limited_and_timeboxed() -> None:
     assert package.is_public_purchase is False
 
 
-def test_high_volume_package_maps_to_pro_plan_limits() -> None:
-    package = get_credit_package("standard_15000")
-
-    assert package.hosted_plan is HostedPlan.HOSTED_PRO
-
-
 def test_paid_packages_default_to_one_time_not_subscription() -> None:
     package = get_credit_package("standard_1000")
 
     assert package.is_subscription is False
 
 
-def test_unlimited_monthly_package_is_a_recurring_subscription() -> None:
-    package = get_credit_package("unlimited_monthly")
+def test_monthly_package_is_a_recurring_subscription() -> None:
+    package = get_credit_package("monthly")
 
     assert package.amount_cents == 1200
     assert package.currency == "usd"
-    assert package.standard_credits == 50000
+    assert package.standard_credits == 20000
     assert package.browser_credits == 0
     assert package.trial_days == 0
     assert package.requires_payment_method is True
     assert package.is_public_purchase is True
     assert package.is_subscription is True
-    assert package.hosted_plan is HostedPlan.HOSTED_UNLIMITED
+    assert package.hosted_plan is HostedPlan.HOSTED_MONTHLY
     assert "unlimited" not in package.customer_summary.lower()
     assert package.customer_summary == (
-        "$12/month: 50,000 credits / month — 20,000 page operations (scrape, crawl, "
-        "map, screenshot) + 10,000 products + 100 company dossiers at ~200 credits "
-        "each, resetting every billing cycle."
+        "$12/month: 20,000 credits / month. 1 credit = 1 operation (a page, a "
+        "product, or a record). These are not fixed buckets, spend the 20,000 "
+        "however you want. Example: 5,000 page operations (scrape, crawl, map, "
+        "screenshot) + 5,000 products + 50 company dossiers at ~200 credits each, "
+        "resetting every billing cycle."
     )
 
 
@@ -137,23 +121,21 @@ def test_company_dossier_credit_cost_is_standardized_at_200() -> None:
 
 def test_dossiers_per_package_uses_the_standardized_dossier_cost() -> None:
     assert dossiers_per_package("free_ga") == 25
-    assert dossiers_per_package("standard_1000") == 50
-    assert dossiers_per_package("standard_3000") == 150
-    assert dossiers_per_package("standard_15000") == 750
-    assert dossiers_per_package("unlimited_monthly") == 250
+    assert dossiers_per_package("standard_1000") == 75
+    assert dossiers_per_package("monthly") == 100
 
 
 def test_unit_economics_for_1000_credit_pack_meets_default_margin_target() -> None:
     economics = package_unit_economics("standard_1000", DEFAULT_UNIT_ECONOMICS)
 
     assert economics.revenue_cents == 1000
-    assert economics.variable_cost_cents == 100
+    assert economics.variable_cost_cents == 150
     assert economics.payment_fee_cents == 59
-    assert economics.loaded_cost_cents == 209
-    assert economics.gross_profit_cents == 791
-    assert economics.gross_margin_percent == 79.1
+    assert economics.loaded_cost_cents == 259
+    assert economics.gross_profit_cents == 741
+    assert economics.gross_margin_percent == 74.1
     assert economics.target_margin_met is True
-    assert economics.break_even_packages_per_month == 16
+    assert economics.break_even_packages_per_month == 17
 
 
 def test_unit_economics_marks_low_margin_when_costs_are_too_high() -> None:

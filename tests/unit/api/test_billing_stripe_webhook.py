@@ -167,7 +167,7 @@ def test_stripe_webhook_paid_package_delivery_includes_package_credit_metadata(
     assert stored.package_id == "standard_1000"
     assert stored.amount_total_cents == 1000
     assert delivered.package_id == "standard_1000"
-    assert delivered.standard_credits == 10000
+    assert delivered.standard_credits == 15000
     assert delivered.browser_credits == 0
     assert delivered.trial_days == 0
     assert "scout_live_" not in response.text
@@ -275,7 +275,7 @@ def test_stripe_webhook_paid_checkout_tops_up_existing_account_without_key_email
     assert body["delivery_status"] == "not_required"
     assert body["tenant_id"] == beta.tenant.tenant_id
     assert body["key_id"] == beta.api_key.key_id
-    assert balance.standard_credits_remaining == 10060
+    assert balance.standard_credits_remaining == 15060
     assert balance.browser_credits_remaining == 0
     assert stored is not None
     assert stored.package_id == "standard_1000"
@@ -338,8 +338,8 @@ def test_stripe_webhook_invoice_paid_resets_subscriber_credits(tmp_path: Path) -
     account_service = HostedAccountService(account_store)
     payment_store = SQLiteHostedPaymentStore(tmp_path / "hosted.sqlite")
     service = HostedPaymentProvisioningService(account_service, payment_store)
-    # Seed an active unlimited subscriber via a completed subscription checkout.
-    checkout_payload = _unlimited_subscription_checkout_event_payload()
+    # Seed an active monthly subscriber via a completed subscription checkout.
+    checkout_payload = _monthly_subscription_checkout_event_payload()
     delivery_service = RecordingKeyDeliveryService()
     client = _client(service, delivery_service)
     client.post(
@@ -370,7 +370,7 @@ def test_stripe_webhook_invoice_paid_resets_subscriber_credits(tmp_path: Path) -
     body = response.json()
     assert body["success"] is True
     assert body["ignored"] is False
-    assert balance.standard_credits_remaining == 50000
+    assert balance.standard_credits_remaining == 20000
     assert "scout_live_" not in response.text
 
 
@@ -379,7 +379,7 @@ def test_stripe_webhook_subscription_deleted_revokes_subscriber(tmp_path: Path) 
     account_service = HostedAccountService(account_store)
     payment_store = SQLiteHostedPaymentStore(tmp_path / "hosted.sqlite")
     service = HostedPaymentProvisioningService(account_service, payment_store)
-    checkout_payload = _unlimited_subscription_checkout_event_payload()
+    checkout_payload = _monthly_subscription_checkout_event_payload()
     client = _client(service, RecordingKeyDeliveryService())
     client.post(
         "/v1/billing/stripe/webhook",
@@ -409,7 +409,7 @@ def test_stripe_webhook_subscription_deleted_revokes_subscriber(tmp_path: Path) 
     assert response.json()["success"] is True
     assert balance.standard_credits_remaining == 0
     assert tenant is not None
-    assert tenant.plan is not HostedPlan.HOSTED_UNLIMITED
+    assert tenant.plan is not HostedPlan.HOSTED_MONTHLY
 
 
 def test_stripe_webhook_invoice_paid_rejects_bad_signature(tmp_path: Path) -> None:
@@ -542,8 +542,8 @@ def _standard_1000_checkout_event_payload() -> bytes:
     )
 
 
-def _unlimited_subscription_checkout_event_payload() -> bytes:
-    """Return an unlimited-subscription checkout.session.completed event payload."""
+def _monthly_subscription_checkout_event_payload() -> bytes:
+    """Return a monthly-subscription checkout.session.completed event payload."""
     return _event_payload(
         {
             "id": "evt_sub_checkout_001",
@@ -558,8 +558,8 @@ def _unlimited_subscription_checkout_event_payload() -> bytes:
                     "currency": "usd",
                     "payment_status": "paid",
                     "metadata": {
-                        "package_id": "unlimited_monthly",
-                        "plan": "hosted_unlimited",
+                        "package_id": "monthly",
+                        "plan": "hosted_monthly",
                         "name": "Builder Person",
                     },
                     "customer_details": {

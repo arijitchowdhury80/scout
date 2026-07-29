@@ -8,11 +8,13 @@ from urllib.parse import urlparse
 import structlog
 
 from scout.core.artifacts import write_product_artifacts
+from scout.core.llm_extract import llm_extract_products
 from scout.core.modes.map import map_urls
 from scout.core.modes.scrape import scrape
 from scout.core.products.algolia import (
     build_algolia_record,
     build_listing_algolia_record,
+    build_llm_fallback_record,
     is_junk_record,
 )
 from scout.core.products.discovery import ProductUrlGroups, group_product_urls, normalize_start_url
@@ -34,8 +36,16 @@ from scout.core.types import (
 logger = structlog.get_logger(__name__)
 
 
-async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
-    """Discover product pages, extract product fields, and emit Algolia records."""
+async def products(req: ProductCrawlRequest, llm_api_key: str = "") -> ProductCrawlResponse:
+    """Discover product pages, extract product fields, and emit Algolia records.
+
+    `llm_api_key` gates the LLM extraction fallback (FX: durable long-tail
+    moat). It is empty by default — every existing caller that doesn't pass
+    it explicitly gets the old heuristics-only behaviour unchanged. When set,
+    the LLM fallback only fires if the heuristic paths (JSON-LD, listing
+    cards, browser fallback) produced zero product records for the whole
+    run — see `_llm_products_fallback` below.
+    """
     started = time.monotonic()
     start_url = normalize_start_url(req.site, req.start_url)
     if not start_url:
@@ -78,37 +88,80 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
                         use_js=req.use_js,
                         timeout_ms=req.timeout_ms,
                         stealth=req.stealth,
+                        respect_robots_txt=req.respect_robots_txt,
                     )
                 )
                 if not scrape_resp.success:
+                    # FX-1b: a failed primary fetch (success=False — the lacoste/
+                    # eyebuydirect repro: empty render, no error) must NOT be
+                    # silently skipped. Previously this branch `continue`d before
+                    # the browser fallback ever had a chance to engage, which is
+                    # exactly why blocked_pages downstream reported
+                    # fallback_attempted=True (an artifact of echoing the config
+                    # flag) while fallback_used stayed False — no fallback had
+                    # actually run. Engage the fallback here for real.
                     logger.warning(
                         "[scout/products] scrape failed", url=url, error=scrape_resp.error
                     )
-                    continue
-                if _is_blocked(scrape_resp):
-                    fallback_resp = await _browser_fallback_scrape(req, url)
-                    blocked_page = _blocked_page(
+                    record, blocked_page = await _recover_via_fallback(
+                        req,
                         url=url,
                         group=group,
                         scrape_resp=scrape_resp,
-                        fallback_resp=fallback_resp,
+                        reason="fetch_failed",
                     )
                     blocked_pages.append(blocked_page)
-                    if fallback_resp and fallback_resp.success and not _is_blocked(fallback_resp):
-                        product = extract_product_jsonld(fallback_resp.raw_html)
-                        record = build_algolia_record(
-                            url=fallback_resp.url,
-                            title=fallback_resp.metadata.title,
-                            category_name=group.category_name,
-                            category_url=group.category_url,
-                            product=product,
-                        )
-                        record.source.extractor = f"{record.source.extractor}_browser_fallback"
+                    if record:
+                        _keep_best_record(records_by_url, record)
+                        continue
+                    logger.warning(
+                        "[scout/products] fetch failed and fallback did not recover", url=url
+                    )
+                    continue
+                if _is_blocked(scrape_resp):
+                    record, blocked_page = await _recover_via_fallback(
+                        req,
+                        url=url,
+                        group=group,
+                        scrape_resp=scrape_resp,
+                        reason="access_denied",
+                    )
+                    blocked_pages.append(blocked_page)
+                    if record:
                         _keep_best_record(records_by_url, record)
                         continue
                     logger.warning("[scout/products] blocked page skipped", url=url)
                     continue
                 product = extract_product_jsonld(scrape_resp.raw_html)
+                if product is None:
+                    # FX-2: the FX-1b fallback trigger only fired on
+                    # success=False, so a primary fetch that returns
+                    # success=True but extracts ZERO product records (the
+                    # lacoste repro — `fallback_attempted: false`, reason
+                    # `no_product_records`) skipped the fallback entirely.
+                    # Route this through the same recovery path used for
+                    # failed/blocked fetches instead of fabricating a
+                    # title-only placeholder record.
+                    logger.warning(
+                        "[scout/products] scrape succeeded but no product data extracted",
+                        url=url,
+                    )
+                    record, blocked_page = await _recover_via_fallback(
+                        req,
+                        url=url,
+                        group=group,
+                        scrape_resp=scrape_resp,
+                        reason="no_product_records",
+                    )
+                    blocked_pages.append(blocked_page)
+                    if record:
+                        _keep_best_record(records_by_url, record)
+                        continue
+                    logger.warning(
+                        "[scout/products] no product records and fallback did not recover",
+                        url=url,
+                    )
+                    continue
                 record = build_algolia_record(
                     url=scrape_resp.url,
                     title=scrape_resp.metadata.title,
@@ -121,11 +174,31 @@ async def products(req: ProductCrawlRequest) -> ProductCrawlResponse:
         records = [r for r in records_by_url.values() if not is_junk_record(r.name)][
             : req.max_products
         ]
+
+        llm_fallback_attempted = False
+        if not records and llm_api_key:
+            # FX: heuristics (JSON-LD, listing cards, browser fallback) found
+            # nothing for this entire run — try the LLM extraction fallback
+            # once, over the best candidate page, before giving up. This is
+            # the only place the LLM fallback runs, and it only runs here
+            # because `records` is empty.
+            llm_fallback_attempted = True
+            fallback_page_url = groups[0].category_url if groups else start_url
+            llm_records = await _llm_products_fallback(
+                req, llm_api_key=llm_api_key, page_url=fallback_page_url
+            )
+            if llm_records:
+                records = llm_records[: req.max_products]
+
         if not records and not blocked_pages:
+            # No product URL was ever discovered to fetch, so no fallback could
+            # have run — fallback_attempted must be False here, not an echo of
+            # the browser_fallback config flag (that was the FX-1b bug: a
+            # config value standing in for "did this actually happen").
             blocked_pages.append(
                 _empty_product_evidence(
                     start_url=start_url,
-                    fallback_attempted=req.browser_fallback,
+                    fallback_attempted=llm_fallback_attempted,
                 )
             )
         raw_products = [record.model_dump(mode="json", by_alias=True) for record in records]
@@ -193,11 +266,62 @@ def _is_blocked(resp: ScrapeResponse) -> bool:
     return "access denied" in text or "powered and protected by" in text
 
 
+async def _llm_products_fallback(
+    req: ProductCrawlRequest,
+    *,
+    llm_api_key: str,
+    page_url: str,
+) -> list[AlgoliaProductRecord]:
+    """Heuristic-first LLM fallback: only called when JSON-LD/card/browser
+    heuristics found zero product records for the whole run (see `products`
+    above). Re-fetches the best candidate page's rendered markdown and asks
+    a cheap, bounded LLM (claude-haiku-4-5) to name products it can see.
+    Returns [] on any failure — never fabricates a record.
+    """
+    scrape_resp = await scrape(
+        ScrapeRequest(
+            url=page_url,
+            formats=[ScoutFormats.MARKDOWN],
+            use_js=True,
+            timeout_ms=req.timeout_ms,
+            stealth=req.stealth,
+            respect_robots_txt=req.respect_robots_txt,
+        )
+    )
+    if not scrape_resp.success or not scrape_resp.markdown.strip():
+        logger.info(
+            "[scout/products] llm fallback skipped, no renderable content",
+            url=page_url,
+        )
+        return []
+
+    items = await llm_extract_products(scrape_resp.markdown, llm_api_key, page_url=page_url)
+    records: list[AlgoliaProductRecord] = []
+    for item in items:
+        if not item.name.strip():
+            continue
+        records.append(
+            build_llm_fallback_record(
+                name=item.name.strip(),
+                url=item.url,
+                price=item.price,
+                currency=item.currency,
+                page_url=scrape_resp.url or page_url,
+            )
+        )
+    logger.info(
+        "[scout/products] llm fallback fired",
+        url=page_url,
+        records_found=len(records),
+    )
+    return records
+
+
 async def _browser_fallback_scrape(
     req: ProductCrawlRequest,
     url: str,
 ) -> ScrapeResponse | None:
-    """Retry a blocked product URL through the headed browser fallback channel."""
+    """Retry a blocked/failed product URL through the headed browser fallback channel."""
     if not req.browser_fallback:
         return None
     logger.info("[scout/products] browser fallback retry", url=url)
@@ -209,8 +333,53 @@ async def _browser_fallback_scrape(
             timeout_ms=req.timeout_ms,
             stealth=True,
             headless=req.browser_fallback_headless,
+            respect_robots_txt=req.respect_robots_txt,
         )
     )
+
+
+async def _recover_via_fallback(
+    req: ProductCrawlRequest,
+    *,
+    url: str,
+    group: ProductUrlGroups,
+    scrape_resp: ScrapeResponse,
+    reason: str,
+) -> tuple[AlgoliaProductRecord | None, BlockedPage]:
+    """Engage the browser fallback for a failed-or-blocked primary fetch.
+
+    FX-1b: this is the single place the fallback actually runs, so
+    `fallback_attempted`/`fallback_used` on the returned BlockedPage always
+    reflect what really happened — never just the `browser_fallback` config
+    flag. Returns (record, blocked_page); record is None when the fallback
+    did not recover usable content (an honest "blocked" outcome, not a
+    silent empty).
+    """
+    fallback_resp = await _browser_fallback_scrape(req, url)
+    record: AlgoliaProductRecord | None = None
+    if fallback_resp and fallback_resp.success and not _is_blocked(fallback_resp):
+        product = extract_product_jsonld(fallback_resp.raw_html)
+        # FX-2: don't fabricate a title-only placeholder when even the
+        # fallback finds no product JSON-LD — record stays None so the
+        # crawl reports an honest empty instead of a silent junk record.
+        if product is not None:
+            record = build_algolia_record(
+                url=fallback_resp.url,
+                title=fallback_resp.metadata.title,
+                category_name=group.category_name,
+                category_url=group.category_url,
+                product=product,
+            )
+            record.source.extractor = f"{record.source.extractor}_browser_fallback"
+    blocked_page = _blocked_page(
+        url=url,
+        group=group,
+        scrape_resp=scrape_resp,
+        fallback_resp=fallback_resp,
+        reason=reason,
+        fallback_used=record is not None,
+    )
+    return record, blocked_page
 
 
 def _blocked_page(
@@ -218,14 +387,15 @@ def _blocked_page(
     group: ProductUrlGroups,
     scrape_resp: ScrapeResponse,
     fallback_resp: ScrapeResponse | None,
+    reason: str = "access_denied",
+    fallback_used: bool = False,
 ) -> BlockedPage:
     """Build blocked-page evidence including fallback attempt outcome."""
     fallback_attempted = fallback_resp is not None
-    fallback_used = bool(fallback_resp and fallback_resp.success and not _is_blocked(fallback_resp))
     fallback_error = fallback_resp.error if fallback_resp and not fallback_resp.success else ""
     return BlockedPage(
         url=url,
-        reason="access_denied",
+        reason=reason,
         category_url=group.category_url,
         category_name=group.category_name,
         title=scrape_resp.metadata.title,
@@ -249,7 +419,14 @@ async def _discover_from_categories(
     req: ProductCrawlRequest,
     urls: list[str],
 ) -> list[ProductUrlGroups]:
-    category_urls = select_category_urls(urls, query=req.query, limit=req.max_categories)
+    # Restrict candidates to the crawl's own host — `urls` is always led by
+    # the site's start_url (see call sites above), and BFS-discovered links
+    # can otherwise pull in an unrelated subdomain/microsite (see
+    # discovery.py's select_category_urls docstring).
+    domain = urlparse(urls[0]).netloc if urls else ""
+    category_urls = select_category_urls(
+        urls, query=req.query, limit=req.max_categories, domain=domain
+    )
     groups = []
     for category_url in category_urls:
         scrape_resp = await scrape(
@@ -259,6 +436,7 @@ async def _discover_from_categories(
                 use_js=req.use_js,
                 timeout_ms=req.timeout_ms,
                 stealth=req.stealth,
+                respect_robots_txt=req.respect_robots_txt,
             )
         )
         if not scrape_resp.success:

@@ -10,6 +10,7 @@ Returns ScrapeResponse with:
 
 from __future__ import annotations
 
+import asyncio
 import time
 from datetime import datetime, timezone
 import hashlib
@@ -21,9 +22,66 @@ from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
 from crawl4ai.content_filter_strategy import PruningContentFilter
 from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
 
+from scout.core.pdf import extract_pdf_text, fetch_pdf_bytes, looks_like_pdf_url
 from scout.core.types import ScoutFormats, ScoutMetadata, ScrapeRequest, ScrapeResponse
 
 logger = structlog.get_logger(__name__)
+
+# FX-1a: bounded retry on transient nav/network errors only (never on
+# deterministic blocks like 4xx/anti-bot responses). See
+# docs/test-results-2026-07-26/FIX-PLAN.md FX-1a — one confirmed transient
+# failure (net::ERR_HTTP2_PROTOCOL_ERROR under memory pressure) used to fail
+# the whole run with no retry.
+MAX_TRANSIENT_RETRIES = 2
+RETRY_BACKOFF_SECONDS = 0.5
+
+_TRANSIENT_ERROR_SIGNATURES = (
+    "net::err_http2_protocol_error",
+    "net::err_connection_reset",
+    "net::err_connection_closed",
+    "net::err_connection_refused",
+    "net::err_connection_timed_out",
+    "net::err_connection_aborted",
+    "net::err_empty_response",
+    "net::err_network_changed",
+    "net::err_timed_out",
+    "timeout",
+)
+
+
+def _is_transient_error(error_message: str | None, status_code: int | None) -> bool:
+    """Whether a failed fetch looks like a transient blip worth retrying.
+
+    Deterministic blocks (4xx/5xx from the server — anti-bot, not-found,
+    etc.) are NOT retried; retrying those just burns time on a fetch that
+    will fail the same way every time.
+    """
+    if status_code is not None and 400 <= status_code < 600:
+        return False
+    lowered = (error_message or "").lower()
+    return any(signature in lowered for signature in _TRANSIENT_ERROR_SIGNATURES)
+
+
+def _status_code_of(result: object) -> int | None:
+    """Read status_code off a crawl4ai result, tolerating mocks/older versions."""
+    value = getattr(result, "status_code", None)
+    return value if isinstance(value, int) else None
+
+
+def _failure_reason(result: object) -> str:
+    """Build a non-empty diagnostic string for a failed crawl4ai result.
+
+    FX-1c: the observed bug was a failed scrape returning BOTH
+    status_code=None and error_message=None with no diagnostic anywhere —
+    impossible to support or debug. This always returns something useful.
+    """
+    error_message = getattr(result, "error_message", None)
+    if error_message:
+        return str(error_message)
+    status_code = _status_code_of(result)
+    if status_code is not None:
+        return f"HTTP {status_code}"
+    return "Crawl failed with no error detail or status code from crawl4ai"
 
 
 def _estimate_tokens(text: str) -> int:
@@ -149,16 +207,103 @@ def _build_run_config(req: ScrapeRequest, *, want_screenshot: bool) -> CrawlerRu
         "magic": req.stealth,
         # stealth runs get navigator override for free; or opt in explicitly
         "override_navigator": req.stealth or req.override_navigator,
+        # FX-10a: crawl4ai defaults check_robots_txt to False. Scout defaults to
+        # respecting robots.txt; respect_robots_txt=False on the request opts out.
+        "check_robots_txt": req.respect_robots_txt,
+        # MOAT intelligence render: scroll to flush lazy-loaded exec/product
+        # content. Inert by default (crawl4ai default False).
+        "scan_full_page": req.scan_full_page,
     }
     if req.mean_delay is not None:
         kwargs["mean_delay"] = req.mean_delay
+    # MOAT: only override crawl4ai's own sane defaults when the caller opts in.
+    # Empty wait_until keeps crawl4ai's default ("domcontentloaded"); None delay
+    # keeps its default (0.1s). Setting them unconditionally would regress the
+    # common path (e.g. forcing an empty string is not a valid wait_until).
+    if req.wait_until:
+        kwargs["wait_until"] = req.wait_until
+    if req.delay_before_return_html is not None:
+        kwargs["delay_before_return_html"] = req.delay_before_return_html
+    if req.block_images:
+        kwargs["exclude_all_images"] = True
+        kwargs["exclude_external_images"] = True
     return CrawlerRunConfig(**kwargs)
+
+
+async def _scrape_pdf(req: ScrapeRequest, crawled_at: str, started: float) -> ScrapeResponse:
+    """FX-11 Build 1: fetch a PDF URL and extract text via pypdf.
+
+    Bypasses Crawl4AI/the browser entirely — a raw PDF byte stream doesn't
+    need JS rendering, and Crawl4AI has no supported public API for PDF
+    text extraction (see scout.core.pdf module docstring).
+    """
+
+    def _empty_meta() -> ScoutMetadata:
+        return ScoutMetadata(url=req.url, crawled_at=crawled_at)
+
+    try:
+        pdf_bytes = await fetch_pdf_bytes(req.url, timeout_ms=req.timeout_ms)
+        markdown, pdf_meta = extract_pdf_text(pdf_bytes)
+    except Exception as exc:
+        duration_ms = int((time.monotonic() - started) * 1000)
+        logger.warning("[scout/scrape] pdf extraction failed", url=req.url, error=str(exc))
+        score, reasons, collector, collector_reason = _quality_score(
+            title="", markdown="", links=[], success=False, error=str(exc)
+        )
+        return ScrapeResponse(
+            success=False,
+            url=req.url,
+            metadata=_empty_meta(),
+            fetched_at=crawled_at,
+            provider="pdf",
+            quality_score=score,
+            quality_reasons=reasons,
+            recommended_collector=collector,
+            recommended_collector_reason=collector_reason,
+            error=str(exc),
+            duration_ms=duration_ms,
+        )
+
+    duration_ms = int((time.monotonic() - started) * 1000)
+    metadata = ScoutMetadata(
+        url=req.url,
+        crawled_at=crawled_at,
+        title=pdf_meta.title,
+        word_count=_count_words(markdown),
+        token_estimate=_estimate_tokens(markdown),
+    )
+    quality, quality_reasons, collector, collector_reason = _quality_score(
+        title=pdf_meta.title, markdown=markdown, links=[], success=True
+    )
+    return ScrapeResponse(
+        success=True,
+        url=req.url,
+        status_code=200,
+        markdown=markdown,
+        raw_markdown=markdown,
+        clean_markdown=markdown,
+        metadata=metadata,
+        final_url=req.url,
+        fetched_at=crawled_at,
+        provider="pdf",
+        content_hash=_content_hash(markdown),
+        cleanup_rules_applied=["pypdf.extract_text"],
+        quality_score=quality,
+        quality_reasons=quality_reasons,
+        recommended_collector=collector,
+        recommended_collector_reason=collector_reason,
+        duration_ms=duration_ms,
+        pdf=pdf_meta,
+    )
 
 
 async def scrape(req: ScrapeRequest) -> ScrapeResponse:
     """Fetch a single URL and return clean content."""
     started = time.monotonic()
     crawled_at = datetime.now(timezone.utc).isoformat()
+
+    if looks_like_pdf_url(req.url):
+        return await _scrape_pdf(req, crawled_at, started)
 
     want_screenshot = ScoutFormats.SCREENSHOT in req.formats
     want_raw_html = ScoutFormats.RAW_HTML in req.formats
@@ -174,25 +319,58 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
         return ScoutMetadata(url=req.url, crawled_at=crawled_at)
 
     try:
+        # FX-4: each attempt gets its OWN `async with AsyncWebCrawler(...)`
+        # block — i.e. a fresh browser context — rather than retrying
+        # `arun()` on the same crawler that just failed. Under sustained
+        # load a net::ERR_HTTP2_PROTOCOL_ERROR can leave that context's
+        # underlying connection/browser state poisoned, so reusing it just
+        # reproduces the same failure. Bounded by MAX_TRANSIENT_RETRIES.
         async with AsyncWebCrawler(config=browser_cfg) as crawler:
             # arun() returns CrawlResultContainer whose __getattr__ delegates to _results[0].
             # Cast to CrawlResult so pyright can resolve attributes; runtime behaviour is unchanged.
             result = cast(CrawlResult, await crawler.arun(req.url, config=run_cfg))
 
+        attempt = 1
+        while not result.success and attempt <= MAX_TRANSIENT_RETRIES:
+            error_message = getattr(result, "error_message", None)
+            status_code = _status_code_of(result)
+            if not _is_transient_error(error_message, status_code):
+                break
+            logger.warning(
+                "[scout/scrape] transient error, retrying with fresh browser context",
+                url=req.url,
+                attempt=attempt,
+                max_retries=MAX_TRANSIENT_RETRIES,
+                error=error_message,
+                status_code=status_code,
+            )
+            await asyncio.sleep(RETRY_BACKOFF_SECONDS * attempt)
+            async with AsyncWebCrawler(config=browser_cfg) as retry_crawler:
+                result = cast(CrawlResult, await retry_crawler.arun(req.url, config=run_cfg))
+            attempt += 1
+
         duration_ms = int((time.monotonic() - started) * 1000)
 
         if not result.success:
-            logger.warning("[scout/scrape] crawl failed", url=req.url, error=result.error_message)
+            status_code = _status_code_of(result)
+            error_reason = _failure_reason(result)
+            logger.warning(
+                "[scout/scrape] crawl failed",
+                url=req.url,
+                status_code=status_code,
+                error=error_reason,
+            )
             score, reasons, collector, collector_reason = _quality_score(
                 title="",
                 markdown="",
                 links=[],
                 success=False,
-                error=result.error_message or "Unknown error",
+                error=error_reason,
             )
             return ScrapeResponse(
                 success=False,
                 url=req.url,
+                status_code=status_code,
                 metadata=_empty_meta(),
                 fetched_at=crawled_at,
                 provider="crawl4ai",
@@ -200,7 +378,7 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
                 quality_reasons=reasons,
                 recommended_collector=collector,
                 recommended_collector_reason=collector_reason,
-                error=result.error_message or "Unknown error",
+                error=error_reason,
                 duration_ms=duration_ms,
             )
 
@@ -234,6 +412,7 @@ async def scrape(req: ScrapeRequest) -> ScrapeResponse:
         return ScrapeResponse(
             success=True,
             url=final_url,
+            status_code=_status_code_of(result),
             markdown=clean_md,
             raw_markdown=raw_md,
             clean_markdown=clean_md,

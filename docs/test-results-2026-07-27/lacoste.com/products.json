@@ -1,0 +1,61 @@
+{
+  "success": true,
+  "job_id": "job_1d41b0b1cc284b50",
+  "kind": "products",
+  "status": "complete",
+  "retry_after_seconds": 10,
+  "hosted": {
+    "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+    "key_id": "key_115674082548492f9e56a1b0127f4e82",
+    "credits_charged": 0,
+    "credit_type": "standard"
+  },
+  "created_at": "2026-07-27T20:02:57.063820+00:00",
+  "started_at": "2026-07-27T20:02:57.064049+00:00",
+  "finished_at": "2026-07-27T20:03:03.959152+00:00",
+  "result": {
+    "success": true,
+    "hosted": {
+      "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+      "key_id": "key_115674082548492f9e56a1b0127f4e82",
+      "credits_charged": 0,
+      "credit_type": "standard"
+    },
+    "products": {
+      "success": true,
+      "query": "",
+      "site": "",
+      "start_url": "https://lacoste.com",
+      "output_dir": "",
+      "records": [],
+      "total_records": 0,
+      "categories": [],
+      "blocked_pages": [
+        {
+          "url": "https://lacoste.com",
+          "reason": "no_product_records",
+          "category_url": "",
+          "category_name": "",
+          "title": "No product records extracted",
+          "fallback_attempted": false,
+          "fallback_used": false,
+          "fallback_error": ""
+        }
+      ],
+      "total_blocked_pages": 1,
+      "files": {
+        "manifest": "",
+        "urls": "",
+        "raw_products": "",
+        "products_json": "",
+        "products_ndjson": "",
+        "settings_json": "",
+        "blocked_pages_json": "",
+        "report": ""
+      },
+      "error": "",
+      "duration_ms": 6894
+    }
+  },
+  "error": ""
+}

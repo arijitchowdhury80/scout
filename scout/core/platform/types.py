@@ -89,6 +89,7 @@ class ArtifactFiles(BaseModel):
     manifest: str = ""
     records_json: str = ""
     records_jsonl: str = ""
+    records_csv: str = ""
     source_pages_json: str = ""
     blocked_pages_json: str = ""
     validation_json: str = ""
@@ -122,6 +123,10 @@ class RunRequest(BaseModel):
     providers: list[FetchProviderKind] = Field(default_factory=list)
     max_targets: int = Field(default=25, gt=0)
     max_records: int = Field(default=250, gt=0)
+    # FX-11 Build 3: careers-vertical-only filter. Keeps only roles whose
+    # posted_at falls within this window; roles with no discoverable date
+    # always pass through (flagged), never filtered out speculatively.
+    posted_within_hours: int | None = Field(default=None, gt=0)
 
 
 class RunResponse(BaseModel):

@@ -1,0 +1,50 @@
+{
+  "success": true,
+  "job_id": "job_ba198c09d34d4466",
+  "kind": "crawl",
+  "status": "complete",
+  "retry_after_seconds": 10,
+  "hosted": {
+    "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+    "key_id": "key_115674082548492f9e56a1b0127f4e82",
+    "credits_charged": 0,
+    "credit_type": "standard"
+  },
+  "created_at": "2026-07-27T03:30:22.675793+00:00",
+  "started_at": "2026-07-27T03:30:22.675936+00:00",
+  "finished_at": "2026-07-27T03:30:23.860955+00:00",
+  "result": {
+    "success": true,
+    "hosted": {
+      "tenant_id": "tenant_ba3608342ea9475f96d15ae737bf9c13",
+      "key_id": "key_115674082548492f9e56a1b0127f4e82",
+      "credits_charged": 1,
+      "credit_type": "standard"
+    },
+    "crawl": {
+      "success": true,
+      "start_url": "https://lacoste.com",
+      "pages": [
+        {
+          "url": "https://lacoste.com",
+          "markdown": "",
+          "metadata": {
+            "url": "https://lacoste.com",
+            "crawled_at": "2026-07-27T03:30:22.675967+00:00",
+            "title": "Access Denied",
+            "description": "",
+            "language": "",
+            "word_count": 6,
+            "token_estimate": 30
+          },
+          "success": false,
+          "error": "Blocked by anti-bot protection: Akamai block (Reference #)"
+        }
+      ],
+      "total_pages": 1,
+      "error": "",
+      "duration_ms": 1170
+    }
+  },
+  "error": ""
+}
